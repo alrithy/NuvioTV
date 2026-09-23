@@ -131,6 +131,7 @@ private const val CINEMA_SPOTLIGHT_DEBOUNCE_MS = 160L
 /** How long a card must hold focus before its trailer is fetched, and then played. */
 private const val CINEMA_TRAILER_REQUEST_DELAY_MS = 1_200L
 private const val CINEMA_TRAILER_START_DELAY_MS = 3_000L
+private const val CINEMA_AMBIENT_SLIDE_MS = 12_000L
 private const val CINEMA_LOAD_MORE_THRESHOLD = 5
 private const val CINEMA_PLACEHOLDER_ID_PREFIX = "__placeholder_"
 private const val CINEMA_FEATURED_ROW_KEY = "cinema_featured"
@@ -278,9 +279,12 @@ fun CinemaHomeContent(
         }
         spotlightItem = target
     }
+    // In ambient mode the screen becomes a slideshow; this is the slide currently shown.
+    var ambientSlide by remember { mutableStateOf<ModernCarouselItem?>(null) }
+
     // TMDB / external-meta enrichment lands after focus; fold it into what the spotlight shows.
-    val displayedSpotlight = remember(spotlightItem, enrichedPreviews) {
-        spotlightItem?.let { item ->
+    val displayedSpotlight = remember(spotlightItem, ambientSlide, enrichedPreviews) {
+        (ambientSlide ?: spotlightItem)?.let { item ->
             val enriched = item.metaPreview?.id?.let(enrichedPreviews::get)
             if (enriched == null) item else item.copy(heroPreview = item.heroPreview.withEnrichment(enriched))
         }
@@ -315,6 +319,25 @@ fun CinemaHomeContent(
         if (optionsItem != null || ambientTimeoutMs <= 0L || trailerActive) return@LaunchedEffect
         delay(ambientTimeoutMs)
         ambient = true
+    }
+    LaunchedEffect(ambient) {
+        if (!ambient) {
+            ambientSlide = null
+            return@LaunchedEffect
+        }
+        // Featured titles make the best slideshow; otherwise cycle the row that had focus.
+        val pool = (rows.firstOrNull { it.source is CinemaRowSource.Featured }
+            ?: rows.firstOrNull { it.key == focusedRowKey })
+            ?.items
+            ?.filter { !it.isPlaceholder() && !it.heroPreview.backdrop.isNullOrBlank() }
+            .orEmpty()
+        if (pool.size < 2) return@LaunchedEffect
+        var index = pool.indexOfFirst { it.key == spotlightItem?.key }
+        while (true) {
+            delay(CINEMA_AMBIENT_SLIDE_MS)
+            index = (index + 1) % pool.size
+            ambientSlide = pool[index]
+        }
     }
     val chromeAlpha by animateFloatAsState(
         targetValue = if (ambient) 0f else 1f,
