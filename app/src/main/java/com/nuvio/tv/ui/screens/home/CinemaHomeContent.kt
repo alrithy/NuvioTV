@@ -53,16 +53,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
@@ -248,7 +248,9 @@ fun CinemaHomeContent(
 
     // Focus memory survives navigating to details and back.
     var focusedRowKey by rememberSaveable { mutableStateOf<String?>(null) }
-    val anchorIndexByRow = rememberSaveable(saver = CinemaAnchorMapSaver) { mutableStateMapOf<String, Int>() }
+    // One state per row: moving along a row only invalidates that row, not every row on screen.
+    val anchorStates = rememberSaveable(saver = CinemaAnchorStatesSaver) { HashMap<String, MutableIntState>() }
+    fun anchorFor(rowKey: String) = anchorStates.getOrPut(rowKey) { mutableIntStateOf(0) }
     val loadMoreRequestedAt = remember { HashMap<String, Int>() }
     var focusedItem by remember { mutableStateOf<ModernCarouselItem?>(null) }
     var spotlightItem by remember { mutableStateOf<ModernCarouselItem?>(null) }
@@ -406,7 +408,7 @@ fun CinemaHomeContent(
                                 row = row,
                                 isActive = row.key == focusedRowKey,
                                 isAfterActive = focusedRowIndex in 0 until index,
-                                anchorIndex = anchorIndexByRow[row.key] ?: 0,
+                                anchorState = anchorFor(row.key),
                                 anchorFocusRequester = requesterFor(row.key),
                                 isCatalogItemWatched = isCatalogItemWatched,
                                 onItemFocused = { itemIndex, item ->
@@ -414,7 +416,7 @@ fun CinemaHomeContent(
                                         focusedRowKey = row.key
                                         latestOnFocusedRowKeyChanged(row.key)
                                     }
-                                    anchorIndexByRow[row.key] = itemIndex
+                                    anchorFor(row.key).intValue = itemIndex
                                     focusedItem = item
                                     item.metaPreview?.let(onItemFocus)
                                     // Warm up the neighbour so its logo/backdrop are ready on the next press.
@@ -707,9 +709,9 @@ private fun buildCinemaRows(
     return rows
 }
 
-private val CinemaAnchorMapSaver = Saver<SnapshotStateMap<String, Int>, HashMap<String, Int>>(
-    save = { HashMap(it) },
-    restore = { saved -> mutableStateMapOf<String, Int>().apply { putAll(saved) } }
+private val CinemaAnchorStatesSaver = Saver<HashMap<String, MutableIntState>, HashMap<String, Int>>(
+    save = { states -> HashMap(states.mapValues { it.value.intValue }) },
+    restore = { saved -> HashMap(saved.mapValues { mutableIntStateOf(it.value) }) }
 )
 
 private fun HeroPreview.withEnrichment(meta: MetaPreview): HeroPreview = copy(
@@ -996,7 +998,7 @@ private fun CinemaRowSection(
     row: CinemaRow,
     isActive: Boolean,
     isAfterActive: Boolean,
-    anchorIndex: Int,
+    anchorState: MutableIntState,
     anchorFocusRequester: FocusRequester,
     isCatalogItemWatched: (MetaPreview) -> Boolean,
     onItemFocused: (Int, ModernCarouselItem) -> Unit,
@@ -1015,7 +1017,7 @@ private fun CinemaRowSection(
     val density = LocalDensity.current
     val startInsetPx = with(density) { CinemaHorizontalInset.toPx() }
     val rowState = rememberLazyListState(
-        initialFirstVisibleItemIndex = anchorIndex.coerceIn(0, (row.items.size - 1).coerceAtLeast(0))
+        initialFirstVisibleItemIndex = anchorState.intValue.coerceIn(0, (row.items.size - 1).coerceAtLeast(0))
     )
     // Keep the focused card on a fixed left rail, like a TV guide.
     val horizontalRailSpec = remember(startInsetPx, rowState) {
@@ -1069,7 +1071,7 @@ private fun CinemaRowSection(
                     horizontalArrangement = Arrangement.spacedBy(18.dp)
                 ) {
                     itemsIndexed(row.items, key = { _, item -> item.key }) { index, item ->
-                        val isAnchor = index == anchorIndex.coerceIn(0, row.items.size - 1)
+                        val isAnchor = index == anchorState.intValue.coerceIn(0, row.items.size - 1)
                         CinemaCard(
                             item = item,
                             isWatched = item.metaPreview?.let(isCatalogItemWatched) == true,
