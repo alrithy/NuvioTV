@@ -108,6 +108,8 @@ import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.legacyKey
 import com.nuvio.tv.ui.components.ContinueWatchingOptionsDialog
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.util.asStable
+import com.nuvio.tv.ui.util.formatHeroRuntime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Date
@@ -168,6 +170,8 @@ fun CinemaHomeContent(
     onCatalogItemLongPress: (MetaPreview, String) -> Unit = { _, _ -> },
     onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
     onItemFocus: (MetaPreview) -> Unit = {},
+    onPreloadAdjacentItem: (MetaPreview) -> Unit = {},
+    enrichedPreviews: Map<String, MetaPreview> = emptyMap(),
     onFocusedRowKeyChanged: (String?) -> Unit = {},
     onRequestLazyCatalogLoad: (String) -> Unit = {}
 ) {
@@ -259,6 +263,13 @@ fun CinemaHomeContent(
         }
         spotlightItem = target
     }
+    // TMDB / external-meta enrichment lands after focus; fold it into what the spotlight shows.
+    val displayedSpotlight = remember(spotlightItem, enrichedPreviews) {
+        spotlightItem?.let { item ->
+            val enriched = item.metaPreview?.id?.let(enrichedPreviews::get)
+            if (enriched == null) item else item.copy(heroPreview = item.heroPreview.withEnrichment(enriched))
+        }
+    }
 
     // Ambient mode: fade the chrome away after a stretch without input.
     var lastInteractionAt by remember { mutableLongStateOf(0L) }
@@ -347,7 +358,7 @@ fun CinemaHomeContent(
             }
     ) {
         CinemaBackdrop(
-            imageUrl = spotlightItem?.let { it.heroPreview.backdrop ?: it.heroPreview.imageUrl ?: it.imageUrl },
+            imageUrl = displayedSpotlight?.let { it.heroPreview.backdrop ?: it.heroPreview.imageUrl ?: it.imageUrl },
             ambientProgress = 1f - chromeAlpha,
             modifier = Modifier.fillMaxSize()
         )
@@ -362,7 +373,7 @@ fun CinemaHomeContent(
             val spotlightHeight = maxHeight * 0.52f
             Column(modifier = Modifier.fillMaxSize()) {
                 CinemaSpotlight(
-                    item = spotlightItem,
+                    item = displayedSpotlight,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(spotlightHeight)
@@ -402,6 +413,8 @@ fun CinemaHomeContent(
                                     anchorIndexByRow[row.key] = itemIndex
                                     focusedItem = item
                                     item.metaPreview?.let(onItemFocus)
+                                    // Warm up the neighbour so its logo/backdrop are ready on the next press.
+                                    row.items.getOrNull(itemIndex + 1)?.metaPreview?.let(onPreloadAdjacentItem)
                                     val source = row.source
                                     if (source is CinemaRowSource.Catalog &&
                                         source.row.hasMore &&
@@ -450,7 +463,7 @@ fun CinemaHomeContent(
         }
 
         // Ambient caption: a quiet reminder of what's on screen.
-        val ambientTitle = spotlightItem?.heroPreview?.title.orEmpty()
+        val ambientTitle = displayedSpotlight?.heroPreview?.title.orEmpty()
         if (ambientTitle.isNotBlank()) {
             Text(
                 text = ambientTitle,
@@ -554,6 +567,11 @@ private fun buildCinemaRows(
         )
     }
 
+    // Enrichment is merged into the catalog rows, not into heroItems, so prefer the row copy.
+    val latestById = HashMap<String, MetaPreview>()
+    homeRows.forEach { row -> if (row is HomeRow.Catalog) row.row.items.forEach { latestById.putIfAbsent(it.id, it) } }
+    @Suppress("NAME_SHADOWING")
+    val heroItems = heroItems.map { latestById[it.id] ?: it }
     if (heroItems.isNotEmpty()) {
         val featuredRow = CatalogRow(
             addonId = CINEMA_FEATURED_ROW_KEY,
@@ -659,6 +677,16 @@ private fun buildCinemaRows(
 private val CinemaAnchorMapSaver = Saver<SnapshotStateMap<String, Int>, HashMap<String, Int>>(
     save = { HashMap(it) },
     restore = { saved -> mutableStateMapOf<String, Int>().apply { putAll(saved) } }
+)
+
+private fun HeroPreview.withEnrichment(meta: MetaPreview): HeroPreview = copy(
+    logo = meta.logo?.takeIf { it.isNotBlank() } ?: logo,
+    backdrop = meta.background?.takeIf { it.isNotBlank() } ?: backdrop,
+    description = meta.description?.takeIf { it.isNotBlank() } ?: description,
+    runtimeText = formatHeroRuntime(meta.runtime) ?: runtimeText,
+    ageRatingText = meta.ageRating?.takeIf { it.isNotBlank() } ?: ageRatingText,
+    imdbText = meta.imdbRating?.let { String.format("%.1f", it) } ?: imdbText,
+    genres = if (meta.genres.isNotEmpty()) meta.genres.take(3).asStable() else genres
 )
 
 private fun ModernCarouselItem.isPlaceholder(): Boolean =

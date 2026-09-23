@@ -737,9 +737,14 @@ private fun CinemaHomeRoute(
     onCatalogItemLongPress: (MetaPreview, String) -> Unit
 ) {
     val scrollToTopTrigger by viewModel.scrollToTopTrigger.collectAsStateWithLifecycle()
+    val enrichedPreviews by viewModel.enrichedPreviews.collectAsStateWithLifecycle()
     CinemaHomeContent(
         uiState = uiState,
         scrollToTopTrigger = scrollToTopTrigger,
+        enrichedPreviews = enrichedPreviews,
+        onPreloadAdjacentItem = remember(viewModel) {
+            { item: MetaPreview -> viewModel.preloadAdjacentItem(item) }
+        },
         onNavigateToDetail = onNavigateToDetail,
         onContinueWatchingClick = onContinueWatchingClick,
         onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginning,
