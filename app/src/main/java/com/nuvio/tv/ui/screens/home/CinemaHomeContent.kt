@@ -101,6 +101,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.nuvio.tv.LocalContentFocusRequester
 import com.nuvio.tv.R
+import com.nuvio.tv.core.poster.withCustomPosterUrls
 import com.nuvio.tv.core.util.withAppLocale
 import com.nuvio.tv.domain.model.CatalogRow
 import com.nuvio.tv.domain.model.MetaPreview
@@ -180,14 +181,34 @@ fun CinemaHomeContent(
     val strTypeSeries = stringResource(R.string.type_series)
     val showImdbRatings = uiState.homeImdbRatingsVisibility.showRatings
 
-    val continueWatchingItems = if (uiState.continueWatchingEnabled) {
-        uiState.continueWatchingItems
-    } else {
-        emptyList()
+    val strUpcomingSection = stringResource(R.string.upcoming_section_title)
+    // Same gating and poster overrides as the other layouts apply to these rows.
+    val continueWatchingItems = remember(
+        uiState.continueWatchingEnabled,
+        uiState.continueWatchingItems,
+        uiState.customPosterUrlPattern
+    ) {
+        if (uiState.continueWatchingEnabled) {
+            uiState.continueWatchingItems.withCustomPosterUrls(uiState.customPosterUrlPattern)
+        } else {
+            emptyList()
+        }
+    }
+    val upcomingItems = remember(
+        uiState.continueWatchingEnabled,
+        uiState.upcomingItems,
+        uiState.customPosterUrlPattern
+    ) {
+        if (uiState.continueWatchingEnabled) {
+            uiState.upcomingItems.withCustomPosterUrls(uiState.customPosterUrlPattern)
+        } else {
+            emptyList()
+        }
     }
 
     val rows = remember(
         continueWatchingItems,
+        upcomingItems,
         uiState.heroItems,
         uiState.heroSectionEnabled,
         uiState.homeRows,
@@ -199,6 +220,7 @@ fun CinemaHomeContent(
     ) {
         buildCinemaRows(
             continueWatchingItems = continueWatchingItems,
+            upcomingItems = upcomingItems,
             heroItems = if (uiState.heroSectionEnabled) uiState.heroItems else emptyList(),
             homeRows = uiState.homeRows.ifEmpty {
                 uiState.catalogRows.filter { it.items.isNotEmpty() }.map { HomeRow.Catalog(it) }
@@ -207,6 +229,7 @@ fun CinemaHomeContent(
             showFullReleaseDate = uiState.showFullReleaseDate,
             showImdbRatings = showImdbRatings,
             strContinueWatching = strContinueWatching,
+            strUpcomingSection = strUpcomingSection,
             strFeatured = strFeatured,
             strAirsDate = strAirsDate,
             strUpcoming = strUpcoming,
@@ -476,12 +499,14 @@ fun CinemaHomeContent(
 
 private fun buildCinemaRows(
     continueWatchingItems: List<ContinueWatchingItem>,
+    upcomingItems: List<ContinueWatchingItem>,
     heroItems: List<MetaPreview>,
     homeRows: List<HomeRow>,
     showCatalogTypeSuffix: Boolean,
     showFullReleaseDate: Boolean,
     showImdbRatings: Boolean,
     strContinueWatching: String,
+    strUpcomingSection: String,
     strFeatured: String,
     strAirsDate: String,
     strUpcoming: String,
@@ -495,6 +520,26 @@ private fun buildCinemaRows(
                 key = MODERN_CONTINUE_WATCHING_ROW_KEY,
                 title = strContinueWatching,
                 items = continueWatchingItems.map { item ->
+                    buildContinueWatchingItem(
+                        item = item,
+                        useLandscapePosters = true,
+                        showImdbRatings = showImdbRatings,
+                        airsDateTemplate = strAirsDate,
+                        upcomingLabel = strUpcoming,
+                        context = context
+                    )
+                },
+                source = CinemaRowSource.ContinueWatching
+            )
+        )
+    }
+
+    if (upcomingItems.isNotEmpty()) {
+        add(
+            CinemaRow(
+                key = MODERN_UPCOMING_ROW_KEY,
+                title = strUpcomingSection,
+                items = upcomingItems.map { item ->
                     buildContinueWatchingItem(
                         item = item,
                         useLandscapePosters = true,
