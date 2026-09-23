@@ -738,8 +738,12 @@ private fun CinemaHomeRoute(
 ) {
     val scrollToTopTrigger by viewModel.scrollToTopTrigger.collectAsStateWithLifecycle()
     val enrichedPreviews by viewModel.enrichedPreviews.collectAsStateWithLifecycle()
+    val cinemaSettings by viewModel.cinemaHomeSettings.collectAsStateWithLifecycle(
+        initialValue = com.nuvio.tv.domain.model.CinemaHomeSettings()
+    )
     CinemaHomeContent(
         uiState = uiState,
+        settings = cinemaSettings,
         scrollToTopTrigger = scrollToTopTrigger,
         enrichedPreviews = enrichedPreviews,
         onPreloadAdjacentItem = remember(viewModel) {

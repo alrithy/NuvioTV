@@ -326,6 +326,48 @@ fun LayoutSettingsContent(
                         )
                     }
 
+                    if (uiState.selectedLayout == HomeLayout.CINEMA) {
+                        val cinema = uiState.cinemaHomeSettings
+                        val updateCinema: (com.nuvio.tv.domain.model.CinemaHomeSettings) -> Unit = { updated ->
+                            viewModel.onEvent(LayoutSettingsEvent.SetCinemaHomeSettings(updated))
+                        }
+                        CompactToggleRow(
+                            title = stringResource(R.string.layout_cinema_trailer_autoplay),
+                            subtitle = stringResource(R.string.layout_cinema_trailer_autoplay_sub),
+                            checked = cinema.trailerAutoplayEnabled,
+                            onToggle = { updateCinema(cinema.copy(trailerAutoplayEnabled = !cinema.trailerAutoplayEnabled)) },
+                            onFocused = { focusedSection = LayoutSettingsSection.HOME_LAYOUT }
+                        )
+                        SliderSettingsItem(
+                            icon = Icons.Default.Timer,
+                            title = stringResource(R.string.layout_cinema_ambient),
+                            subtitle = stringResource(R.string.layout_cinema_ambient_sub),
+                            values = com.nuvio.tv.domain.model.CinemaHomeSettings.AMBIENT_TIMEOUT_OPTIONS,
+                            selected = cinema.ambientTimeoutSeconds,
+                            valueText = if (cinema.ambientTimeoutSeconds == 0) {
+                                stringResource(R.string.layout_cinema_ambient_off)
+                            } else {
+                                "${cinema.ambientTimeoutSeconds}s"
+                            },
+                            onValueChange = { seconds -> updateCinema(cinema.copy(ambientTimeoutSeconds = seconds)) },
+                            onFocused = { focusedSection = LayoutSettingsSection.HOME_LAYOUT }
+                        )
+                        CompactToggleRow(
+                            title = stringResource(R.string.layout_cinema_motion),
+                            subtitle = stringResource(R.string.layout_cinema_motion_sub),
+                            checked = cinema.backdropMotionEnabled,
+                            onToggle = { updateCinema(cinema.copy(backdropMotionEnabled = !cinema.backdropMotionEnabled)) },
+                            onFocused = { focusedSection = LayoutSettingsSection.HOME_LAYOUT }
+                        )
+                        CompactToggleRow(
+                            title = stringResource(R.string.layout_cinema_clock),
+                            subtitle = stringResource(R.string.layout_cinema_clock_sub),
+                            checked = cinema.clockEnabled,
+                            onToggle = { updateCinema(cinema.copy(clockEnabled = !cinema.clockEnabled)) },
+                            onFocused = { focusedSection = LayoutSettingsSection.HOME_LAYOUT }
+                        )
+                    }
+
                     if (uiState.heroSectionEnabled && uiState.availableCatalogs.isNotEmpty() && uiState.selectedLayout != HomeLayout.MODERN) {
                         Text(
                             text = stringResource(R.string.layout_hero_catalogs),

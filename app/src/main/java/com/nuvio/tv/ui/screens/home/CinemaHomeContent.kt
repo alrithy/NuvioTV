@@ -104,6 +104,7 @@ import com.nuvio.tv.R
 import com.nuvio.tv.core.poster.withCustomPosterUrls
 import com.nuvio.tv.core.util.withAppLocale
 import com.nuvio.tv.domain.model.CatalogRow
+import com.nuvio.tv.domain.model.CinemaHomeSettings
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.legacyKey
 import com.nuvio.tv.ui.components.ContinueWatchingOptionsDialog
@@ -125,7 +126,6 @@ import java.util.Date
  */
 
 private const val CINEMA_SPOTLIGHT_DEBOUNCE_MS = 160L
-private const val CINEMA_AMBIENT_IDLE_MS = 25_000L
 private const val CINEMA_LOAD_MORE_THRESHOLD = 5
 private const val CINEMA_PLACEHOLDER_ID_PREFIX = "__placeholder_"
 private const val CINEMA_FEATURED_ROW_KEY = "cinema_featured"
@@ -174,7 +174,8 @@ fun CinemaHomeContent(
     onPreloadAdjacentItem: (MetaPreview) -> Unit = {},
     enrichedPreviews: Map<String, MetaPreview> = emptyMap(),
     onFocusedRowKeyChanged: (String?) -> Unit = {},
-    onRequestLazyCatalogLoad: (String) -> Unit = {}
+    onRequestLazyCatalogLoad: (String) -> Unit = {},
+    settings: CinemaHomeSettings = CinemaHomeSettings()
 ) {
     val context = LocalContext.current
     val localizedContext = remember(context) { context.withAppLocale() }
@@ -279,10 +280,11 @@ fun CinemaHomeContent(
     // Ambient mode: fade the chrome away after a stretch without input.
     var lastInteractionAt by remember { mutableLongStateOf(0L) }
     var ambient by remember { mutableStateOf(false) }
-    LaunchedEffect(lastInteractionAt, optionsItem) {
+    val ambientTimeoutMs = settings.ambientTimeoutSeconds * 1_000L
+    LaunchedEffect(lastInteractionAt, optionsItem, ambientTimeoutMs) {
         // Key events go to the dialog's window while it's open, so don't count that as idle.
-        if (optionsItem != null) return@LaunchedEffect
-        delay(CINEMA_AMBIENT_IDLE_MS)
+        if (optionsItem != null || ambientTimeoutMs <= 0L) return@LaunchedEffect
+        delay(ambientTimeoutMs)
         ambient = true
     }
     val chromeAlpha by animateFloatAsState(
@@ -365,15 +367,18 @@ fun CinemaHomeContent(
     ) {
         CinemaBackdrop(
             imageUrl = displayedSpotlight?.let { it.heroPreview.backdrop ?: it.heroPreview.imageUrl ?: it.imageUrl },
-            ambientProgress = 1f - chromeAlpha,
+            ambientProgress = { 1f - chromeAlpha },
+            motionEnabled = settings.backdropMotionEnabled,
             modifier = Modifier.fillMaxSize()
         )
 
-        CinemaClock(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 28.dp, end = CinemaHorizontalInset)
-        )
+        if (settings.clockEnabled) {
+            CinemaClock(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 28.dp, end = CinemaHorizontalInset)
+            )
+        }
 
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val spotlightHeight = maxHeight * 0.52f
@@ -727,18 +732,18 @@ private fun HeroPreview.withEnrichment(meta: MetaPreview): HeroPreview = copy(
 private fun ModernCarouselItem.isPlaceholder(): Boolean =
     metaPreview?.id?.startsWith(CINEMA_PLACEHOLDER_ID_PREFIX) == true
 
+/** Scale/shift for the backdrop, read in the draw phase so the drift never recomposes. */
+private class CinemaDrift(val scale: () -> Float, val shift: () -> Float) {
+    companion object {
+        val Still = CinemaDrift(scale = { 1.04f }, shift = { 0f })
+    }
+}
+
 @Composable
-private fun CinemaBackdrop(
-    imageUrl: String?,
-    ambientProgress: Float,
-    modifier: Modifier = Modifier
-) {
-    val background = NuvioTheme.colors.Background
-    // Brushes don't mirror on their own; keep the dark side behind the spotlight in RTL too.
-    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    val drift = rememberInfiniteTransition(label = "cinemaDrift")
+private fun rememberCinemaDrift(): CinemaDrift {
+    val transition = rememberInfiniteTransition(label = "cinemaDrift")
     // A slow Ken Burns push that never quite settles.
-    val driftScale by drift.animateFloat(
+    val scale = transition.animateFloat(
         initialValue = 1.02f,
         targetValue = 1.10f,
         animationSpec = infiniteRepeatable(
@@ -747,7 +752,7 @@ private fun CinemaBackdrop(
         ),
         label = "cinemaDriftScale"
     )
-    val driftShift by drift.animateFloat(
+    val shift = transition.animateFloat(
         initialValue = -1f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
@@ -756,6 +761,20 @@ private fun CinemaBackdrop(
         ),
         label = "cinemaDriftShift"
     )
+    return remember(scale, shift) { CinemaDrift(scale = { scale.value }, shift = { shift.value }) }
+}
+
+@Composable
+private fun CinemaBackdrop(
+    imageUrl: String?,
+    ambientProgress: () -> Float,
+    motionEnabled: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val background = NuvioTheme.colors.Background
+    // Brushes don't mirror on their own; keep the dark side behind the spotlight in RTL too.
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val drift = if (motionEnabled) rememberCinemaDrift() else CinemaDrift.Still
 
     Box(modifier = modifier) {
         Crossfade(
@@ -776,20 +795,21 @@ private fun CinemaBackdrop(
                     modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer {
-                            scaleX = driftScale
-                            scaleY = driftScale
-                            translationX = driftShift * size.width * 0.012f
+                            val scale = drift.scale()
+                            scaleX = scale
+                            scaleY = scale
+                            translationX = drift.shift() * size.width * 0.012f
                         }
                 )
             }
         }
 
         // Scrims soften as ambient mode takes over, so the artwork gets the whole screen.
-        val scrimStrength = 1f - (ambientProgress * 0.75f)
+        val scrimStrength = { 1f - (ambientProgress() * 0.75f) }
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = scrimStrength }
+                .graphicsLayer { alpha = scrimStrength() }
                 .background(
                     Brush.horizontalGradient(
                         colorStops = arrayOf(
@@ -806,7 +826,7 @@ private fun CinemaBackdrop(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer { alpha = scrimStrength }
+                .graphicsLayer { alpha = scrimStrength() }
                 .background(
                     Brush.verticalGradient(
                         colorStops = arrayOf(
