@@ -55,6 +55,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableIntState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -108,6 +109,7 @@ import com.nuvio.tv.domain.model.CinemaHomeSettings
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.legacyKey
 import com.nuvio.tv.ui.components.ContinueWatchingOptionsDialog
+import com.nuvio.tv.ui.components.TrailerPlayer
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.ui.util.asStable
 import com.nuvio.tv.ui.util.formatHeroRuntime
@@ -126,6 +128,9 @@ import java.util.Date
  */
 
 private const val CINEMA_SPOTLIGHT_DEBOUNCE_MS = 160L
+/** How long a card must hold focus before its trailer is fetched, and then played. */
+private const val CINEMA_TRAILER_REQUEST_DELAY_MS = 1_200L
+private const val CINEMA_TRAILER_START_DELAY_MS = 3_000L
 private const val CINEMA_LOAD_MORE_THRESHOLD = 5
 private const val CINEMA_PLACEHOLDER_ID_PREFIX = "__placeholder_"
 private const val CINEMA_FEATURED_ROW_KEY = "cinema_featured"
@@ -175,7 +180,11 @@ fun CinemaHomeContent(
     enrichedPreviews: Map<String, MetaPreview> = emptyMap(),
     onFocusedRowKeyChanged: (String?) -> Unit = {},
     onRequestLazyCatalogLoad: (String) -> Unit = {},
-    settings: CinemaHomeSettings = CinemaHomeSettings()
+    settings: CinemaHomeSettings = CinemaHomeSettings(),
+    trailerPreviewUrls: Map<String, String> = emptyMap(),
+    trailerPreviewAudioUrls: Map<String, String> = emptyMap(),
+    trailerMuted: Boolean = true,
+    onRequestTrailerPreview: (MetaPreview) -> Unit = {}
 ) {
     val context = LocalContext.current
     val localizedContext = remember(context) { context.withAppLocale() }
@@ -277,13 +286,33 @@ fun CinemaHomeContent(
         }
     }
 
+    // Trailer autoplay: once a catalog card has held focus for a moment, fetch and play its trailer.
+    var trailerItemId by remember { mutableStateOf<String?>(null) }
+    var trailerRendered by remember { mutableStateOf(false) }
+    val latestOnRequestTrailerPreview by rememberUpdatedState(onRequestTrailerPreview)
+    val trailerCandidate = (focusedItem?.payload as? ModernPayload.Catalog)?.let { focusedItem?.metaPreview }
+    LaunchedEffect(trailerCandidate?.id, settings.trailerAutoplayEnabled) {
+        trailerItemId = null
+        trailerRendered = false
+        val candidate = trailerCandidate ?: return@LaunchedEffect
+        if (!settings.trailerAutoplayEnabled) return@LaunchedEffect
+        delay(CINEMA_TRAILER_REQUEST_DELAY_MS)
+        latestOnRequestTrailerPreview(candidate)
+        delay(CINEMA_TRAILER_START_DELAY_MS - CINEMA_TRAILER_REQUEST_DELAY_MS)
+        trailerItemId = candidate.id
+    }
+    val trailerUrl = trailerItemId?.let { trailerPreviewUrls[it] }?.takeIf { it.isNotBlank() }
+    val trailerAudioUrl = trailerItemId?.let { trailerPreviewAudioUrls[it] }
+
     // Ambient mode: fade the chrome away after a stretch without input.
     var lastInteractionAt by remember { mutableLongStateOf(0L) }
     var ambient by remember { mutableStateOf(false) }
     val ambientTimeoutMs = settings.ambientTimeoutSeconds * 1_000L
-    LaunchedEffect(lastInteractionAt, optionsItem, ambientTimeoutMs) {
-        // Key events go to the dialog's window while it's open, so don't count that as idle.
-        if (optionsItem != null || ambientTimeoutMs <= 0L) return@LaunchedEffect
+    val trailerActive = trailerUrl != null
+    LaunchedEffect(lastInteractionAt, optionsItem, ambientTimeoutMs, trailerActive) {
+        // Key events go to the dialog's window while it's open, so don't count that as idle,
+        // and a playing trailer is something being watched, not an idle screen.
+        if (optionsItem != null || ambientTimeoutMs <= 0L || trailerActive) return@LaunchedEffect
         delay(ambientTimeoutMs)
         ambient = true
     }
@@ -369,7 +398,28 @@ fun CinemaHomeContent(
             imageUrl = displayedSpotlight?.let { it.heroPreview.backdrop ?: it.heroPreview.imageUrl ?: it.imageUrl },
             ambientProgress = { 1f - chromeAlpha },
             motionEnabled = settings.backdropMotionEnabled,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            video = {
+                val playingId = trailerItemId
+                if (trailerUrl != null && playingId != null && !ambient) {
+                    key(playingId) {
+                        TrailerPlayer(
+                            trailerUrl = trailerUrl,
+                            trailerAudioUrl = trailerAudioUrl,
+                            isPlaying = true,
+                            onEnded = {
+                                trailerItemId = null
+                                trailerRendered = false
+                            },
+                            onFirstFrameRendered = { trailerRendered = true },
+                            muted = trailerMuted,
+                            cropToFill = true,
+                            overscanZoom = MODERN_TRAILER_OVERSCAN_ZOOM,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
         )
 
         if (settings.clockEnabled) {
@@ -385,6 +435,7 @@ fun CinemaHomeContent(
             Column(modifier = Modifier.fillMaxSize()) {
                 CinemaSpotlight(
                     item = displayedSpotlight,
+                    trailerPlaying = trailerRendered,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(spotlightHeight)
@@ -769,7 +820,8 @@ private fun CinemaBackdrop(
     imageUrl: String?,
     ambientProgress: () -> Float,
     motionEnabled: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    video: @Composable () -> Unit = {}
 ) {
     val background = NuvioTheme.colors.Background
     // Brushes don't mirror on their own; keep the dark side behind the spotlight in RTL too.
@@ -803,6 +855,8 @@ private fun CinemaBackdrop(
                 )
             }
         }
+
+        video()
 
         // Scrims soften as ambient mode takes over, so the artwork gets the whole screen.
         val scrimStrength = { 1f - (ambientProgress() * 0.75f) }
@@ -845,8 +899,15 @@ private fun CinemaBackdrop(
 @Composable
 private fun CinemaSpotlight(
     item: ModernCarouselItem?,
+    trailerPlaying: Boolean,
     modifier: Modifier = Modifier
 ) {
+    // While a trailer plays the synopsis steps aside so the video has the screen.
+    val synopsisAlpha by animateFloatAsState(
+        targetValue = if (trailerPlaying) 0f else 1f,
+        animationSpec = tween(durationMillis = 600),
+        label = "cinemaSynopsisAlpha"
+    )
     Box(modifier = modifier, contentAlignment = Alignment.BottomStart) {
         AnimatedContent(
             targetState = item,
@@ -861,7 +922,7 @@ private fun CinemaSpotlight(
             if (target == null) {
                 Spacer(modifier = Modifier.fillMaxWidth())
             } else {
-                CinemaSpotlightBody(target.heroPreview, target.payload)
+                CinemaSpotlightBody(target.heroPreview, target.payload, synopsisAlpha = { synopsisAlpha })
             }
         }
     }
@@ -870,7 +931,8 @@ private fun CinemaSpotlight(
 @Composable
 private fun CinemaSpotlightBody(
     preview: HeroPreview,
-    payload: ModernPayload
+    payload: ModernPayload,
+    synopsisAlpha: () -> Float = { 1f }
 ) {
     Column(
         modifier = Modifier.widthIn(max = 620.dp),
@@ -916,7 +978,8 @@ private fun CinemaSpotlightBody(
                 style = MaterialTheme.typography.bodyLarge.copy(lineHeight = 24.sp),
                 color = Color.White.copy(alpha = 0.78f),
                 maxLines = 3,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.graphicsLayer { alpha = synopsisAlpha() }
             )
         }
     }

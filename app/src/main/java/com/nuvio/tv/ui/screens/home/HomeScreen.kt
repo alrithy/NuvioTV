@@ -744,6 +744,12 @@ private fun CinemaHomeRoute(
     CinemaHomeContent(
         uiState = uiState,
         settings = cinemaSettings,
+        trailerPreviewUrls = viewModel.trailerPreviewUrls,
+        trailerPreviewAudioUrls = viewModel.trailerPreviewAudioUrls,
+        trailerMuted = uiState.focusedPosterBackdropTrailerMuted,
+        onRequestTrailerPreview = remember(viewModel) {
+            { item: MetaPreview -> viewModel.requestTrailerPreview(item) }
+        },
         scrollToTopTrigger = scrollToTopTrigger,
         enrichedPreviews = enrichedPreviews,
         onPreloadAdjacentItem = remember(viewModel) {
