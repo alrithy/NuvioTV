@@ -81,9 +81,11 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Border
@@ -624,6 +626,8 @@ private fun CinemaBackdrop(
     modifier: Modifier = Modifier
 ) {
     val background = NuvioTheme.colors.Background
+    // Brushes don't mirror on their own; keep the dark side behind the spotlight in RTL too.
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val drift = rememberInfiniteTransition(label = "cinemaDrift")
     // A slow Ken Burns push that never quite settles.
     val driftScale by drift.animateFloat(
@@ -685,7 +689,9 @@ private fun CinemaBackdrop(
                             0.35f to background.copy(alpha = 0.78f),
                             0.65f to background.copy(alpha = 0.18f),
                             1.0f to Color.Transparent
-                        )
+                        ),
+                        startX = if (isRtl) Float.POSITIVE_INFINITY else 0f,
+                        endX = if (isRtl) 0f else Float.POSITIVE_INFINITY
                     )
                 )
         )
