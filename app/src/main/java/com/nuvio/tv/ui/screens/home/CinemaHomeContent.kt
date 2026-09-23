@@ -68,6 +68,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -418,7 +419,7 @@ fun CinemaHomeContent(
             }
     ) {
         CinemaBackdrop(
-            imageUrl = displayedSpotlight?.let { it.heroPreview.backdrop ?: it.heroPreview.imageUrl ?: it.imageUrl },
+            art = displayedSpotlight?.backdropArt(),
             ambientProgress = { 1f - chromeAlpha },
             motionEnabled = settings.backdropMotionEnabled,
             modifier = Modifier.fillMaxSize(),
@@ -793,6 +794,21 @@ private val CinemaAnchorStatesSaver = Saver<HashMap<String, MutableIntState>, Ha
     restore = { saved -> HashMap(saved.mapValues { mutableIntStateOf(it.value) }) }
 )
 
+/** Full-screen artwork plus whether it is only a portrait poster standing in for a backdrop. */
+@Immutable
+private data class CinemaArt(val url: String, val portrait: Boolean)
+
+/** Wide artwork only: catalog backdrops fall back to the poster, which doesn't count. */
+private fun HeroPreview.landscapeArt(): String? =
+    backdrop?.takeIf { it.isNotBlank() && it != poster }
+
+private fun ModernCarouselItem.backdropArt(): CinemaArt? {
+    heroPreview.landscapeArt()?.let { return CinemaArt(it, portrait = false) }
+    imageUrl?.takeIf { it.isNotBlank() && it != heroPreview.poster }?.let { return CinemaArt(it, portrait = false) }
+    val poster = firstNonBlank(heroPreview.poster, heroPreview.imageUrl, imageUrl) ?: return null
+    return CinemaArt(poster, portrait = true)
+}
+
 private fun HeroPreview.withEnrichment(meta: MetaPreview): HeroPreview = copy(
     logo = meta.logo?.takeIf { it.isNotBlank() } ?: logo,
     backdrop = meta.background?.takeIf { it.isNotBlank() } ?: backdrop,
@@ -840,7 +856,7 @@ private fun rememberCinemaDrift(): CinemaDrift {
 
 @Composable
 private fun CinemaBackdrop(
-    imageUrl: String?,
+    art: CinemaArt?,
     ambientProgress: () -> Float,
     motionEnabled: Boolean,
     modifier: Modifier = Modifier,
@@ -853,22 +869,24 @@ private fun CinemaBackdrop(
 
     Box(modifier = modifier) {
         Crossfade(
-            targetState = imageUrl,
+            targetState = art,
             animationSpec = tween(durationMillis = 700, easing = FastOutSlowInEasing),
             label = "cinemaBackdropCrossfade"
-        ) { url ->
-            if (url.isNullOrBlank()) {
+        ) { target ->
+            if (target == null) {
                 Box(modifier = Modifier.fillMaxSize().background(background))
             } else {
                 AsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data(url)
+                        .data(target.url)
                         .crossfade(false)
                         .build(),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxSize()
+                        // A portrait poster blown up to 16:9 is mostly a face; soften it into a mood wash.
+                        .then(if (target.portrait) Modifier.blur(36.dp).graphicsLayer { alpha = 0.7f } else Modifier)
                         .graphicsLayer {
                             val scale = drift.scale()
                             scaleX = scale
@@ -1212,6 +1230,9 @@ private fun CinemaCard(
         ?.progress
         ?.progressPercentage
     val cardImage = item.imageUrl ?: item.heroPreview.backdrop
+    val portraitOnly = !cardImage.isNullOrBlank() &&
+        cardImage == item.heroPreview.poster &&
+        item.heroPreview.landscapeArt() == null
 
     Card(
         onClick = onClick,
@@ -1242,7 +1263,24 @@ private fun CinemaCard(
         )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            if (!cardImage.isNullOrBlank()) {
+            if (!cardImage.isNullOrBlank() && portraitOnly) {
+                // No wide art: show the whole poster over a blurred fill of itself instead of cropping it.
+                AsyncImage(
+                    model = cardImage,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(20.dp)
+                        .graphicsLayer { alpha = 0.55f }
+                )
+                AsyncImage(
+                    model = cardImage,
+                    contentDescription = item.title,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            } else if (!cardImage.isNullOrBlank()) {
                 AsyncImage(
                     model = cardImage,
                     contentDescription = item.title,
