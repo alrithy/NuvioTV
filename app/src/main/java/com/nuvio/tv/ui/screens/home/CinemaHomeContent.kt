@@ -134,6 +134,7 @@ private const val CINEMA_CARD_ASPECT = 16f / 9f
 private val CinemaCardWidth = 236.dp
 private val CinemaCardHeight = CinemaCardWidth / CINEMA_CARD_ASPECT
 private val CinemaRowHeaderHeight = 40.dp
+private val CinemaRailVerticalPadding = 22.dp
 private val CinemaHorizontalInset = 56.dp
 private val CinemaCardShape = RoundedCornerShape(14.dp)
 
@@ -294,7 +295,8 @@ fun CinemaHomeContent(
     val latestOnRequestLazyCatalogLoad by rememberUpdatedState(onRequestLazyCatalogLoad)
 
     // Pin the focused row just below its header so the next row always peeks in underneath.
-    val rowHeaderInsetPx = with(density) { CinemaRowHeaderHeight.toPx() }
+    // The focused card sits below its row header and the rail's top padding; keep both visible.
+    val rowHeaderInsetPx = with(density) { (CinemaRowHeaderHeight + CinemaRailVerticalPadding).toPx() }
     val verticalPinSpec = remember(rowHeaderInsetPx, columnState) {
         object : BringIntoViewSpec {
             override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float {
@@ -1002,7 +1004,7 @@ private fun CinemaRowSection(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer { alpha = rowAlpha }
-            .padding(bottom = 18.dp)
+            .padding(bottom = 6.dp)
     ) {
         Box(
             modifier = Modifier
@@ -1031,7 +1033,8 @@ private fun CinemaRowSection(
                     modifier = Modifier
                         .fillMaxWidth()
                         .focusRestorer(),
-                    contentPadding = PaddingValues(horizontal = CinemaHorizontalInset, vertical = 10.dp),
+                    // Room for the 1.09x focus scale plus the 18dp glow; lazy lists clip to their bounds.
+                    contentPadding = PaddingValues(horizontal = CinemaHorizontalInset, vertical = CinemaRailVerticalPadding),
                     horizontalArrangement = Arrangement.spacedBy(18.dp)
                 ) {
                     itemsIndexed(row.items, key = { _, item -> item.key }) { index, item ->
@@ -1212,7 +1215,7 @@ private fun CinemaSkeletonRow() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = CinemaHorizontalInset, top = 10.dp, bottom = 10.dp),
+            .padding(start = CinemaHorizontalInset, top = CinemaRailVerticalPadding, bottom = CinemaRailVerticalPadding),
         horizontalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         repeat(5) {
