@@ -968,6 +968,10 @@
     <string name="layout_classic_desc">Scroll through categories horizontally</string>
     <string name="layout_grid_desc">Browse everything in a vertical grid with a hero section</string>
     <string name="layout_modern_desc">Fixed hero with a single active row for faster browsing</string>
+    <string name="layout_cinema">Cinema View</string>
+    <string name="layout_cinema_desc">Full-screen artwork with a spotlight and ambient mode, built for the remote</string>
+    <string name="cinema_featured_row">Featured</string>
+    <string name="cinema_watched">Watched</string>
     <string name="layout_section_home">Home Layout</string>
     <string name="layout_section_home_desc">Choose structure and hero source.</string>
     <string name="layout_landscape_posters">Landscape Posters</string>

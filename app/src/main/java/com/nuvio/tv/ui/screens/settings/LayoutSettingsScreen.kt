@@ -87,6 +87,7 @@ import com.nuvio.tv.ui.components.CardCwStylePreview
 import com.nuvio.tv.ui.components.ClassicLayoutPreview
 import com.nuvio.tv.ui.components.GridLayoutPreview
 import com.nuvio.tv.ui.components.ModernLayoutPreview
+import com.nuvio.tv.ui.components.CinemaLayoutPreview
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.components.PosterCwStylePreview
 import com.nuvio.tv.ui.components.WideCwStylePreview
@@ -245,6 +246,17 @@ fun LayoutSettingsContent(
                             modifier = Modifier
                                 .weight(1f)
                                 .focusRequester(firstHomeLayoutFocusRequester)
+                        )
+                        LayoutCard(
+                            layout = HomeLayout.CINEMA,
+                            isSelected = uiState.selectedLayout == HomeLayout.CINEMA,
+                            onClick = {
+                                viewModel.onEvent(LayoutSettingsEvent.SelectLayout(HomeLayout.CINEMA))
+                            },
+                            onFocused = {
+                                focusedSection = LayoutSettingsSection.HOME_LAYOUT
+                            },
+                            modifier = Modifier.weight(1f)
                         )
                         LayoutCard(
                             layout = HomeLayout.GRID,
@@ -1583,6 +1595,10 @@ private fun LayoutCard(
                         modifier = Modifier.fillMaxWidth(),
                         animated = animatePreview
                     )
+                    HomeLayout.CINEMA -> CinemaLayoutPreview(
+                        modifier = Modifier.fillMaxWidth(),
+                        animated = animatePreview
+                    )
                 }
             }
 
@@ -1607,6 +1623,7 @@ private fun LayoutCard(
                         HomeLayout.CLASSIC -> stringResource(R.string.layout_classic)
                         HomeLayout.GRID -> stringResource(R.string.layout_grid)
                         HomeLayout.MODERN -> stringResource(R.string.layout_modern)
+                        HomeLayout.CINEMA -> stringResource(R.string.layout_cinema)
                     },
                     style = MaterialTheme.typography.labelLarge,
                     color = if (isSelected || isFocused) NuvioTheme.colors.TextPrimary else NuvioTheme.colors.TextSecondary

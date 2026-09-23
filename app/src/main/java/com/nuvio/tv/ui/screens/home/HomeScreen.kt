@@ -406,6 +406,19 @@ fun HomeScreen(
                                 isCatalogItemWatched = isCatalogItemWatched,
                                 onCatalogItemLongPress = onCatalogItemLongPress
                             )
+
+                            HomeLayout.CINEMA -> CinemaHomeRoute(
+                                viewModel = viewModel,
+                                uiState = uiState,
+                                onNavigateToDetail = onNavigateToDetailStable,
+                                onContinueWatchingClick = onContinueWatchingClickStable,
+                                onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginningStable,
+                                onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
+                                showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,
+                                onNavigateToFolderDetail = onNavigateToFolderDetailStable,
+                                isCatalogItemWatched = isCatalogItemWatched,
+                                onCatalogItemLongPress = onCatalogItemLongPress
+                            )
                         }
                     }
                 }
@@ -701,6 +714,53 @@ private fun ModernHomeRoute(
         },
         onPreloadAdjacentItem = preloadAdjacentItem,
         onSaveFocusState = saveModernFocusState,
+        onFocusedRowKeyChanged = remember(viewModel) {
+            { key: String? -> viewModel.setLiveFocusedRowKey(key) }
+        },
+        onRequestLazyCatalogLoad = remember(viewModel) {
+            { catalogKey: String -> viewModel.requestLazyCatalogLoad(catalogKey) }
+        }
+    )
+}
+
+@Composable
+private fun CinemaHomeRoute(
+    viewModel: HomeViewModel,
+    uiState: HomeUiState,
+    onNavigateToDetail: (String, String, String) -> Unit,
+    onContinueWatchingClick: (ContinueWatchingItem) -> Unit,
+    onContinueWatchingStartFromBeginning: (ContinueWatchingItem) -> Unit,
+    onContinueWatchingPlayManually: (ContinueWatchingItem) -> Unit,
+    showContinueWatchingManualPlayOption: Boolean,
+    onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
+    isCatalogItemWatched: (MetaPreview) -> Boolean,
+    onCatalogItemLongPress: (MetaPreview, String) -> Unit
+) {
+    val scrollToTopTrigger by viewModel.scrollToTopTrigger.collectAsStateWithLifecycle()
+    CinemaHomeContent(
+        uiState = uiState,
+        scrollToTopTrigger = scrollToTopTrigger,
+        onNavigateToDetail = onNavigateToDetail,
+        onContinueWatchingClick = onContinueWatchingClick,
+        onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginning,
+        onContinueWatchingPlayManually = onContinueWatchingPlayManually,
+        showContinueWatchingManualPlayOption = showContinueWatchingManualPlayOption,
+        onLoadMoreCatalog = remember(viewModel) {
+            { catalogId: String, addonId: String, type: String ->
+                viewModel.onEvent(HomeEvent.OnLoadMoreCatalog(catalogId, addonId, type))
+            }
+        },
+        onRemoveContinueWatching = remember(viewModel) {
+            { contentId: String, season: Int?, episode: Int?, isNextUp: Boolean ->
+                viewModel.onEvent(HomeEvent.OnRemoveContinueWatching(contentId, season, episode, isNextUp))
+            }
+        },
+        isCatalogItemWatched = isCatalogItemWatched,
+        onCatalogItemLongPress = onCatalogItemLongPress,
+        onNavigateToFolderDetail = onNavigateToFolderDetail,
+        onItemFocus = remember(viewModel) {
+            { item: MetaPreview -> viewModel.onItemFocus(item) }
+        },
         onFocusedRowKeyChanged = remember(viewModel) {
             { key: String? -> viewModel.setLiveFocusedRowKey(key) }
         },

@@ -789,6 +789,10 @@
     <string name="layout_classic_desc">تصفح القوائم بشكل أفقي</string>
     <string name="layout_grid_desc">تصفح كل شيء في شبكة رأسية مع قسم محتوى مميز</string>
     <string name="layout_modern_desc">قسم مميز ثابت مع صف نشط واحد لتصفح أسرع</string>
+    <string name="layout_cinema">عرض السينما</string>
+    <string name="layout_cinema_desc">خلفية بملء الشاشة مع بطاقة تعريف ووضع محيطي، مصممة لجهاز التحكم عن بُعد</string>
+    <string name="cinema_featured_row">مميز</string>
+    <string name="cinema_watched">تمت المشاهدة</string>
     <string name="layout_section_home">تنسيق الواجهة الرئيسية</string>
     <string name="layout_section_home_desc">إختر تصميم القسم ومصدر المحتوى المميز.</string>
     <string name="layout_landscape_posters">بطاقات أفقية</string>
