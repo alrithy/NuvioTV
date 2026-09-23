@@ -137,6 +137,8 @@ private const val CINEMA_LOAD_MORE_THRESHOLD = 5
 private const val CINEMA_LOAD_MORE_RETRY_MS = 8_000L
 private const val CINEMA_PLACEHOLDER_ID_PREFIX = "__placeholder_"
 private const val CINEMA_FEATURED_ROW_KEY = "cinema_featured"
+/** Share of Featured items found in one home row for Featured to count as a duplicate of it. */
+private const val FEATURED_DUPLICATE_RATIO = 0.8f
 private const val CINEMA_CARD_ASPECT = 16f / 9f
 
 private val CinemaCardWidth = 236.dp
@@ -224,6 +226,7 @@ fun CinemaHomeContent(
         }
     }
 
+    var focusedRowKey by rememberSaveable { mutableStateOf<String?>(null) }
     val rowCache = remember { CinemaRowCache() }
     val rows = remember(
         continueWatchingItems,
@@ -255,12 +258,12 @@ fun CinemaHomeContent(
             strUpcoming = strUpcoming,
             strTypeMovie = strTypeMovie,
             strTypeSeries = strTypeSeries,
-            context = localizedContext
+            context = localizedContext,
+            keepFeatured = focusedRowKey == CINEMA_FEATURED_ROW_KEY
         )
     }
 
     // Focus memory survives navigating to details and back.
-    var focusedRowKey by rememberSaveable { mutableStateOf<String?>(null) }
     // One state per row: moving along a row only invalidates that row, not every row on screen.
     val anchorStates = rememberSaveable(saver = CinemaAnchorStatesSaver) { HashMap<String, MutableIntState>() }
     fun anchorFor(rowKey: String) = anchorStates.getOrPut(rowKey) { mutableIntStateOf(0) }
@@ -644,7 +647,8 @@ private fun buildCinemaRows(
     strUpcoming: String,
     strTypeMovie: String,
     strTypeSeries: String,
-    context: android.content.Context
+    context: android.content.Context,
+    keepFeatured: Boolean = false
 ): List<CinemaRow> {
     cache.begin(
         listOf(
@@ -684,7 +688,14 @@ private fun buildCinemaRows(
         val latestById = HashMap<String, MetaPreview>()
         homeRows.forEach { row -> if (row is HomeRow.Catalog) row.row.items.forEach { latestById.putIfAbsent(it.id, it) } }
         val featuredItems = heroItems.map { latestById[it.id] ?: it }
-        if (featuredItems.isNotEmpty()) {
+        // Hero catalogs are usually home rows too; skip Featured when it would just repeat one of
+        // them. Never drop it while it holds focus, or focus would fall out of the screen.
+        val featuredIds = featuredItems.mapTo(HashSet()) { it.id }
+        val duplicatesARow = featuredIds.isNotEmpty() && homeRows.any { row ->
+            row is HomeRow.Catalog &&
+                row.row.items.count { it.id in featuredIds } >= featuredIds.size * FEATURED_DUPLICATE_RATIO
+        }
+        if (featuredItems.isNotEmpty() && (!duplicatesARow || keepFeatured)) {
             add(
                 cache.get(CINEMA_FEATURED_ROW_KEY, featuredItems) {
                     val featuredRow = CatalogRow(
