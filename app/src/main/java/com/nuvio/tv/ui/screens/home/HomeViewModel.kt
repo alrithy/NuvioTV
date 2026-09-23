@@ -124,6 +124,7 @@ class HomeViewModel @Inject constructor(
     /** True once the CW pipeline has completed its first emission (items or empty). */
     internal val _initialCwResolved = MutableStateFlow(false)
     val initialCwResolved: StateFlow<Boolean> = _initialCwResolved.asStateFlow()
+    val cinemaHomeSettings = layoutPreferenceDataStore.cinemaHomeSettings.distinctUntilChanged()
     val effectiveAutoplayEnabled = playerSettingsDataStore.playerSettings
         .map(StreamAutoPlayPolicy::isEffectivelyEnabled)
         .distinctUntilChanged()

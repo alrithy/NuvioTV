@@ -899,7 +899,7 @@ private fun FollowLayoutContent(
     val loadMoreLabel = stringResource(R.string.action_load_more)
 
     when (uiState.homeLayout) {
-        HomeLayout.CLASSIC -> {
+        HomeLayout.CLASSIC, HomeLayout.CINEMA -> {
             val classicPosterCardStyle = remember(posterCardStyle) {
                 val scale = 1.35f // matches CLASSIC_CATALOG_POSTER_SCALE in ClassicHomeContent
                 posterCardStyle.copy(
