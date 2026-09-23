@@ -336,7 +336,7 @@ fun CinemaHomeContent(
         val pool = (rows.firstOrNull { it.source is CinemaRowSource.Featured }
             ?: rows.firstOrNull { it.key == focusedRowKey })
             ?.items
-            ?.filter { !it.isPlaceholder() && !it.heroPreview.backdrop.isNullOrBlank() }
+            ?.filter { !it.isPlaceholder() && it.backdropArt()?.portrait == false }
             .orEmpty()
         if (pool.size < 2) return@LaunchedEffect
         var index = pool.indexOfFirst { it.key == spotlightItem?.key }
