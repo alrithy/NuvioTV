@@ -211,6 +211,7 @@ fun CinemaHomeContent(
         }
     }
 
+    val rowCache = remember { CinemaRowCache() }
     val rows = remember(
         continueWatchingItems,
         upcomingItems,
@@ -224,6 +225,7 @@ fun CinemaHomeContent(
         localizedContext
     ) {
         buildCinemaRows(
+            cache = rowCache,
             continueWatchingItems = continueWatchingItems,
             upcomingItems = upcomingItems,
             heroItems = if (uiState.heroSectionEnabled) uiState.heroItems else emptyList(),
@@ -512,7 +514,34 @@ fun CinemaHomeContent(
     }
 }
 
+/**
+ * Remembers each built row alongside the data it was built from, so a change in one catalog
+ * (a page load, an enrichment merge) only rebuilds that row instead of every card on screen.
+ */
+private class CinemaRowCache {
+    private var config: List<Any?>? = null
+    private val entries = HashMap<String, Pair<Any, CinemaRow>>()
+
+    fun begin(config: List<Any?>) {
+        if (config != this.config) {
+            entries.clear()
+            this.config = config
+        }
+    }
+
+    fun get(key: String, source: Any, build: () -> CinemaRow): CinemaRow {
+        val cached = entries[key]
+        if (cached != null && (cached.first === source || cached.first == source)) return cached.second
+        return build().also { entries[key] = source to it }
+    }
+
+    fun retainOnly(keys: Set<String>) {
+        entries.keys.retainAll(keys)
+    }
+}
+
 private fun buildCinemaRows(
+    cache: CinemaRowCache,
     continueWatchingItems: List<ContinueWatchingItem>,
     upcomingItems: List<ContinueWatchingItem>,
     heroItems: List<MetaPreview>,
@@ -528,13 +557,20 @@ private fun buildCinemaRows(
     strTypeMovie: String,
     strTypeSeries: String,
     context: android.content.Context
-): List<CinemaRow> = buildList {
-    if (continueWatchingItems.isNotEmpty()) {
-        add(
+): List<CinemaRow> {
+    cache.begin(
+        listOf(
+            showCatalogTypeSuffix, showFullReleaseDate, showImdbRatings, strContinueWatching,
+            strUpcomingSection, strFeatured, strAirsDate, strUpcoming, strTypeMovie, strTypeSeries, context
+        )
+    )
+
+    fun continueWatchingRow(key: String, title: String, items: List<ContinueWatchingItem>) =
+        cache.get(key, items) {
             CinemaRow(
-                key = MODERN_CONTINUE_WATCHING_ROW_KEY,
-                title = strContinueWatching,
-                items = continueWatchingItems.map { item ->
+                key = key,
+                title = title,
+                items = items.map { item ->
                     buildContinueWatchingItem(
                         item = item,
                         useLandscapePosters = true,
@@ -546,134 +582,129 @@ private fun buildCinemaRows(
                 },
                 source = CinemaRowSource.ContinueWatching
             )
-        )
-    }
+        }
 
-    if (upcomingItems.isNotEmpty()) {
-        add(
-            CinemaRow(
-                key = MODERN_UPCOMING_ROW_KEY,
-                title = strUpcomingSection,
-                items = upcomingItems.map { item ->
-                    buildContinueWatchingItem(
-                        item = item,
-                        useLandscapePosters = true,
-                        showImdbRatings = showImdbRatings,
-                        airsDateTemplate = strAirsDate,
-                        upcomingLabel = strUpcoming,
-                        context = context
+    val rows = buildList {
+        if (continueWatchingItems.isNotEmpty()) {
+            add(continueWatchingRow(MODERN_CONTINUE_WATCHING_ROW_KEY, strContinueWatching, continueWatchingItems))
+        }
+        if (upcomingItems.isNotEmpty()) {
+            add(continueWatchingRow(MODERN_UPCOMING_ROW_KEY, strUpcomingSection, upcomingItems))
+        }
+
+        // Enrichment is merged into the catalog rows, not into heroItems, so prefer the row copy.
+        val latestById = HashMap<String, MetaPreview>()
+        homeRows.forEach { row -> if (row is HomeRow.Catalog) row.row.items.forEach { latestById.putIfAbsent(it.id, it) } }
+        val featuredItems = heroItems.map { latestById[it.id] ?: it }
+        if (featuredItems.isNotEmpty()) {
+            add(
+                cache.get(CINEMA_FEATURED_ROW_KEY, featuredItems) {
+                    val featuredRow = CatalogRow(
+                        addonId = CINEMA_FEATURED_ROW_KEY,
+                        addonName = "",
+                        addonBaseUrl = featuredItems.firstNotNullOfOrNull { it.sourceAddonBaseUrl }.orEmpty(),
+                        catalogId = CINEMA_FEATURED_ROW_KEY,
+                        catalogName = strFeatured,
+                        type = featuredItems.first().type,
+                        items = featuredItems,
+                        hasMore = false
                     )
-                },
-                source = CinemaRowSource.ContinueWatching
-            )
-        )
-    }
-
-    // Enrichment is merged into the catalog rows, not into heroItems, so prefer the row copy.
-    val latestById = HashMap<String, MetaPreview>()
-    homeRows.forEach { row -> if (row is HomeRow.Catalog) row.row.items.forEach { latestById.putIfAbsent(it.id, it) } }
-    @Suppress("NAME_SHADOWING")
-    val heroItems = heroItems.map { latestById[it.id] ?: it }
-    if (heroItems.isNotEmpty()) {
-        val featuredRow = CatalogRow(
-            addonId = CINEMA_FEATURED_ROW_KEY,
-            addonName = "",
-            addonBaseUrl = heroItems.firstNotNullOfOrNull { it.sourceAddonBaseUrl }.orEmpty(),
-            catalogId = CINEMA_FEATURED_ROW_KEY,
-            catalogName = strFeatured,
-            type = heroItems.first().type,
-            items = heroItems,
-            hasMore = false
-        )
-        add(
-            CinemaRow(
-                key = CINEMA_FEATURED_ROW_KEY,
-                title = strFeatured,
-                items = heroItems.mapIndexed { index, item ->
-                    buildCatalogItem(
-                        item = item,
-                        row = featuredRow.copy(addonBaseUrl = item.sourceAddonBaseUrl ?: featuredRow.addonBaseUrl),
-                        useLandscapePosters = true,
-                        occurrence = index,
-                        strTypeMovie = strTypeMovie,
-                        strTypeSeries = strTypeSeries,
-                        showFullReleaseDate = showFullReleaseDate,
-                        showImdbRatings = showImdbRatings
+                    CinemaRow(
+                        key = CINEMA_FEATURED_ROW_KEY,
+                        title = strFeatured,
+                        items = featuredItems.mapIndexed { index, item ->
+                            buildCatalogItem(
+                                item = item,
+                                row = featuredRow.copy(addonBaseUrl = item.sourceAddonBaseUrl ?: featuredRow.addonBaseUrl),
+                                useLandscapePosters = true,
+                                occurrence = index,
+                                strTypeMovie = strTypeMovie,
+                                strTypeSeries = strTypeSeries,
+                                showFullReleaseDate = showFullReleaseDate,
+                                showImdbRatings = showImdbRatings
+                            )
+                        },
+                        source = CinemaRowSource.Featured
                     )
-                },
-                source = CinemaRowSource.Featured
+                }
             )
-        )
-    }
+        }
 
-    val seenKeys = HashSet<String>()
-    homeRows.forEach { homeRow ->
-        when (homeRow) {
-            is HomeRow.Catalog -> {
-                val row = homeRow.row
-                val key = row.key()
-                if (!seenKeys.add(key)) return@forEach
-                val isPending = row.items.isEmpty() ||
-                    row.items.all { it.id.startsWith(CINEMA_PLACEHOLDER_ID_PREFIX) }
-                val title = catalogRowTitle(row, showCatalogTypeSuffix, strTypeMovie, strTypeSeries)
-                if (isPending) {
-                    if (!row.isLoading) return@forEach
-                    add(CinemaRow(key, title, emptyList(), CinemaRowSource.Pending(row.legacyKey())))
-                } else {
-                    val occurrences = HashMap<String, Int>()
+        val seenKeys = HashSet<String>()
+        homeRows.forEach { homeRow ->
+            when (homeRow) {
+                is HomeRow.Catalog -> {
+                    val row = homeRow.row
+                    val key = row.key()
+                    if (!seenKeys.add(key)) return@forEach
+                    val isPending = row.items.isEmpty() ||
+                        row.items.all { it.id.startsWith(CINEMA_PLACEHOLDER_ID_PREFIX) }
+                    if (isPending && !row.isLoading) return@forEach
+                    add(
+                        cache.get(key, row) {
+                            val title = catalogRowTitle(row, showCatalogTypeSuffix, strTypeMovie, strTypeSeries)
+                            if (isPending) {
+                                CinemaRow(key, title, emptyList(), CinemaRowSource.Pending(row.legacyKey()))
+                            } else {
+                                val occurrences = HashMap<String, Int>()
+                                CinemaRow(
+                                    key = key,
+                                    title = title,
+                                    items = row.items.map { item ->
+                                        val occurrence = occurrences.getOrDefault(item.id, 0)
+                                        occurrences[item.id] = occurrence + 1
+                                        buildCatalogItem(
+                                            item = item,
+                                            row = row,
+                                            useLandscapePosters = true,
+                                            occurrence = occurrence,
+                                            strTypeMovie = strTypeMovie,
+                                            strTypeSeries = strTypeSeries,
+                                            showFullReleaseDate = showFullReleaseDate,
+                                            showImdbRatings = showImdbRatings
+                                        )
+                                    },
+                                    source = CinemaRowSource.Catalog(row)
+                                )
+                            }
+                        }
+                    )
+                }
+
+                is HomeRow.CollectionRow -> {
+                    val collection = homeRow.collection
+                    val key = "collection_${collection.id}"
+                    if (collection.folders.isEmpty() || !seenKeys.add(key)) return@forEach
+                    add(
+                        cache.get(key, collection) {
+                            CinemaRow(
+                                key = key,
+                                title = collection.title,
+                                items = collection.folders.mapIndexed { index, folder ->
+                                    buildCollectionFolderItem(collection, folder, index)
+                                },
+                                source = CinemaRowSource.Collection(collection.id)
+                            )
+                        }
+                    )
+                }
+
+                is HomeRow.PlaceholderCatalog -> {
+                    if (!seenKeys.add(homeRow.stableCatalogKey)) return@forEach
                     add(
                         CinemaRow(
-                            key = key,
-                            title = title,
-                            items = row.items.map { item ->
-                                val occurrence = occurrences.getOrDefault(item.id, 0)
-                                occurrences[item.id] = occurrence + 1
-                                buildCatalogItem(
-                                    item = item,
-                                    row = row,
-                                    useLandscapePosters = true,
-                                    occurrence = occurrence,
-                                    strTypeMovie = strTypeMovie,
-                                    strTypeSeries = strTypeSeries,
-                                    showFullReleaseDate = showFullReleaseDate,
-                                    showImdbRatings = showImdbRatings
-                                )
-                            },
-                            source = CinemaRowSource.Catalog(row)
+                            key = homeRow.stableCatalogKey,
+                            title = homeRow.displayTitle,
+                            items = emptyList(),
+                            source = CinemaRowSource.Pending(homeRow.catalogKey)
                         )
                     )
                 }
             }
-
-            is HomeRow.CollectionRow -> {
-                val collection = homeRow.collection
-                val key = "collection_${collection.id}"
-                if (collection.folders.isEmpty() || !seenKeys.add(key)) return@forEach
-                add(
-                    CinemaRow(
-                        key = key,
-                        title = collection.title,
-                        items = collection.folders.mapIndexed { index, folder ->
-                            buildCollectionFolderItem(collection, folder, index)
-                        },
-                        source = CinemaRowSource.Collection(collection.id)
-                    )
-                )
-            }
-
-            is HomeRow.PlaceholderCatalog -> {
-                if (!seenKeys.add(homeRow.stableCatalogKey)) return@forEach
-                add(
-                    CinemaRow(
-                        key = homeRow.stableCatalogKey,
-                        title = homeRow.displayTitle,
-                        items = emptyList(),
-                        source = CinemaRowSource.Pending(homeRow.catalogKey)
-                    )
-                )
-            }
         }
     }
+    cache.retainOnly(rows.mapTo(HashSet()) { it.key })
+    return rows
 }
 
 private val CinemaAnchorMapSaver = Saver<SnapshotStateMap<String, Int>, HashMap<String, Int>>(
