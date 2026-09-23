@@ -134,6 +134,7 @@ private const val CINEMA_TRAILER_REQUEST_DELAY_MS = 1_200L
 private const val CINEMA_TRAILER_START_DELAY_MS = 3_000L
 private const val CINEMA_AMBIENT_SLIDE_MS = 12_000L
 private const val CINEMA_LOAD_MORE_THRESHOLD = 5
+private const val CINEMA_LOAD_MORE_RETRY_MS = 8_000L
 private const val CINEMA_PLACEHOLDER_ID_PREFIX = "__placeholder_"
 private const val CINEMA_FEATURED_ROW_KEY = "cinema_featured"
 private const val CINEMA_CARD_ASPECT = 16f / 9f
@@ -263,7 +264,9 @@ fun CinemaHomeContent(
     // One state per row: moving along a row only invalidates that row, not every row on screen.
     val anchorStates = rememberSaveable(saver = CinemaAnchorStatesSaver) { HashMap<String, MutableIntState>() }
     fun anchorFor(rowKey: String) = anchorStates.getOrPut(rowKey) { mutableIntStateOf(0) }
-    val loadMoreRequestedAt = remember { HashMap<String, Int>() }
+    // rowKey -> (item count when requested, time requested). A request that brought no new items
+    // (a failed page) may be retried after a short cool-down.
+    val loadMoreRequests = remember { HashMap<String, Pair<Int, Long>>() }
     var focusedItem by remember { mutableStateOf<ModernCarouselItem?>(null) }
     var spotlightItem by remember { mutableStateOf<ModernCarouselItem?>(null) }
     var optionsItem by remember { mutableStateOf<ContinueWatchingItem?>(null) }
@@ -506,9 +509,12 @@ fun CinemaHomeContent(
                                         source.row.hasMore &&
                                         !source.row.isLoading &&
                                         itemIndex >= row.items.size - CINEMA_LOAD_MORE_THRESHOLD &&
-                                        loadMoreRequestedAt[row.key] != row.items.size
+                                        loadMoreRequests[row.key].let { last ->
+                                            last == null || last.first != row.items.size ||
+                                                System.currentTimeMillis() - last.second > CINEMA_LOAD_MORE_RETRY_MS
+                                        }
                                     ) {
-                                        loadMoreRequestedAt[row.key] = row.items.size
+                                        loadMoreRequests[row.key] = row.items.size to System.currentTimeMillis()
                                         onLoadMoreCatalog(
                                             source.row.catalogId,
                                             source.row.addonId,
