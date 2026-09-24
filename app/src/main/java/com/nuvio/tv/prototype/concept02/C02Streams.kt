@@ -52,6 +52,9 @@ import com.nuvio.tv.prototype.shared.data.RankedStream
 import com.nuvio.tv.prototype.shared.data.StreamIntelligence
 import com.nuvio.tv.prototype.shared.data.StreamMode
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 import com.nuvio.tv.prototype.shared.ts
 
@@ -88,8 +91,9 @@ internal fun C02Streams(session: ProtoSession, titleId: String) {
             Spacer(Modifier.height(18.dp))
             Row(Modifier.fillMaxSize()) {
                 // Mode rail
-                Column(Modifier.width(196.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    StreamMode.entries.forEach { m -> C02ModeItem(m, m == mode) { mode = m } }
+                val modeFocus = rememberTabRowFocus()
+                Column(Modifier.width(196.dp).tabRow(modeFocus), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    StreamMode.entries.forEach { m -> C02ModeItem(m, m == mode, Modifier.tabItem(modeFocus, m == mode)) { mode = m } }
                 }
                 Spacer(Modifier.width(20.dp))
                 AnimatedContent(mode, transitionSpec = { fadeIn(tween(320)) togetherWith fadeOut(tween(140)) }, label = "mode", modifier = Modifier.weight(1f)) { m ->
@@ -103,11 +107,11 @@ internal fun C02Streams(session: ProtoSession, titleId: String) {
 }
 
 @Composable
-private fun C02ModeItem(m: StreamMode, selected: Boolean, onSelect: () -> Unit) {
+private fun C02ModeItem(m: StreamMode, selected: Boolean, modifier: Modifier, onSelect: () -> Unit) {
     val type = c02Type()
     var focused by remember { mutableStateOf(false) }
     Row(
-        Modifier
+        modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(C02.Radius))
             .background(if (focused) C02.Raised else if (selected) C02.Glass else Color.Transparent)

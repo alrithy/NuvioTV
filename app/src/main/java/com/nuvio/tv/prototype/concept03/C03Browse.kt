@@ -44,6 +44,9 @@ import com.nuvio.tv.prototype.shared.formatRuntime
 import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.player.ProtoKeyboard
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -141,10 +144,11 @@ internal fun C03Library(session: ProtoSession) {
                 Spacer(Modifier.height(6.dp))
                 Txt(tr("YOUR COLLECTION", "مجموعتك"), type.monument, maxLines = 1)
                 Spacer(Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(22.dp)) {
+                val tabFocus = rememberTabRowFocus()
+                Row(Modifier.tabRow(tabFocus), horizontalArrangement = Arrangement.spacedBy(22.dp)) {
                     tabs.forEachIndexed { i, (label, items) ->
                         Box(Modifier.width(150.dp)) {
-                            C03ListItem("${label.get().up()}  ${items.size.toString().digits()}", requester = if (i == 0) first else null, style = type.label, maxScale = 1.1f, selected = i == tab, onFocus = { tab = i }) { tab = i }
+                            C03ListItem("${label.get().up()}  ${items.size.toString().digits()}", Modifier.tabItem(tabFocus, i == tab), requester = if (i == 0) first else null, style = type.label, maxScale = 1.1f, selected = i == tab, onFocus = { tab = i }) { tab = i }
                         }
                     }
                 }

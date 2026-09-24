@@ -16,6 +16,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.key.Key
@@ -105,6 +106,24 @@ fun RestoreFocus(registry: FocusRegistry, fallback: Any?, key: Any? = Unit) {
         }
     }
 }
+
+/**
+ * Tab rows that select on focus (seasons, library tabs, stream modes). While focus is outside the
+ * row only the selected tab can take focus, so arriving from above or below always lands on it and
+ * never switches the selection by accident. Once inside, every tab is reachable with left/right.
+ */
+class TabRowFocus {
+    var inside by mutableStateOf(false)
+}
+
+@Composable
+fun rememberTabRowFocus(): TabRowFocus = remember { TabRowFocus() }
+
+/** Put on the container that holds every tab of the row. */
+fun Modifier.tabRow(state: TabRowFocus): Modifier = onFocusChanged { state.inside = it.hasFocus }
+
+/** Put on each tab, before its focus target. */
+fun Modifier.tabItem(state: TabRowFocus, selected: Boolean): Modifier = focusProperties { canFocus = state.inside || selected }
 
 // ---------------------------------------------------------------------------------------------
 // Back handling that works identically on Android TV and on the desktop render harness.

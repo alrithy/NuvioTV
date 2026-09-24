@@ -47,7 +47,10 @@ import com.nuvio.tv.prototype.shared.data.MockCatalog
 import com.nuvio.tv.prototype.shared.data.ProtoTitle
 import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.metaLine
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
 import com.nuvio.tv.prototype.shared.startScrim
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 /** Opens the letterbox: bars retract from 69dp to nothing as the scene "goes full frame". */
@@ -166,10 +169,12 @@ internal fun C01Episodes(session: ProtoSession, titleId: String, initialSeason: 
             Column(Modifier.padding(horizontal = C01.Margin)) {
                 Txt(t.title.get().cap(), type.title)
                 Spacer(Modifier.height(18.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+                val seasonFocus = rememberTabRowFocus()
+                Row(Modifier.tabRow(seasonFocus), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
                     t.seasons.forEachIndexed { i, s ->
                         C01Action(
                             tr("Season ${s.number}", "الموسم ${s.number}").cap(),
+                            modifier = Modifier.tabItem(seasonFocus, i == seasonIdx),
                             style = type.label.copy(color = if (i == seasonIdx) C01.Ink else C01.Ink45),
                             onFocus = { seasonIdx = i },
                         ) { seasonIdx = i }

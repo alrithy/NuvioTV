@@ -56,6 +56,9 @@ import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.player.ProtoKeyboard
 import com.nuvio.tv.prototype.shared.protoFocusable
 import com.nuvio.tv.prototype.shared.rememberProtoClock
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.toArabicDigits
 import com.nuvio.tv.prototype.shared.tr
 import com.nuvio.tv.prototype.shared.ts
@@ -181,9 +184,10 @@ internal fun C09Library(session: ProtoSession) {
                     if (!isArabic()) Txt("LIBRARY", type.tag, Modifier.padding(bottom = 16.dp))
                 }
                 Spacer(Modifier.height(8.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val tabFocus = rememberTabRowFocus()
+                Row(Modifier.tabRow(tabFocus), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     tabs.forEachIndexed { i, (name, items) ->
-                        C09Tab(name.get() + "  " + num(items.size), selected = i == tab) { tab = i }
+                        C09Tab(name.get() + "  " + num(items.size), selected = i == tab, Modifier.tabItem(tabFocus, i == tab)) { tab = i }
                     }
                 }
                 Spacer(Modifier.height(18.dp))
@@ -200,12 +204,12 @@ internal fun C09Library(session: ProtoSession) {
 }
 
 @Composable
-private fun C09Tab(label: String, selected: Boolean, onFocus: () -> Unit) {
+private fun C09Tab(label: String, selected: Boolean, modifier: Modifier, onFocus: () -> Unit) {
     val type = c09Type()
     var focused by remember { mutableStateOf(false) }
     val trace = rememberTrace(focused)
     Box(
-        Modifier.clip(chamfer(8.dp))
+        modifier.clip(chamfer(8.dp))
             .background(if (selected) C09.Obsidian3 else Color.Transparent)
             .c09Trace({ trace.value }, 8.dp, base = if (selected) C09.Line else Color.Transparent, bloom = false)
             .protoFocusable(onFocusChange = { focused = it; if (it) onFocus() }, onClick = onFocus)

@@ -101,7 +101,8 @@ internal fun C04Home(session: ProtoSession) {
                     }
                 }
             }
-            ProvideScrollPivot(ScrollPivot.Anchor(0f, durationMs = 380, easing = ProtoEasing.Decelerate)) {
+            // The focused row settles at the top of the viewport with its heading still showing.
+            ProvideScrollPivot(ScrollPivot.Anchor(0f, offsetDp = 50f, durationMs = 380, easing = ProtoEasing.Decelerate)) {
                 Column(Modifier.fillMaxWidth().weight(1f).verticalScroll(session.scroll("c04.rows"))) {
                     rows.forEach { row ->
                         C04RowView(row, session, accent) { t ->

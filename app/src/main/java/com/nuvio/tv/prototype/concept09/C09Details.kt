@@ -24,11 +24,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +57,9 @@ import com.nuvio.tv.prototype.shared.data.ProtoTitle
 import com.nuvio.tv.prototype.shared.data.StreamIntelligence
 import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.toArabicDigits
 import com.nuvio.tv.prototype.shared.tr
 
@@ -147,12 +150,14 @@ internal fun C09Episodes(session: ProtoSession, titleId: String, initialSeason: 
 
     C09Stage {
         Row(Modifier.fillMaxSize()) {
-            Column(Modifier.width(230.dp).fillMaxHeight().padding(start = 44.dp, top = 40.dp)) {
+            val seasonFocus = rememberTabRowFocus()
+            Column(Modifier.width(230.dp).fillMaxHeight().padding(start = 44.dp, top = 40.dp).tabRow(seasonFocus)) {
                 Txt(t.title.get(), type.title, maxLines = 1)
                 C09OtherTitle(t, 15f)
                 Spacer(Modifier.height(30.dp))
                 t.seasons.forEachIndexed { i, s ->
                     C09SeasonItem(
+                        Modifier.tabItem(seasonFocus, i == seasonIdx),
                         if (ar) "الموسم ${ordinalsAr.getOrElse(s.number - 1) { s.number.toString() }}" else "Season ${ordinalsEn.getOrElse(s.number - 1) { s.number.toString() }}",
                         if (ar) "${s.episodes.size} حلقات · ${s.year}".toArabicDigits() else "${s.episodes.size} episodes · ${s.year}",
                         selected = i == seasonIdx,
@@ -160,7 +165,7 @@ internal fun C09Episodes(session: ProtoSession, titleId: String, initialSeason: 
                 }
             }
             Box(Modifier.weight(1f).fillMaxHeight()) {
-                AnimatedContent(ep, transitionSpec = { fadeIn(tween(340, 60)) togetherWith fadeOut(tween(160)) }, label = "ep", modifier = Modifier.padding(top = 40.dp, end = C09.Margin)) { e ->
+                AnimatedContent(ep, transitionSpec = { fadeIn(tween(340, 60)) togetherWith fadeOut(tween(160)) }, label = "ep", modifier = Modifier.padding(start = 14.dp, top = 40.dp, end = C09.Margin)) { e ->
                     Column(Modifier.width(520.dp)) {
                         Txt(tag("Episode ${e.number}", "الحلقة ${num(e.number)}") + "  ·  " + (if (ar) "${e.runtimeMin} دقيقة".toArabicDigits() else "${e.runtimeMin} min"), type.tag.copy(color = C09.Copper))
                         Spacer(Modifier.height(4.dp))
@@ -195,12 +200,12 @@ internal fun C09Episodes(session: ProtoSession, titleId: String, initialSeason: 
 }
 
 @Composable
-private fun C09SeasonItem(label: String, detail: String, selected: Boolean, onFocus: () -> Unit) {
+private fun C09SeasonItem(modifier: Modifier, label: String, detail: String, selected: Boolean, onFocus: () -> Unit) {
     val type = c09Type()
     var focused by remember { mutableStateOf(false) }
     val trace = rememberTrace(focused)
     Row(
-        Modifier.fillMaxWidth().padding(bottom = 6.dp).clip(chamfer(8.dp))
+        modifier.fillMaxWidth().padding(bottom = 6.dp).clip(chamfer(8.dp))
             .background(if (focused) C09.Obsidian3 else Color.Transparent)
             .c09Trace({ trace.value }, 8.dp, base = Color.Transparent, bloom = false)
             .protoFocusable(onFocusChange = { focused = it; if (it) onFocus() }, onClick = onFocus)

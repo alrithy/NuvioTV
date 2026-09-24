@@ -41,6 +41,9 @@ import com.nuvio.tv.prototype.shared.data.RankedStream
 import com.nuvio.tv.prototype.shared.data.StreamIntelligence
 import com.nuvio.tv.prototype.shared.data.StreamMode
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 /** The recommendation written as a short paragraph, the way an editor would explain a pick. */
@@ -71,8 +74,9 @@ internal fun C07Streams(session: ProtoSession, titleId: String) {
     Column(Modifier.fillMaxSize().background(C07.Paper).filmGrain(0.05f).verticalScroll(rememberScrollState()).padding(horizontal = C07.Margin, vertical = 30.dp)) {
         Txt(tr("HOW TO WATCH", "كيف تشاهد") + "  ·  " + t.title.get().kick(), type.kicker)
         Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-            StreamMode.entries.forEach { m -> C07Link(m.label.get() + if (m == mode) " ●" else "", onFocus = { mode = m }) { mode = m } }
+        val modeFocus = rememberTabRowFocus()
+        Row(Modifier.tabRow(modeFocus), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            StreamMode.entries.forEach { m -> C07Link(m.label.get() + if (m == mode) " ●" else "", modifier = Modifier.tabItem(modeFocus, m == mode), onFocus = { mode = m }) { mode = m } }
         }
         Spacer(Modifier.height(10.dp))
         C07Rule(color = C07.Ink.copy(alpha = 0.6f))

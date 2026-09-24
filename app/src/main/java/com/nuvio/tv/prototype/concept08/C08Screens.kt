@@ -56,6 +56,9 @@ import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.metaLine
 import com.nuvio.tv.prototype.shared.player.ProtoKeyboard
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 /** The artwork glows into the room: its light bleeds past the frame onto black. */
@@ -104,10 +107,11 @@ internal fun C08Episodes(session: ProtoSession, titleId: String, initialSeason: 
     val ep = season.episodes[(focusedEp ?: start).coerceIn(0, season.episodes.lastIndex)]
     C08Screen(t.palette) {
         Column(Modifier.fillMaxSize().padding(top = 48.dp)) {
-            Row(Modifier.padding(horizontal = C08.Margin), verticalAlignment = Alignment.CenterVertically) {
+            val seasonFocus = rememberTabRowFocus()
+            Row(Modifier.padding(horizontal = C08.Margin).tabRow(seasonFocus), verticalAlignment = Alignment.CenterVertically) {
                 Txt(t.title.get(), type.hero, Modifier.weight(1f), maxLines = 1)
                 t.seasons.forEachIndexed { i, s ->
-                    C08Choice(tr("Season ${s.number}", "الموسم ${s.number}"), selected = i == seasonIdx, glow = t.palette.ui, onFocus = { seasonIdx = i }) { seasonIdx = i }
+                    C08Choice(tr("Season ${s.number}", "الموسم ${s.number}"), selected = i == seasonIdx, glow = t.palette.ui, modifier = Modifier.tabItem(seasonFocus, i == seasonIdx), onFocus = { seasonIdx = i }) { seasonIdx = i }
                 }
             }
             AnimatedContent(ep, transitionSpec = { fadeIn(tween(500)) togetherWith fadeOut(tween(200)) }, label = "ep", modifier = Modifier.padding(horizontal = C08.Margin, vertical = 24.dp)) { e ->

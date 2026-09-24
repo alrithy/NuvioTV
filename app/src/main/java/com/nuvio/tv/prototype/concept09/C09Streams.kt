@@ -46,6 +46,9 @@ import com.nuvio.tv.prototype.shared.data.StreamMode
 import com.nuvio.tv.prototype.shared.data.fmt
 import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -69,13 +72,14 @@ internal fun C09Streams(session: ProtoSession, titleId: String) {
 
     C09Stage {
         Row(Modifier.fillMaxSize().padding(start = 44.dp, end = C09.Margin, top = 30.dp, bottom = 26.dp)) {
-            Column(Modifier.width(236.dp).fillMaxHeight()) {
+            val modeFocus = rememberTabRowFocus()
+            Column(Modifier.width(236.dp).fillMaxHeight().tabRow(modeFocus)) {
                 Txt(tag("How to watch", "كيف تشاهد"), type.tag.copy(color = C09.Copper))
                 Txt(t.title.get(), type.title, maxLines = 1)
                 C09OtherTitle(t, 14f)
                 Spacer(Modifier.height(20.dp))
                 StreamMode.entries.forEach { m ->
-                    C09ModeItem(m.label.get(), m.blurb.get(), m == mode) { mode = m }
+                    C09ModeItem(Modifier.tabItem(modeFocus, m == mode), m.label.get(), m.blurb.get(), m == mode) { mode = m }
                 }
             }
             Spacer(Modifier.width(28.dp))
@@ -89,12 +93,12 @@ internal fun C09Streams(session: ProtoSession, titleId: String) {
 }
 
 @Composable
-private fun C09ModeItem(label: String, blurb: String, selected: Boolean, onFocus: () -> Unit) {
+private fun C09ModeItem(modifier: Modifier, label: String, blurb: String, selected: Boolean, onFocus: () -> Unit) {
     val type = c09Type()
     var focused by remember { mutableStateOf(false) }
     val trace = rememberTrace(focused)
     Row(
-        Modifier.fillMaxWidth().padding(bottom = 4.dp).clip(chamfer(8.dp))
+        modifier.fillMaxWidth().padding(bottom = 4.dp).clip(chamfer(8.dp))
             .background(if (focused) C09.Obsidian3 else Color.Transparent)
             .c09Trace({ trace.value }, 8.dp, base = Color.Transparent, bloom = false)
             .protoFocusable(onFocusChange = { focused = it; if (it) onFocus() }, onClick = onFocus)

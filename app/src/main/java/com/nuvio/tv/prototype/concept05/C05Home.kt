@@ -219,7 +219,9 @@ internal fun C05Home(session: ProtoSession) {
                         }
                     }
                 }
-                Txt(tr("OK  ACTIONS    ←→  TITLES    ↑↓  CHANNELS    BACK  MAP", "موافق  الإجراءات    ←→  العناوين    ↑↓  القنوات    رجوع  الخريطة"), type.slateSmall, Modifier.align(Alignment.TopEnd).padding(end = C05.Margin, top = 28.dp).graphicsLayer { alpha = ui * 0.8f })
+                // Onboarding legend: it only teaches the first move, then gets out of the way.
+                val legend by animateFloatAsState(if (lastMove == 0 && cursor.channel >= 0) 1f else 0f, tween(400), label = "legend")
+                Txt(tr("OK  ACTIONS    ←→  TITLES    ↑↓  CHANNELS    BACK  MAP", "موافق  الإجراءات    ←→  العناوين    ↑↓  القنوات    رجوع  الخريطة"), type.slateSmall, Modifier.align(Alignment.TopEnd).padding(end = C05.Margin, top = 28.dp).graphicsLayer { alpha = ui * 0.8f * legend })
 
                 AnimatedVisibility(ring, modifier = Modifier.align(Alignment.BottomStart), enter = fadeIn(tween(260)), exit = fadeOut(tween(200))) {
                     C05ActionLine(title, session) { ring = false }

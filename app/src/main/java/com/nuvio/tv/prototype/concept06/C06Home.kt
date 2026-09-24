@@ -31,6 +31,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -79,7 +82,8 @@ internal fun C06Home(session: ProtoSession) {
                             Spacer(Modifier.height(6.dp))
                             C06Bar(p, Modifier.fillMaxWidth(), mark = preview.chapters.getOrNull(3)?.startFraction)
                             Spacer(Modifier.height(12.dp))
-                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            // Top of the console: Up stops here rather than falling into the side rail.
+                            Row(Modifier.onPreviewKeyEvent { it.key == Key.DirectionUp }, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 C06Button(tr("Resume", "استئناف"), Glyph.PLAY, primary = true, requester = session.focus.requester("resume"), onFocus = { preview = resume; session.focus.lastFocused = "resume" }) {
                                     session.nav.push(ProtoRoute.Streams(resume.id))
                                 }

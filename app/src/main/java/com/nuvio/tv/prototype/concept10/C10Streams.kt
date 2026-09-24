@@ -64,6 +64,9 @@ import com.nuvio.tv.prototype.shared.isBack
 import com.nuvio.tv.prototype.shared.isDown
 import com.nuvio.tv.prototype.shared.isEnter
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 private const val AUTO_START_MS = 5000f
@@ -148,9 +151,10 @@ internal fun C10Streams(session: ProtoSession, titleId: String) {
                 }
             }
             Spacer(Modifier.height(20.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            val modeFocus = rememberTabRowFocus()
+            Row(Modifier.tabRow(modeFocus), verticalAlignment = Alignment.CenterVertically) {
                 StreamMode.entries.forEach { m ->
-                    C10Tab(m.label.get(), selected = m == mode, modifier = Modifier.padding(end = 18.dp), onFocus = { mode = m })
+                    C10Tab(m.label.get(), selected = m == mode, modifier = Modifier.tabItem(modeFocus, m == mode).padding(end = 18.dp), onFocus = { mode = m })
                 }
             }
             Spacer(Modifier.height(12.dp))

@@ -57,6 +57,9 @@ import com.nuvio.tv.prototype.shared.data.StreamIntelligence
 import com.nuvio.tv.prototype.shared.formatRuntime
 import com.nuvio.tv.prototype.shared.metaLine
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -175,9 +178,10 @@ internal fun C06Episodes(session: ProtoSession, titleId: String, initialSeason: 
         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(C06.Gap)) {
             Column(Modifier.width(320.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(C06.Gap)) {
                 C06Module(Modifier.fillMaxWidth(), focusable = false) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    val seasonFocus = rememberTabRowFocus()
+                    Row(Modifier.tabRow(seasonFocus), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         t.seasons.forEachIndexed { i, s ->
-                            C06Button(tr("S${s.number}", "م${s.number}") + if (i == seasonIdx) " ●" else "", onFocus = { seasonIdx = i }) { seasonIdx = i }
+                            C06Button(tr("S${s.number}", "م${s.number}") + if (i == seasonIdx) " ●" else "", modifier = Modifier.tabItem(seasonFocus, i == seasonIdx), onFocus = { seasonIdx = i }) { seasonIdx = i }
                         }
                     }
                 }

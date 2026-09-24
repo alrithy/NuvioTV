@@ -58,6 +58,9 @@ import com.nuvio.tv.prototype.shared.metaLine
 import com.nuvio.tv.prototype.shared.player.ProtoKeyboard
 import com.nuvio.tv.prototype.shared.protoFocusable
 import com.nuvio.tv.prototype.shared.rememberProtoClock
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -165,9 +168,10 @@ internal fun C10Library(session: ProtoSession) {
     Box(Modifier.fillMaxSize()) {
         C10Ambient(lit.palette, strength = 0.8f)
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(top = 80.dp, bottom = 40.dp)) {
-            Row(Modifier.padding(horizontal = C10.Margin), verticalAlignment = Alignment.CenterVertically) {
+            val tabFocus = rememberTabRowFocus()
+            Row(Modifier.padding(horizontal = C10.Margin).tabRow(tabFocus), verticalAlignment = Alignment.CenterVertically) {
                 tabs.forEachIndexed { i, (name, items) ->
-                    C10Tab(name.get() + "  " + items.size, selected = i == tab, modifier = Modifier.padding(end = 22.dp), requester = if (i == 0) first else null, onFocus = { tab = i })
+                    C10Tab(name.get() + "  " + items.size, selected = i == tab, modifier = Modifier.tabItem(tabFocus, i == tab).padding(end = 22.dp), requester = if (i == 0) first else null, onFocus = { tab = i })
                 }
                 Spacer(Modifier.weight(1f))
                 Txt(tr("Sorted by recently added", "مرتبة حسب الإضافة الأحدث"), type.caption)

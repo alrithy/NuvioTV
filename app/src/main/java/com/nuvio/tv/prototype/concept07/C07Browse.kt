@@ -47,6 +47,9 @@ import com.nuvio.tv.prototype.shared.data.ProtoTitle
 import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.player.ProtoKeyboard
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -127,10 +130,11 @@ internal fun C07Library(session: ProtoSession) {
     Column(Modifier.fillMaxSize().background(C07.Paper).filmGrain(0.05f).verticalScroll(rememberScrollState())) {
         C07Masthead(5) { i -> if (i == 4) session.nav.push(ProtoRoute.Search) else if (i == 6) session.nav.push(ProtoRoute.Profile) else if (i < 4) session.nav.home() }
         Column(Modifier.padding(horizontal = C07.Margin, vertical = 18.dp)) {
-            Row(verticalAlignment = Alignment.Bottom) {
+            val tabFocus = rememberTabRowFocus()
+            Row(Modifier.tabRow(tabFocus), verticalAlignment = Alignment.Bottom) {
                 Txt(tr("Back issues", "الأعداد السابقة"), type.headlineM, Modifier.weight(1f))
                 tabs.forEachIndexed { i, (label, items) ->
-                    C07Link("${label.get()} ${items.size}" + if (i == tab) " ●" else "", if (i == 0) first else null, Modifier.padding(start = 18.dp), onFocus = { tab = i }) { tab = i }
+                    C07Link("${label.get()} ${items.size}" + if (i == tab) " ●" else "", if (i == 0) first else null, Modifier.tabItem(tabFocus, i == tab).padding(start = 18.dp), onFocus = { tab = i }) { tab = i }
                 }
             }
             Spacer(Modifier.height(10.dp))

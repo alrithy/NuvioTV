@@ -31,8 +31,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.unit.dp
 import com.nuvio.tv.prototype.shared.Bi
+import com.nuvio.tv.prototype.shared.LocalProtoLang
 import com.nuvio.tv.prototype.shared.ProtoEasing
 import com.nuvio.tv.prototype.shared.ProtoRoute
 import com.nuvio.tv.prototype.shared.ProtoSession
@@ -42,9 +46,9 @@ import com.nuvio.tv.prototype.shared.art.ProtoArtwork
 import com.nuvio.tv.prototype.shared.data.MockCatalog
 import com.nuvio.tv.prototype.shared.data.ProtoTitle
 import com.nuvio.tv.prototype.shared.formatRuntime
-import com.nuvio.tv.prototype.shared.LocalProtoLang
-import com.nuvio.tv.prototype.shared.resumeLine
+import com.nuvio.tv.prototype.shared.isDown
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.resumeLine
 import com.nuvio.tv.prototype.shared.tr
 
 private class Hall(val name: Bi, val items: List<ProtoTitle>)
@@ -124,6 +128,17 @@ internal fun C03Home(session: ProtoSession) {
                     Modifier
                         .fillMaxWidth()
                         .height(214.dp)
+                        // Up from the first title returns to this hall's name instead of jumping to whichever
+                        // hall happens to sit above it; Down at the end stays put.
+                        .onPreviewKeyEvent { e ->
+                            if (!e.isDown) return@onPreviewKeyEvent false
+                            val idx = positions[hall] ?: 0
+                            when {
+                                e.key == Key.DirectionUp && idx == 0 -> { runCatching { hallReqs[hall].requestFocus() }; true }
+                                e.key == Key.DirectionDown && idx == items.lastIndex -> true
+                                else -> false
+                            }
+                        }
                         .verticalScroll(session.scroll("c03.list.$hall")),
                 ) {
                     Spacer(Modifier.height(90.dp))

@@ -47,6 +47,9 @@ import com.nuvio.tv.prototype.shared.data.ProtoTitle
 import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.player.ProtoKeyboard
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -161,12 +164,13 @@ internal fun C06Library(session: ProtoSession) {
     C06Screen(session, 4, tr("Library", "المكتبة")) {
         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(C06.Gap)) {
             Column(Modifier.width(190.dp).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(C06.Gap)) {
-                C06Module(Modifier.fillMaxWidth(), focusable = false, padding = 8.dp) {
+                val tabFocus = rememberTabRowFocus()
+                C06Module(Modifier.fillMaxWidth().tabRow(tabFocus), focusable = false, padding = 8.dp) {
                     tabs.forEachIndexed { i, (label, items) ->
                         var focused by remember { mutableStateOf(false) }
                         val f = detent(focused)
                         Row(
-                            Modifier.fillMaxWidth().module(if (i == tab) maxOf(f, 0.35f) else f, 6.dp)
+                            Modifier.fillMaxWidth().tabItem(tabFocus, i == tab).module(if (i == tab) maxOf(f, 0.35f) else f, 6.dp)
                                 .protoFocusable(if (i == 0) first else null, onFocusChange = { focused = it; if (it) tab = i }, onClick = { tab = i })
                                 .padding(horizontal = 10.dp, vertical = 9.dp),
                         ) {

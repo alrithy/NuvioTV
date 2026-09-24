@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nuvio.tv.prototype.shared.Bi
 import com.nuvio.tv.prototype.shared.Glyph
+import com.nuvio.tv.prototype.shared.LocalProtoLang
 import com.nuvio.tv.prototype.shared.ProtoIcon
 import com.nuvio.tv.prototype.shared.ProtoRoute
 import com.nuvio.tv.prototype.shared.ProtoSession
@@ -47,8 +48,10 @@ import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.player.ProtoKeyboard
 import com.nuvio.tv.prototype.shared.protoFocusable
 import com.nuvio.tv.prototype.shared.rememberProtoClock
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
-import com.nuvio.tv.prototype.shared.LocalProtoLang
 
 @Composable
 internal fun C02Search(session: ProtoSession) {
@@ -162,9 +165,10 @@ internal fun C02Library(session: ProtoSession) {
                 Txt(tr("Your library", "مكتبتك"), type.hero)
                 Txt(tr("مكتبتك", "Your library"), type.heroSecond)
                 Spacer(Modifier.height(16.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val tabFocus = rememberTabRowFocus()
+                Row(Modifier.tabRow(tabFocus), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     tabs.forEachIndexed { i, (label, items) ->
-                        C02GhostButton("${label.get()}  ${items.size}", requester = if (i == 0) first else null, selected = i == tab, onFocus = { tab = i }) { tab = i }
+                        C02GhostButton("${label.get()}  ${items.size}", requester = if (i == 0) first else null, modifier = Modifier.tabItem(tabFocus, i == tab), selected = i == tab, onFocus = { tab = i }) { tab = i }
                     }
                 }
                 Spacer(Modifier.height(18.dp))

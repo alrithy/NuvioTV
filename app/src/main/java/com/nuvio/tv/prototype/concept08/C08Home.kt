@@ -94,6 +94,9 @@ internal fun C08Home(session: ProtoSession) {
     LaunchedEffect(shelf) {
         session.set("c08.shelf", shelf)
         val target = (session.value("c08.idx", if (session.demoFocus) 2 else 0)).coerceIn(0, items.lastIndex)
+        // Dock slots are reused across shelves, so no focus event fires when the shelf changes.
+        lit = items[target]
+        if (focusedIdx != null) focusedIdx = target
         repeat(8) {
             withFrameNanos { }
             if (runCatching { reqs[target].requestFocus() }.isSuccess) return@LaunchedEffect

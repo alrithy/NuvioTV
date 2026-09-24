@@ -83,6 +83,8 @@ internal fun C01Home(session: ProtoSession) {
     LaunchedEffect(reelIndex) {
         session.set("c01.reel", reelIndex)
         session.set("c01.positions", positions)
+        // The focused frame's slot is reused across reels, so no focus event fires: sync the hero here.
+        focused = reel.items[(positions[reelIndex] ?: 0).coerceIn(0, reel.items.lastIndex)]
         if (!firstEntry) {
             reelEnter.snapTo(0f)
             reelEnter.animateTo(1f, tween(420, easing = ProtoEasing.Cinematic))

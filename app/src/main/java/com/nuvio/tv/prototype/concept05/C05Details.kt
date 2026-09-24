@@ -41,7 +41,10 @@ import com.nuvio.tv.prototype.shared.data.MockCatalog
 import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.metaLine
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
 import com.nuvio.tv.prototype.shared.startScrim
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -93,9 +96,10 @@ internal fun C05Episodes(session: ProtoSession, titleId: String, initialSeason: 
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.4f to Color.Transparent, 1f to Color(0xE6000000))))
         Column(Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(bottom = 34.dp)) {
             Column(Modifier.padding(horizontal = C05.Margin)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(22.dp)) {
+                val seasonFocus = rememberTabRowFocus()
+                Row(Modifier.tabRow(seasonFocus), horizontalArrangement = Arrangement.spacedBy(22.dp)) {
                     t.seasons.forEachIndexed { i, s ->
-                        C05Action(tr("S${s.number}", "م${s.number}") + if (i == seasonIdx) "  •" else "", onFocus = { seasonIdx = i }) { seasonIdx = i }
+                        C05Action(tr("S${s.number}", "م${s.number}") + if (i == seasonIdx) "  •" else "", modifier = Modifier.tabItem(seasonFocus, i == seasonIdx), onFocus = { seasonIdx = i }) { seasonIdx = i }
                     }
                 }
                 Spacer(Modifier.height(8.dp))

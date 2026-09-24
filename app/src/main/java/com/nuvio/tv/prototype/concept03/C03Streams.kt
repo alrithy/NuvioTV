@@ -42,6 +42,9 @@ import com.nuvio.tv.prototype.shared.data.RankedStream
 import com.nuvio.tv.prototype.shared.data.StreamIntelligence
 import com.nuvio.tv.prototype.shared.data.StreamMode
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -56,7 +59,8 @@ internal fun C03Streams(session: ProtoSession, titleId: String) {
     C03Screen {
         ProtoArtwork(t, ArtKind.BACKDROP, Modifier.fillMaxSize().graphicsLayer { alpha = 0.12f })
         Row(Modifier.fillMaxSize().padding(horizontal = C03.Margin, vertical = 44.dp)) {
-            Column(Modifier.width(206.dp).fillMaxHeight()) {
+            val modeFocus = rememberTabRowFocus()
+            Column(Modifier.width(206.dp).fillMaxHeight().tabRow(modeFocus)) {
                 Txt(t.title.get().up(), type.label.copy(color = C03.Sand), maxLines = 2)
                 Spacer(Modifier.height(4.dp))
                 Txt(tr("CHOOSE A PRESENTATION", "اختر طريقة العرض"), type.small)
@@ -64,7 +68,7 @@ internal fun C03Streams(session: ProtoSession, titleId: String) {
                 StreamMode.entries.forEachIndexed { i, m ->
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Txt(numeral(i + 1), type.label.copy(color = if (m == mode) C03.BronzeLight else C03.SandFaint), Modifier.width(32.dp))
-                        C03ListItem(m.label.get().up(), style = type.label, maxScale = 1.12f, selected = m == mode, onFocus = { mode = m }) { mode = m }
+                        C03ListItem(m.label.get().up(), Modifier.tabItem(modeFocus, m == mode), style = type.label, maxScale = 1.12f, selected = m == mode, onFocus = { mode = m }) { mode = m }
                     }
                 }
             }

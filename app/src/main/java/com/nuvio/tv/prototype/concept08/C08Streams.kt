@@ -48,6 +48,9 @@ import com.nuvio.tv.prototype.shared.data.Resolution
 import com.nuvio.tv.prototype.shared.data.StreamIntelligence
 import com.nuvio.tv.prototype.shared.data.StreamMode
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 /** How long until it starts, said the way a person would say it. */
@@ -138,9 +141,10 @@ internal fun C08Streams(session: ProtoSession, titleId: String) {
             Spacer(Modifier.weight(1f))
             Txt(tr("Or choose what matters tonight", "أو اختر ما يهمّك الليلة"), type.small)
             Spacer(Modifier.height(10.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            val modeFocus = rememberTabRowFocus()
+            Row(Modifier.tabRow(modeFocus), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 choices.forEach { m ->
-                    C08Choice(m.label.get(), selected = m == mode, glow = t.palette.ui, onFocus = { mode = m }) { mode = m }
+                    C08Choice(m.label.get(), selected = m == mode, glow = t.palette.ui, modifier = Modifier.tabItem(modeFocus, m == mode), onFocus = { mode = m }) { mode = m }
                 }
             }
         }

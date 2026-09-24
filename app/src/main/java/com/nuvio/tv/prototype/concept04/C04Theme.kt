@@ -53,6 +53,9 @@ import com.nuvio.tv.prototype.shared.art.BlurredArt
 import com.nuvio.tv.prototype.shared.data.ProtoTitle
 import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.ts
 
 /**
@@ -233,11 +236,13 @@ internal fun C04Segmented(
         if (target != null) {
             Box(Modifier.absoluteOffset(x = x).width(w).height(34.dp).clip(RoundedCornerShape(50)).background(C04.Ink))
         }
-        Row {
+        val rowFocus = rememberTabRowFocus()
+        Row(Modifier.tabRow(rowFocus)) {
             options.forEachIndexed { i, label ->
                 var focused by remember { mutableStateOf(false) }
                 Box(
                     Modifier
+                        .tabItem(rowFocus, i == selected)
                         .height(34.dp)
                         .onGloballyPositioned { positions[i] = it.positionInParent().x to it.size.width }
                         .clip(RoundedCornerShape(50))

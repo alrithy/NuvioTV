@@ -41,6 +41,9 @@ import com.nuvio.tv.prototype.shared.data.MockCatalog
 import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.player.ProtoKeyboard
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -139,10 +142,12 @@ internal fun C01Library(session: ProtoSession) {
         Spacer(Modifier.height(10.dp))
         Txt(tr("YOUR LIBRARY", "مكتبتك"), type.display)
         Spacer(Modifier.height(20.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(30.dp)) {
+        val tabFocus = rememberTabRowFocus()
+        Row(Modifier.tabRow(tabFocus), horizontalArrangement = Arrangement.spacedBy(30.dp)) {
             tabs.forEachIndexed { i, (label, items) ->
                 C01Action(
                     "${label.get().cap()}  ${items.size}",
+                    modifier = Modifier.tabItem(tabFocus, i == tab),
                     requester = if (i == 0) first else null,
                     style = type.label.copy(color = if (i == tab) C01.Ink else C01.Ink45),
                     onFocus = { tab = i },

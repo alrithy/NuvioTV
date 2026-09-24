@@ -50,7 +50,10 @@ import com.nuvio.tv.prototype.shared.data.ProtoTitle
 import com.nuvio.tv.prototype.shared.isArabic
 import com.nuvio.tv.prototype.shared.metaLine
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
 import com.nuvio.tv.prototype.shared.startScrim
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -192,9 +195,10 @@ internal fun C02Episodes(session: ProtoSession, titleId: String, initialSeason: 
                 Txt(t.title.get(), type.title.copy(fontSize = type.title.fontSize * 1.3f))
                 Txt(t.title.other(), type.eyebrowSecond)
                 Spacer(Modifier.height(14.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val seasonFocus = rememberTabRowFocus()
+                Row(Modifier.tabRow(seasonFocus), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     t.seasons.forEachIndexed { i, s ->
-                        C02GhostButton(tr("Season ${s.number}", "الموسم ${s.number}"), selected = i == seasonIdx, onFocus = { seasonIdx = i }) { seasonIdx = i }
+                        C02GhostButton(tr("Season ${s.number}", "الموسم ${s.number}"), modifier = Modifier.tabItem(seasonFocus, i == seasonIdx), selected = i == seasonIdx, onFocus = { seasonIdx = i }) { seasonIdx = i }
                     }
                 }
                 Spacer(Modifier.height(14.dp))

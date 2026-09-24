@@ -26,11 +26,11 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -55,7 +55,10 @@ import com.nuvio.tv.prototype.shared.data.MockCatalog
 import com.nuvio.tv.prototype.shared.data.ProtoTitle
 import com.nuvio.tv.prototype.shared.data.fmt
 import com.nuvio.tv.prototype.shared.metaLine
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
 import com.nuvio.tv.prototype.shared.startScrim
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 @Composable
@@ -162,11 +165,12 @@ internal fun C10Episodes(session: ProtoSession, titleId: String, initialSeason: 
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.4f to Color.Transparent, 1f to C10.Black)))
         }
         Column(Modifier.fillMaxSize().padding(top = 36.dp)) {
-            Row(Modifier.padding(horizontal = C10.Margin), verticalAlignment = Alignment.CenterVertically) {
+            val seasonFocus = rememberTabRowFocus()
+            Row(Modifier.padding(horizontal = C10.Margin).tabRow(seasonFocus), verticalAlignment = Alignment.CenterVertically) {
                 Txt(t.title.get(), type.title, maxLines = 1)
                 Spacer(Modifier.width(24.dp))
                 t.seasons.forEachIndexed { i, s ->
-                    C10Tab(tr("Season ${s.number}", "الموسم ${s.number}"), selected = i == seasonIdx, modifier = Modifier.padding(end = 14.dp), onFocus = { seasonIdx = i })
+                    C10Tab(tr("Season ${s.number}", "الموسم ${s.number}"), selected = i == seasonIdx, modifier = Modifier.tabItem(seasonFocus, i == seasonIdx).padding(end = 14.dp), onFocus = { seasonIdx = i })
                 }
             }
             Spacer(Modifier.height(30.dp))

@@ -39,6 +39,9 @@ import com.nuvio.tv.prototype.shared.data.StreamIntelligence
 import com.nuvio.tv.prototype.shared.data.StreamMode
 import com.nuvio.tv.prototype.shared.data.fmt
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 private const val NETWORK_MBPS = 480.0
@@ -65,13 +68,14 @@ internal fun C06Streams(session: ProtoSession, titleId: String) {
 
     C06Screen(session, if (t.isSeries) 2 else 1, t.title.get() + " · " + tr("Sources", "المصادر")) {
         Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(C06.Gap)) {
-            C06Module(Modifier.width(176.dp).fillMaxHeight(), focusable = false, padding = 8.dp) {
+            val modeFocus = rememberTabRowFocus()
+            C06Module(Modifier.width(176.dp).fillMaxHeight().tabRow(modeFocus), focusable = false, padding = 8.dp) {
                 C06Label(tr("Mode", "الوضع"), Modifier.padding(6.dp))
                 StreamMode.entries.forEach { m ->
                     var focused by remember { mutableStateOf(false) }
                     val f = detent(focused)
                     Row(
-                        Modifier.fillMaxWidth().module(if (m == mode) maxOf(f, 0.4f) else f, 6.dp)
+                        Modifier.fillMaxWidth().tabItem(modeFocus, m == mode).module(if (m == mode) maxOf(f, 0.4f) else f, 6.dp)
                             .protoFocusable(onFocusChange = { focused = it; if (it) mode = m }, onClick = { mode = m })
                             .padding(horizontal = 10.dp, vertical = 9.dp),
                         verticalAlignment = Alignment.CenterVertically,

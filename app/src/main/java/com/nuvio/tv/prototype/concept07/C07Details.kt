@@ -39,6 +39,9 @@ import com.nuvio.tv.prototype.shared.art.filmGrain
 import com.nuvio.tv.prototype.shared.data.MockCatalog
 import com.nuvio.tv.prototype.shared.formatRuntime
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 /** Details as a feature article: kicker, headline, deck, lead photograph, drop cap, pull quote. */
@@ -155,9 +158,10 @@ internal fun C07Episodes(session: ProtoSession, titleId: String, initialSeason: 
         Column(Modifier.weight(1f).fillMaxHeight()) {
             Txt(tr("CONTENTS", "المحتويات"), type.kicker)
             Txt(t.title.get(), type.headlineM, maxLines = 1)
-            Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            val seasonFocus = rememberTabRowFocus()
+            Row(Modifier.tabRow(seasonFocus), horizontalArrangement = Arrangement.spacedBy(18.dp)) {
                 t.seasons.forEachIndexed { i, s ->
-                    C07Link(tr("Season ${s.number}", "الموسم ${s.number}") + if (i == seasonIdx) " ●" else "", onFocus = { seasonIdx = i }) { seasonIdx = i }
+                    C07Link(tr("Season ${s.number}", "الموسم ${s.number}") + if (i == seasonIdx) " ●" else "", modifier = Modifier.tabItem(seasonFocus, i == seasonIdx), onFocus = { seasonIdx = i }) { seasonIdx = i }
                 }
             }
             Spacer(Modifier.height(8.dp))

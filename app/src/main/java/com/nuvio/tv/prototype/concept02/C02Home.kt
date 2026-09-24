@@ -103,8 +103,8 @@ internal fun C02Home(session: ProtoSession) {
                     label = "lockup",
                 ) { t -> C02Lockup(t, session) }
             }
-            // Rows viewport: the focused row always lands at the top edge.
-            ProvideScrollPivot(ScrollPivot.Anchor(0f, durationMs = 360, easing = ProtoEasing.Decelerate)) {
+            // Rows viewport: the focused row lands at the top edge, leaving its bilingual heading in view.
+            ProvideScrollPivot(ScrollPivot.Anchor(0f, offsetDp = 40f, durationMs = 360, easing = ProtoEasing.Decelerate)) {
                 Column(
                     Modifier
                         .fillMaxWidth()

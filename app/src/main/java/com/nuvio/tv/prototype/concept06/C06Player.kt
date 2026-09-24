@@ -123,6 +123,28 @@ internal fun C06Player(session: ProtoSession, titleId: String, initialPanel: Pla
             }
         }
 
+        // Scrub preview is its own module above the console, so the frame is never clipped by the bar.
+        AnimatedVisibility(
+            player.scrubbing,
+            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 134.dp),
+            enter = fadeIn(tween(160)),
+            exit = fadeOut(tween(120)),
+        ) {
+            C06Module(Modifier.width(300.dp), focusable = false, padding = 8.dp) { _ ->
+                Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(4.dp))) {
+                    ProtoArtwork(t, ArtKind.BACKDROP, Modifier.fillMaxSize(), variant = (player.scrubPosition / 60f).toInt() + 1, remote = false)
+                }
+                Spacer(Modifier.height(6.dp))
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Txt(formatTimecode(player.scrubPosition.toInt(), true), type.readout)
+                        Spacer(Modifier.weight(1f))
+                        Txt(player.chapters.getOrNull(player.chapterAt(player.scrubFraction))?.title?.get() ?: "", type.caption.copy(color = C06.Ember), maxLines = 1)
+                    }
+                }
+            }
+        }
+
         AnimatedVisibility(
             panel != PlayerPanel.NONE,
             modifier = Modifier.align(Alignment.TopEnd).padding(20.dp),
@@ -156,11 +178,6 @@ private fun C06Timeline(player: ProtoPlayerState) {
                 Box(Modifier.fillMaxWidth().height(4.dp).background(Color(0x22FFFFFF)))
                 Box(Modifier.fillMaxWidth(player.displayFraction).height(4.dp).background(if (focused) C06.Ember else C06.Ink))
                 player.chapters.forEach { c -> Box(Modifier.offset(x = w * c.startFraction).width(1.dp).height(10.dp).background(C06.Ink3)) }
-                if (player.scrubbing) {
-                    Box(Modifier.offset(x = (w * player.scrubFraction - 70.dp).coerceIn(0.dp, w - 140.dp), y = (-96).dp).width(140.dp).aspectRatio(16f / 9f).clip(RoundedCornerShape(6.dp))) {
-                        ProtoArtwork(player.title, ArtKind.BACKDROP, Modifier.fillMaxSize(), variant = (player.scrubPosition / 60f).toInt() + 1, remote = false)
-                    }
-                }
             }
         }
     }

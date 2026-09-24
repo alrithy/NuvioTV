@@ -187,12 +187,12 @@ internal fun C08Caption(title: String, detail: String, alpha: Float, modifier: M
 
 /** A choice that shows its state with a small light, not a checkbox. */
 @Composable
-internal fun C08Choice(label: String, selected: Boolean, glow: Color, onFocus: () -> Unit, onClick: () -> Unit) {
+internal fun C08Choice(label: String, selected: Boolean, glow: Color, modifier: Modifier = Modifier, onFocus: () -> Unit, onClick: () -> Unit) {
     val type = c08Type()
     var focused by remember { mutableStateOf(false) }
     val f by animateFloatAsState(if (focused) 1f else 0f, tween(320, easing = ProtoEasing.Decelerate), label = "choice")
     Row(
-        Modifier.halo(glow, f * 0.5f).clip(RoundedCornerShape(50))
+        modifier.halo(glow, f * 0.5f).clip(RoundedCornerShape(50))
             .background(if (focused) C08.SoftStrong else Color.Transparent)
             .protoFocusable(onFocusChange = { focused = it; if (it) onFocus() }, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 9.dp),

@@ -44,7 +44,10 @@ import com.nuvio.tv.prototype.shared.data.RankedStream
 import com.nuvio.tv.prototype.shared.data.StreamIntelligence
 import com.nuvio.tv.prototype.shared.data.StreamMode
 import com.nuvio.tv.prototype.shared.protoFocusable
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
 import com.nuvio.tv.prototype.shared.startScrim
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 /**
@@ -112,10 +115,12 @@ internal fun C01Streams(session: ProtoSession, titleId: String) {
             }
         }
         C01Bar(C01.Bar, Modifier.align(Alignment.BottomCenter)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(26.dp)) {
+            val modeFocus = rememberTabRowFocus()
+            Row(Modifier.tabRow(modeFocus), horizontalArrangement = Arrangement.spacedBy(26.dp)) {
                 StreamMode.entries.forEach { m ->
                     C01Action(
                         m.label.get().cap(),
+                        modifier = Modifier.tabItem(modeFocus, m == mode),
                         style = type.small.copy(color = if (m == mode) C01.Ink else C01.Ink45),
                         onFocus = { mode = m },
                     ) { mode = m }

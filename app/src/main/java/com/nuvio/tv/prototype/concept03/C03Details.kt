@@ -38,6 +38,9 @@ import com.nuvio.tv.prototype.shared.art.ArtKind
 import com.nuvio.tv.prototype.shared.art.ProtoArtwork
 import com.nuvio.tv.prototype.shared.data.MockCatalog
 import com.nuvio.tv.prototype.shared.formatRuntime
+import com.nuvio.tv.prototype.shared.rememberTabRowFocus
+import com.nuvio.tv.prototype.shared.tabItem
+import com.nuvio.tv.prototype.shared.tabRow
 import com.nuvio.tv.prototype.shared.tr
 
 /** The aperture widens to become the picture; the wall beside it carries the specification. */
@@ -121,12 +124,14 @@ internal fun C03Episodes(session: ProtoSession, titleId: String, initialSeason: 
 
     C03Screen {
         Row(Modifier.fillMaxSize().padding(horizontal = C03.Margin, vertical = 44.dp)) {
-            Column(Modifier.width(120.dp).fillMaxHeight()) {
+            val seasonFocus = rememberTabRowFocus()
+            Column(Modifier.width(120.dp).fillMaxHeight().tabRow(seasonFocus)) {
                 Txt(t.title.get().up(), type.label.copy(color = C03.Sand), maxLines = 2)
                 Spacer(Modifier.height(24.dp))
                 t.seasons.forEachIndexed { i, s ->
                     C03ListItem(
                         tr("SEASON ", "الموسم ") + numeral(s.number),
+                        Modifier.tabItem(seasonFocus, i == seasonIdx),
                         style = type.label,
                         maxScale = 1.15f,
                         selected = i == seasonIdx,
