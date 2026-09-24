@@ -237,7 +237,8 @@ private fun C10Timeline(player: ProtoPlayerState, requester: FocusRequester) {
             Spacer(Modifier.width(12.dp))
             CompositionLocalProvider(LocalProtoLang provides lang) {
                 val ch = player.chapters.getOrNull(player.currentChapter)
-                Txt("-" + formatTimecode(player.remainingSec) + (ch?.let { "  ·  " + it.title.get() } ?: ""), type.caption.copy(color = C10.Ink2, textAlign = TextAlign.End), Modifier.width(170.dp), maxLines = 1)
+                // LRM anchors the line left-to-right so an Arabic chapter name can't move the minus sign.
+                Txt("\u200E-" + formatTimecode(player.remainingSec) + (ch?.let { "  ·  " + it.title.get() } ?: ""), type.caption.copy(color = C10.Ink2, textAlign = TextAlign.End), Modifier.width(170.dp), maxLines = 1)
             }
         }
     }
