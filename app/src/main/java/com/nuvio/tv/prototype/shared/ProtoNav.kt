@@ -4,7 +4,6 @@ import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.nuvio.tv.prototype.shared.data.MockCatalog
@@ -112,7 +111,8 @@ class ProtoSession(
 
     val focus = FocusRegistry()
     private val scrolls = HashMap<String, ScrollState>()
-    val values = mutableStateMapOf<String, Any>()
+    /** Plain store for state that must survive screen changes; deliberately not observable. */
+    val values = HashMap<String, Any>()
 
     fun scroll(key: String): ScrollState = scrolls.getOrPut(key) { ScrollState(0) }
 
