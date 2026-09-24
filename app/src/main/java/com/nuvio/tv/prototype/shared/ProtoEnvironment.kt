@@ -59,7 +59,7 @@ class ProtoFonts(
 val LocalProtoFonts = staticCompositionLocalOf { ProtoFonts() }
 
 @Immutable
-data class ProtoTime(val hour24: Int, val minute: Int, val weekday: Int, val day: Int, val month: Int) {
+data class ProtoTime(val hour24: Int, val minute: Int, val weekday: Int, val day: Int, val month: Int, val year: Int = 2025) {
     val hour12: Int get() = ((hour24 + 11) % 12) + 1
     val isPm: Boolean get() = hour24 >= 12
     val minutePadded: String get() = minute.toString().padStart(2, '0')
@@ -89,8 +89,8 @@ data class ProtoTime(val hour24: Int, val minute: Int, val weekday: Int, val day
     }
 
     companion object {
-        /** Fixed evening time used for screenshots: Thursday 9:41 PM. */
-        val Demo = ProtoTime(hour24 = 21, minute = 41, weekday = 4, day = 18, month = 8)
+        /** Fixed evening time used for screenshots: Thursday 18 September 2025, 9:41 PM. */
+        val Demo = ProtoTime(hour24 = 21, minute = 41, weekday = 4, day = 18, month = 8, year = 2025)
 
         fun now(): ProtoTime {
             val c = Calendar.getInstance()
@@ -100,6 +100,7 @@ data class ProtoTime(val hour24: Int, val minute: Int, val weekday: Int, val day
                 weekday = c.get(Calendar.DAY_OF_WEEK) - 1,
                 day = c.get(Calendar.DAY_OF_MONTH),
                 month = c.get(Calendar.MONTH),
+                year = c.get(Calendar.YEAR),
             )
         }
     }
