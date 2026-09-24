@@ -220,12 +220,9 @@ private fun C09CurvedCard(t: ProtoTitle, distance: Int, rtl: Boolean, requester:
     var focused by remember { mutableStateOf(false) }
     val trace = rememberTrace(focused)
     val d by animateFloatAsState(distance.toFloat(), tween(380, easing = ProtoEasing.Decelerate), label = "curve")
-    Column(Modifier.curve(d, rtl, pivotY = 1f / (1f + REFLECT))) {
-        Box(
-            Modifier.width(CardW).height(CardH).clip(chamfer())
-                .c09Trace({ trace.value })
-                .protoFocusable(requester, onFocusChange = { focused = it; if (it) onFocus() }, onClick = onClick),
-        ) {
+    // Focus target outside the curve transform, so bent neighbours never read as "below" to focus search.
+    Column(Modifier.protoFocusable(requester, onFocusChange = { focused = it; if (it) onFocus() }, onClick = onClick).curve(d, rtl, pivotY = 1f / (1f + REFLECT))) {
+        Box(Modifier.width(CardW).height(CardH).clip(chamfer()).c09Trace({ trace.value })) {
             ProtoArtwork(t, ArtKind.BACKDROP, Modifier.fillMaxSize())
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.55f to Color.Transparent, 1f to Color(0xCC000000))))
             Txt(t.title.get(), type.label.copy(fontFamily = type.title.fontFamily), Modifier.align(Alignment.BottomStart).padding(horizontal = 12.dp, vertical = 8.dp), maxLines = 1)

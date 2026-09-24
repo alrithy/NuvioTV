@@ -248,12 +248,10 @@ internal fun C10Card(
 ) {
     var focused by remember { mutableStateOf(false) }
     val f = focusAnim(focused)
-    Box(modifier.width(width).lift({ f }, t.palette.ui).lightBar({ f })) {
-        Box(
-            Modifier.fillMaxWidth().aspectRatio(aspect).clip(RoundedCornerShape(C10.Radius))
-                .background(C10.Surface)
-                .protoFocusable(requester, onFocusChange = { focused = it; onFocus(it) }, onClick = onClick),
-        ) {
+    // The focus target sits outside the lift so the card's focus rectangle never moves: a lifted
+    // card must not make its row neighbours look "below" it to D-pad focus search.
+    Box(modifier.width(width).protoFocusable(requester, onFocusChange = { focused = it; onFocus(it) }, onClick = onClick).lift({ f }, t.palette.ui).lightBar({ f })) {
+        Box(Modifier.fillMaxWidth().aspectRatio(aspect).clip(RoundedCornerShape(C10.Radius)).background(C10.Surface)) {
             ProtoArtwork(t, kind, Modifier.fillMaxSize().graphicsLayer { alpha = 0.86f + 0.14f * f }, episode = episode)
             overlay(f)
         }
@@ -326,14 +324,14 @@ private val navItems = listOf(
  * unfolds when focus travels up into it and folds away as soon as focus leaves.
  */
 @Composable
-internal fun C10TopNav(current: C10Section, clock: ProtoTime, modifier: Modifier = Modifier, onSelect: (C10Section) -> Unit) {
+internal fun C10TopNav(current: C10Section, clock: ProtoTime, modifier: Modifier = Modifier, scrolled: Float = 0f, onSelect: (C10Section) -> Unit) {
     val type = c10Type()
     val lang = LocalProtoLang.current
     val fonts = LocalProtoFonts.current
     var inside by remember { mutableStateOf(false) }
     val open by animateFloatAsState(if (inside) 1f else 0f, tween(280, easing = ProtoEasing.Decelerate), label = "nav")
     Row(
-        modifier.fillMaxWidth().background(Brush.verticalGradient(listOf(C10.Black.copy(alpha = 0.75f * (0.5f + 0.5f * open)), Color.Transparent)))
+        modifier.fillMaxWidth().background(Brush.verticalGradient(0f to C10.Black.copy(alpha = maxOf(0.75f * (0.5f + 0.5f * open), 0.96f * scrolled)), 0.6f to C10.Black.copy(alpha = 0.85f * scrolled), 1f to Color.Transparent))
             .onFocusChanged { inside = it.hasFocus }
             .padding(start = C10.Margin, end = C10.Margin, top = 22.dp, bottom = 26.dp),
         verticalAlignment = Alignment.CenterVertically,

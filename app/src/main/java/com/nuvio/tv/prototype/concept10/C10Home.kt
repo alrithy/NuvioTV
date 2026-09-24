@@ -158,7 +158,7 @@ internal fun C10Home(session: ProtoSession) {
             Spacer(Modifier.height(60.dp))
         }
 
-        C10TopNav(C10Section.HOME, clock) { session.goTo(it) }
+        C10TopNav(C10Section.HOME, clock, scrolled = (scroll.value / 160f).coerceIn(0f, 1f)) { session.goTo(it) }
     }
 }
 

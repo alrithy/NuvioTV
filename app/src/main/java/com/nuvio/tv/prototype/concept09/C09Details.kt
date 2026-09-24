@@ -222,12 +222,8 @@ private fun C09EpisodeCard(t: ProtoTitle, e: Episode, distance: Int, rtl: Boolea
     var focused by remember { mutableStateOf(false) }
     val trace = rememberTrace(focused)
     val d by animateFloatAsState(distance.toFloat(), tween(380, easing = ProtoEasing.Decelerate), label = "curve")
-    Column(Modifier.curve(d, rtl, pivotY = 1f / 1.3f)) {
-        Box(
-            Modifier.width(EpW).height(EpH).clip(chamfer())
-                .c09Trace({ trace.value })
-                .protoFocusable(requester, onFocusChange = { focused = it; if (it) onFocus() }, onClick = onClick),
-        ) {
+    Column(Modifier.protoFocusable(requester, onFocusChange = { focused = it; if (it) onFocus() }, onClick = onClick).curve(d, rtl, pivotY = 1f / 1.3f)) {
+        Box(Modifier.width(EpW).height(EpH).clip(chamfer()).c09Trace({ trace.value })) {
             ProtoArtwork(t, ArtKind.STILL, Modifier.fillMaxSize(), episode = e)
             Box(Modifier.fillMaxSize().background(Brush.verticalGradient(0.4f to Color.Transparent, 1f to Color(0xD9000000))))
             Txt(num(e.number), type.numeral, Modifier.align(Alignment.BottomStart).padding(start = 12.dp, bottom = 2.dp))
