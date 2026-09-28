@@ -1,0 +1,34 @@
+project: Nuvio Superfork
+state_version: 1
+repository: alrithy/NuvioTV
+official_upstream: NuvioMedia/NuvioTV
+baseline_branch: dev
+baseline_sha: c257a2365ee3386b582dc2974ec235cfe0381f33
+integration_branch: superfork/integration
+default_branch_note: dev_is_legacy_default_until_github_admin_changes_it
+active_gate: G0
+active_gate_name: Fork Foundation
+active_branch: chore/fork-foundation-impl
+active_status: ready
+last_green_commit: c257a2365ee3386b582dc2974ec235cfe0381f33
+current_docs_branch: chore/fork-foundation
+blockers: none
+parallel_agents_same_branch_allowed: false
+next_gate: G1
+next_branch: feat/unified-diagnostics
+gate_status:
+  G0: ready
+  G1: queued
+  G2: queued
+  G3: queued
+  G4: queued
+  G5: queued
+  G6: queued
+  G7: queued
+  G8: queued
+  G9: queued
+  G10: queued
+  G11: queued
+  G12: queued
+  G13: queued
+  G14: queued
