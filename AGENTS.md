@@ -15,11 +15,11 @@ python3 scripts/superfork/validate_project_state.py
 ```
 
 Then read, in this order:
-1. `integration/state.yaml` — machine-readable active gate/branch/status.
+1. `integration/state.yaml` — machine-readable active gate/branch/status/task packet.
 2. `docs/PROJECT_STATUS.md` — one-page human status.
 3. `docs/HANDOFF.md` — exact continuation notes.
 4. `docs/AGENT_PLAYBOOK.md` — execution procedure.
-5. `docs/GATE_SPECS.md` — active gate scope and exit criteria.
+5. Read the active task packet declared in `integration/state.yaml`, then `docs/GATE_SPECS.md` for gate scope/exit criteria.
 6. `integration/feature_traceability.csv` — authoritative mapping of all 320 feature IDs.
 7. `docs/DEFINITION_OF_DONE.md`.
 8. `docs/DECISIONS.md`.
@@ -31,7 +31,8 @@ Then read, in this order:
 Only ask the user if a genuine blocker remains after repository inspection.
 
 ## Canonical sources of truth
-- Current progress/branch/status: `integration/state.yaml`
+- Current progress/branch/status/task packet: `integration/state.yaml`
+- Gate execution queue: `integration/task_queue.csv` + `tasks/`
 - Human continuation context: `docs/HANDOFF.md`
 - Full requested scope: `docs/MASTER_FEATURES.md` (IDs 1–320)
 - Per-feature gate/source/owner/status: `integration/feature_traceability.csv`
