@@ -18,6 +18,7 @@ If the user only says "اشتغل على نوفيو", "work on Nuvio", or "conti
    ```
 3. Read:
    - integration/state.yaml
+   - CONTRIBUTING_SUPERFORK.md
    - docs/PROJECT_STATUS.md
    - docs/HANDOFF.md
    - docs/AGENT_PLAYBOOK.md
@@ -38,6 +39,11 @@ If the user only says "اشتغل على نوفيو", "work on Nuvio", or "conti
 
 Only ask the user if a true blocker remains after inspecting Git and these documents.
 
+## Contribution policy split
+- Superfork branches (`superfork/integration` and its task branches): `CONTRIBUTING_SUPERFORK.md` applies.
+- Legacy `dev`: upstream `CONTRIBUTING.md` applies.
+- Do not let upstream's temporary "no feature PRs" policy block the documented Superfork roadmap.
+
 ## Branch safety
 - `dev` is legacy/default until GitHub admin changes the default. Never implement Superfork features there.
 - Never code directly on `superfork/integration`.
@@ -48,11 +54,12 @@ Only ask the user if a true blocker remains after inspecting Git and these docum
 ## Authority order
 1. current explicit user instruction
 2. this file
-3. docs/DECISIONS.md
-4. docs/GATE_SPECS.md / docs/ROADMAP.md
-5. docs/MASTER_FEATURES.md
-6. docs/FORK_RESEARCH.md / docs/SOURCE_MAP.md
-7. integration/state.yaml / docs/HANDOFF.md for progress
+3. CONTRIBUTING_SUPERFORK.md
+4. docs/DECISIONS.md
+5. docs/GATE_SPECS.md / docs/ROADMAP.md
+6. docs/MASTER_FEATURES.md
+7. docs/FORK_RESEARCH.md / docs/SOURCE_MAP.md
+8. integration/state.yaml / docs/HANDOFF.md for progress
 
 ## Core integration strategy
 REUSE -> CHERRY-PICK -> FILE_PORT -> DELTA_PORT -> ALGORITHM_PORT -> ADAPTER -> REWRITE ONLY AS LAST RESORT.
