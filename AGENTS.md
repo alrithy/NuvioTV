@@ -20,6 +20,7 @@ If the user only says "اشتغل على نوفيو", "work on Nuvio", or "conti
    - integration/state.yaml
    - docs/PROJECT_STATUS.md
    - docs/HANDOFF.md
+   - docs/START_HERE.md
    - docs/AGENT_PLAYBOOK.md
    - docs/GATE_SPECS.md
    - docs/DEFINITION_OF_DONE.md
@@ -30,9 +31,17 @@ If the user only says "اشتغل على نوفيو", "work on Nuvio", or "conti
    - docs/FORK_RESEARCH.md
    - docs/SOURCE_MAP.md
    - docs/ROADMAP.md
+   - docs/GATE_CHECKLISTS.md
+   - docs/DEFINITION_OF_DONE.md
    - docs/TEST_MATRIX.md
    - docs/IMPORT_LEDGER.md
+   - docs/RUNBOOK.md
+   - docs/BRANCHING.md
+   - docs/RECOVERY.md
+   - docs/UPSTREAM_SYNC.md
    - integration/features.yaml
+   - integration/feature_coverage.yaml
+   - integration/state.yaml
    - integration/feature_traceability.csv
 4. Continue the active gate/task from `integration/state.yaml` and `docs/HANDOFF.md`.
 
