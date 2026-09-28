@@ -29,8 +29,8 @@ jobs:
             if (missing.length) core.setFailed("Missing PR sections: " + missing.join(", "));
             if (pr.base.ref !== "superfork/integration") core.setFailed("Superfork PRs must target superfork/integration");
             if (["dev","superfork/integration"].includes(pr.head.ref)) core.setFailed("Do not develop directly on " + pr.head.ref);
-            if (!/Feature ID\\(s\\):\\s*[^\\n]+/.test(body)) core.setFailed("Identity must declare Feature ID(s), or governance/N/A.");
-            if (!/Gate:\\s*(G(?:[0-9]|1[0-4])|governance\\/N\\/A)/i.test(body)) core.setFailed("Identity must declare Gate G0..G14 or governance/N/A.");
+            if (!/Feature ID\(s\):\s*[^\n]+/.test(body)) core.setFailed("Identity must declare Feature ID(s), or governance/N/A.");
+            if (!/Gate:\s*(G(?:[0-9]|1[0-4])|governance\/N\/A)/i.test(body)) core.setFailed("Identity must declare Gate G0..G14 or governance/N/A.");
 
   state-handoff:
     name: Superfork State Handoff
@@ -41,8 +41,8 @@ jobs:
           fetch-depth: 0
       - name: Verify active branch and state updates
         env:
-          HEAD_REF: \${{ github.head_ref }}
-          BASE_REF: \${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           expected="$(awk '/^active_branch:/ {print $2; exit}' integration/state.yaml)"
           if [ -z "$expected" ]; then
@@ -58,7 +58,7 @@ jobs:
           changed="$(git diff --name-only "origin/$BASE_REF"...HEAD 2>/dev/null || git diff --name-only HEAD^ HEAD)"
           echo "$changed"
 
-          if echo "$changed" | grep -Eq '^(app/|ffmpeg-decoder-downmix/|baselineprofile/|build\\.gradle|settings\\.gradle|gradle/)'; then
+          if echo "$changed" | grep -Eq '^(app/|ffmpeg-decoder-downmix/|baselineprofile/|build\.gradle|settings\.gradle|gradle/)'; then
             for required in docs/HANDOFF.md docs/PROJECT_STATUS.md integration/state.yaml integration/feature_traceability.csv; do
               echo "$changed" | grep -qx "$required" || {
                 echo "Code-changing gate PR must update $required" >&2
