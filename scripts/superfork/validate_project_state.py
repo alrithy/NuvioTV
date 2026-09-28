@@ -19,7 +19,7 @@ for p in required:
     if not (ROOT/p).is_file():
         errors.append(f"missing required file: {p}")
 
-baseline="c257a2365ee3386b582dc2974ec235cfe0381f33"
+baseline="fd7973d91dd75d790c5f9b3d68dae652655e92c4"
 for p in ["docs/BASELINE.md","docs/SOURCE_MAP.md","integration/features.yaml","integration/state.yaml"]:
     f=ROOT/p
     if f.exists() and baseline not in f.read_text(encoding="utf-8"):
