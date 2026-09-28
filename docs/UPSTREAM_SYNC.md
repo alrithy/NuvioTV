@@ -1,5 +1,7 @@
 # Upstream Sync Procedure
 
+Permanent history: `docs/UPSTREAM_SYNC_LOG.md`. Every accepted sync must append an entry there.
+
 Official upstream: NuvioMedia/NuvioTV
 Integration branch: superfork/integration
 
