@@ -2,19 +2,16 @@
 Feature IDs: 107–116
 Branch: `feat/seek-intelligence`
 Depends on: G6
-Sources: Reshaped + Cxsmo pinned SHAs.
+Sources: Reshaped + Cxsmo.
 
 ## Objective
-One hybrid preview path:
-1. local real keyframes when available;
-2. calibrated Seekr fallback;
-3. normal seek bar fallback.
+One hybrid preview path: local real keyframes -> calibrated Seekr -> normal seek fallback.
 
 ## Scope
-Real keyframe timestamps, Seekr calibration, manual offset, weak-match rejection, bounded memory/disk, disk seek buffer under Seek Optimized strategy.
+Real keyframe timestamps, Seekr calibration/manual offset/weak-match rejection, bounded memory/disk, disk seek buffer under Seek Optimized strategy.
 
 ## Rules
-Do not create an extra network fetch when local preview can use existing media/keyframes. ResourceManager controls expensive memory/cache behavior.
+Avoid extra network fetch when existing media/keyframes suffice. AdaptiveResourceManager owns memory/cache policy.
 
 ## Tests
-Preview/actual seek alignment, calibration confidence, long-file memory bounds, cleanup, weak-device behavior.
+Preview vs actual seek alignment, confidence rejection, long-file bounds, cleanup, weak-device behavior.
