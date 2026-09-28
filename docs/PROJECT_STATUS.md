@@ -8,7 +8,7 @@ Machine-readable state: `integration/state.yaml`.
 
 ## Current baseline
 - Official upstream: `NuvioMedia/NuvioTV:dev`
-- Pinned baseline: `c257a2365ee3386b582dc2974ec235cfe0381f33`
+- Pinned baseline: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
 - Integration branch: `superfork/integration`
 - Legacy/default fork branch: `dev` — do not build Superfork features directly there.
 
