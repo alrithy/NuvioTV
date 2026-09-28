@@ -11,6 +11,7 @@ legacy_default_branch: dev
 active_gate: G0
 active_gate_name: Fork Foundation
 active_branch: chore/fork-foundation-impl
+active_task_packet: tasks/G0_FORK_FOUNDATION.md
 active_status: READY
 active_pr: pending
 active_owner: any_single_agent
