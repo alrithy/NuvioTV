@@ -5,10 +5,10 @@ Depends on: G8
 Primary source: Cxsmo + current official.
 
 ## Scope
-One multi-provider skip aggregator; recap/credits/preview/content-warning/mute actions; provider isolation/timeouts/evidence/confidence; ID normalization; Calendar; Random/Mystery; recommendation providers/pagination/lazy metadata/trailer fallback; App Dimmer.
+One skip aggregator; recap/credits/preview/content-warning/mute; provider isolation/timeouts/evidence/confidence; ID normalization; Calendar; Random/Mystery; post-play providers/pagination/lazy metadata/trailer fallback; App Dimmer.
 
 ## Rules
-Keep skip vs mute actions distinct. One aggregator behind official skip integration seam. Spoiler-safe states must not reveal hidden episode metadata.
+Keep skip vs mute distinct. Extend behind official skip seam. Spoiler-safe flows must not reveal Mystery metadata.
 
 ## Tests
-provider timeout/isolation, evidence merge, action conflict, Random/Mystery scope/unwatched fallback, Calendar watched updates, recommendation provider fallback.
+Timeout/isolation, evidence merge/action conflict, Random/Mystery scope/unwatched fallback, Calendar watched updates, recommendation fallbacks.
