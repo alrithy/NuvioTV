@@ -24,7 +24,9 @@ Then read, in this order:
 7. `docs/DEFINITION_OF_DONE.md`.
 8. `docs/DECISIONS.md`.
 9. Relevant sections of `docs/FORK_RESEARCH.md`, `docs/SOURCE_MAP.md`, `docs/COMPONENT_MAP.md`, `docs/PORTING_PROTOCOL.md`, and `docs/TEST_MATRIX.md`.
-10. `docs/SECURITY_POLICY.md`, `docs/UPSTREAM_SYNC.md`, and `docs/RELEASE_POLICY.md` when applicable.
+10. `docs/PRODUCT_REQUIREMENTS.md` and `docs/NON_GOALS.md` before making a trade-off or changing scope.
+11. `docs/STATUS_MODEL.md`, `docs/TEST_STRATEGY.md`, and `docs/BASELINE_TEST_DEBT.md` before declaring work complete.
+12. `docs/SECURITY_POLICY.md`, `docs/DEPENDENCY_POLICY.md`, `docs/DATA_MIGRATION_POLICY.md`, `docs/UPSTREAM_SYNC.md`, and `docs/RELEASE_POLICY.md` when applicable.
 
 Only ask the user if a genuine blocker remains after repository inspection.
 
@@ -44,6 +46,11 @@ Only ask the user if a genuine blocker remains after repository inspection.
 - Porting procedure: `docs/PORTING_PROTOCOL.md`
 - Component ownership/seams: `docs/COMPONENT_MAP.md`
 - Status semantics: `docs/STATUS_MODEL.md`
+- Product trade-offs: `docs/PRODUCT_REQUIREMENTS.md`
+- Scope boundaries: `docs/NON_GOALS.md`
+- Testing model/baseline debt: `docs/TEST_STRATEGY.md` + `docs/BASELINE_TEST_DEBT.md`
+- Review/risk controls: `docs/CODE_REVIEW_CHECKLIST.md` + `docs/RISK_REGISTER.md`
+- Dependency/data safety: `docs/DEPENDENCY_POLICY.md` + `docs/DATA_MIGRATION_POLICY.md`
 
 Compatibility/redirect documents are not independent sources of truth.
 
@@ -91,7 +98,7 @@ Never merge another fork wholesale. Never overwrite a current official subsystem
 
 ## Quality gate
 Every code gate must satisfy `docs/DEFINITION_OF_DONE.md`.
-At minimum run the governance validator and relevant Gradle unit tests/build, plus gate-specific tests.
+At minimum run the governance validator, the full unit suite with the no-new-regressions baseline guard, the relevant build, and gate-specific tests. Pre-existing failures are governed only by `docs/BASELINE_TEST_DEBT.md`; new failures must not be waived silently.
 
 ## Handoff
 Before stopping:
