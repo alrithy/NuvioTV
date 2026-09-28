@@ -10,7 +10,7 @@ required = [
  "docs/PROJECT_STATUS.md","docs/HANDOFF.md","docs/BASELINE.md","docs/ARCHITECTURE.md",
  "docs/MASTER_FEATURES.md","docs/DECISIONS.md","docs/FORK_RESEARCH.md","docs/SOURCE_MAP.md",
  "docs/ROADMAP.md","docs/GATE_SPECS.md","docs/TEST_MATRIX.md","docs/DEFINITION_OF_DONE.md",
- "docs/IMPORT_LEDGER.md","docs/AGENT_PLAYBOOK.md","docs/BRANCHING.md","docs/UPSTREAM_SYNC.md",
+ "docs/IMPORT_LEDGER.md","docs/AGENT_PLAYBOOK.md","docs/BRANCHING.md","docs/UPSTREAM_SYNC.md","docs/UPSTREAM_SYNC_LOG.md",
  "docs/SECURITY_POLICY.md","docs/RELEASE_POLICY.md","docs/FAILURE_RECOVERY.md","docs/LOCAL_SETUP.md",
  "docs/GITHUB_ADMIN_CHECKLIST.md","integration/features.yaml","integration/state.yaml",
  "integration/feature_traceability.csv"
