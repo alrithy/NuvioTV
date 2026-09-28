@@ -13,13 +13,17 @@ do not ask what to do next.
 
 Instead:
 1. Inspect the current branch, HEAD, working tree, open task context, and recent commits.
-2. Read:
+2. Read ALL of the following before changing code:
    - docs/HANDOFF.md
    - docs/BASELINE.md
    - docs/ARCHITECTURE.md
+   - docs/MASTER_FEATURES.md
+   - docs/DECISIONS.md
+   - docs/FORK_RESEARCH.md
    - docs/SOURCE_MAP.md
    - docs/ROADMAP.md
    - docs/TEST_MATRIX.md
+   - docs/IMPORT_LEDGER.md
    - integration/features.yaml
 3. Continue the next incomplete roadmap gate recorded in docs/HANDOFF.md.
 4. If the current branch is a task branch with unfinished work, continue that work first.
@@ -27,6 +31,24 @@ Instead:
 6. Only ask the user a question if a real blocking ambiguity cannot be resolved from Git/repository state.
 
 Git and repository documentation are the source of truth. Never depend on previous chat history.
+
+## Authoritative scope
+
+- docs/MASTER_FEATURES.md is the canonical end-state scope and contains stable feature IDs 1–320.
+- docs/DECISIONS.md is the canonical architecture/product decision log.
+- docs/FORK_RESEARCH.md preserves detailed implementation findings and known source commits.
+- docs/SOURCE_MAP.md pins each source repo/branch/SHA.
+- docs/ROADMAP.md controls implementation order.
+- docs/HANDOFF.md controls the current task state.
+
+If documents appear to conflict, follow this precedence:
+1. current explicit user instruction
+2. AGENTS.md safety/workflow rules
+3. docs/DECISIONS.md
+4. docs/ROADMAP.md
+5. docs/MASTER_FEATURES.md
+6. docs/FORK_RESEARCH.md / docs/SOURCE_MAP.md
+7. docs/HANDOFF.md for current progress only
 
 ## Baseline
 
@@ -62,9 +84,15 @@ REUSE -> CHERRY-PICK -> FILE_PORT -> DELTA_PORT -> ALGORITHM_PORT -> ADAPTER -> 
 8. Every gate/feature must build and test before the next begins.
 9. Do not discard, reset, force-push, or overwrite work you did not create unless explicitly instructed.
 10. Keep changes scoped to the current roadmap gate.
+11. Do not silently update pinned source SHAs.
+12. Do not drop a master feature because its source is difficult to port. Record it as blocked/deferred instead.
+13. Do not import Cxsmo Smart Vibrance into stable core.
+14. Do not inherit ysosrs removals just because they exist in that fork.
+15. Do not re-port obsolete self-host code already present in official upstream.
 
 ## Workflow for every imported feature
 
+- Identify its MASTER_FEATURES ID(s).
 - Audit source repo/branch/SHA/commits and source files.
 - Identify equivalent files in the pinned/current official baseline.
 - Record what already exists upstream.
@@ -85,6 +113,7 @@ Before finishing any work session:
    - current branch
    - latest commit SHA
    - gate/task completed
+   - feature IDs touched
    - files/modules changed
    - tests/build commands and results
    - unresolved issues
@@ -102,7 +131,7 @@ Tasks:
 4. Add FeatureRegistry with defaults preserving official behavior.
 5. Add ForkSettingsDataStore only if actually required; do not migrate official settings.
 6. Add SourceAttribution model/utility.
-7. Add docs/IMPORT_LEDGER.md template.
+7. Use docs/IMPORT_LEDGER.md for future feature imports.
 8. Add unit tests for feature default semantics.
 9. Run build/tests.
 10. Commit as: chore(fork): establish integration foundation
