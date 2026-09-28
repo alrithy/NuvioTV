@@ -13,14 +13,17 @@ required = [
  "docs/DEFINITION_OF_DONE.md","docs/IMPORT_LEDGER.md","docs/AGENT_PLAYBOOK.md",
  "docs/BRANCHING.md","docs/UPSTREAM_SYNC.md","docs/SECURITY_POLICY.md",
  "docs/RELEASE_POLICY.md","docs/FAILURE_RECOVERY.md","docs/LOCAL_SETUP.md",
- "integration/features.yaml","integration/state.yaml","integration/feature_traceability.csv"
+ "docs/BASELINE_TEST_DEBT.md",
+ "integration/features.yaml","integration/state.yaml","integration/feature_traceability.csv",
+ "integration/known_baseline_test_failures.txt",
+ "scripts/superfork/check_test_failures.py"
 ]
 for p in required:
     if not (ROOT/p).exists():
         errors.append(f"missing required file: {p}")
 
 baseline="c257a2365ee3386b582dc2974ec235cfe0381f33"
-for p in ["docs/BASELINE.md","docs/SOURCE_MAP.md","integration/features.yaml","integration/state.yaml"]:
+for p in ["docs/BASELINE.md","docs/SOURCE_MAP.md","integration/features.yaml","integration/state.yaml","docs/BASELINE_TEST_DEBT.md"]:
     f=ROOT/p
     if f.exists() and baseline not in f.read_text(encoding="utf-8"):
         errors.append(f"baseline SHA mismatch/missing in {p}")
@@ -43,6 +46,14 @@ if tr.exists():
         errors.append("feature_traceability.csv must map all 320 IDs exactly once")
     if any(r["gate"]=="UNMAPPED" for r in rows):
         errors.append("feature_traceability.csv contains UNMAPPED feature IDs")
+
+allow=ROOT/"integration/known_baseline_test_failures.txt"
+if allow.exists():
+    known=[x.strip() for x in allow.read_text(encoding="utf-8").splitlines() if x.strip() and not x.lstrip().startswith("#")]
+    if len(known) != len(set(known)):
+        errors.append("known baseline unit-test allowlist contains duplicates")
+    if len(known) != 18:
+        errors.append(f"expected 18 captured baseline unit-test failures, found {len(known)}; investigate and update debt docs intentionally")
 
 road=ROOT/"docs/ROADMAP.md"
 if road.exists():
