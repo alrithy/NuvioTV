@@ -14,3 +14,24 @@
 
 ## No-duplicate rules
 Official already contains parallel range code, stream speed testing, DV/libdovi work, MDBList, custom server infrastructure, and a debug stats overlay. Always diff first and import only missing behavior.
+## Source aliases used by traceability
+| Alias | Source |
+|---|---|
+| official | NuvioMedia/NuvioTV |
+| project | Local project glue; no external import |
+| foundation | Local project glue; official integration anchor |
+| reshaped | DavidVamaiotu/NuvioTV-Reshaped |
+| ysosrs | ysosrs123/NuvioTV-Fork |
+| cxsmo | Cxsmo-ai/NuvioTV-Custom |
+| hackerslash-lite | hackerslash/NuvioTV-Lite |
+| vibe-subtitle | SPxMM3R1/NuvioTV-VibeSubtitle |
+| antonino-watchparty | AntoninoScardina/NuvioTV |
+| fornace | Fornace/nuvio-ai |
+| nuvio-glass | xnucade/NuvioGlass |
+
+`+` combines candidate sources, not permission to import them all. G0 imports no fork code.
+Modes in older research are aliases: LOGIC_PORT = ALGORITHM_PORT; UI_PORT and
+EXPERIMENTAL_FILE_PORT = FILE_PORT with the applicable flag/release constraint.
+Before any import, resolve short research hashes to full commits under the pinned SHA,
+identify files/tests, and complete IMPORT_LEDGER. A candidate is not verified upstream
+coverage: only `verified_official` rows with evidence make that claim.

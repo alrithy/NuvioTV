@@ -138,7 +138,7 @@ GitHub is the source of truth. Codex, Claude Code, Gemini or another agent may w
 ## D025 — Branch ownership
 Never develop directly on `superfork/integration`.
 One active task/feature branch per coherent work item.
-Do not have two agents editing the same task branch concurrently unless explicitly coordinated.
+Exactly one writer may edit a task branch. Parallel read-only review is allowed; another writer needs a separately assigned branch and scope.
 
 ## D026 — Handoff
 Before changing agents, commit completed work and update `docs/HANDOFF.md` with branch, SHA, tests, unresolved issues and exact next task.
@@ -160,7 +160,7 @@ The official-based baseline currently exposes 18 failures when the entire `:app:
 
 Decision:
 - run the full unit suite on every Superfork PR;
-- record the 18 known failures in `integration/baseline_test_failures.txt`;
+- record the 18 known failures in `integration/baseline_test_debt.json`;
 - fail CI on any unrecorded/new failure;
 - allow known failures to remain temporarily;
 - remove debt entries once fixed.
@@ -194,3 +194,31 @@ Durable exceptions require a new decision record.
 Before G0 starts, take one final reviewed refresh from official `dev`. Once a gate is active, do not continuously chase upstream inside that feature branch.
 
 Official updates use dedicated upstream-sync PRs, normally at gate boundaries, when the affected subsystem materially changed, or for critical fixes. This preserves reproducibility while keeping long-term drift controlled.
+
+## D037 — Governance closure keeps accepted and observed upstream distinct
+During the 2026-09-28 audit official dev moved to e78de241acb8a6128c29076422377de1206ee8cd
+(settings PR #3746, 65 changed files including build/tests). This governance-only task
+retains the latest accepted fd7973d sync; no runtime merge is hidden inside governance.
+The final reviewed pre-G0 anchor remains fd7973d. G0 foundation does not touch settings;
+review the observed upstream delta through a dedicated sync before a settings-touching gate.
+D036 means latest **reviewed/accepted** official anchor, not an uncontrolled moving HEAD.
+
+## D038 — Fail-closed baseline debt and singular governance owners
+Use GOVERNANCE_OWNERS and BASELINE_TEST_DEBT. Exact fully qualified IDs, fresh complete
+execution, inventory checks and explicit reviewed baseline changes replace simple-name
+allowlists/count locks/catch-alls. One writer lease guards each task branch. No G0 feature
+is marked implemented by this governance-only review.
+
+## D039 — Explicit initial classification of the 19th baseline failure
+Clean official replay 36488330126 / job 109150571733 executed 1,611 tests and failed 19.
+The new guard correctly rejected HomeEnrichmentRepositoryBoundaryTest#`a real repository
+transport failure is retried and then resolves`; clean integration replay had 18 failures
+and this test passed. Test/build inputs are identical. Its source uses wall-clock delays,
+Unconfined coroutines and a 5-second request wait; scheduling sensitivity is a hypothesis,
+not a proven root cause. This failure is observed before any Superfork feature code.
+
+During the explicitly requested baseline audit, register its fully qualified ID as
+intermittent baseline debt with both results preserved. This is a reviewed, explicit
+initial registration of 19 entries (18 reproduced + 1 intermittent), not automatic growth.
+Repeat official replay once to characterize it; do not discard the failing evidence or
+use reruns to claim the test is fixed. Future additions require exact-head maintainer review.

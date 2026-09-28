@@ -15,4 +15,4 @@ Official remains fallback/selectable. Strategy selection is visible to diagnosti
 Selection matrix, fallback/unsupported states, official parity, flags.
 
 ## Out of scope
-No large ysosrs network delta or Reshaped disk-seek port yet; G4/G7 own those implementations.
+No large ysosrs network delta or disk-seek port yet; G4 owns disk seek buffer (ID 25), G7 owns previews (IDs 107–116).

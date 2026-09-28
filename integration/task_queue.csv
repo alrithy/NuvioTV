@@ -1,16 +1,16 @@
-gate,name,branch,depends_on,primary_source,status,task_packet
-G0,Fork Foundation,chore/fork-foundation-impl,governance,official,ready,tasks/G0_FORK_FOUNDATION.md
-G1,Unified Diagnostics & Add-on Health,feat/unified-diagnostics,G0,official+ysosrs,queued,tasks/G1_UNIFIED_DIAGNOSTICS.md
-G2,Adaptive Resource Manager,feat/adaptive-resource-manager,G1,hackerslash-lite,queued,tasks/G2_ADAPTIVE_RESOURCE_MANAGER.md
-G3,Playback Strategy Framework,feat/playback-strategies,G2,official+ysosrs+reshaped,queued,tasks/G3_PLAYBACK_STRATEGIES.md
-G4,REMUX Network Performance,feat/remux-network,G3,official+ysosrs+reshaped,queued,tasks/G4_REMUX_NETWORK.md
-G5,Audio DV HDR AFR,feat/audio-video,G4,official+ysosrs+reshaped,queued,tasks/G5_AUDIO_VIDEO.md
-G6,Subtitle Intelligence,feat/subtitle-intelligence,G5,reshaped+vibe-subtitle,queued,tasks/G6_SUBTITLE_INTELLIGENCE.md
-G7,Seek Intelligence,feat/seek-intelligence,G6,reshaped+cxsmo,queued,tasks/G7_SEEK_INTELLIGENCE.md
-G8,Stream Intelligence,feat/stream-intelligence,G7,official+reshaped+cxsmo,queued,tasks/G8_STREAM_INTELLIGENCE.md
-G9,Skip Recommendations Discovery,feat/discovery-skip-recommendations,G8,official+cxsmo,queued,tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md
-G10,Live TV,feat/live-tv,G9,reshaped,queued,tasks/G10_LIVE_TV.md
-G11,Watch Party,feat/watch-party,G10,antonino-watchparty,queued,tasks/G11_WATCH_PARTY.md
-G12,UI Styles & Screensaver,feat/ui-styles,G11,official+nuvio-glass+reshaped+cxsmo,queued,tasks/G12_UI_STYLES.md
-G13,Experimental AI & MAT,experimental/media,G12,fornace+ysosrs,queued,tasks/G13_EXPERIMENTAL.md
-G14,Hardening Release Upstream,chore/release-hardening,G13,official+project,queued,tasks/G14_HARDENING_RELEASE.md
+gate,name,branch,depends_on,primary_source,task_packet
+G0,Fork Foundation,chore/fork-foundation-impl,governance,official,tasks/G0_FORK_FOUNDATION.md
+G1,Unified Diagnostics & Add-on Health,feat/unified-diagnostics,G0,official+ysosrs,tasks/G1_UNIFIED_DIAGNOSTICS.md
+G2,Adaptive Resource Manager,feat/adaptive-resource-manager,G1,hackerslash-lite,tasks/G2_ADAPTIVE_RESOURCE_MANAGER.md
+G3,Playback Strategy Framework,feat/playback-strategies,G2,official+ysosrs+reshaped,tasks/G3_PLAYBACK_STRATEGIES.md
+G4,REMUX Network Performance,feat/remux-network,G3,official+ysosrs+reshaped,tasks/G4_REMUX_NETWORK.md
+G5,Audio DV HDR AFR,feat/audio-video,G4,official+ysosrs+reshaped,tasks/G5_AUDIO_VIDEO.md
+G6,Subtitle Intelligence,feat/subtitle-intelligence,G5,reshaped+vibe-subtitle,tasks/G6_SUBTITLE_INTELLIGENCE.md
+G7,Seek Intelligence,feat/seek-intelligence,G6,reshaped+cxsmo,tasks/G7_SEEK_INTELLIGENCE.md
+G8,Stream Intelligence,feat/stream-intelligence,G7,official+reshaped+cxsmo,tasks/G8_STREAM_INTELLIGENCE.md
+G9,Skip Recommendations Discovery,feat/discovery-skip-recommendations,G8,official+cxsmo,tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md
+G10,Live TV,feat/live-tv,G9,reshaped,tasks/G10_LIVE_TV.md
+G11,Watch Party,feat/watch-party,G10,antonino-watchparty,tasks/G11_WATCH_PARTY.md
+G12,UI Styles & Screensaver,feat/ui-styles,G11,official+nuvio-glass+reshaped+cxsmo,tasks/G12_UI_STYLES.md
+G13,Experimental AI & MAT,experimental/media,G12,fornace+ysosrs,tasks/G13_EXPERIMENTAL.md
+G14,Hardening Release Upstream,chore/release-hardening,G13,official+project,tasks/G14_HARDENING_RELEASE.md

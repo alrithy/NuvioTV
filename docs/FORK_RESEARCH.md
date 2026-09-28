@@ -2,7 +2,7 @@
 
 This file is the implementation evidence map gathered before integration. It exists so future agents do not need the original chat history.
 
-All source branches are additionally pinned in docs/SOURCE_MAP.md. Re-check source history only when intentionally refreshing a pin.
+The SHAs below record the research snapshot. Only docs/SOURCE_MAP.md owns currently approved pins. Re-audit affected findings when a pin is intentionally refreshed; never use a research snapshot to override SOURCE_MAP.
 
 ## Official — NuvioMedia/NuvioTV
 

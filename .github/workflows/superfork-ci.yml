@@ -5,6 +5,8 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     branches: ["superfork/integration"]
   workflow_dispatch:
+  push:
+    branches: ["superfork/integration"]
 
 permissions:
   contents: read
@@ -20,6 +22,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      - name: Install governance dependency
+        run: python3 -m pip install -r scripts/superfork/requirements.txt
+      - name: Exercise governance regression cases
+        run: python3 -m unittest discover -s scripts/superfork/tests
       - name: Validate canonical project state
         run: python3 scripts/superfork/validate_project_state.py
       - name: Git whitespace check

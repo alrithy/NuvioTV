@@ -1,39 +1,67 @@
-# Baseline Full-Suite Test Debt
+# Baseline test debt — policy and evidence
 
-## Why this exists
-The Superfork intentionally runs the entire `:app:testFullDebugUnitTest` suite, which is stricter than the current official Nuvio PR workflow.
+The accepted baseline is `fd7973d91dd75d790c5f9b3d68dae652655e92c4`; integration snapshot
+`3cf04ccdcc20515acb093c28ad9b7c3943a39057` contains no Superfork feature code. A tree diff
+found only a missing final newline in ModernHomeContent.kt among production files; all
+unit tests/build inputs are unchanged. Do not describe that as byte-identical application code.
+Official PR #3720's green job ran updater tests plus assemble, not the full suite.
 
-On the official-based integration baseline `fd7973d91dd75d790c5f9b3d68dae652655e92c4`, the full suite produced **18 pre-existing failures** before any Superfork feature implementation.
+Original observation: [run 36479376404](https://github.com/alrithy/NuvioTV/actions/runs/36479376404),
+job 109121079197: 1,611 tests, 18 failed, 1 skipped. Independent clean replays are recorded
+in `integration/evidence/` and per-entry evidence in `integration/baseline_test_debt.json`.
+The JSON is the **only** exception registry. It records fully qualified class#method,
+baseline SHA, date, reason, CI evidence, source file and removal rule for every entry.
+Old TXT paths are redirects and cannot be passed to the runner.
 
-The official PR that produced this baseline, NuvioMedia/NuvioTV #3720, had a green **PR Full Debug Build** on its source head `514771f21221169ed209ca584fb850bee34d9bcf`. That official workflow validates updater-focused unit tests plus the debug build; it does not require the complete 1,611-test suite to be green.
+## Mandatory execution
+`python3 scripts/superfork/run_full_unit_suite.py`
 
-## Policy
-We do not:
-- hide these failures;
-- mark them as passing;
-- require unrelated feature PRs to fix all upstream debt before work can begin.
+The Gradle init script sets ignoreFailures only on the complete test task so assertion
+results reach the classifier ([Gradle Test API](https://docs.gradle.org/current/dsl/org.gradle.api.tasks.testing.Test.html)).
+It never suppresses the Gradle process exit. No `continue-on-error`, shell catch-all, test
+filter or disabled suite is permitted. The runner deletes old generated XML, forces fresh
+execution, requires a suite-completion receipt, checks XML counts/identifiers, verifies the
+reviewed full test inventory and minimum count, then invokes the canonical classifier.
 
-We do:
-- run the full unit-test suite on every Superfork PR;
-- compare actual failures against `integration/baseline_test_failures.txt`;
-- fail CI if **any new failing test** appears;
-- allow known baseline failures to remain temporarily;
-- allow known failures to disappear without penalty;
-- remove entries from the baseline list once a failure is deliberately fixed and verified.
+| Outcome | Result |
+|---|---|
+| Exact known failures remain | Regression guard passes; debt remains visible |
+| Any other fully qualified test fails | CI fails |
+| Gradle/compiler/dependency/worker failure | CI fails even if old/partial known failures exist |
+| Missing/empty/malformed XML, partial suite, absent test | CI fails |
+| Newly skipped baseline test or skipped/missing known failure | CI fails; never classified as fixed |
+| Known test executes and passes | Reported as resolved candidate; verify and explicitly remove its debt entry |
+| Removed debt fails again | CI fails as a new regression |
 
-This is a **no-new-regressions** policy, not a waiver of testing.
+`baseline-suite.json` preserves the full observed inventory, including the pre-existing
+skip. Deleting/renaming/skipping a baseline test requires explicit reviewed inventory
+change with replacement coverage, never automatic baseline growth.
 
-## Baseline observation
-Observed in Superfork CI run 36479376404 on 2026-09-28 against a merge containing official baseline `fd7973d...` and governance-only changes. Governance validation passed; the full unit suite completed 1,611 tests with 18 failures and 1 skipped.
+## Baseline changes / ratchet
+Only a deliberate PR may edit debt. The normal runner never writes the exception registry.
+Remove a fixed entry after a full-suite pass of that exact test and another confirming run;
+attach evidence. CI permits reductions, unlike the old validator's fixed count of 18.
+Additions, lower coverage floor, removed inventory cases, or additional skips require a
+`## Baseline debt change` PR section and a maintainer's exact-head approval. Reproduce the
+failure on a clean accepted baseline first; record classification, source SHA, environment,
+evidence and next fix. Never justify a new entry solely because a feature PR fails.
 
-No runtime/application feature code was introduced by the governance changes that exposed this debt.
+## Logs and ownership
+CI consumes no production secrets. Publish only safe identifiers/outcomes/counts; raw
+JUnit stdout/stderr, stack payloads and Gradle logs are not uploaded. No signed URLs,
+headers, keys or local properties belong in logs/artifacts. A gate touching a debt test
+must explicitly fix, preserve with evidence, or supersede it; a green guard is not a PASS
+claim for those failing tests. Hardware status is independent.
 
-## Guard behavior
-`scripts/superfork/check_baseline_test_failures.py` reads Gradle JUnit XML:
-- if test execution produced no XML, CI fails;
-- if a failure is not in the baseline allowlist, CI fails;
-- if only baseline failures remain, CI passes the regression guard;
-- if fewer baseline failures remain, CI passes and the debt list should be pruned in a dedicated cleanup change.
+## Initial audit result / explicit D039 classification
+Clean integration: 1,611 tests, 18 failed, 1 skipped. Clean official: 1,611 tests,
+19 failed, 1 skipped. The additional HomeEnrichmentRepositoryBoundaryTest case passed
+on integration with identical inputs, so the registry has **19 exact entries: 18 reproduced
+and 1 intermittent**. The initial official guard failure is retained unchanged in evidence;
+D039 explicitly classifies the additional failure after source/clean-baseline review.
+This is not a claim that governance caused it or that its underlying defect is fixed.
+The original registration SHA/date are immutable across later accepted upstream syncs.
 
-## Ownership
-Baseline debt is project debt, not permission to ignore failures in new or modified code. A gate that touches one of these tests/components must explicitly decide whether to fix, preserve, or supersede the baseline failure and document that in the PR/handoff.
+Independent official replay, attempt 2, job 109154439698: 1,611 tests, 18 failed,
+1 skipped, zero new failures. The extra HomeEnrichment test passed. This confirms varying
+outcomes; it does not establish a fix. Both attempt 1 failure and attempt 2 pass are retained.

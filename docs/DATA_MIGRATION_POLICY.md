@@ -23,3 +23,7 @@ If persistence changes:
 
 ## Release
 G14 validates fresh install + upgrade paths before Stable claims.
+
+Synced/shared payloads require backward-compatible handling. Do not reuse a key with a new
+type/meaning. Destructive migration needs an explicit decision and backup/rollback plan;
+record downgrade limits and corrupt/legacy-value tests in the PR and HANDOFF.

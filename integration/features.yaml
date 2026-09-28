@@ -1,33 +1,6 @@
-baseline:
-  repo: NuvioMedia/NuvioTV
-  branch: dev
-  sha: fd7973d91dd75d790c5f9b3d68dae652655e92c4
-
-policy:
-  reuse_first: true
-  rewrite_last_resort: true
-  whole_fork_merge: false
-  experimental_default: false
-  require_attribution: true
-  require_upstream_diff_before_import: true
-  official_fallback_for_core: true
-  one_active_agent_per_task_branch: true
-  no_silent_source_pin_updates: true
-  hardware_tests_must_not_be_faked: true
-
-feature_groups:
-  - { id: foundation, gate: G0, source: official, mode: NEW_GLUE, risk: low, status: ready }
-  - { id: unified-diagnostics, gate: G1, source: [official, ysosrs], mode: DELTA_PORT, risk: medium, status: queued }
-  - { id: adaptive-resource-manager, gate: G2, source: hackerslash-lite, mode: LOGIC_PORT, risk: medium, status: queued }
-  - { id: playback-strategies, gate: G3, source: [official, ysosrs, reshaped], mode: DELTA_PORT, risk: high, status: queued }
-  - { id: remux-network, gate: G4, source: [official, ysosrs, reshaped], mode: DELTA_PORT, risk: high, status: queued }
-  - { id: audio-dv-afr, gate: G5, source: [official, ysosrs], mode: DELTA_PORT, risk: high, status: queued }
-  - { id: subtitle-intelligence, gate: G6, source: [reshaped, vibe-subtitle], mode: ALGORITHM_PORT, risk: high, status: queued }
-  - { id: seek-intelligence, gate: G7, source: [reshaped, cxsmo], mode: FILE_PORT, risk: medium, status: queued }
-  - { id: stream-intelligence, gate: G8, source: [official, reshaped, cxsmo], mode: DELTA_PORT, risk: high, status: queued }
-  - { id: discovery-skip-recommendations, gate: G9, source: [official, cxsmo], mode: DELTA_PORT, risk: medium, status: queued }
-  - { id: live-tv, gate: G10, source: reshaped, mode: CHERRY_PICK_OR_FILE_PORT, risk: medium, status: queued }
-  - { id: watch-party, gate: G11, source: antonino, mode: FILE_PORT, risk: medium, status: queued }
-  - { id: ui-styles, gate: G12, source: [official, nuvio-glass, reshaped, cxsmo], mode: FILE_PORT, risk: medium, status: queued }
-  - { id: experimental, gate: G13, source: [fornace, ysosrs], mode: EXPERIMENTAL_PORT, risk: high, status: queued }
-  - { id: hardening-release, gate: G14, source: [official, project], mode: VALIDATE_AND_HARDEN, risk: medium, status: queued }
+# Compatibility pointer; no independent pins, feature statuses or task state.
+canonical_state: integration/state.yaml
+canonical_features: integration/feature_traceability.csv
+canonical_sources: docs/SOURCE_MAP.md
+canonical_tasks: integration/task_queue.csv
+canonical_policy: AGENTS.md

@@ -22,7 +22,7 @@ Required deliverables:
 
 Exit:
 - governance validator PASS;
-- fullDebug unit tests PASS;
+- complete fullDebug suite executed; no new failures under BASELINE_TEST_DEBT;
 - fullDebug assemble PASS;
 - no user-visible playback/UI change;
 - G0 feature rows updated honestly;
@@ -249,7 +249,7 @@ Required:
 - all 320 feature rows accounted for as implemented, verified_official, blocked, deferred or explicitly experimental.
 
 Exit:
-- release policy satisfied;
+- release policy satisfied, including Stable/Beta updater, ABI APKs, checksums, provenance/license, automated upstream checks and final regression certification;
 - security review complete;
 - required automated/manual tests recorded;
 - final traceability has no unexplained planned or in_progress rows;

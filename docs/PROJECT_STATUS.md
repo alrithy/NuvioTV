@@ -1,50 +1,34 @@
-# Project Status — Read This First
+# Project status
 
-## One-line status
-The initial Superfork operating system is merged. Governance hardening is under review in PR #6. After #6 merges, implementation starts at G0 on `chore/fork-foundation-impl`.
-
-## Source of truth
-Machine-readable state: `integration/state.yaml`.
-
-## Current baseline
-- Official upstream: `NuvioMedia/NuvioTV:dev`
-- Current implementation baseline: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
-- Initial bootstrap anchor: `c257a2365ee3386b582dc2974ec235cfe0381f33`
-- Integration upstream-sync commit: `3cf04ccdcc20515acb093c28ad9b7c3943a39057`
-- Integration branch: `superfork/integration`
-- Legacy/default fork branch: `dev` — do not build Superfork features directly there.
-
-## Governance status
-- Initial operating-system PR: #3 — merged.
-- Governance hardening PR: #6 — review/CI.
-- The hardening PR contains no user-facing feature implementation.
-
-## Current implementation work
+<!-- canonical-state:start -->
 - Active gate: G0 — Fork Foundation
-- Active implementation branch: `chore/fork-foundation-impl`
-- Status: READY after governance hardening merges.
-- Next gate: G1 — Unified Diagnostics & Add-on Health
-- Next branch: `feat/unified-diagnostics`
+- Active branch: `chore/fork-foundation-impl`
+- Status: READY
+- Task: `tasks/G0_FORK_FOUNDATION.md`
+- Accepted official baseline: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
+- Governance: READY
+- Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
+<!-- canonical-state:end -->
 
-## Agent start
-Read `AGENTS.md`, run the validator, then follow `docs/AGENT_PLAYBOOK.md`.
+This view's header is generated from state; use `state_view.py` after state changes.
 
-## Hard stops
-- no Superfork coding on dev
-- no direct coding on superfork/integration
-- no whole-fork merges
-- no silent source-pin updates
-- no parallel agents on the same task branch
-- no fake hardware/manual test passes
+## Work boundary
+Governance hardening only. No G0 runtime foundation and no external fork feature imported.
+PR #6 is canonical. PR #5 is superseded only after its useful policies are preserved and
+#6 merges; audit: GOVERNANCE_OWNERS. Legacy PR #1/#2 stay reference-only.
 
-## Coverage
-`integration/feature_traceability.csv` maps all 320 feature IDs to G0–G14. The governance validator checks 320/320 completeness and text consistency.
+## CI and baseline
+Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
+A no-new-regressions PASS is not an all-tests-pass claim. State's last_green_commit has
+an explicit scope; current PR HEAD must independently pass GitHub checks before merge.
 
-## Test health
-- Official-based current baseline: `fd7973d...`.
-- Complete fullDebug unit suite: 18 known pre-existing failures recorded exactly in `integration/baseline_test_failures.txt`.
-- Superfork policy: run the complete suite and fail on any new/unrecorded failure.
-- Details: `docs/BASELINE_TEST_DEBT.md`.
+## Upstream
+The accepted baseline and latest observed upstream HEAD are separate state fields.
+Official settings PR #3746 at e78de241 is observed, not accepted. The governance-only
+scope preserves fd7973d. Review/sync before the first gate that touches those settings;
+G0 foundation remains isolated. Never silently update source pins.
 
-## Remaining repository-admin actions
-Default-branch migration and branch ruleset/protection are still repository-admin tasks. Until they are completed, the legacy `dev` branch contains explicit redirect instructions and Superfork process rules prohibit feature work there.
+## Administration
+GitHub connector branch-protection read returned 403; admin writes are not exposed.
+Default branch and protection are manual actions in GITHUB_ADMIN_CHECKLIST. Existing
+dev AGENTS/CLAUDE redirects were verified. They do not block authorized task development.

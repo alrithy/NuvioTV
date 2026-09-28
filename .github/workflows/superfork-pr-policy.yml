@@ -39,45 +39,69 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Verify active branch and state updates
+      - name: Install governance dependency
+        run: python3 -m pip install -r scripts/superfork/requirements.txt
+      - name: Verify exact PR scope and handoff
         env:
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
-        run: |
-          expected="$(awk '/^active_branch:/ {print $2; exit}' integration/state.yaml)"
-          if [ -z "$expected" ]; then
-            echo "integration/state.yaml has no active_branch" >&2
-            exit 1
-          fi
-          governance_exception=false
-          if [ "$HEAD_REF" != "$expected" ]; then
-            case "$HEAD_REF" in
-              chore/governance-*)
-                governance_exception=true
-                echo "Using governance-only branch exception for $HEAD_REF"
-                ;;
-              *)
-                echo "PR head '$HEAD_REF' does not match recorded active_branch '$expected'" >&2
-                exit 1
-                ;;
-            esac
-          fi
+        run: python3 scripts/superfork/check_pr_scope.py --base "origin/$BASE_REF" --head-branch "$HEAD_REF"
 
-          git fetch origin "$BASE_REF" --depth=1 || true
-          changed="$(git diff --name-only "origin/$BASE_REF"...HEAD 2>/dev/null || git diff --name-only HEAD^ HEAD)"
-          echo "$changed"
-
-          runtime_pattern='^(app/|ffmpeg-decoder-downmix/|baselineprofile/|build\.gradle|settings\.gradle|gradle/)'
-          if [ "$governance_exception" = true ] && echo "$changed" | grep -Eq "$runtime_pattern"; then
-            echo "Governance exception cannot modify runtime/build implementation files" >&2
-            exit 1
-          fi
-
-          if echo "$changed" | grep -Eq "$runtime_pattern"; then
-            for required in docs/HANDOFF.md docs/PROJECT_STATUS.md integration/state.yaml integration/feature_traceability.csv; do
-              echo "$changed" | grep -qx "$required" || {
-                echo "Code-changing gate PR must update $required" >&2
-                exit 1
+  baseline-change:
+    name: Superfork Baseline Change
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit review for additional debt or reduced test coverage
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const args = { owner: context.repo.owner, repo: context.repo.repo };
+            async function file(path, ref) {
+              try {
+                const r = await github.rest.repos.getContent({...args, path, ref});
+                return Buffer.from(r.data.content, 'base64').toString('utf8');
+              } catch (e) { if (e.status === 404) return null; throw e; }
+            }
+            const raw = await file('integration/baseline_test_debt.json', pr.head.sha);
+            if (!raw) return core.setFailed('Missing canonical baseline debt');
+            const head = JSON.parse(raw);
+            const before = await file('integration/baseline_test_debt.json', pr.base.sha);
+            let expansion = false;
+            if (before) {
+              const base = JSON.parse(before);
+              const ids = new Set(base.failures.map(x => x.test_id));
+              expansion = head.failures.some(x => !ids.has(x.test_id)) || head.minimum_test_count < base.minimum_test_count;
+              const oldInv = await file('integration/evidence/baseline-suite.json', pr.base.sha);
+              const newInv = await file('integration/evidence/baseline-suite.json', pr.head.sha);
+              if (oldInv) {
+                if (!newInv) expansion = true;
+                else {
+                  const oldR = JSON.parse(oldInv).results, newR = JSON.parse(newInv).results;
+                  expansion ||= Object.keys(oldR).some(k => !(k in newR) || (oldR[k] !== 'skipped' && newR[k] === 'skipped'));
+                }
               }
-            done
-          fi
+            } else {
+              // Bootstrap registration must include immutable clean-baseline observations.
+              const evidence = await file('integration/evidence/baseline-suite.json', pr.head.sha);
+              if (!evidence) return core.setFailed('Initial debt registration needs clean baseline evidence');
+              const observed = JSON.parse(evidence);
+              if (observed.tested_sha !== head.baseline_sha || observed.gradle_exit !== 0 || observed.tests < head.minimum_test_count)
+                return core.setFailed('Initial baseline replay is incomplete or at the wrong SHA');
+              if (head.failures.some(x => !['failure','error'].includes(observed.results[x.test_id])))
+                return core.setFailed('Initial debt includes a test not observed failing on clean official baseline');
+              if (!(pr.body || '').includes('## Baseline debt change')) return core.setFailed('Explain initial debt classification in PR');
+            }
+            if (!expansion) return core.info('No unreviewed growth or reduced coverage');
+            if (!(pr.body || '').includes('## Baseline debt change')) return core.setFailed('Baseline changes need a dedicated PR section');
+            const reviews = await github.paginate(github.rest.pulls.listReviews, {...args, pull_number: pr.number});
+            const comments = await github.paginate(github.rest.issues.listComments, {...args, issue_number: pr.number});
+            const candidates = new Set([
+              ...reviews.filter(r => r.state === 'APPROVED' && r.commit_id === pr.head.sha).map(r => r.user.login),
+              ...comments.filter(c => c.body.trim() === 'BASELINE_DEBT_APPROVED ' + pr.head.sha).map(c => c.user.login)
+            ]);
+            for (const username of candidates) {
+              const p = await github.rest.repos.getCollaboratorPermissionLevel({...args, username});
+              if (['admin','maintain'].includes(p.data.permission)) return core.info('Exact-head maintainer baseline review verified');
+            }
+            core.setFailed('Debt growth/coverage reduction requires exact-head maintainer approval; never auto-expand');

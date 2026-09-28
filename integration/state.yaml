@@ -1,4 +1,4 @@
-schema_version: 2
+schema_version: 3
 project: Nuvio Superfork
 repository: alrithy/NuvioTV
 official_upstream: NuvioMedia/NuvioTV
@@ -7,65 +7,68 @@ current_official_baseline_sha: fd7973d91dd75d790c5f9b3d68dae652655e92c4
 integration_upstream_sync_commit: 3cf04ccdcc20515acb093c28ad9b7c3943a39057
 integration_branch: superfork/integration
 legacy_default_branch: dev
-
 active_gate: G0
 active_gate_name: Fork Foundation
 active_branch: chore/fork-foundation-impl
 active_task_packet: tasks/G0_FORK_FOUNDATION.md
 active_status: READY
-active_pr: pending
-active_owner: any_single_agent
+active_pr: null
+active_owner: unclaimed
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: false
-
-last_green_commit: c257a2365ee3386b582dc2974ec235cfe0381f33
-last_green_note: official_bootstrap_anchor_before_current_upstream_sync
-last_green_scope: official_baseline
-
+last_green_commit: c96e6bcf3455449199fe9a934d89f03b290d05d4
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36488329983 ; later
+  governance changes require their own exact-head CI.
+last_green_scope: Full suite guard (18 observed), governance validator, fullDebug
+  APK
 bootstrap:
   initial_governance_pr: 3
   initial_governance_merge_commit: 1edb0190c87f0932c7547c74de4265206e3a93a5
   upstream_sync_commit: 3cf04ccdcc20515acb093c28ad9b7c3943a39057
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
-  status: HARDENING_REVIEW
-
 next_gate: G1
 next_gate_name: Unified Diagnostics & Add-on Health
 next_branch: feat/unified-diagnostics
-
 known_operational_risks:
-  - id: R001
-    severity: high
-    status: open
-    description: GitHub default branch is still legacy dev.
-    mitigation: After bootstrap merge, change default branch to superfork/integration. Until then select the active branch explicitly.
-  - id: R002
-    severity: high
-    status: fixed_in_bootstrap
-    description: Official PR build workflow targeted dev only.
-    mitigation: Superfork CI now targets superfork/integration.
-  - id: R003
-    severity: medium
-    status: fixed_in_bootstrap
-    description: Official PR policy conflicted with Superfork PRs.
-    mitigation: Official policy scoped to dev; Superfork has its own PR policy.
-  - id: R004
-    severity: medium
-    status: open
-    description: Repository-level branch protection/rulesets are not yet configured for superfork/integration.
-    mitigation: Follow docs/GITHUB_ADMIN_CHECKLIST.md after bootstrap merge.
-  - id: R005
-    severity: low
-    status: accepted
-    description: GitHub Issues are disabled in this repository.
-    mitigation: State, traceability, gate specs, handoff and PRs are the work-tracking system.
-  - id: R006
-    severity: medium
-    status: controlled
-    description: The current official-based baseline has 18 failures in the complete fullDebug unit-test suite that official PR CI does not gate on.
-    mitigation: Run the full suite on every Superfork PR and fail only on failures not recorded in integration/baseline_test_failures.txt; see docs/BASELINE_TEST_DEBT.md.
-
+- id: R001
+  severity: high
+  status: open
+  description: GitHub default branch is still legacy dev.
+  mitigation: After bootstrap merge, change default branch to superfork/integration.
+    Until then select the active branch explicitly.
+- id: R004
+  severity: medium
+  status: open
+  description: Repository-level branch protection/rulesets are not yet configured
+    for superfork/integration.
+  mitigation: Follow docs/GITHUB_ADMIN_CHECKLIST.md after bootstrap merge.
+- id: R005
+  severity: low
+  status: accepted
+  description: GitHub Issues are disabled in this repository.
+  mitigation: State, traceability, gate specs, handoff and PRs are the work-tracking
+    system.
+- id: R006
+  severity: medium
+  status: controlled
+  description: 'Full suite has 19 registered baseline debts: 18 reproduced and 1 intermittent,
+    with immutable clean-run evidence.'
+  mitigation: Canonical full-suite runner and integration/baseline_test_debt.json;
+    clean replay evidence is mandatory.
 last_review:
   date: 2026-09-28
   reviewer_role: architecture_audit
+governance_status: READY
+upstream_observation:
+  checked_at: '2026-09-28T21:40:00Z'
+  sha: e78de241acb8a6128c29076422377de1206ee8cd
+  accepted: false
+  reason: 'Settings reorganization PR #3746 changes 65 files and build/tests; isolated
+    upstream review required. This governance task retains latest accepted sync fd7973d.'
+completed_gates: []
+readiness_conditions:
+- 'PR #6 merged into integration'
+- Task branch contains fetched latest integration HEAD
+- Exact-head required GitHub checks green
+- Single writer lease acquired before edits

@@ -1,0 +1,14 @@
+{
+  "tested_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
+  "ci_run": "36488330126",
+  "attempt": 2,
+  "job_id": 109154439698,
+  "url": "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/attempts/2",
+  "tests": 1611,
+  "failures": 18,
+  "skipped": 1,
+  "gradle_exit": 0,
+  "new_failures": [],
+  "intermittent_test_outcome": "passed",
+  "interpretation": "Confirms variability only; does not prove defect fixed. Preserve attempt 1."
+}

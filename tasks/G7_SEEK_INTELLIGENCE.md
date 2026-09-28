@@ -8,7 +8,7 @@ Sources: Reshaped + Cxsmo.
 One hybrid preview path: local real keyframes -> calibrated Seekr -> normal seek fallback.
 
 ## Scope
-Real keyframe timestamps, Seekr calibration/manual offset/weak-match rejection, bounded memory/disk, disk seek buffer under Seek Optimized strategy.
+Real keyframe timestamps, Seekr calibration/manual offset/weak-match rejection, bounded preview memory/disk. Reuse G4 disk seek buffer (ID 25); do not reassign its primary gate.
 
 ## Rules
 Avoid extra network fetch when existing media/keyframes suffice. AdaptiveResourceManager owns memory/cache policy.

@@ -14,7 +14,7 @@ Every PR must produce the supported fullDebug build unless the task is documenta
 Run the complete `:app:testFullDebugUnitTest` suite.
 
 The current official-based baseline has recorded pre-existing failures in:
-`integration/baseline_test_failures.txt`.
+`integration/baseline_test_debt.json`.
 
 Policy:
 - any NEW unit-test failure fails CI;
@@ -78,3 +78,10 @@ PR/handoff records:
 - device/environment for manual tests;
 - relevant fixtures/source;
 - failures and unresolved risks.
+
+## Performance policy retained from PR #5
+Measure startup/first frame, sustained vs required bitrate, buffer ahead, rebuffers, duplicate
+bytes, seek correctness/latency, dropped frames, RAM/cache peak, audio jitter/underruns and
+CPU/thermal where measurable. Compare the same file/device/network against official.
+Test resource tiers once G2 exists. Trade-offs require a recorded decision; source-fork
+claims remain hypotheses until reproduced. Execution entries use MANUAL_TEST_LOG.

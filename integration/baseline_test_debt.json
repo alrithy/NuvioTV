@@ -7,199 +7,267 @@
       "test_id": "androidx.media3.datasource.LocalhostZeroCopyDataSourceTest#testHttpError404",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/androidx/media3/datasource/LocalhostZeroCopyDataSourceTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "androidx.media3.exoplayer.upstream.DefaultAllocatorTest#testLateReleasedAllocationsMemoryLeak",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/androidx/media3/exoplayer/upstream/DefaultAllocatorTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.core.player.DolbyVisionBaseLayerPolicyTest#non-Amazon device on DV display with DV81 decoder falls through to NATIVE_DV7",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/core/player/DolbyVisionBaseLayerPolicyTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.core.player.DolbyVisionBaseLayerPolicyTest#Samsung device on DV display still falls through to NATIVE_DV7",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/core/player/DolbyVisionBaseLayerPolicyTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.core.player.FrameRateUtilsMkvSparseTracksTest#sparse Tracks fetch terminates the probe file with a stub Cluster",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/core/player/FrameRateUtilsMkvSparseTracksTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.core.player.MatroskaAfrProbeTest#stub Cluster terminates Cluster-less head and resizes Segment",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/core/player/MatroskaAfrProbeTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.core.plugin.PluginBinaryFetchTest#text request remains UTF8 encoded",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/core/plugin/PluginBinaryFetchTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.core.plugin.PluginBinaryFetchTest#binary request and response preserve exact bytes",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/core/plugin/PluginBinaryFetchTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.core.poster.CustomPosterUrlResolverTest#resolve BetterPosters returns null when IMDb id is missing",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/core/poster/CustomPosterUrlResolverTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.data.local.CollectionsDataStoreSourceMigrationTest#validation rejects trakt sources without list id",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/data/local/CollectionsDataStoreSourceMigrationTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.data.repository.CatalogRepositoryTypeTest#initial and paginated requests retain advertised Series type",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/data/repository/CatalogRepositoryTypeTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.data.repository.TraktAuthServiceTest#refresh token 400 clears credentials and prevents another refresh",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/data/repository/TraktAuthServiceTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test default fallback values when RAM is zero or unknown",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/ui/screens/player/NuvioExoPlayerPerformanceHelperTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test 2 GB RAM tier classification",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/ui/screens/player/NuvioExoPlayerPerformanceHelperTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test 1 GB RAM tier classification",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/ui/screens/player/NuvioExoPlayerPerformanceHelperTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.ui.screens.player.PostPlayRecommendationStateTest#loaded recommendation holds natural completion until overlay evaluation",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/ui/screens/player/PostPlayRecommendationStateTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.ui.screens.player.PostPlayRecommendationStateTest#post play returns to player only while its window is available",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/ui/screens/player/PostPlayRecommendationStateTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
     },
     {
       "test_id": "com.nuvio.tv.ui.screens.player.TrackSelectionInvestigationTest#testBuildStreamInfoDataWithActiveVideoFormat",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",
-      "reason": "Observed before Superfork feature code; clean official and integration replay required by PR #6.",
+      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
       "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197"
+        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
       ],
       "source_file": "app/src/test/java/com/nuvio/tv/ui/screens/player/TrackSelectionInvestigationTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed."
+      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
+      "classification": "reproduced_baseline_failure"
+    },
+    {
+      "test_id": "com.nuvio.tv.ui.screens.home.HomeEnrichmentRepositoryBoundaryTest#a real repository transport failure is retried and then resolves",
+      "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
+      "recorded_on": "2026-09-28",
+      "reason": "Failed in a complete clean official fd7973d replay; passed in clean integration with identical test/build inputs. Intermittent baseline behavior, root cause not established. Explicit initial-registration review D039; not an automatic PR waiver.",
+      "evidence": [
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
+        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109154439698"
+      ],
+      "source_file": "app/src/test/java/com/nuvio/tv/ui/screens/home/HomeEnrichmentRepositoryBoundaryTest.kt",
+      "classification": "intermittent_baseline_failure",
+      "removal": "Stabilize/investigate retry scheduling, then remove explicitly with two complete passing runs of this exact test. Never delete/skip the test or silently renew this exception."
     }
   ]
 }

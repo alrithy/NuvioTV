@@ -22,3 +22,10 @@ New diagnostics fields must be reviewed for credential leakage.
 
 ## Dependencies
 Do not import arbitrary binaries from fork releases. Prefer pinned source-level imports and preserve third-party licenses/notices.
+
+## CI / release evidence
+Do not pass production secrets to PR test jobs. Keep raw logs/JUnit payloads/local properties
+and signing material out of artifacts. Publish redacted diagnostics or identifier-only
+results. Review URLs for userinfo, tokens, query signatures and fragments; never rely only
+on a variable name being masked. Redirects must re-evaluate Authorization/Cookie forwarding
+against the intended host boundary. QR tokens need expiration and strict origin checks.

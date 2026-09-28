@@ -14,6 +14,11 @@ git rev-parse HEAD
 python3 scripts/superfork/validate_project_state.py
 ```
 
+Then fetch and read **remote integration state** before selecting a branch. On the task
+branch run `python3 scripts/superfork/preflight.py --fetch`. Read AGENT_PLAYBOOK for
+the atomic writer lease and recovery; do not edit until the branch is fresh and claimed.
+Install validator dependencies from `scripts/superfork/requirements.txt` if needed.
+
 Then read, in this order:
 1. `integration/state.yaml` — machine-readable active gate/branch/status/task packet.
 2. `docs/PROJECT_STATUS.md` — one-page human status.
@@ -29,6 +34,10 @@ Then read, in this order:
 12. `docs/SECURITY_POLICY.md`, `docs/DEPENDENCY_POLICY.md`, `docs/DATA_MIGRATION_POLICY.md`, `docs/UPSTREAM_SYNC.md`, and `docs/RELEASE_POLICY.md` when applicable.
 
 Only ask the user if a genuine blocker remains after repository inspection.
+
+See `docs/GOVERNANCE_OWNERS.md` for the complete one-owner map and supersession audit.
+Superfork contributions follow `CONTRIBUTING_SUPERFORK.md`; upstream CONTRIBUTING
+restrictions govern legacy dev, not the approved Superfork roadmap.
 
 ## Canonical sources of truth
 - Current progress/branch/status/task packet: `integration/state.yaml`
@@ -68,9 +77,9 @@ Compatibility/redirect documents are not independent sources of truth.
 - `dev` is legacy/default until GitHub admin changes the default. Never implement Superfork features there.
 - Never develop directly on `superfork/integration`.
 - Work on `integration/state.yaml: active_branch`.
-- Exactly one active writer/agent per task branch unless explicitly coordinated.
+- Exactly one active writer per task branch; acquire the atomic lease described in AGENT_PLAYBOOK.
 - Preserve and inspect unknown uncommitted work before editing.
-- Never force-push unless explicitly instructed.
+- Never force-push task/integration history. Only compare-and-delete your exact `agent-locks/` lease on release.
 
 ## Core integration strategy
 REUSE -> CHERRY-PICK -> FILE_PORT -> DELTA_PORT -> ALGORITHM_PORT -> ADAPTER -> REWRITE ONLY AS LAST RESORT.

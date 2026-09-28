@@ -14,7 +14,6 @@
 - Commit: Merge pull request #3720 — fix(home): keep a row's window on its focused card after a refresh
 
 ## Fork branches
-- superfork/integration: clean integration baseline
 - superfork/integration: canonical reviewed integration branch.
 - chore/governance-hardening: temporary governance-hardening branch for PR #6.
 - chore/fork-foundation-impl: active G0 implementation branch after PR #6 merges and is rebased/fast-forwarded to integration.
@@ -38,3 +37,8 @@
 
 ## Rules
 Baseline history entries are immutable: never rewrite old sync history. Future official movement must append to docs/UPSTREAM_SYNC_LOG.md and update the current baseline fields through a dedicated upstream-sync PR. Never merge a feature fork wholesale. Diff before import and keep official behavior as fallback where practical.
+## Audit observation (not an accepted sync)
+2026-09-28: official dev = e78de241acb8a6128c29076422377de1206ee8cd, settings PR #3746.
+Current accepted pin remains fd7973d; see D037 and state.upstream_observation.
+The 3cf04cc integration production diff against fd7973d is only a missing final newline
+in ModernHomeContent.kt. Record this precisely; do not claim byte-for-byte parity.

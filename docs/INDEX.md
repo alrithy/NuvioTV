@@ -56,3 +56,12 @@ Start here if you are human. Coding agents start at `AGENTS.md`.
 ## Dependency and persistence safety
 - `docs/DEPENDENCY_POLICY.md`
 - `docs/DATA_MIGRATION_POLICY.md`
+
+## Governance owners and preserved policies
+- `docs/GOVERNANCE_OWNERS.md` — canonical map and PR #5 supersession audit
+- `CONTRIBUTING_SUPERFORK.md`
+- `docs/FEATURE_FLAG_POLICY.md`
+- `docs/LICENSE_AND_ATTRIBUTION.md`
+- `docs/MANUAL_TEST_LOG.md`
+- `integration/baseline_test_debt.json` and `integration/evidence/`
+- `scripts/superfork/preflight.py` / `claim_task.py` / `run_full_unit_suite.py`

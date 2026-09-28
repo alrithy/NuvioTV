@@ -1,6 +1,6 @@
 # Active Task Packet — G0 Fork Foundation
 
-Status: READY AFTER GOVERNANCE PR #6 MERGES AND ACTIVE BRANCH IS REFRESHED FROM INTEGRATION.
+Current status comes only from integration/state.yaml. Preflight must verify latest integration ancestry and writer ownership before coding.
 
 ## Identity
 - Gate: G0 — Fork Foundation
@@ -114,10 +114,7 @@ Do not mechanically mark every G0 row implemented if its acceptance evidence is 
 ```bash
 python3 scripts/superfork/validate_project_state.py
 
-./gradlew :app:testFullDebugUnitTest --stacktrace || true
-python3 scripts/superfork/check_baseline_test_failures.py \
-  app/build/test-results/testFullDebugUnitTest \
-  integration/baseline_test_failures.txt
+python3 scripts/superfork/run_full_unit_suite.py
 
 ./gradlew :app:assembleFullDebug --stacktrace
 git diff --check
