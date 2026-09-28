@@ -8,7 +8,7 @@ All source branches are additionally pinned in docs/SOURCE_MAP.md. Re-check sour
 
 Pinned integration baseline:
 - branch: dev
-- SHA: c257a2365ee3386b582dc2974ec235cfe0381f33
+- SHA: fd7973d91dd75d790c5f9b3d68dae652655e92c4
 - verified 2026-09-28
 
 Important current-official capabilities already found:
