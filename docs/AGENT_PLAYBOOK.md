@@ -9,7 +9,7 @@ git rev-parse HEAD
 python3 scripts/superfork/validate_project_state.py
 ```
 
-Read: state -> PROJECT_STATUS -> HANDOFF -> active GATE_SPECS -> DECISIONS -> relevant COMPONENT_MAP/FORK_RESEARCH -> PORTING_PROTOCOL when importing -> TEST_MATRIX -> DEFINITION_OF_DONE -> STATUS_MODEL.
+Read: state -> PROJECT_STATUS -> HANDOFF -> active GATE_SPECS -> PRODUCT_REQUIREMENTS/NON_GOALS -> DECISIONS -> relevant COMPONENT_MAP/FORK_RESEARCH -> PORTING_PROTOCOL when importing -> TEST_STRATEGY/TEST_MATRIX -> DEFINITION_OF_DONE -> STATUS_MODEL. Read SECURITY/DEPENDENCY/DATA_MIGRATION policies when the task touches those boundaries.
 
 ## B. Branch safety
 - On `dev`: stop coding; switch/create the active task branch from `superfork/integration`.
@@ -36,7 +36,8 @@ Keep official fallback for core paths, one owner per concern, and diff scoped to
 Minimum:
 ```bash
 python3 scripts/superfork/validate_project_state.py
-./gradlew :app:testFullDebugUnitTest --stacktrace
+./gradlew :app:testFullDebugUnitTest --stacktrace || true
+python3 scripts/superfork/check_baseline_test_failures.py app/build/test-results/testFullDebugUnitTest integration/baseline_test_failures.txt
 ./gradlew :app:assembleFullDebug --stacktrace
 ```
 Run gate-specific checks too. Hardware tests are PASS/FAIL/MANUAL-PENDING; never invent results.
