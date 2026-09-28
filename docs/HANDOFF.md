@@ -34,7 +34,8 @@ The repository contains:
 4. Mark affected feature rows `in_progress` while coding, then honest completion statuses.
 5. Run:
    - `python3 scripts/superfork/validate_project_state.py`
-   - `./gradlew :app:testFullDebugUnitTest --stacktrace`
+   - `./gradlew :app:testFullDebugUnitTest --stacktrace || true`
+   - `python3 scripts/superfork/check_baseline_test_failures.py app/build/test-results/testFullDebugUnitTest integration/baseline_test_failures.txt`
    - `./gradlew :app:assembleFullDebug --stacktrace`
 6. Update state, PROJECT_STATUS, HANDOFF and traceability.
 7. Open a PR to `superfork/integration`.
@@ -44,3 +45,9 @@ The repository contains:
 - Branch: `feat/unified-diagnostics`
 
 No user-facing fork feature should be imported before G0 is green.
+
+## Test baseline note
+The complete fullDebug unit suite currently exposes 18 recorded pre-existing failures on the official-based baseline. They are not treated as PASS. The no-new-regressions guard must reject any additional failure. See `docs/BASELINE_TEST_DEBT.md`.
+
+## Branch freshness requirement
+Before G0 coding begins, verify `chore/fork-foundation-impl` has no unique commits and points at the post-PR-#6 `superfork/integration` HEAD. If it is behind-only, fast-forward it; never force over unique work.
