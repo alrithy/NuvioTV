@@ -1,0 +1,23 @@
+schema_version: 1
+master_feature_file: docs/MASTER_FEATURES.md
+master_feature_count: 320
+mapping:
+  - { gate: 0, name: Foundation, feature_ids: [1, 2, 313, 314, 315, 316, 317, 318, 319, 320] }
+  - { gate: 1, name: Unified Diagnostics, feature_range: "61-81" }
+  - { gate: 2, name: Adaptive Resource Manager, feature_range: "262-280" }
+  - { gate: 3, name: Playback Strategy Framework, feature_ids: [3, 27, 28, 29, 30, 31] }
+  - { gate: 4, name: REMUX Performance Delta, feature_ranges: ["4-26", "281-292"] }
+  - { gate: 5, name: Audio DV AFR, feature_range: "32-60" }
+  - { gate: 6, name: Subtitle Intelligence, feature_range: "82-106" }
+  - { gate: 7, name: Seek Intelligence, feature_range: "107-116" }
+  - { gate: 8, name: Stream Intelligence, feature_range: "147-168" }
+  - { gate: 9, name: Discovery Skip Recommendations, feature_ranges: ["117-146", "169-187"], feature_ids: [206, 207] }
+  - { gate: 10, name: Live TV, feature_range: "208-236" }
+  - { gate: 11, name: Watch Party, feature_range: "237-249" }
+  - { gate: 12, name: UI Styles, feature_range: "188-205" }
+  - { gate: 13, name: Experimental and Release Infrastructure, feature_ranges: ["250-261", "293-312"] }
+
+notes:
+  - Feature IDs can depend on earlier gates even when mapped once here.
+  - Gate mapping defines primary implementation ownership, not implementation independence.
+  - scripts/superfork_guard.py verifies that IDs 1-320 are covered exactly once.
