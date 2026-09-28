@@ -2,22 +2,19 @@
 Feature IDs: 262–280
 Branch: `feat/adaptive-resource-manager`
 Depends on: G1
-Source: hackerslash Lite pinned SHA, plus current official behavior.
+Source: hackerslash Lite pinned SHA + current official.
 
 ## Objective
-Create one fork-owned resource policy used by later subsystems. Do not create a permanently stripped Lite build.
+Create one resource policy for later subsystems; never create a permanently stripped Lite product.
 
 ## Required behavior
-Physical RAM detection; constrained/low-RAM tiers; bounded buffer/chunk/concurrency/cache recommendations; poster/animation/prefetch policy; bounded metadata/rating/offline queues; memory-safe preview policies.
+Physical RAM detection; constrained/low-RAM tiers; bounded buffer/chunk/concurrency/cache recommendations; poster/animation/prefetch policies; bounded metadata/rating/offline queues; memory-safe preview policies.
 
 ## Rules
-Strong devices must not be unnecessarily capped. Separate comfort/performance tuning from hard allocation-safety limits. Policy should be deterministic and testable without UI.
-
-## Integration
-Prefer `com.nuvio.tv.fork.resource`. Later gates consume policy; do not prematurely rewrite every call site.
+Strong devices must not be unnecessarily capped. Separate performance comfort limits from hard allocation safety. Keep policy deterministic/testable.
 
 ## Tests
-Tier boundaries, unknown/zero RAM fallback, strong-device behavior, cap invariants, deterministic outputs.
+Tier boundaries, unknown/zero RAM, strong-device behavior, caps/invariants.
 
 ## Out of scope
-No ysosrs throughput algorithm yet; no Seekr implementation yet; no Live TV preview implementation yet.
+No ysosrs throughput algorithm, Seekr implementation or Live TV previews yet.
