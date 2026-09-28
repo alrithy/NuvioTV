@@ -25,3 +25,16 @@ Integration branch: superfork/integration
 
 ## Feature convergence
 If official gains a feature already imported here, compare implementations, prefer official ownership when equivalent/better, migrate only our unique delta, remove duplication with tests, and update the ledger/decisions.
+
+## Baseline freeze policy
+Before the first implementation gate begins, refresh to the latest reviewed official `dev` available at that moment.
+
+After G0 starts, do **not** chase every upstream commit continuously inside feature branches. Upstream movement must use dedicated sync PRs and should normally occur:
+- between gates;
+- before beginning a gate that will touch an upstream subsystem that changed materially;
+- for a critical official bug/security fix;
+- when drift becomes large enough to increase future merge risk.
+
+An active feature PR must not silently absorb unrelated upstream commits.
+
+This balances two goals: start from current official code, and avoid permanent moving-target development.
