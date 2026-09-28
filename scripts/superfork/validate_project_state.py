@@ -12,7 +12,7 @@ required = [
  "docs/ROADMAP.md","docs/GATE_SPECS.md","docs/TEST_MATRIX.md","docs/DEFINITION_OF_DONE.md",
  "docs/IMPORT_LEDGER.md","docs/AGENT_PLAYBOOK.md","docs/BRANCHING.md","docs/UPSTREAM_SYNC.md","docs/UPSTREAM_SYNC_LOG.md",
  "docs/SECURITY_POLICY.md","docs/RELEASE_POLICY.md","docs/FAILURE_RECOVERY.md","docs/LOCAL_SETUP.md",
- "docs/GITHUB_ADMIN_CHECKLIST.md","integration/features.yaml","integration/state.yaml",
+ "docs/GITHUB_ADMIN_CHECKLIST.md","docs/COMPONENT_MAP.md","docs/PORTING_PROTOCOL.md","docs/STATUS_MODEL.md","integration/features.yaml","integration/state.yaml",
  "integration/feature_traceability.csv"
 ]
 for p in required:
@@ -82,6 +82,10 @@ if state.exists():
         errors.append("state.yaml active_branch must be a task branch, not dev/integration")
     if status and status.group(1) not in {"READY","IN_PROGRESS","BLOCKED","REVIEW","DONE"}:
         errors.append(f"state.yaml invalid active_status {status.group(1)}")
+    if gate and status and status.group(1) == "DONE" and rows:
+        unfinished=[r["feature_id"] for r in rows if r["gate"] == gate.group(1) and r["status"] in {"planned","in_progress"}]
+        if unfinished:
+            errors.append(f"A DONE gate cannot contain planned/in_progress features: {unfinished}")
     for p in ["docs/PROJECT_STATUS.md","docs/HANDOFF.md"]:
         f=ROOT/p
         if f.exists():
