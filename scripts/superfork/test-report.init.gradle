@@ -1,0 +1,29 @@
+import groovy.json.JsonOutput
+import org.gradle.api.tasks.testing.Test
+
+// Keep Gradle infrastructure failures fatal. Assertion failures are classified by
+// the mandatory Python guard, never by continue-on-error or a shell catch-all.
+gradle.projectsEvaluated {
+    def task = gradle.rootProject.project(':app').tasks.named('testFullDebugUnitTest', Test)
+    task.configure {
+        ignoreFailures = true
+        failFast = false
+        outputs.upToDateWhen { false }
+        outputs.cacheIf { false }
+        doFirst {
+            if (!filter.includePatterns.empty || !filter.excludePatterns.empty ||
+                !includes.empty || !excludes.empty) {
+                throw new GradleException('Superfork requires the complete unfiltered unit suite')
+            }
+        }
+        afterSuite { descriptor, result ->
+            if (descriptor.parent == null) {
+                def dest = new File(System.getenv('SUPERFORK_TEST_COMPLETION'))
+                dest.text = JsonOutput.toJson([
+                    tests: result.testCount, failures: result.failedTestCount,
+                    skipped: result.skippedTestCount, completed: true
+                ])
+            }
+        }
+    }
+}

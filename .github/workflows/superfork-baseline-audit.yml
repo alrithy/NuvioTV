@@ -1,0 +1,56 @@
+name: Superfork Baseline Audit
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: ["superfork/integration"]
+permissions:
+  contents: read
+concurrency:
+  group: superfork-baseline-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+jobs:
+  clean-baseline:
+    if: contains(github.event.pull_request.title, '[baseline-audit]')
+    name: Baseline replay (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: official
+            ref: fd7973d91dd75d790c5f9b3d68dae652655e92c4
+          - name: integration
+            ref: 3cf04ccdcc20515acb093c28ad9b7c3943a39057
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.ref }}
+          path: clean-baseline
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - name: Prepare non-secret CI configuration
+        run: touch clean-baseline/local.properties clean-baseline/local.dev.properties
+      - name: Prepare CI signing config
+        run: |
+          keytool -genkeypair -v -keystore "$RUNNER_TEMP/ci-debug.jks" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          {
+            echo "NUVIO_RELEASE_STORE_FILE=$RUNNER_TEMP/ci-debug.jks"
+            echo "NUVIO_RELEASE_KEY_ALIAS=androiddebugkey"
+            echo "NUVIO_RELEASE_KEY_PASSWORD=android"
+            echo "NUVIO_RELEASE_STORE_PASSWORD=android"
+          } >> "$GITHUB_ENV"
+      - name: Replay complete unmodified baseline suite
+        run: python3 scripts/superfork/run_full_unit_suite.py --project clean-baseline --output build/superfork/baseline-${{ matrix.name }}.json
+      - name: Publish safe result inventory
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: baseline-${{ matrix.name }}-${{ github.run_id }}
+          path: build/superfork/baseline-${{ matrix.name }}.json
+          if-no-files-found: error
+          retention-days: 90
