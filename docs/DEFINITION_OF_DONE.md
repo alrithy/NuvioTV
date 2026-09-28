@@ -45,7 +45,8 @@ No gate or feature is complete until every applicable item below is satisfied.
 - [ ] Task branch is based on intended integration/baseline.
 - [ ] Working tree is clean at handoff.
 - [ ] Local test/build commands are recorded.
-- [ ] Superfork CI is green, or a documented infrastructure-only exception exists.
+- [ ] Superfork Governance CI and no-new-regressions test guard are green.
+- [ ] Any pre-existing full-suite failures are handled only through docs/BASELINE_TEST_DEBT.md; new failures are never waived silently.
 - [ ] PR targets superfork/integration.
 
 ## G. Handoff
