@@ -1,0 +1,48 @@
+name: Superfork feature / port
+description: Track one coherent Superfork feature import or gate increment
+title: "[Superfork] "
+labels: []
+body:
+  - type: input
+    id: gate
+    attributes:
+      label: Gate
+      placeholder: "G6"
+    validations:
+      required: true
+  - type: input
+    id: features
+    attributes:
+      label: Feature IDs
+      placeholder: "82-106"
+    validations:
+      required: true
+  - type: input
+    id: branch
+    attributes:
+      label: Task branch
+      placeholder: "feat/subtitle-intelligence"
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Pinned source repo / SHA / commits
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria / tests
+    validations:
+      required: true
+  - type: textarea
+    id: exclusions
+    attributes:
+      label: Explicitly out of scope
