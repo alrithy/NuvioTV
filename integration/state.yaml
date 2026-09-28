@@ -59,6 +59,11 @@ known_operational_risks:
     status: accepted
     description: GitHub Issues are disabled in this repository.
     mitigation: State, traceability, gate specs, handoff and PRs are the work-tracking system.
+  - id: R006
+    severity: medium
+    status: controlled
+    description: The current official-based baseline has 18 failures in the complete fullDebug unit-test suite that official PR CI does not gate on.
+    mitigation: Run the full suite on every Superfork PR and fail only on failures not recorded in integration/baseline_test_failures.txt; see docs/BASELINE_TEST_DEBT.md.
 
 last_review:
   date: 2026-09-28
