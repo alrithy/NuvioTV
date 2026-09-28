@@ -2,7 +2,7 @@ name: PR Template Check
 
 on:
   pull_request:
-    types: [opened, edited, synchronize, reopened]
+    types: [opened, edited, synchronize, reopened]\n    branches:\n      - dev
 
 permissions:
   pull-requests: read
