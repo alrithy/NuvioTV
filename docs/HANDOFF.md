@@ -2,48 +2,37 @@
 
 ## Current state
 - Repository: alrithy/NuvioTV
-- Integration branch: superfork/integration
-- Current task branch: chore/fork-foundation
 - Official baseline: NuvioMedia/NuvioTV dev @ c257a2365ee3386b582dc2974ec235cfe0381f33
-- Current roadmap gate: Gate 0 — Fork Foundation
-- Status: READY TO IMPLEMENT
+- Integration branch: superfork/integration
+- Current docs/bootstrap branch: chore/fork-foundation
+- Next implementation branch: chore/fork-foundation-impl
+- Active roadmap gate: G0 — Fork Foundation
+- Status after bootstrap merge: READY TO IMPLEMENT
 
-## Repository knowledge is now self-contained
-The repository contains the project context required for a coding agent to continue without the original chat:
-- docs/MASTER_FEATURES.md — authoritative 1–320 feature inventory
-- docs/DECISIONS.md — architecture/product decisions and exclusions
-- docs/FORK_RESEARCH.md — per-fork implementation findings and important commits
-- docs/SOURCE_MAP.md — pinned source repos/branches/SHAs
-- docs/ARCHITECTURE.md — target architecture and integration seams
-- docs/ROADMAP.md — gate order
-- docs/TEST_MATRIX.md — regression matrix
-- docs/IMPORT_LEDGER.md — source/attribution template
-- integration/features.yaml — machine-readable feature groups
-- AGENTS.md — agent-agnostic workflow
-- CLAUDE.md — Claude Code entrypoint
-- .github/pull_request_template.md — import/testing checklist
+## Completed preparation
+The repository now contains:
+- authoritative 320-feature scope
+- architecture/decision log
+- fork research and pinned source SHAs
+- per-feature gate traceability
+- gate specifications and Definition of Done
+- agent playbook and recovery runbook
+- branching/upstream/security/release policies
+- machine-readable project state
+- governance validator
+- Superfork CI workflow
+- PR/task templates
 
-## Important project policy
-Reuse proven fork implementations first. Never merge a whole fork. Diff current official upstream before importing. Preserve official fallback for core playback. Record all imports and attribution.
+## Exact next action
+After this operating-system/bootstrap PR is merged into `superfork/integration`:
+1. create/use `chore/fork-foundation-impl` from integration;
+2. implement G0 foundation code from `docs/GATE_SPECS.md`;
+3. run validator + fullDebug unit tests + assemble;
+4. update state/handoff;
+5. open PR to integration.
 
-## Next action
-Implement Gate 0 exactly as defined in AGENTS.md.
+## Next after G0
+- Gate: G1 — Unified Diagnostics & Add-on Health
+- Branch: feat/unified-diagnostics
 
-Do not import user-facing fork features yet.
-
-## When Gate 0 is complete
-Update this file with:
-- completed gate
-- current branch
-- latest commit SHA
-- feature IDs touched
-- changed modules/files
-- build/test results
-- unresolved issues
-- exact next recommended action
-
-Recommended next branch after Gate 0:
-feat/unified-diagnostics
-
-Recommended next gate:
-Gate 1 — Unified Diagnostics
+No user-facing fork feature should be imported before G0 is green.
