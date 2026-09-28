@@ -26,7 +26,8 @@ Read: state -> PROJECT_STATUS -> HANDOFF -> active GATE_SPECS -> DECISIONS -> re
 5. Diff against current official.
 6. Choose the smallest import mode.
 7. Record provenance in IMPORT_LEDGER.
-8. Port behavior + tests together.
+8. Set affected traceability rows to `in_progress` when implementation begins.
+9. Port behavior + tests together.
 
 ## D. While coding
 Keep official fallback for core paths, one owner per concern, and diff scoped to the active gate. Preserve A/B path for high-risk playback changes until validated.
@@ -41,7 +42,7 @@ python3 scripts/superfork/validate_project_state.py
 Run gate-specific checks too. Hardware tests are PASS/FAIL/MANUAL-PENDING; never invent results.
 
 ## F. Handoff
-Commit coherent work, update IMPORT_LEDGER/state/HANDOFF, rerun validator, leave clean tree or document why not, and record exact next action.
+Commit coherent work, update IMPORT_LEDGER when applicable, update affected feature_traceability statuses, state, PROJECT_STATUS and HANDOFF, rerun validator, leave clean tree or document why not, and record exact next action.
 
 ## G. Recovery
 Never discard unknown changes first. Inspect status/diff/history. Git history wins factual disputes; reconcile docs before continuing.
