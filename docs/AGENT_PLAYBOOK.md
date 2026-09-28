@@ -9,7 +9,7 @@ git rev-parse HEAD
 python3 scripts/superfork/validate_project_state.py
 ```
 
-Read: state -> PROJECT_STATUS -> HANDOFF -> active GATE_SPECS -> DECISIONS -> relevant FORK_RESEARCH -> TEST_MATRIX -> DEFINITION_OF_DONE.
+Read: state -> PROJECT_STATUS -> HANDOFF -> active GATE_SPECS -> DECISIONS -> relevant COMPONENT_MAP/FORK_RESEARCH -> PORTING_PROTOCOL when importing -> TEST_MATRIX -> DEFINITION_OF_DONE -> STATUS_MODEL.
 
 ## B. Branch safety
 - On `dev`: stop coding; switch/create the active task branch from `superfork/integration`.
