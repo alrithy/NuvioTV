@@ -5,6 +5,7 @@ No gate or feature is complete until every applicable item below is satisfied.
 ## A. Scope
 - [ ] Work belongs to the current roadmap gate.
 - [ ] MASTER_FEATURES IDs affected are identified.
+- [ ] Corresponding feature_traceability rows are moved from planned/in_progress to an honest completion/block status before gate completion.
 - [ ] No unrelated refactor or UI redesign is bundled into the task.
 - [ ] Any intentionally deferred scope is recorded with reason.
 
@@ -49,6 +50,8 @@ No gate or feature is complete until every applicable item below is satisfied.
 
 ## G. Handoff
 - [ ] integration/state.yaml updated.
+- [ ] integration/feature_traceability.csv updated for every affected feature ID.
+- [ ] docs/PROJECT_STATUS.md updated.
 - [ ] docs/HANDOFF.md updated.
 - [ ] Latest commit SHA recorded.
 - [ ] Feature IDs touched recorded.
