@@ -36,3 +36,7 @@ Start here if you are human. Coding agents start at `AGENTS.md`.
 - `docs/SECURITY_POLICY.md`
 - `docs/RELEASE_POLICY.md`
 - `docs/GITHUB_ADMIN_CHECKLIST.md`
+## Implementation contracts
+- `docs/COMPONENT_MAP.md` — existing code ownership and integration seams
+- `docs/PORTING_PROTOCOL.md` — exact fork-feature import procedure
+- `docs/STATUS_MODEL.md` — feature/gate lifecycle semantics
