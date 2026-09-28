@@ -49,16 +49,31 @@ jobs:
             echo "integration/state.yaml has no active_branch" >&2
             exit 1
           fi
+          governance_exception=false
           if [ "$HEAD_REF" != "$expected" ]; then
-            echo "PR head '$HEAD_REF' does not match recorded active_branch '$expected'" >&2
-            exit 1
+            case "$HEAD_REF" in
+              chore/governance-*)
+                governance_exception=true
+                echo "Using governance-only branch exception for $HEAD_REF"
+                ;;
+              *)
+                echo "PR head '$HEAD_REF' does not match recorded active_branch '$expected'" >&2
+                exit 1
+                ;;
+            esac
           fi
 
           git fetch origin "$BASE_REF" --depth=1 || true
           changed="$(git diff --name-only "origin/$BASE_REF"...HEAD 2>/dev/null || git diff --name-only HEAD^ HEAD)"
           echo "$changed"
 
-          if echo "$changed" | grep -Eq '^(app/|ffmpeg-decoder-downmix/|baselineprofile/|build\.gradle|settings\.gradle|gradle/)'; then
+          runtime_pattern='^(app/|ffmpeg-decoder-downmix/|baselineprofile/|build\.gradle|settings\.gradle|gradle/)'
+          if [ "$governance_exception" = true ] && echo "$changed" | grep -Eq "$runtime_pattern"; then
+            echo "Governance exception cannot modify runtime/build implementation files" >&2
+            exit 1
+          fi
+
+          if echo "$changed" | grep -Eq "$runtime_pattern"; then
             for required in docs/HANDOFF.md docs/PROJECT_STATUS.md integration/state.yaml integration/feature_traceability.csv; do
               echo "$changed" | grep -qx "$required" || {
                 echo "Code-changing gate PR must update $required" >&2
