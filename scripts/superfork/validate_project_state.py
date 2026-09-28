@@ -7,16 +7,16 @@ errors=[]
 
 required = [
  "AGENTS.md","CLAUDE.md","CONTRIBUTING_SUPERFORK.md","docs/PROJECT_STATUS.md","docs/HANDOFF.md",
- "docs/BASELINE.md","docs/ARCHITECTURE.md","docs/MASTER_FEATURES.md",
- "docs/DECISIONS.md","docs/FORK_RESEARCH.md","docs/SOURCE_MAP.md",
- "docs/ROADMAP.md","docs/GATE_SPECS.md","docs/TEST_MATRIX.md",
+ "docs/BASELINE.md","docs/ARCHITECTURE.md","docs/OWNERSHIP_MAP.md","docs/MASTER_FEATURES.md",
+ "docs/DECISIONS.md","docs/FORK_RESEARCH.md","docs/SOURCE_MAP.md","docs/RISK_REGISTER.md",
+ "docs/ROADMAP.md","docs/GATE_SPECS.md","docs/TEST_MATRIX.md","docs/PERFORMANCE_VALIDATION.md",
+ "docs/MANUAL_TEST_LOG.md","docs/FEATURE_FLAG_POLICY.md","docs/DATA_MIGRATIONS.md",
  "docs/DEFINITION_OF_DONE.md","docs/IMPORT_LEDGER.md","docs/AGENT_PLAYBOOK.md",
  "docs/BRANCHING.md","docs/UPSTREAM_SYNC.md","docs/SECURITY_POLICY.md",
- "docs/RELEASE_POLICY.md","docs/FAILURE_RECOVERY.md","docs/LOCAL_SETUP.md",
- "docs/BASELINE_TEST_DEBT.md",
+ "docs/LICENSE_AND_ATTRIBUTION.md","docs/RELEASE_POLICY.md","docs/FAILURE_RECOVERY.md",
+ "docs/LOCAL_SETUP.md","docs/BASELINE_TEST_DEBT.md",
  "integration/features.yaml","integration/state.yaml","integration/feature_traceability.csv",
- "integration/known_baseline_test_failures.txt",
- "scripts/superfork/check_test_failures.py"
+ "integration/known_baseline_test_failures.txt","scripts/superfork/check_test_failures.py"
 ]
 for p in required:
     if not (ROOT/p).exists():
@@ -53,7 +53,7 @@ if allow.exists():
     if len(known) != len(set(known)):
         errors.append("known baseline unit-test allowlist contains duplicates")
     if len(known) != 18:
-        errors.append(f"expected 18 captured baseline unit-test failures, found {len(known)}; investigate and update debt docs intentionally")
+        errors.append(f"expected 18 captured baseline unit-test failures, found {len(known)}; investigate intentionally")
 
 road=ROOT/"docs/ROADMAP.md"
 if road.exists():
@@ -65,7 +65,7 @@ if road.exists():
 agents=ROOT/"AGENTS.md"
 if agents.exists():
     at=agents.read_text(encoding="utf-8")
-    for p in ["CONTRIBUTING_SUPERFORK.md","integration/state.yaml","docs/AGENT_PLAYBOOK.md","docs/DEFINITION_OF_DONE.md","integration/feature_traceability.csv"]:
+    for p in ["CONTRIBUTING_SUPERFORK.md","integration/state.yaml","docs/AGENT_PLAYBOOK.md","docs/DEFINITION_OF_DONE.md","docs/OWNERSHIP_MAP.md"]:
         if p not in at:
             errors.append(f"AGENTS.md does not reference {p}")
 
@@ -83,4 +83,4 @@ if errors:
     sys.exit(1)
 
 print("SUPERFORK GOVERNANCE CHECK: PASS")
-print("320/320 feature IDs mapped; required docs and baseline references present.")
+print("320/320 feature IDs mapped; required architecture, quality and policy files present.")
