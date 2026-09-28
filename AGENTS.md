@@ -1,20 +1,28 @@
 # Nuvio Superfork — Agent Instructions
 
-You are working on the Nuvio Superfork. These rules are agent-agnostic and apply to Codex, Claude Code, Gemini, Copilot, or any other coding agent.
+These instructions apply to Codex, Claude Code, Gemini, Copilot, or any coding agent.
 
-## Zero-prompt mode
+## Zero-prompt behavior
+If the user only says "اشتغل على نوفيو", "work on Nuvio", or "continue Nuvio", do not ask for the project brief. The repository is the brief.
 
-If the user says only something like:
-- "اشتغل على نوفيو"
-- "work on Nuvio"
-- "continue Nuvio"
-
-do not ask what to do next.
-
-Instead:
-1. Inspect the current branch, HEAD, working tree, open task context, and recent commits.
-2. Read ALL of the following before changing code:
+### Mandatory preflight
+1. Inspect:
+   ```bash
+   git status --short
+   git branch --show-current
+   git rev-parse HEAD
+   ```
+2. Run:
+   ```bash
+   python3 scripts/superfork/validate_project_state.py
+   ```
+3. Read:
+   - integration/state.yaml
+   - docs/PROJECT_STATUS.md
    - docs/HANDOFF.md
+   - docs/AGENT_PLAYBOOK.md
+   - docs/GATE_SPECS.md
+   - docs/DEFINITION_OF_DONE.md
    - docs/BASELINE.md
    - docs/ARCHITECTURE.md
    - docs/MASTER_FEATURES.md
@@ -25,117 +33,63 @@ Instead:
    - docs/TEST_MATRIX.md
    - docs/IMPORT_LEDGER.md
    - integration/features.yaml
-3. Continue the next incomplete roadmap gate recorded in docs/HANDOFF.md.
-4. If the current branch is a task branch with unfinished work, continue that work first.
-5. If the working tree contains uncommitted work from another agent, preserve it and understand it before editing.
-6. Only ask the user a question if a real blocking ambiguity cannot be resolved from Git/repository state.
+   - integration/feature_traceability.csv
+4. Continue the active gate/task from `integration/state.yaml` and `docs/HANDOFF.md`.
 
-Git and repository documentation are the source of truth. Never depend on previous chat history.
+Only ask the user if a true blocker remains after inspecting Git and these documents.
 
-## Authoritative scope
+## Branch safety
+- `dev` is legacy/default until GitHub admin changes the default. Never implement Superfork features there.
+- Never code directly on `superfork/integration`.
+- Work on `integration/state.yaml: active_branch` or a documented task branch.
+- Never run two agents concurrently on the same task branch.
+- Preserve any existing uncommitted work; understand it before editing.
 
-- docs/MASTER_FEATURES.md is the canonical end-state scope and contains stable feature IDs 1–320.
-- docs/DECISIONS.md is the canonical architecture/product decision log.
-- docs/FORK_RESEARCH.md preserves detailed implementation findings and known source commits.
-- docs/SOURCE_MAP.md pins each source repo/branch/SHA.
-- docs/ROADMAP.md controls implementation order.
-- docs/HANDOFF.md controls the current task state.
-
-If documents appear to conflict, follow this precedence:
+## Authority order
 1. current explicit user instruction
-2. AGENTS.md safety/workflow rules
+2. this file
 3. docs/DECISIONS.md
-4. docs/ROADMAP.md
+4. docs/GATE_SPECS.md / docs/ROADMAP.md
 5. docs/MASTER_FEATURES.md
 6. docs/FORK_RESEARCH.md / docs/SOURCE_MAP.md
-7. docs/HANDOFF.md for current progress only
+7. integration/state.yaml / docs/HANDOFF.md for progress
 
-## Baseline
-
-Official upstream:
-NuvioMedia/NuvioTV:dev@c257a2365ee3386b582dc2974ec235cfe0381f33
-
-Integration branch:
-superfork/integration
-
-Never work directly on superfork/integration. Use task branches and PRs.
-
-## Core strategy
-
-Do not rewrite proven fork features by default.
-
-Preferred order:
+## Core integration strategy
 REUSE -> CHERRY-PICK -> FILE_PORT -> DELTA_PORT -> ALGORITHM_PORT -> ADAPTER -> REWRITE ONLY AS LAST RESORT.
 
-## Rules
+Never merge another fork wholesale. Never replace a current official subsystem with an older copy without a file-level diff. If official already has equivalent behavior, keep official and port only the missing delta.
 
-1. Never merge another fork wholesale.
-2. Never replace a current official subsystem with an older fork copy without a file-level diff.
-3. If upstream already contains equivalent functionality, keep upstream and port only the missing delta.
-4. Preserve license notices and record source repository + branch + SHA/commits for every imported feature.
-5. One owner per concern:
-   - one subtitle engine
-   - one diagnostics model
-   - one skip aggregator
-   - one adaptive resource manager
-   - one stream ranker
-6. Keep official playback available as selectable/fallback behavior.
-7. AI and MAT remain experimental and OFF by default.
-8. Every gate/feature must build and test before the next begins.
-9. Do not discard, reset, force-push, or overwrite work you did not create unless explicitly instructed.
-10. Keep changes scoped to the current roadmap gate.
-11. Do not silently update pinned source SHAs.
-12. Do not drop a master feature because its source is difficult to port. Record it as blocked/deferred instead.
-13. Do not import Cxsmo Smart Vibrance into stable core.
-14. Do not inherit ysosrs removals just because they exist in that fork.
-15. Do not re-port obsolete self-host code already present in official upstream.
+## Non-negotiable architecture
+- one subtitle engine
+- one diagnostics model/UI owner
+- one skip aggregator
+- one adaptive resource manager
+- one stream ranker
+- official playback remains fallback/selectable for core paths
+- AI and MAT remain experimental/OFF by default
+- no stable Smart Vibrance import
+- no inheritance of ysosrs feature removals
+- no obsolete parallel self-host stack when official already owns it
 
-## Workflow for every imported feature
+## Source provenance
+- Use pinned SHAs in SOURCE_MAP.
+- Do not silently update a source pin.
+- Record source commits/files and license notes in IMPORT_LEDGER.
+- Do not drop a difficult feature; mark blocked/deferred with reason.
 
-- Identify its MASTER_FEATURES ID(s).
-- Audit source repo/branch/SHA/commits and source files.
-- Identify equivalent files in the pinned/current official baseline.
-- Record what already exists upstream.
-- Import the smallest coherent unit.
-- Adapt only boundaries required by current APIs.
-- Add a feature flag/fallback for core behavior where practical.
-- Port/add tests.
-- Update docs/IMPORT_LEDGER.md.
-- Update docs/HANDOFF.md.
-- Stop if the current gate is not green.
+## Quality
+Every code gate must satisfy `docs/DEFINITION_OF_DONE.md`.
+At minimum run the governance validator and relevant Gradle tests/build. Never claim hardware/manual tests passed when they were not run.
 
-## Handoff requirement
+## Handoff
+Before stopping:
+- commit coherent work;
+- update IMPORT_LEDGER if code was imported;
+- update integration/state.yaml;
+- update docs/HANDOFF.md;
+- run validator;
+- leave a clean tree or document why not;
+- report exact next action.
 
-Before finishing any work session:
-1. Run relevant build/tests.
-2. Commit completed work with a clear conventional commit.
-3. Update docs/HANDOFF.md with:
-   - current branch
-   - latest commit SHA
-   - gate/task completed
-   - feature IDs touched
-   - files/modules changed
-   - tests/build commands and results
-   - unresolved issues
-   - exact next recommended action
-4. Leave the repository in a state another agent can continue without conversation history.
-
-## Current starting task
-
-Gate 0 — Fork Foundation.
-
-Tasks:
-1. Verify HEAD derives from the pinned baseline.
-2. Create com.nuvio.tv.fork.foundation.
-3. Add FeatureId and FeatureMode (OFF, ON, AUTO).
-4. Add FeatureRegistry with defaults preserving official behavior.
-5. Add ForkSettingsDataStore only if actually required; do not migrate official settings.
-6. Add SourceAttribution model/utility.
-7. Use docs/IMPORT_LEDGER.md for future feature imports.
-8. Add unit tests for feature default semantics.
-9. Run build/tests.
-10. Commit as: chore(fork): establish integration foundation
-
-Gate 0 must not change user-visible playback or UI behavior.
-
-After Gate 0, continue with Gate 1 — Unified Diagnostics as defined in docs/ROADMAP.md.
+## Current project state
+Do not hardcode progress here. Read `integration/state.yaml`.
