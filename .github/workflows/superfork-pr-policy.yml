@@ -11,25 +11,68 @@ permissions:
   pull-requests: read
 
 jobs:
-  validate:
+  metadata:
+    name: PR metadata
     runs-on: ubuntu-latest
     steps:
-      - name: Validate PR metadata
+      - name: Validate Superfork PR body
         uses: actions/github-script@v7
         with:
           script: |
             const pr = context.payload.pull_request;
             const body = pr.body || "";
             const required = [
-              "## Feature",
+              "## Identity",
               "## Source audit",
-              "## Changes",
+              "## Objective / changes",
+              "## Explicitly not imported",
               "## Fallback / feature flag",
               "## Attribution / license",
+              "## Security review",
               "## Tests",
-              "## Risks / follow-ups",
+              "## State / handoff",
+              "## Risks / blockers / follow-ups",
             ];
             const missing = required.filter(x => !body.includes(x));
             if (missing.length) core.setFailed("Missing PR sections: " + missing.join(", "));
             if (pr.base.ref !== "superfork/integration") core.setFailed("Superfork PRs must target superfork/integration");
             if (["dev", "superfork/integration"].includes(pr.head.ref)) core.setFailed("Do not develop directly on " + pr.head.ref);
+            if (!/Feature ID\(s\):\s*[^\n]+/.test(body)) core.setFailed("Identity must declare Feature ID(s), or explicitly state governance/N/A.");
+            if (!/Gate:\s*[^\n]+/.test(body)) core.setFailed("Identity must declare the roadmap gate.");
+
+  state-handoff:
+    name: State and handoff discipline
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify task branch and handoff updates
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          expected="$(awk '/^[[:space:]]+task_branch:/ {print $2; exit}' integration/state.yaml)"
+          if [ -z "$expected" ]; then
+            echo "integration/state.yaml has no current.task_branch" >&2
+            exit 1
+          fi
+          if [ "$HEAD_REF" != "$expected" ]; then
+            echo "PR head '$HEAD_REF' does not match recorded task branch '$expected'" >&2
+            exit 1
+          fi
+
+          git fetch origin "$BASE_REF" --depth=1 || true
+          changed="$(git diff --name-only "origin/$BASE_REF"...HEAD 2>/dev/null || git diff --name-only HEAD^ HEAD)"
+          echo "$changed"
+
+          if echo "$changed" | grep -Eq '^(app/|ffmpeg-decoder-downmix/|baselineprofile/|build\.gradle|settings\.gradle|gradle/)'; then
+            echo "$changed" | grep -qx 'docs/HANDOFF.md' || {
+              echo "Code-changing PR must update docs/HANDOFF.md" >&2
+              exit 1
+            }
+            echo "$changed" | grep -qx 'integration/state.yaml' || {
+              echo "Code-changing PR must update integration/state.yaml" >&2
+              exit 1
+            }
+          fi
