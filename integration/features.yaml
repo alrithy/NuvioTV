@@ -1,0 +1,29 @@
+baseline:
+  repo: NuvioMedia/NuvioTV
+  branch: dev
+  sha: c257a2365ee3386b582dc2974ec235cfe0381f33
+
+policy:
+  reuse_first: true
+  rewrite_last_resort: true
+  whole_fork_merge: false
+  experimental_default: false
+  require_attribution: true
+  require_upstream_diff_before_import: true
+
+feature_groups:
+  - { id: foundation, source: official, mode: NEW_GLUE, risk: low, status: queued }
+  - { id: unified-diagnostics, source: [official, ysosrs], mode: DELTA_PORT, risk: medium, status: queued }
+  - { id: adaptive-resource-manager, source: hackerslash-lite, mode: LOGIC_PORT, risk: medium, status: queued }
+  - { id: playback-strategies, source: [official, ysosrs, reshaped], mode: DELTA_PORT, risk: high, status: queued }
+  - { id: audio-dv-afr, source: [official, ysosrs], mode: DELTA_PORT, risk: high, status: queued }
+  - { id: subtitle-intelligence, source: [reshaped, vibe-subtitle], mode: ALGORITHM_PORT, risk: high, status: queued }
+  - { id: seek-intelligence, source: [reshaped, cxsmo], mode: FILE_PORT, risk: medium, status: queued }
+  - { id: stream-intelligence, source: [official, reshaped, cxsmo], mode: DELTA_PORT, risk: high, status: queued }
+  - { id: skip-engine, source: [official, cxsmo], mode: DELTA_PORT, risk: medium, status: queued }
+  - { id: discovery, source: cxsmo, mode: CHERRY_PICK_OR_FILE_PORT, risk: low, status: queued }
+  - { id: live-tv, source: reshaped, mode: CHERRY_PICK_OR_FILE_PORT, risk: medium, status: queued }
+  - { id: watch-party, source: antonino, mode: FILE_PORT, risk: medium, status: queued }
+  - { id: ui-styles, source: [nuvio-glass, reshaped, cxsmo], mode: FILE_PORT, risk: medium, status: queued }
+  - { id: ai-media, source: fornace, mode: EXPERIMENTAL_FILE_PORT, risk: high, status: queued }
+  - { id: mat-audio, source: ysosrs, mode: EXPERIMENTAL_DELTA_PORT, risk: high, status: queued }
