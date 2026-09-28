@@ -40,3 +40,19 @@ Start here if you are human. Coding agents start at `AGENTS.md`.
 - `docs/COMPONENT_MAP.md` — existing code ownership and integration seams
 - `docs/PORTING_PROTOCOL.md` — exact fork-feature import procedure
 - `docs/STATUS_MODEL.md` — feature/gate lifecycle semantics
+
+## Product guardrails
+- `docs/PRODUCT_REQUIREMENTS.md` — priority stack and trade-off rules
+- `docs/NON_GOALS.md` — scope boundaries
+- `docs/RISK_REGISTER.md` — durable architectural risks
+- `docs/LEGACY_WORK.md` — quarantine/harvest rules for pre-Superfork PRs
+
+## Quality and review
+- `docs/TEST_STRATEGY.md`
+- `docs/BASELINE_TEST_DEBT.md`
+- `docs/CODE_REVIEW_CHECKLIST.md`
+- `docs/RELEASE_CHECKLIST.md`
+
+## Dependency and persistence safety
+- `docs/DEPENDENCY_POLICY.md`
+- `docs/DATA_MIGRATION_POLICY.md`
