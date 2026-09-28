@@ -22,6 +22,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -341,6 +342,131 @@ private fun DrawScope.drawModernLayoutPreview(
                 cornerRadius = cornerRadius
             )
         }
+    }
+}
+
+/** Preview of the cinema layout: full-bleed artwork that slowly drifts, a spotlight and a wide-card rail. */
+@Composable
+fun CinemaLayoutPreview(
+    modifier: Modifier = Modifier,
+    accentColor: Color = NuvioTheme.colors.Primary,
+    animated: Boolean = true
+) {
+    if (animated) {
+        AnimatedCinemaLayoutPreview(modifier = modifier, accentColor = accentColor)
+    } else {
+        CinemaLayoutPreviewFrame(modifier = modifier, accentColor = accentColor, scrollOffset = 0f)
+    }
+}
+
+@Composable
+private fun AnimatedCinemaLayoutPreview(
+    modifier: Modifier,
+    accentColor: Color
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "cinemaPreview")
+    val scrollOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(6000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "cinemaScroll"
+    )
+    CinemaLayoutPreviewFrame(
+        modifier = modifier,
+        accentColor = accentColor,
+        scrollOffset = scrollOffset
+    )
+}
+
+@Composable
+private fun CinemaLayoutPreviewFrame(
+    modifier: Modifier,
+    accentColor: Color,
+    scrollOffset: Float
+) {
+    val background = NuvioTheme.colors.Background
+    LayoutPreviewFrame(modifier = modifier, background = background) {
+        drawCinemaLayoutPreview(scrollOffset, accentColor, background)
+    }
+}
+
+private fun DrawScope.drawCinemaLayoutPreview(
+    scrollOffset: Float,
+    accentColor: Color,
+    background: Color
+) {
+    val w = size.width
+    val h = size.height
+    val horizontalPadding = w * 0.05f
+
+    // Full-bleed artwork, fading into the background on the left and bottom.
+    drawRect(
+        brush = Brush.horizontalGradient(
+            colors = listOf(background, accentColor.copy(alpha = 0.22f), accentColor.copy(alpha = 0.5f))
+        ),
+        size = Size(w, h)
+    )
+    drawRect(
+        brush = Brush.verticalGradient(
+            0.45f to Color.Transparent,
+            1.0f to background
+        ),
+        size = Size(w, h)
+    )
+
+    // Spotlight: logo block, meta line and synopsis lines.
+    val lineRadius = CornerRadius(h * 0.02f)
+    drawRoundRect(
+        color = accentColor.copy(alpha = 0.75f),
+        topLeft = Offset(horizontalPadding, h * 0.16f),
+        size = Size(w * 0.30f, h * 0.10f),
+        cornerRadius = lineRadius
+    )
+    drawRoundRect(
+        color = accentColor.copy(alpha = 0.45f),
+        topLeft = Offset(horizontalPadding, h * 0.31f),
+        size = Size(w * 0.22f, h * 0.035f),
+        cornerRadius = lineRadius
+    )
+    for (i in 0 until 2) {
+        drawRoundRect(
+            color = accentColor.copy(alpha = 0.3f),
+            topLeft = Offset(horizontalPadding, h * (0.38f + i * 0.06f)),
+            size = Size(w * (0.40f - i * 0.08f), h * 0.03f),
+            cornerRadius = lineRadius
+        )
+    }
+
+    // Wide-card rail pinned to a fixed left edge; the first card is the focused one.
+    val rowTop = h * 0.60f
+    val cardHeight = h * 0.22f
+    val cardWidth = cardHeight * 16f / 9f
+    val gap = w * 0.025f
+    val step = cardWidth + gap
+    val shift = scrollOffset * step * 3f
+    val cardRadius = CornerRadius(h * 0.03f)
+    for (i in 0..((w / step).toInt() + 5)) {
+        val x = horizontalPadding + (i * step) - shift
+        if (x + cardWidth > 0f && x < w) {
+            drawRoundRect(
+                color = accentColor.copy(alpha = if (i % 3 == 0) 0.6f else 0.3f),
+                topLeft = Offset(x, rowTop),
+                size = Size(cardWidth, cardHeight),
+                cornerRadius = cardRadius
+            )
+        }
+    }
+    // Next row peeking in underneath.
+    for (i in 0..((w / step).toInt() + 1)) {
+        drawRoundRect(
+            color = accentColor.copy(alpha = 0.14f),
+            topLeft = Offset(horizontalPadding + i * step, rowTop + cardHeight + h * 0.06f),
+            size = Size(cardWidth, cardHeight),
+            cornerRadius = cardRadius
+        )
     }
 }
 

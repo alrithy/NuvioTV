@@ -87,6 +87,7 @@ import com.nuvio.tv.ui.components.CardCwStylePreview
 import com.nuvio.tv.ui.components.ClassicLayoutPreview
 import com.nuvio.tv.ui.components.GridLayoutPreview
 import com.nuvio.tv.ui.components.ModernLayoutPreview
+import com.nuvio.tv.ui.components.CinemaLayoutPreview
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.components.PosterCwStylePreview
 import com.nuvio.tv.ui.components.WideCwStylePreview
@@ -247,6 +248,17 @@ fun LayoutSettingsContent(
                                 .focusRequester(firstHomeLayoutFocusRequester)
                         )
                         LayoutCard(
+                            layout = HomeLayout.CINEMA,
+                            isSelected = uiState.selectedLayout == HomeLayout.CINEMA,
+                            onClick = {
+                                viewModel.onEvent(LayoutSettingsEvent.SelectLayout(HomeLayout.CINEMA))
+                            },
+                            onFocused = {
+                                focusedSection = LayoutSettingsSection.HOME_LAYOUT
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+                        LayoutCard(
                             layout = HomeLayout.GRID,
                             isSelected = uiState.selectedLayout == HomeLayout.GRID,
                             onClick = {
@@ -310,6 +322,48 @@ fun LayoutSettingsContent(
                                     LayoutSettingsEvent.SetClassicFocusGradientEnabled(!uiState.classicFocusGradientEnabled)
                                 )
                             },
+                            onFocused = { focusedSection = LayoutSettingsSection.HOME_LAYOUT }
+                        )
+                    }
+
+                    if (uiState.selectedLayout == HomeLayout.CINEMA) {
+                        val cinema = uiState.cinemaHomeSettings
+                        val updateCinema: (com.nuvio.tv.domain.model.CinemaHomeSettings) -> Unit = { updated ->
+                            viewModel.onEvent(LayoutSettingsEvent.SetCinemaHomeSettings(updated))
+                        }
+                        CompactToggleRow(
+                            title = stringResource(R.string.layout_cinema_trailer_autoplay),
+                            subtitle = stringResource(R.string.layout_cinema_trailer_autoplay_sub),
+                            checked = cinema.trailerAutoplayEnabled,
+                            onToggle = { updateCinema(cinema.copy(trailerAutoplayEnabled = !cinema.trailerAutoplayEnabled)) },
+                            onFocused = { focusedSection = LayoutSettingsSection.HOME_LAYOUT }
+                        )
+                        SliderSettingsItem(
+                            icon = Icons.Default.Timer,
+                            title = stringResource(R.string.layout_cinema_ambient),
+                            subtitle = stringResource(R.string.layout_cinema_ambient_sub),
+                            values = com.nuvio.tv.domain.model.CinemaHomeSettings.AMBIENT_TIMEOUT_OPTIONS,
+                            selected = cinema.ambientTimeoutSeconds,
+                            valueText = if (cinema.ambientTimeoutSeconds == 0) {
+                                stringResource(R.string.layout_cinema_ambient_off)
+                            } else {
+                                "${cinema.ambientTimeoutSeconds}s"
+                            },
+                            onValueChange = { seconds -> updateCinema(cinema.copy(ambientTimeoutSeconds = seconds)) },
+                            onFocused = { focusedSection = LayoutSettingsSection.HOME_LAYOUT }
+                        )
+                        CompactToggleRow(
+                            title = stringResource(R.string.layout_cinema_motion),
+                            subtitle = stringResource(R.string.layout_cinema_motion_sub),
+                            checked = cinema.backdropMotionEnabled,
+                            onToggle = { updateCinema(cinema.copy(backdropMotionEnabled = !cinema.backdropMotionEnabled)) },
+                            onFocused = { focusedSection = LayoutSettingsSection.HOME_LAYOUT }
+                        )
+                        CompactToggleRow(
+                            title = stringResource(R.string.layout_cinema_clock),
+                            subtitle = stringResource(R.string.layout_cinema_clock_sub),
+                            checked = cinema.clockEnabled,
+                            onToggle = { updateCinema(cinema.copy(clockEnabled = !cinema.clockEnabled)) },
                             onFocused = { focusedSection = LayoutSettingsSection.HOME_LAYOUT }
                         )
                     }
@@ -1583,6 +1637,10 @@ private fun LayoutCard(
                         modifier = Modifier.fillMaxWidth(),
                         animated = animatePreview
                     )
+                    HomeLayout.CINEMA -> CinemaLayoutPreview(
+                        modifier = Modifier.fillMaxWidth(),
+                        animated = animatePreview
+                    )
                 }
             }
 
@@ -1607,6 +1665,7 @@ private fun LayoutCard(
                         HomeLayout.CLASSIC -> stringResource(R.string.layout_classic)
                         HomeLayout.GRID -> stringResource(R.string.layout_grid)
                         HomeLayout.MODERN -> stringResource(R.string.layout_modern)
+                        HomeLayout.CINEMA -> stringResource(R.string.layout_cinema)
                     },
                     style = MaterialTheme.typography.labelLarge,
                     color = if (isSelected || isFocused) NuvioTheme.colors.TextPrimary else NuvioTheme.colors.TextSecondary

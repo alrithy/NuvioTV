@@ -15,6 +15,7 @@ import com.nuvio.tv.core.sync.SyncHomeCatalogPayload
 import com.nuvio.tv.core.sync.buildHomeCatalogSyncPayload
 import com.nuvio.tv.core.sync.homeCatalogKey
 import com.nuvio.tv.core.sync.homeCollectionKey
+import com.nuvio.tv.domain.model.CinemaHomeSettings
 import com.nuvio.tv.domain.model.Addon
 import com.nuvio.tv.domain.model.CardDepthStyle
 import com.nuvio.tv.domain.model.CardDepthSurface
@@ -83,6 +84,10 @@ class LayoutPreferenceDataStore @Inject constructor(
     private val catalogAddonNameEnabledKey = booleanPreferencesKey("catalog_addon_name_enabled")
     private val catalogTypeSuffixEnabledKey = booleanPreferencesKey("catalog_type_suffix_enabled")
     private val classicFocusGradientEnabledKey = booleanPreferencesKey("classic_focus_gradient_enabled")
+    private val cinemaBackdropMotionEnabledKey = booleanPreferencesKey("cinema_backdrop_motion_enabled")
+    private val cinemaAmbientTimeoutSecondsKey = intPreferencesKey("cinema_ambient_timeout_seconds")
+    private val cinemaClockEnabledKey = booleanPreferencesKey("cinema_clock_enabled")
+    private val cinemaTrailerAutoplayEnabledKey = booleanPreferencesKey("cinema_trailer_autoplay_enabled")
     private val focusedPosterBackdropExpandEnabledKey = booleanPreferencesKey("focused_poster_backdrop_expand_enabled")
     private val focusedPosterBackdropExpandDelaySecondsKey = intPreferencesKey("focused_poster_backdrop_expand_delay_seconds")
     private val focusedPosterBackdropTrailerEnabledKey = booleanPreferencesKey("focused_poster_backdrop_trailer_enabled")
@@ -274,6 +279,16 @@ class LayoutPreferenceDataStore @Inject constructor(
 
     val classicFocusGradientEnabled: Flow<Boolean> = profileFlow { prefs ->
         prefs[classicFocusGradientEnabledKey] ?: false
+    }
+
+    val cinemaHomeSettings: Flow<CinemaHomeSettings> = profileFlow { prefs ->
+        CinemaHomeSettings(
+            backdropMotionEnabled = prefs[cinemaBackdropMotionEnabledKey] ?: true,
+            ambientTimeoutSeconds = prefs[cinemaAmbientTimeoutSecondsKey]
+                ?: CinemaHomeSettings.DEFAULT_AMBIENT_TIMEOUT_SECONDS,
+            clockEnabled = prefs[cinemaClockEnabledKey] ?: true,
+            trailerAutoplayEnabled = prefs[cinemaTrailerAutoplayEnabledKey] ?: true
+        )
     }
 
     val focusedPosterBackdropExpandEnabled: Flow<Boolean> = profileFlow { prefs ->
@@ -584,6 +599,15 @@ class LayoutPreferenceDataStore @Inject constructor(
     suspend fun setCatalogTypeSuffixEnabled(enabled: Boolean) {
         store().edit { prefs ->
             prefs[catalogTypeSuffixEnabledKey] = enabled
+        }
+    }
+
+    suspend fun setCinemaHomeSettings(settings: CinemaHomeSettings) {
+        store().edit { prefs ->
+            prefs[cinemaBackdropMotionEnabledKey] = settings.backdropMotionEnabled
+            prefs[cinemaAmbientTimeoutSecondsKey] = settings.ambientTimeoutSeconds.coerceAtLeast(0)
+            prefs[cinemaClockEnabledKey] = settings.clockEnabled
+            prefs[cinemaTrailerAutoplayEnabledKey] = settings.trailerAutoplayEnabled
         }
     }
 
