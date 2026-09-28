@@ -1,4 +1,8 @@
-## Feature
+## Identity
+- Gate:
+- Feature ID(s):
+- Task branch:
+- Base integration commit:
 
 ## Source audit
 - Source repository:
@@ -9,21 +13,35 @@
 - Official-equivalent files:
 - Already present upstream:
 
-## Changes
+## Objective / changes
+
+## Explicitly not imported
 
 ## Fallback / feature flag
 
 ## Attribution / license
 
+## Security review
+- [ ] No secrets/tokens/signed URLs added to logs
+- [ ] Header forwarding reviewed if applicable
+- [ ] Credential storage reviewed if applicable
+
 ## Tests
-- [ ] Existing tests pass
+- [ ] Governance validator passes
+- [ ] Existing relevant tests pass
 - [ ] Imported/new tests pass
-- [ ] Build succeeds
-- [ ] Relevant regression matrix passes
+- [ ] fullDebug build succeeds
+- [ ] Relevant regression matrix passes or is honestly marked MANUAL-PENDING
 
 ## Playback A/B (if applicable)
 - Official strategy:
 - Imported strategy:
-- Same file/source: yes/no
+- Same file/source:
+- Metrics/observations:
 
-## Risks / follow-ups
+## State / handoff
+- [ ] IMPORT_LEDGER updated if external code imported
+- [ ] integration/state.yaml updated when status changes
+- [ ] docs/HANDOFF.md updated
+
+## Risks / blockers / follow-ups
