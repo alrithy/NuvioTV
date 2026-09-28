@@ -22,9 +22,12 @@ last_green_note: official_bootstrap_anchor_before_current_upstream_sync
 last_green_scope: official_baseline
 
 bootstrap:
-  governance_pr: 3
-  branch: chore/fork-foundation
-  status: READY_TO_MERGE
+  initial_governance_pr: 3
+  initial_governance_merge_commit: 1edb0190c87f0932c7547c74de4265206e3a93a5
+  upstream_sync_commit: 3cf04ccdcc20515acb093c28ad9b7c3943a39057
+  hardening_pr: 6
+  hardening_branch: chore/governance-hardening
+  status: HARDENING_REVIEW
 
 next_gate: G1
 next_gate_name: Unified Diagnostics & Add-on Health
