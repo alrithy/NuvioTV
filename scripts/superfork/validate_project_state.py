@@ -12,8 +12,10 @@ required = [
  "docs/ROADMAP.md","docs/GATE_SPECS.md","docs/TEST_MATRIX.md","docs/DEFINITION_OF_DONE.md",
  "docs/IMPORT_LEDGER.md","docs/AGENT_PLAYBOOK.md","docs/BRANCHING.md","docs/UPSTREAM_SYNC.md","docs/UPSTREAM_SYNC_LOG.md",
  "docs/SECURITY_POLICY.md","docs/RELEASE_POLICY.md","docs/FAILURE_RECOVERY.md","docs/LOCAL_SETUP.md",
- "docs/GITHUB_ADMIN_CHECKLIST.md","docs/COMPONENT_MAP.md","docs/PORTING_PROTOCOL.md","docs/STATUS_MODEL.md","integration/features.yaml","integration/state.yaml",
- "integration/feature_traceability.csv"
+ "docs/GITHUB_ADMIN_CHECKLIST.md","docs/COMPONENT_MAP.md","docs/PORTING_PROTOCOL.md","docs/STATUS_MODEL.md",
+ "docs/BASELINE_TEST_DEBT.md","integration/features.yaml","integration/state.yaml",
+ "integration/feature_traceability.csv","integration/baseline_test_failures.txt",
+ "scripts/superfork/check_baseline_test_failures.py"
 ]
 for p in required:
     if not (ROOT/p).is_file():
@@ -59,6 +61,14 @@ for doc in ["docs/ROADMAP.md","docs/GATE_SPECS.md"]:
         for g in range(15):
             if f"G{g} " not in txt and f"G{g} —" not in txt:
                 errors.append(f"{doc} missing G{g}")
+
+baseline_failures=ROOT/"integration/baseline_test_failures.txt"
+if baseline_failures.exists():
+    entries=[line.strip() for line in baseline_failures.read_text(encoding="utf-8").splitlines() if line.strip() and not line.lstrip().startswith("#")]
+    if len(entries) != len(set(entries)):
+        errors.append("baseline_test_failures.txt contains duplicate entries")
+    if len(entries) != 18:
+        errors.append(f"baseline_test_failures.txt expected 18 recorded baseline failures, found {len(entries)}")
 
 agents=ROOT/"AGENTS.md"
 if agents.exists():
