@@ -2,7 +2,7 @@
 
 ## Current state
 - Repository: alrithy/NuvioTV
-- Official baseline: NuvioMedia/NuvioTV dev @ c257a2365ee3386b582dc2974ec235cfe0381f33
+- Official baseline: NuvioMedia/NuvioTV dev @ fd7973d91dd75d790c5f9b3d68dae652655e92c4
 - Integration branch: superfork/integration
 - Current docs/bootstrap branch: chore/fork-foundation
 - Next implementation branch: chore/fork-foundation-impl
