@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Design prototypes only. Safe to delete together with the prototype package. -->
+<resources>
+    <string name="prototype_app_name" translatable="false">Nuvio Prototypes</string>
+</resources>

@@ -206,6 +206,24 @@
             </intent-filter>
         </activity>
 
+        <!-- Design prototypes (isolated; see com.nuvio.tv.prototype). Remove this entry to drop them. -->
+        <activity
+            android:name=".prototype.android.PrototypeActivity"
+            android:banner="@mipmap/banner"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|density|uiMode|keyboard|keyboardHidden|navigation|layoutDirection|fontScale|locale"
+            android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/prototype_app_name"
+            android:launchMode="singleTask"
+            android:taskAffinity="com.nuvio.tv.prototypes"
+            android:theme="@style/Theme.MyApplication">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <profileable android:shell="true" />
     </application>
 
