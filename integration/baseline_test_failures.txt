@@ -1,0 +1,20 @@
+# Baseline full-suite failures observed on official-based integration at fd7973d91dd75d790c5f9b3d68dae652655e92c4
+# Format: SimpleClassName#test name
+LocalhostZeroCopyDataSourceTest#testHttpError404
+DefaultAllocatorTest#testLateReleasedAllocationsMemoryLeak
+DolbyVisionBaseLayerPolicyTest#non-Amazon device on DV display with DV81 decoder falls through to NATIVE_DV7
+DolbyVisionBaseLayerPolicyTest#Samsung device on DV display still falls through to NATIVE_DV7
+FrameRateUtilsMkvSparseTracksTest#sparse Tracks fetch terminates the probe file with a stub Cluster
+MatroskaAfrProbeTest#stub Cluster terminates Cluster-less head and resizes Segment
+PluginBinaryFetchTest#text request remains UTF8 encoded
+PluginBinaryFetchTest#binary request and response preserve exact bytes
+CustomPosterUrlResolverTest#resolve BetterPosters returns null when IMDb id is missing
+CollectionsDataStoreSourceMigrationTest#validation rejects trakt sources without list id
+CatalogRepositoryTypeTest#initial and paginated requests retain advertised Series type
+TraktAuthServiceTest#refresh token 400 clears credentials and prevents another refresh
+NuvioExoPlayerPerformanceHelperTest#test default fallback values when RAM is zero or unknown
+NuvioExoPlayerPerformanceHelperTest#test 2 GB RAM tier classification
+NuvioExoPlayerPerformanceHelperTest#test 1 GB RAM tier classification
+PostPlayRecommendationStateTest#loaded recommendation holds natural completion until overlay evaluation
+PostPlayRecommendationStateTest#post play returns to player only while its window is available
+TrackSelectionInvestigationTest#testBuildStreamInfoDataWithActiveVideoFormat
