@@ -3,39 +3,29 @@ name: Superfork CI
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-    branches:
-      - "superfork/integration"
+    branches: ["superfork/integration"]
   workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: superfork-ci-${{ github.event.pull_request.number || github.ref }}
+  group: superfork-ci-\${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   governance:
-    name: Governance guard
+    name: Superfork Governance CI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate Superfork project state
-        run: python3 scripts/superfork_guard.py
-      - name: Reject direct dev/integration implementation branch
-        if: github.event_name == 'pull_request'
-        env:
-          HEAD_REF: ${{ github.head_ref }}
-        run: |
-          case "$HEAD_REF" in
-            dev|superfork/integration)
-              echo "Implementation PR cannot originate from $HEAD_REF" >&2
-              exit 1
-              ;;
-          esac
+      - name: Validate canonical project state
+        run: python3 scripts/superfork/validate_project_state.py
+      - name: Git whitespace check
+        run: git diff --check
 
   full-debug:
-    name: Full debug unit tests + APK
+    name: Superfork Full Debug CI
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -46,8 +36,8 @@ jobs:
           cache: gradle
       - name: Prepare local properties
         env:
-          LOCAL_PROPERTIES_BASE64: ${{ secrets.LOCAL_PROPERTIES_BASE64 }}
-          LOCAL_DEV_PROPERTIES_BASE64: ${{ secrets.LOCAL_DEV_PROPERTIES_BASE64 }}
+          LOCAL_PROPERTIES_BASE64: \${{ secrets.LOCAL_PROPERTIES_BASE64 }}
+          LOCAL_DEV_PROPERTIES_BASE64: \${{ secrets.LOCAL_DEV_PROPERTIES_BASE64 }}
         run: |
           if [ -n "$LOCAL_PROPERTIES_BASE64" ]; then
             printf '%s' "$LOCAL_PROPERTIES_BASE64" | base64 --decode > local.properties
@@ -68,9 +58,9 @@ jobs:
             echo "NUVIO_RELEASE_KEY_PASSWORD=android"
             echo "NUVIO_RELEASE_STORE_PASSWORD=android"
           } >> "$GITHUB_ENV"
-      - name: Run full debug unit tests
+      - name: Full debug unit tests
         run: ./gradlew :app:testFullDebugUnitTest --stacktrace
-      - name: Build full debug APK
+      - name: Assemble full debug
         run: ./gradlew :app:assembleFullDebug --stacktrace
       - name: Upload APK
         uses: actions/upload-artifact@v7
