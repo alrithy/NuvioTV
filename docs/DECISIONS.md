@@ -4,7 +4,9 @@ This file records the decisions that must survive across coding agents and chat 
 
 ## D001 — Base
 Use official `NuvioMedia/NuvioTV:dev` as the base. Current pinned baseline is:
-`c257a2365ee3386b582dc2974ec235cfe0381f33`.
+`fd7973d91dd75d790c5f9b3d68dae652655e92c4`.
+
+Initial governance work began at `c257a2365ee3386b582dc2974ec235cfe0381f33`, then the baseline was refreshed before G0 to `fd7973d91dd75d790c5f9b3d68dae652655e92c4`. See `docs/UPSTREAM_SYNC_LOG.md`.
 
 Reason: forks overlap, diverge and are based on different upstream points. The official dev branch is the integration anchor.
 
