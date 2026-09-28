@@ -5,13 +5,15 @@ official_upstream: NuvioMedia/NuvioTV
 baseline_branch: dev
 baseline_sha: c257a2365ee3386b582dc2974ec235cfe0381f33
 integration_branch: superfork/integration
+integration_operating_system_commit: 1edb0190c87f0932c7547c74de4265206e3a93a5
 default_branch_note: dev_is_legacy_default_until_github_admin_changes_it
+github_issues_enabled: false
 active_gate: G0
 active_gate_name: Fork Foundation
 active_branch: chore/fork-foundation-impl
+active_branch_exists: true
 active_status: ready
-last_green_commit: c257a2365ee3386b582dc2974ec235cfe0381f33
-current_docs_branch: chore/fork-foundation
+last_green_code_commit: c257a2365ee3386b582dc2974ec235cfe0381f33
 blockers: none
 parallel_agents_same_branch_allowed: false
 next_gate: G1
