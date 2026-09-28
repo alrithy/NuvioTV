@@ -2,21 +2,21 @@
 Feature IDs: 4–13, 17–26
 Branch: `feat/remux-network`
 Depends on: G3
-Sources: current official first; ysosrs + Reshaped pinned deltas.
+Sources: current official first; ysosrs + Reshaped deltas.
 
 ## Objective
-Improve high-bitrate/large-REMUX reliability without duplicating current official parallel-range/speed-test code.
+Improve large/high-bitrate REMUX reliability without duplicating official parallel-range/speed-test code.
 
 ## Mandatory audit
-Diff official `ParallelRangeDataSource`, media source, StreamSpeedTester and container paths against source forks. Import only missing behavior.
+Diff official media source, ParallelRangeDataSource, StreamSpeedTester and container paths against pinned sources. Port only missing behavior.
 
 ## Candidate deltas
-Adaptive connections/chunks, reduced re-download, rate-limit/stall recovery, speed test on actual source, pre-resolve/warm startup, source failover, malformed/truncated MKV recovery, non-faststart MP4 seeking, demux-cache policy.
+Adaptive connections/chunks, reduced re-download, 429/503/stall recovery, actual-source speed test, pre-resolve/warm startup, source failover, malformed/truncated MKV recovery, non-faststart MP4 seek, demux cache.
 
-Disk seek buffer must remain a distinct Seek Optimized strategy; do not blindly stack it with throughput parallelism.
+Disk seek buffer remains a distinct Seek Optimized strategy; never blindly stack with parallel throughput.
 
-## Required evidence
-Same-file A/B where feasible: startup, sustained throughput, buffer, rebuffer, wasted bytes where measurable, seek, RAM.
+## Evidence
+Same-file A/B: startup, throughput, buffer, rebuffer, wasted bytes when measurable, seek, RAM.
 
 ## Tests
-429/503, cancellation, hung read, range behavior, failover, malformed fixtures, no-new-regressions full suite.
+Rate limit, cancellation, hung reads, ranges, failover, malformed fixtures, full-suite no-new-regressions.
