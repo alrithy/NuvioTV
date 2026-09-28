@@ -13,7 +13,9 @@ required = [
  "docs/IMPORT_LEDGER.md","docs/AGENT_PLAYBOOK.md","docs/BRANCHING.md","docs/UPSTREAM_SYNC.md","docs/UPSTREAM_SYNC_LOG.md",
  "docs/SECURITY_POLICY.md","docs/RELEASE_POLICY.md","docs/FAILURE_RECOVERY.md","docs/LOCAL_SETUP.md",
  "docs/GITHUB_ADMIN_CHECKLIST.md","docs/COMPONENT_MAP.md","docs/PORTING_PROTOCOL.md","docs/STATUS_MODEL.md",
- "docs/BASELINE_TEST_DEBT.md","integration/features.yaml","integration/state.yaml",
+ "docs/BASELINE_TEST_DEBT.md","docs/PRODUCT_REQUIREMENTS.md","docs/NON_GOALS.md","docs/TEST_STRATEGY.md",
+ "docs/DEPENDENCY_POLICY.md","docs/DATA_MIGRATION_POLICY.md","docs/RISK_REGISTER.md","docs/CODE_REVIEW_CHECKLIST.md",
+ "docs/RELEASE_CHECKLIST.md","docs/LEGACY_WORK.md","integration/features.yaml","integration/state.yaml",
  "integration/feature_traceability.csv","integration/baseline_test_failures.txt",
  "scripts/superfork/check_baseline_test_failures.py"
 ]
