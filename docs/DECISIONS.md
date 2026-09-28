@@ -189,3 +189,8 @@ When two technically valid implementations conflict, use `docs/PRODUCT_REQUIREME
 P0 stability/security/upstream/data integrity, then P1 playback/subtitle/remote reliability, followed by capability expansion, experience/social, then experimental systems.
 
 Durable exceptions require a new decision record.
+
+## D036 — Freeze the implementation baseline within a gate
+Before G0 starts, take one final reviewed refresh from official `dev`. Once a gate is active, do not continuously chase upstream inside that feature branch.
+
+Official updates use dedicated upstream-sync PRs, normally at gate boundaries, when the affected subsystem materially changed, or for critical fixes. This preserves reproducibility while keeping long-term drift controlled.
