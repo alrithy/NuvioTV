@@ -39,3 +39,12 @@ Read `AGENTS.md`, run the validator, then follow `docs/AGENT_PLAYBOOK.md`.
 
 ## Coverage
 `integration/feature_traceability.csv` maps all 320 feature IDs to G0–G14. The governance validator checks 320/320 completeness and text consistency.
+
+## Test health
+- Official-based current baseline: `fd7973d...`.
+- Complete fullDebug unit suite: 18 known pre-existing failures recorded exactly in `integration/baseline_test_failures.txt`.
+- Superfork policy: run the complete suite and fail on any new/unrecorded failure.
+- Details: `docs/BASELINE_TEST_DEBT.md`.
+
+## Remaining repository-admin actions
+Default-branch migration and branch ruleset/protection are still repository-admin tasks. Until they are completed, the legacy `dev` branch contains explicit redirect instructions and Superfork process rules prohibit feature work there.
