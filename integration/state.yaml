@@ -2,7 +2,9 @@ schema_version: 2
 project: Nuvio Superfork
 repository: alrithy/NuvioTV
 official_upstream: NuvioMedia/NuvioTV
-historical_baseline_sha: c257a2365ee3386b582dc2974ec235cfe0381f33
+initial_bootstrap_baseline_sha: c257a2365ee3386b582dc2974ec235cfe0381f33
+current_official_baseline_sha: fd7973d91dd75d790c5f9b3d68dae652655e92c4
+integration_upstream_sync_commit: 3cf04ccdcc20515acb093c28ad9b7c3943a39057
 integration_branch: superfork/integration
 legacy_default_branch: dev
 
@@ -16,6 +18,7 @@ concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: false
 
 last_green_commit: c257a2365ee3386b582dc2974ec235cfe0381f33
+last_green_note: official_bootstrap_anchor_before_current_upstream_sync
 last_green_scope: official_baseline
 
 bootstrap:
