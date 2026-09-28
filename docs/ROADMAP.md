@@ -1,45 +1,50 @@
 # Integration Roadmap
 
-## Gate 0 — Foundation
-Feature registry, source attribution, import ledger, tests. No user-visible behavior changes.
+Implementation order is controlled here. Detailed entry/exit criteria are in `docs/GATE_SPECS.md`. Every one of the 320 feature IDs is mapped in `integration/feature_traceability.csv`.
 
-## Gate 1 — Unified diagnostics
-Use official PlayerDebugStatsOverlay as owner. Add only missing metrics from ysosrs.
+## G0 — Fork Foundation
+Governance, feature registry, source attribution, project CI and agent-safe workflow. No user-visible playback/UI behavior change.
 
-## Gate 2 — Adaptive Resource Manager
-Consolidate Lite RAM/device-tier logic into one policy.
+## G1 — Unified Diagnostics & Add-on Health
+One diagnostics model/UI owner, device assessment, advanced playback metrics and add-on health.
 
-## Gate 3 — Playback Strategy framework
-Official / REMUX / Seek Optimized / Low Memory / Auto. Official remains default/fallback.
+## G2 — Adaptive Resource Manager
+RAM/device tiers, bounded caches/concurrency and resource-aware behavior.
 
-## Gate 4 — REMUX performance delta
-Diff ysosrs against current official and port only missing behavior. Mandatory same-file A/B.
+## G3 — Playback Strategy Framework
+Official / REMUX / Seek Optimized / Low Memory / Auto.
 
-## Gate 5 — Audio / DV / AFR
-Port only missing passthrough, lossless, DV and AFR deltas. MAT remains experimental.
+## G4 — REMUX / Network Performance
+Port only current missing deltas from ysosrs/Reshaped. Mandatory same-file A/B.
 
-## Gate 6 — Subtitle Intelligence
-Unify Reshaped + VibeSubtitle into one engine: embedded -> hash/release -> cue rhythm -> audio/ASR -> manual fallback. Add custom fonts and secondary language.
+## G5 — Audio / DV / HDR / AFR
+Lossless passthrough, output diagnostics, DV/HDR/AFR deltas. MAT stays experimental.
 
-## Gate 7 — Seek Intelligence
-Local keyframe previews first, Seekr fallback/calibration, disk seek buffer as a distinct strategy.
+## G6 — Subtitle Intelligence
+Embedded -> hash/release -> cue rhythm -> audio/ASR -> manual fallback. Arabic and language-independent behavior.
 
-## Gate 8 — Stream Intelligence
-Progressive AIOStreams, dedup, cache state, quality analysis, connection-fit, ranking/autoplay.
+## G7 — Seek Intelligence
+Local keyframe previews, calibrated Seekr fallback and bounded seek-buffer behavior.
 
-## Gate 9 — Discovery / Skip / Recommendations
-Multi-provider skip aggregator, Calendar, Random/Mystery, post-play provider selector, App Dimmer.
+## G8 — Stream Intelligence
+Progressive AIOStreams, dedup, cache/quality analysis, connection fit, ranking and autoplay.
 
-## Gate 10 — Live TV
-Port Reshaped M3U/Xtream/Stalker, multi-source, QR setup, EPG, categories, search, favorites, previews, zapping, Now/Next.
+## G9 — Skip / Recommendations / Discovery
+Multi-provider skip, Calendar, Random/Mystery, post-play providers and App Dimmer.
 
-## Gate 11 — Watch Party
-Port through PlayerBridge. Explicit permission before sharing stream URLs/headers. Redact secrets and clean sessions.
+## G10 — Live TV
+M3U/Xtream/Stalker, multi-source, QR, EPG, categories, favorites, previews, zapping and Now/Next.
 
-## Gate 12 — UI styles
-Glass, Pill and top navigation as selectable styles. Never remove official layouts.
+## G11 — Watch Party
+PlayerBridge-based synchronized playback with URL/header security hardening.
 
-## Gate 13 — Experimental
-AI Media Providers and MAT/IEC61937. OFF by default.
+## G12 — UI Styles & Screensaver
+Glass/Pill/top navigation and related visual options while preserving official layouts.
 
-A gate is complete only when attribution is recorded, tests pass, fallback/flag exists where practical, regression checks pass, and source SHA/commits are recorded.
+## G13 — Experimental
+AI Media Providers and MAT/IEC61937, OFF by default.
+
+## G14 — Hardening, Distribution & Upstream Operations
+Self-host validation, security closure, updater/release channels, APK integrity, upstream-sync automation and final 320-feature accounting.
+
+A gate may advance only under `docs/DEFINITION_OF_DONE.md`.
