@@ -23,7 +23,7 @@ Then read, in this order:
 6. `integration/feature_traceability.csv` — authoritative mapping of all 320 feature IDs.
 7. `docs/DEFINITION_OF_DONE.md`.
 8. `docs/DECISIONS.md`.
-9. Relevant sections of `docs/FORK_RESEARCH.md`, `docs/SOURCE_MAP.md`, and `docs/TEST_MATRIX.md`.
+9. Relevant sections of `docs/FORK_RESEARCH.md`, `docs/SOURCE_MAP.md`, `docs/COMPONENT_MAP.md`, `docs/PORTING_PROTOCOL.md`, and `docs/TEST_MATRIX.md`.
 10. `docs/SECURITY_POLICY.md`, `docs/UPSTREAM_SYNC.md`, and `docs/RELEASE_POLICY.md` when applicable.
 
 Only ask the user if a genuine blocker remains after repository inspection.
@@ -41,6 +41,9 @@ Only ask the user if a genuine blocker remains after repository inspection.
 - Imported-code provenance: `docs/IMPORT_LEDGER.md`
 - Definition of completion: `docs/DEFINITION_OF_DONE.md`
 - Execution procedure: `docs/AGENT_PLAYBOOK.md`
+- Porting procedure: `docs/PORTING_PROTOCOL.md`
+- Component ownership/seams: `docs/COMPONENT_MAP.md`
+- Status semantics: `docs/STATUS_MODEL.md`
 
 Compatibility/redirect documents are not independent sources of truth.
 
