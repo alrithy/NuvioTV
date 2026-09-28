@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 project: Nuvio Superfork
 repository: alrithy/NuvioTV
 official_upstream: NuvioMedia/NuvioTV
@@ -6,62 +6,53 @@ historical_baseline_sha: c257a2365ee3386b582dc2974ec235cfe0381f33
 integration_branch: superfork/integration
 legacy_default_branch: dev
 
-current:
-  gate: 0
-  gate_name: Fork Foundation
-  status: READY_TO_IMPLEMENT
-  task_branch: chore/fork-foundation
-  pr: 3
-  owner: any_single_agent
-  concurrent_writers_allowed: false
-  user_visible_behavior_change_allowed: false
+active_gate: G0
+active_gate_name: Fork Foundation
+active_branch: chore/fork-foundation-impl
+active_status: READY
+active_pr: pending
+active_owner: any_single_agent
+concurrent_writers_allowed: false
+user_visible_behavior_change_allowed: false
 
-next:
-  gate: 1
-  gate_name: Unified Diagnostics
-  recommended_branch: feat/unified-diagnostics
+last_green_commit: c257a2365ee3386b582dc2974ec235cfe0381f33
+last_green_scope: official_baseline
 
-required_context:
-  - AGENTS.md
-  - docs/START_HERE.md
-  - docs/HANDOFF.md
-  - docs/BASELINE.md
-  - docs/ARCHITECTURE.md
-  - docs/MASTER_FEATURES.md
-  - docs/DECISIONS.md
-  - docs/FORK_RESEARCH.md
-  - docs/SOURCE_MAP.md
-  - docs/ROADMAP.md
-  - docs/GATE_CHECKLISTS.md
-  - docs/DEFINITION_OF_DONE.md
-  - docs/TEST_MATRIX.md
-  - docs/IMPORT_LEDGER.md
-  - docs/RUNBOOK.md
-  - docs/BRANCHING.md
-  - docs/RECOVERY.md
-  - docs/UPSTREAM_SYNC.md
-  - integration/features.yaml
-  - integration/feature_coverage.yaml
+bootstrap:
+  governance_pr: 3
+  branch: chore/fork-foundation
+  status: READY_TO_MERGE
+
+next_gate: G1
+next_gate_name: Unified Diagnostics & Add-on Health
+next_branch: feat/unified-diagnostics
 
 known_operational_risks:
   - id: R001
     severity: high
     status: open
-    description: Repository default branch is still legacy dev; an agent launched without selecting a Superfork branch may miss Superfork instructions.
-    mitigation: Change GitHub default branch to superfork/integration after bootstrap is merged; until then select chore/fork-foundation for Gate 0.
+    description: GitHub default branch is still legacy dev.
+    mitigation: After bootstrap merge, change default branch to superfork/integration. Until then select the active branch explicitly.
   - id: R002
     severity: high
-    status: being_fixed_in_bootstrap
-    description: Upstream PR build workflow originally targeted dev only and would not run on Superfork PRs.
+    status: fixed_in_bootstrap
+    description: Official PR build workflow targeted dev only.
+    mitigation: Superfork CI now targets superfork/integration.
   - id: R003
     severity: medium
-    status: being_fixed_in_bootstrap
-    description: Upstream PR-template policy is incompatible with Superfork feature-import PRs.
+    status: fixed_in_bootstrap
+    description: Official PR policy conflicted with Superfork PRs.
+    mitigation: Official policy scoped to dev; Superfork has its own PR policy.
   - id: R004
     severity: medium
     status: open
-    description: GitHub branch protection/rulesets are not configured for superfork/integration.
-    mitigation: Configure ruleset after CI jobs exist; until then AGENTS.md forbids direct work/merge.
+    description: Repository-level branch protection/rulesets are not yet configured for superfork/integration.
+    mitigation: Follow docs/GITHUB_ADMIN_CHECKLIST.md after bootstrap merge.
+  - id: R005
+    severity: low
+    status: accepted
+    description: GitHub Issues are disabled in this repository.
+    mitigation: State, traceability, gate specs, handoff and PRs are the work-tracking system.
 
 last_review:
   date: 2026-09-28
