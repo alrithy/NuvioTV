@@ -154,3 +154,38 @@ Expose simple defaults for normal users and advanced controls for expert users. 
 
 ## D030 — Zero-prompt agent behavior
 When the user says only "اشتغل على نوفيو" / "work on Nuvio" / "continue Nuvio", the coding agent should inspect repository state and continue the current/next documented gate rather than asking the user to restate the project.
+
+## D031 — Full-suite baseline debt uses a no-new-regressions guard
+The official-based baseline currently exposes 18 failures when the entire `:app:testFullDebugUnitTest` suite is run, even though official PR CI is green because it gates a narrower updater-focused subset plus build.
+
+Decision:
+- run the full unit suite on every Superfork PR;
+- record the 18 known failures in `integration/baseline_test_failures.txt`;
+- fail CI on any unrecorded/new failure;
+- allow known failures to remain temporarily;
+- remove debt entries once fixed.
+
+This is documented in `docs/BASELINE_TEST_DEBT.md`.
+
+## D032 — Pre-Superfork PRs are reference sources, not merge candidates
+Legacy PR #1 (Cinema View) and PR #2 (Prototype Hub) target old `dev` and predate the current architecture.
+
+Decision:
+- do not merge them directly into `superfork/integration`;
+- optionally harvest selected G12 ideas through the normal current-baseline porting protocol.
+
+## D033 — Dependency and permission expansion require explicit review
+Imported fork code may not silently add binary artifacts, SDKs, Android permissions, telemetry, or globally relaxed network security.
+
+Use `docs/DEPENDENCY_POLICY.md`. New permissions/dependencies must be justified by feature IDs/gate, audited for license/security, and scoped to the narrowest trust boundary.
+
+## D034 — Persisted settings require backward-compatible migration discipline
+Fork features must not casually overwrite/rename official settings or leak profile data. New settings use safe explicit defaults; secrets remain Keystore-backed where required.
+
+Use `docs/DATA_MIGRATION_POLICY.md`.
+
+## D035 — Product priority stack resolves trade-offs
+When two technically valid implementations conflict, use `docs/PRODUCT_REQUIREMENTS.md`:
+P0 stability/security/upstream/data integrity, then P1 playback/subtitle/remote reliability, followed by capability expansion, experience/social, then experimental systems.
+
+Durable exceptions require a new decision record.
