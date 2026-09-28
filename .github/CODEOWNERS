@@ -1,0 +1,19 @@
+# Nuvio Superfork ownership
+* @alrithy
+
+# Governance / CI / security
+/.github/ @alrithy
+/AGENTS.md @alrithy
+/docs/DECISIONS.md @alrithy
+/docs/SECURITY_POLICY.md @alrithy
+/docs/RELEASE_POLICY.md @alrithy
+/integration/ @alrithy
+/scripts/superfork/ @alrithy
+
+# High-risk runtime seams
+/app/src/main/java/com/nuvio/tv/ui/screens/player/ @alrithy
+/app/src/main/java/com/nuvio/tv/core/network/ @alrithy
+/app/src/main/java/com/nuvio/tv/core/di/NetworkModule.kt @alrithy
+/app/src/main/java/com/nuvio/tv/data/local/PlayerSettingsDataStore.kt @alrithy
+/app/src/main/java/com/nuvio/tv/data/repository/SkipIntroRepository.kt @alrithy
+/app/src/main/java/com/nuvio/tv/ui/navigation/ @alrithy
