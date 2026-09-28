@@ -13,6 +13,7 @@ active_gate_name: Fork Foundation
 active_branch: chore/fork-foundation-impl
 active_branch_exists: true
 active_status: ready
+last_green_commit: c257a2365ee3386b582dc2974ec235cfe0381f33
 last_green_code_commit: c257a2365ee3386b582dc2974ec235cfe0381f33
 blockers: none
 parallel_agents_same_branch_allowed: false
