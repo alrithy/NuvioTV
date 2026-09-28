@@ -1,0 +1,60 @@
+name: Superfork PR Policy
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches:
+      - superfork/integration
+
+permissions:
+  pull-requests: read
+
+jobs:
+  validate_superfork_pr:
+    name: Superfork PR Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate required Superfork sections
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = (context.payload.pull_request.body || "").trim();
+            const required = [
+              "Identity",
+              "Source audit",
+              "Objective / changes",
+              "Tests",
+              "State / handoff",
+              "Risks / blockers / follow-ups"
+            ];
+
+            function sectionContent(name) {
+              const marker = "## " + name;
+              const startAt = body.indexOf(marker);
+              if (startAt < 0) return null;
+              const rest = body.slice(startAt + marker.length);
+              const next = rest.indexOf("\n## ");
+              return (next < 0 ? rest : rest.slice(0, next)).trim();
+            }
+
+            const missing = [];
+            const empty = [];
+            for (const name of required) {
+              const content = sectionContent(name);
+              if (content === null) missing.push(name);
+              else if (content.replace(/<!--[\s\S]*?-->/g, "").trim().length < 3) empty.push(name);
+            }
+
+            const identity = sectionContent("Identity") || "";
+            if (!identity.includes("Gate:") || !identity.includes("Feature ID")) {
+              empty.push("Identity (Gate + Feature ID(s) required)");
+            }
+
+            if (missing.length || empty.length) {
+              const lines = ["Superfork PR policy failed."];
+              if (missing.length) lines.push("Missing sections: " + missing.join(", "));
+              if (empty.length) lines.push("Incomplete sections: " + empty.join(", "));
+              core.setFailed(lines.join("\n"));
+            } else {
+              core.info("Superfork PR policy passed.");
+            }
