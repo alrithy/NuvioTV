@@ -1,35 +1,39 @@
 # Superfork Documentation Index
 
-Start here if you are human. Coding agents start at `AGENTS.md`.
+Start here if human. Coding agents start at `AGENTS.md`.
 
-## Policy
-- `CONTRIBUTING_SUPERFORK.md` — policy for Superfork branches
-- `CONTRIBUTING.md` — preserved upstream policy for legacy dev
-
-## Current state
+## Policy / state
+- `CONTRIBUTING_SUPERFORK.md`
 - `docs/PROJECT_STATUS.md`
 - `integration/state.yaml`
 - `docs/HANDOFF.md`
+- `docs/RISK_REGISTER.md`
 
-## What we are building
-- `docs/MASTER_FEATURES.md` — 320-feature scope
+## Scope / architecture
+- `docs/MASTER_FEATURES.md`
+- `integration/feature_traceability.csv`
 - `docs/ARCHITECTURE.md`
+- `docs/OWNERSHIP_MAP.md`
 - `docs/DECISIONS.md`
 - `docs/ROADMAP.md`
 - `docs/GATE_SPECS.md`
-- `integration/feature_traceability.csv`
+- `docs/FEATURE_FLAG_POLICY.md`
+- `docs/DATA_MIGRATIONS.md`
 
-## Where the code comes from
+## Source / compliance
 - `docs/SOURCE_MAP.md`
 - `docs/FORK_RESEARCH.md`
 - `docs/IMPORT_LEDGER.md`
+- `docs/LICENSE_AND_ATTRIBUTION.md`
 
-## How work is executed
-- `AGENTS.md`
+## Execution / quality
 - `docs/AGENT_PLAYBOOK.md`
 - `docs/BRANCHING.md`
 - `docs/DEFINITION_OF_DONE.md`
 - `docs/TEST_MATRIX.md`
+- `docs/BASELINE_TEST_DEBT.md`
+- `docs/PERFORMANCE_VALIDATION.md`
+- `docs/MANUAL_TEST_LOG.md`
 - `docs/TASK_TEMPLATE.md`
 - `docs/FAILURE_RECOVERY.md`
 
