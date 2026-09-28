@@ -6,7 +6,7 @@ ROOT = Path(__file__).resolve().parents[2]
 errors=[]
 
 required = [
- "AGENTS.md","CLAUDE.md","docs/PROJECT_STATUS.md","docs/HANDOFF.md",
+ "AGENTS.md","CLAUDE.md","CONTRIBUTING_SUPERFORK.md","docs/PROJECT_STATUS.md","docs/HANDOFF.md",
  "docs/BASELINE.md","docs/ARCHITECTURE.md","docs/MASTER_FEATURES.md",
  "docs/DECISIONS.md","docs/FORK_RESEARCH.md","docs/SOURCE_MAP.md",
  "docs/ROADMAP.md","docs/GATE_SPECS.md","docs/TEST_MATRIX.md",
@@ -54,7 +54,7 @@ if road.exists():
 agents=ROOT/"AGENTS.md"
 if agents.exists():
     at=agents.read_text(encoding="utf-8")
-    for p in ["integration/state.yaml","docs/AGENT_PLAYBOOK.md","docs/DEFINITION_OF_DONE.md","integration/feature_traceability.csv"]:
+    for p in ["CONTRIBUTING_SUPERFORK.md","integration/state.yaml","docs/AGENT_PLAYBOOK.md","docs/DEFINITION_OF_DONE.md","integration/feature_traceability.csv"]:
         if p not in at:
             errors.append(f"AGENTS.md does not reference {p}")
 
