@@ -1,9 +1,15 @@
 # Nuvio Superfork Baseline
 
+## Baseline history
+- Initial bootstrap anchor: `c257a2365ee3386b582dc2974ec235cfe0381f33`
+- Pre-G0 refresh: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
+- Superfork integration sync commit: `3cf04ccdcc20515acb093c28ad9b7c3943a39057`
+- The pre-G0 refresh happened before feature implementation; `fd7973d91dd75d790c5f9b3d68dae652655e92c4` is the current implementation baseline.
+
 ## Official upstream
 - Repository: NuvioMedia/NuvioTV
 - Branch: dev
-- Pinned baseline: c257a2365ee3386b582dc2974ec235cfe0381f33
+- Pinned baseline: fd7973d91dd75d790c5f9b3d68dae652655e92c4
 - Verified: 2026-09-28
 - Commit: Merge pull request #3725 from NuvioMedia/feat/torengine — feat(torrent): replace TorrServer with Nuvio Engine
 

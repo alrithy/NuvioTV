@@ -32,6 +32,7 @@ Start here if you are human. Coding agents start at `AGENTS.md`.
 ## Operations
 - `docs/LOCAL_SETUP.md`
 - `docs/UPSTREAM_SYNC.md`
+- `docs/UPSTREAM_SYNC_LOG.md` — immutable sync history
 - `docs/SECURITY_POLICY.md`
 - `docs/RELEASE_POLICY.md`
 - `docs/GITHUB_ADMIN_CHECKLIST.md`

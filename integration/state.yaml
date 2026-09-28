@@ -1,34 +1,62 @@
+schema_version: 2
 project: Nuvio Superfork
-state_version: 1
 repository: alrithy/NuvioTV
 official_upstream: NuvioMedia/NuvioTV
-baseline_branch: dev
-baseline_sha: c257a2365ee3386b582dc2974ec235cfe0381f33
+initial_bootstrap_baseline_sha: c257a2365ee3386b582dc2974ec235cfe0381f33
+current_official_baseline_sha: fd7973d91dd75d790c5f9b3d68dae652655e92c4
+integration_upstream_sync_commit: 3cf04ccdcc20515acb093c28ad9b7c3943a39057
 integration_branch: superfork/integration
-default_branch_note: dev_is_legacy_default_until_github_admin_changes_it
+legacy_default_branch: dev
+
 active_gate: G0
 active_gate_name: Fork Foundation
 active_branch: chore/fork-foundation-impl
-active_status: ready
+active_status: READY
+active_pr: pending
+active_owner: any_single_agent
+concurrent_writers_allowed: false
+user_visible_behavior_change_allowed: false
+
 last_green_commit: c257a2365ee3386b582dc2974ec235cfe0381f33
-current_docs_branch: chore/fork-foundation
-blockers: none
-parallel_agents_same_branch_allowed: false
+last_green_note: official_bootstrap_anchor_before_current_upstream_sync
+last_green_scope: official_baseline
+
+bootstrap:
+  governance_pr: 3
+  branch: chore/fork-foundation
+  status: READY_TO_MERGE
+
 next_gate: G1
+next_gate_name: Unified Diagnostics & Add-on Health
 next_branch: feat/unified-diagnostics
-gate_status:
-  G0: ready
-  G1: queued
-  G2: queued
-  G3: queued
-  G4: queued
-  G5: queued
-  G6: queued
-  G7: queued
-  G8: queued
-  G9: queued
-  G10: queued
-  G11: queued
-  G12: queued
-  G13: queued
-  G14: queued
+
+known_operational_risks:
+  - id: R001
+    severity: high
+    status: open
+    description: GitHub default branch is still legacy dev.
+    mitigation: After bootstrap merge, change default branch to superfork/integration. Until then select the active branch explicitly.
+  - id: R002
+    severity: high
+    status: fixed_in_bootstrap
+    description: Official PR build workflow targeted dev only.
+    mitigation: Superfork CI now targets superfork/integration.
+  - id: R003
+    severity: medium
+    status: fixed_in_bootstrap
+    description: Official PR policy conflicted with Superfork PRs.
+    mitigation: Official policy scoped to dev; Superfork has its own PR policy.
+  - id: R004
+    severity: medium
+    status: open
+    description: Repository-level branch protection/rulesets are not yet configured for superfork/integration.
+    mitigation: Follow docs/GITHUB_ADMIN_CHECKLIST.md after bootstrap merge.
+  - id: R005
+    severity: low
+    status: accepted
+    description: GitHub Issues are disabled in this repository.
+    mitigation: State, traceability, gate specs, handoff and PRs are the work-tracking system.
+
+last_review:
+  date: 2026-09-28
+  reviewer_role: architecture_audit

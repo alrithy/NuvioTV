@@ -1,0 +1,68 @@
+name: Superfork PR Policy
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+    branches: ["superfork/integration"]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  metadata:
+    name: Superfork PR Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate Superfork PR body
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || "";
+            const required = [
+              "## Identity","## Source audit","## Objective / changes","## Explicitly not imported",
+              "## Fallback / feature flag","## Attribution / license","## Security review",
+              "## Tests","## State / handoff","## Risks / blockers / follow-ups"
+            ];
+            const missing = required.filter(x => !body.includes(x));
+            if (missing.length) core.setFailed("Missing PR sections: " + missing.join(", "));
+            if (pr.base.ref !== "superfork/integration") core.setFailed("Superfork PRs must target superfork/integration");
+            if (["dev","superfork/integration"].includes(pr.head.ref)) core.setFailed("Do not develop directly on " + pr.head.ref);
+            if (!/Feature ID\(s\):\s*[^\n]+/.test(body)) core.setFailed("Identity must declare Feature ID(s), or governance/N/A.");
+            if (!/Gate:\s*(G(?:[0-9]|1[0-4])|governance\/N\/A)/i.test(body)) core.setFailed("Identity must declare Gate G0..G14 or governance/N/A.");
+
+  state-handoff:
+    name: Superfork State Handoff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify active branch and state updates
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          expected="$(awk '/^active_branch:/ {print $2; exit}' integration/state.yaml)"
+          if [ -z "$expected" ]; then
+            echo "integration/state.yaml has no active_branch" >&2
+            exit 1
+          fi
+          if [ "$HEAD_REF" != "$expected" ]; then
+            echo "PR head '$HEAD_REF' does not match recorded active_branch '$expected'" >&2
+            exit 1
+          fi
+
+          git fetch origin "$BASE_REF" --depth=1 || true
+          changed="$(git diff --name-only "origin/$BASE_REF"...HEAD 2>/dev/null || git diff --name-only HEAD^ HEAD)"
+          echo "$changed"
+
+          if echo "$changed" | grep -Eq '^(app/|ffmpeg-decoder-downmix/|baselineprofile/|build\.gradle|settings\.gradle|gradle/)'; then
+            for required in docs/HANDOFF.md docs/PROJECT_STATUS.md integration/state.yaml integration/feature_traceability.csv; do
+              echo "$changed" | grep -qx "$required" || {
+                echo "Code-changing gate PR must update $required" >&2
+                exit 1
+              }
+            done
+          fi
