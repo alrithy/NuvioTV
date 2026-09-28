@@ -2,6 +2,10 @@
 
 Start here if you are human. Coding agents start at `AGENTS.md`.
 
+## Policy
+- `CONTRIBUTING_SUPERFORK.md` — policy for Superfork branches
+- `CONTRIBUTING.md` — preserved upstream policy for legacy dev
+
 ## Current state
 - `docs/PROJECT_STATUS.md`
 - `integration/state.yaml`
