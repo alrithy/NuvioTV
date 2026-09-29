@@ -187,6 +187,7 @@ fun AdvancedSettingsContent(
     // DV Diagnostics: reuse the playback settings store for the conversion-mode
     // override and the last-playback diagnostics card.
     val playbackVm: PlaybackSettingsViewModel = hiltViewModel()
+    val deviceAssessmentVm: com.nuvio.tv.fork.diagnostics.DeviceAssessmentViewModel = hiltViewModel()
     val dvPlayerSettings by playbackVm.playerSettings.collectAsStateWithLifecycle(
         initialValue = com.nuvio.tv.data.local.PlayerSettings()
     )
@@ -728,6 +729,23 @@ fun AdvancedSettingsContent(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        if (deviceAssessmentVm.enabled) {
+            item(key = "device_assessment") {
+                SettingsGroupCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(NuvioTheme.spacing.xs)) {
+                        com.nuvio.tv.fork.diagnostics.DeviceAssessmentSection(
+                            settings = dvPlayerSettings,
+                            singleConnectionMbps = listOfNotNull(streamBaselineSpeed, streamParallel1Speed)
+                                .maxOrNull()
+                                .takeIf { streamTestState == "Done" },
+                            parallelMbps = streamParallel4Speed.takeIf { streamTestState == "Done" },
+                            viewModel = deviceAssessmentVm
+                        )
                     }
                 }
             }

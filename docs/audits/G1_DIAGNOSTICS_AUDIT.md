@@ -50,6 +50,20 @@ UNIFIED_DIAGNOSTICS is not OFF. Formatting is pure (`fork/diagnostics/PlaybackHu
 Not imported: ysosrs `PlaybackStatsOverlay`, logcat capture instrumentation, PlaybackByteCounter,
 mux-rate estimator, sink jitter sampler, rate-limit/hedge rows (G4 network owner).
 
+## Device assessment (G1c)
+Official already owns the measurement: `NetworkSettingsScreen` stream test (baseline, parallel
+1/4/8/16 via StreamSpeedTester), `MemoryBudget`, `NuvioExoPlayerPerformanceHelper` safe limits and
+`DisplayCapabilities`. Most ysosrs-assessed settings exist in official `PlayerSettingsDataStore`.
+| ID | Behavior | Class | Result |
+|---|---|---|---|
+| 14 | Device Settings Assessment | PARTIAL_OVERLAP | ALGORITHM_PORT of tier model; rows: parallel connections (MEASURED from the official stream test, 4-connection result vs best single), target buffer (CALCULATED vs safe native limit minus parallel overhead), frame-rate matching (CALCULATED from display modes, VERIFY when uninspectable) |
+| 15 | Apply recommended settings | missing delta | applies only planned fields through official setters |
+| 16 | Revert | missing delta | profile-scoped snapshot of the exact previous values; restore + clear; corrupt snapshot discarded |
+
+Not imported: ysosrs StreamSweepEngine (official stream test is reused), intent profiles, DV7/DV5,
+HDR10+ SEI, VOD cache, performance-mode preset, per-format passthrough/MAT rows (G5/G13 owners),
+the 669-line ysosrs screen (a section in the official settings list instead).
+
 ## Remaining G1 scope (initial classification, refined in G1b/G1c)
 | IDs | Behavior | Initial class |
 |---|---|---|
