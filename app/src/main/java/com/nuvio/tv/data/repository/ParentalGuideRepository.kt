@@ -6,6 +6,7 @@ import com.nuvio.tv.data.remote.api.ParentalGuideApi
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 /**
  * Resolved parental guide data with a single severity per category,
@@ -23,7 +24,7 @@ data class ParentalGuideResult(
 class ParentalGuideRepository @Inject constructor(
     private val api: ParentalGuideApi
 ) {
-    private val cache = ConcurrentHashMap<String, ParentalGuideResult>()
+    private val cache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, ParentalGuideResult>(), 48)
 
     suspend fun getParentalGuide(imdbId: String): ParentalGuideResult? {
         if (!imdbId.startsWith("tt")) return null

@@ -116,6 +116,24 @@ class AdaptiveResourcesTest {
     }
 
     @Test
+    fun boundedCacheKeepsTheOfficialMapOnStandardDevices() {
+        val official = java.util.concurrent.ConcurrentHashMap<String, Int>()
+        assertSame(official, standard.boundedCache(official, 2))
+    }
+
+    @Test
+    fun boundedCacheEvictsOnConstrainedAndLowRamDevices() {
+        for (policy in listOf(constrained, low)) {
+            val cache = policy.boundedCache(java.util.concurrent.ConcurrentHashMap<String, Int>(), 2)
+            cache["a"] = 1
+            cache["b"] = 2
+            cache["c"] = 3
+            assertEquals(2, cache.size)
+            assertFalse(cache.containsKey("a"))
+        }
+    }
+
+    @Test
     fun lowRamPostPlayResolvesOnlyTheCardOnScreen() {
         assertEquals(2..2, low.postPlayPrefetchIndices(5, 2))
         assertTrue(low.postPlayPrefetchIndices(5, 9).isEmpty())

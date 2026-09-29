@@ -120,3 +120,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: startup/seek behavior on 2 GB boxes with the lower budget MANUAL-PENDING
+
+### G2c — Bounded caches, stream-list and bidi work (274, 275, 277, 278)
+- Roadmap gate: G2
+- Source repository: hackerslash/NuvioTV-Lite
+- Source branch: dev
+- Pinned source SHA: 2afdcd05d45e27afd48fb83ef9db6c286216a44c
+- Source commit(s): c760295eb (stream lists / snapshotFlow), d491bd09e (bidi styling), tree at the pin for cache sizes
+- Source file(s): core/util/LruCacheMap.kt + LruCacheMapTest.kt; TmdbMetadataService, TmdbService, SimklIdResolver, ParentalGuideRepository, TraktRelatedService, StaleWhileRevalidateCacheStrategy, MdbListRatingsLoader, ImdbEpisodeRatingsRepository (sizes); ui/util/TextDirectionUtils.kt (directedFor); StreamComponents, StreamSourcesSidePanel, ContentCard, HeroCarousel, SourceStatusFilterChip, SearchDiscoverSection
+- Import mode: FILE_PORT (LruCacheMap → fork/resource), DELTA_PORT (cache call sites, directedFor helpers, snapshotFlow pagination)
+- Current official equivalent: unbounded ConcurrentHashMap/mutableMapOf caches with TTL; official emoji-aware contentTextDirection
+- What already existed upstream: TTL expiry, in-flight de-duplication, direction detection
+- What was imported: LRU map; per-cache sizes; remembered direction/style helpers; snapshotFlow pagination in the player source panel
+- What was intentionally not imported: bounding on standard devices, SkipIntroRepository caches, TMDB collection image semaphore, Lite's older direction scan, remaining non-hot bidi sites
+- Local adaptations: `AdaptiveResourcePolicy.boundedCache(official, n)` keeps the official map on standard; `lruCacheMap` rejects non-positive sizes
+- Feature flag / fallback: FeatureId.ADAPTIVE_RESOURCE_MANAGER (AUTO, D042) for caches; 277/278 are output-identical Compose optimizations
+- Tests ported/added: LruCacheMapTest (4, 2 ported), AdaptiveResourcesTest (+2)
+- License / attribution notes: GPL-3.0, identical LICENSE; attributed in LruCacheMap.kt KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: focus-move smoothness on the source panel and RTL rendering MANUAL-PENDING; 276 deferred (no queue), 279 → G7, 280 → G3

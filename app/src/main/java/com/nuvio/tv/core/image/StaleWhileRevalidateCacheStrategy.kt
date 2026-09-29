@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.util.concurrent.ConcurrentHashMap
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 /**
  * Stale-while-revalidate [CacheStrategy]:
@@ -36,7 +37,7 @@ class StaleWhileRevalidateCacheStrategy(
         private const val TAG = "NuvioSWR"
         private const val REVALIDATION_COOLDOWN_MS = 10L * 60 * 1000 // 10 min
         private val revalidatingUrls = ConcurrentHashMap.newKeySet<String>()
-        private val revalidatedAt = ConcurrentHashMap<String, Long>()
+        private val revalidatedAt = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, Long>(), 512)
     }
 
     private val revalidationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

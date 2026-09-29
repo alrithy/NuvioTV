@@ -12,6 +12,7 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 private const val TAG = "TmdbService"
 private val TMDB_API_KEY = BuildConfig.TMDB_API_KEY
@@ -25,10 +26,10 @@ class TmdbService @Inject constructor(
     private val tmdbApi: TmdbApi
 ) {
     // Cache: IMDB ID -> TMDB ID (keyed by "$imdbId:$mediaType")
-    private val imdbToTmdbCache = ConcurrentHashMap<String, Int>()
+    private val imdbToTmdbCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, Int>(), 128)
     
     // Cache: TMDB ID -> IMDB ID (keyed by "$tmdbId:$mediaType")
-    private val tmdbToImdbCache = ConcurrentHashMap<String, String>()
+    private val tmdbToImdbCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, String>(), 128)
 
     private val imdbToTmdbInFlight = ConcurrentHashMap<String, CompletableDeferred<Int?>>()
     private val tmdbToImdbInFlight = ConcurrentHashMap<String, CompletableDeferred<String?>>()

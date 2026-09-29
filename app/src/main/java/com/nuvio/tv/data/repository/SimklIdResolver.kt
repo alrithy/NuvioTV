@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 private data class RedirectResult(val type: String, val simklId: Long)
 
@@ -46,9 +47,9 @@ class SimklIdResolver @Inject constructor(
         val tvdbEpisode: Int
     )
 
-    private val idsCache = ConcurrentHashMap<String, ResolvedIds?>()
-    private val episodeCache = ConcurrentHashMap<Long, List<EpisodeMapping>>()
-    private val animeSeasonCache = ConcurrentHashMap<String, List<AnimeSeasonEntry>>()
+    private val idsCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, ResolvedIds?>(), 48)
+    private val episodeCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<Long, List<EpisodeMapping>>(), 48)
+    private val animeSeasonCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, List<AnimeSeasonEntry>>(), 48)
 
     suspend fun resolveIds(source: String, id: String, contentTypeHint: String? = null): ResolvedIds? {
         val cacheKey = if (contentTypeHint != null) "$source:$id:$contentTypeHint" else "$source:$id"

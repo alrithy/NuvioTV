@@ -12,6 +12,7 @@ import kotlinx.coroutines.sync.withLock
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 @Singleton
 class ImdbEpisodeRatingsRepository @Inject constructor(
@@ -25,7 +26,7 @@ class ImdbEpisodeRatingsRepository @Inject constructor(
 
     private val tag = "ImdbEpisodeRatingsRepo"
     private val cacheTtlMs = 30L * 60L * 1000L
-    private val cache = ConcurrentHashMap<String, CacheEntry>()
+    private val cache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, CacheEntry>(), 32)
     private val inFlight = mutableMapOf<String, kotlinx.coroutines.Deferred<Map<Pair<Int, Int>, Double>>>()
     private val inFlightMutex = Mutex()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

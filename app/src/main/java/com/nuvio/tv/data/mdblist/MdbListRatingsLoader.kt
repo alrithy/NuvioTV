@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 internal class MdbListRatingsLoader(
     private val client: MdbListRatingsClient,
@@ -24,7 +25,7 @@ internal class MdbListRatingsLoader(
     private data class CacheEntry(val ratings: MDBListRatings, val expiresAtMs: Long)
 
     private val lock = Any()
-    private val cache = mutableMapOf<RequestKey, CacheEntry>()
+    private val cache = AdaptiveResources.policy.boundedCache(mutableMapOf<RequestKey, CacheEntry>(), MAX_CACHE_ENTRIES)
     private val inFlight = mutableMapOf<RequestKey, CompletableDeferred<MDBListRatings?>>()
     private val pending = mutableMapOf<RequestKey, CompletableDeferred<MDBListRatings?>>()
     private var batchScheduled = false
@@ -102,6 +103,8 @@ internal class MdbListRatingsLoader(
 
     private companion object {
         const val MAX_BATCH_SIZE = 200
+        /** Constrained devices only: every rated card lands here and a TTL alone never drops old ones. */
+        const val MAX_CACHE_ENTRIES = 512
         const val BATCH_WINDOW_MS = 50L
         const val CACHE_TTL_MS = 30L * 60L * 1000L
     }

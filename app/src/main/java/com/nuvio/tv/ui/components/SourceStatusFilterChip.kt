@@ -1,7 +1,7 @@
 package com.nuvio.tv.ui.components
 
 import com.nuvio.tv.ui.theme.NuvioTheme
-import com.nuvio.tv.ui.util.contentTextDirection
+import com.nuvio.tv.ui.util.directedFor
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -138,9 +138,7 @@ fun SourceStatusFilterChip(
         Text(
             text = name,
             modifier = Modifier.shimmer(isLoading),
-            style = MaterialTheme.typography.labelLarge.copy(
-                textDirection = name.contentTextDirection()
-            ),
+            style = MaterialTheme.typography.labelLarge.directedFor(name),
             color = textColor
         )
     }

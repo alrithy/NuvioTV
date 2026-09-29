@@ -16,6 +16,7 @@ import com.nuvio.tv.domain.model.PosterShape
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 private const val RELATED_LIMIT = 20
 private const val RELATED_CACHE_TTL_MS = 10 * 60_000L
@@ -41,7 +42,7 @@ class TraktRelatedService @Inject constructor(
         val updatedAtMs: Long
     )
 
-    private val cache = ConcurrentHashMap<String, TimedCache>()
+    private val cache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, TimedCache>(), 48)
 
     suspend fun getRelated(
         meta: Meta,

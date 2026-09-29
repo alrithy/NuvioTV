@@ -70,3 +70,25 @@ expected 250/150/250; official `2a22a6f22` ("lower the native memory tiers and s
 below them") changed the values to 200/100/200 on purpose without updating the test. The
 expectations are corrected; the three debt entries are removed only after a full-suite report
 shows them passing and a confirming run (BASELINE_TEST_DEBT).
+
+## Caches, list work and remaining rows (G2c)
+Lite bounds 20 in-memory caches with `lruCacheMap` for every device. Official uses unbounded
+`ConcurrentHashMap`/`mutableMapOf` with TTL-only expiry. Every official use of the 18 caches below
+is get/put/remove/clear (no iteration, no `compute*`), so an LRU map is a drop-in replacement.
+
+| ID | Behavior | Class | Result |
+|---|---|---|---|
+| 274 | Bounded metadata caches | missing delta | `AdaptiveResourcePolicy.boundedCache(official, n)`: official map on standard, LRU on constrained with Lite's sizes. TMDB metadata ×8 (48), TMDB id maps ×2 (128), Simkl ids/episodes/anime seasons (48), parental guide (48), Trakt related (48), SWR `revalidatedAt` (512) |
+| 275 | Bounded rating cache | missing delta | same helper: MDBList ratings (512, under the loader's lock), IMDb episode ratings (32) |
+| 276 | Bounded offline sync queue | not in source | no offline sync queue exists in official `71632b9` or Lite `2afdcd05` (only in-flight maps and a Trakt rate-limit window); nothing to bound. Deferred; re-audit when a queue is introduced |
+| 277 | Fewer stream-list recompositions | missing delta | DELTA_PORT Lite `c760295eb`: player source side panel observes the last visible row through `snapshotFlow` instead of reading it in composition (same pagination trigger) |
+| 278 | Less bidi/RTL work | missing delta | DELTA_PORT Lite `d491bd09e`/`c760295eb`: remembered `directedFor` / `rememberContentTextDirection` in official `TextDirectionUtils` (official emoji-aware scan unchanged); applied on stream rows, source chip, content card, hero description, search dropdown |
+| 279 | Memory-safe Seekr | out of scope | task packet: no Seekr implementation in G2; deferred to G7 |
+| 280 | Low-RAM MPV cache | not in source | Lite @ `2afdcd05` keeps official's 64 MB forward + 64 MB back demuxer cache; no measured low-RAM value to port. Deferred to G3 (Low Memory strategy owns engine buffers) |
+
+Not imported: `SkipIntroRepository` caches (owned by the single Skip aggregator gate), TMDB
+collection image semaphore (fan-out outside 269), Lite's older emoji-unaware direction scan, and
+the remaining official `copy(textDirection = …)` sites outside the list/focus hot paths.
+Strong-device invariant holds: `boundedCache` returns the official map instance on standard
+(`AdaptiveResourcesTest.boundedCacheKeepsTheOfficialMapOnStandardDevices`); 277/278 are
+output-identical (same direction, same pagination threshold).
