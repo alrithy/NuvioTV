@@ -101,6 +101,7 @@ class PlayerRuntimeController(
     internal val playbackIssueReportRepository: PlaybackIssueReportRepository,
     internal val tvRecommendationManager: com.nuvio.tv.core.recommendations.TvRecommendationManager,
     internal val profileId: Int,
+    internal val playbackStrategySession: com.nuvio.tv.fork.playback.PlaybackStrategySession,
     savedStateHandle: SavedStateHandle,
     internal val scope: CoroutineScope
 ) {
@@ -216,6 +217,9 @@ class PlayerRuntimeController(
     internal var currentFilename: String? = navigationArgs.filename
         ?: initialStreamUrl.substringBefore('?').substringAfterLast('/', "")
             .takeIf { it.isNotBlank() && it.contains('.') }
+
+    /** Playback strategy decision for the current ExoPlayer session (G3); null until built. */
+    internal var currentStrategyDecision: com.nuvio.tv.fork.playback.StrategyDecision? = null
     internal var currentAddonName: String? = navigationArgs.addonName
     internal var currentAddonLogo: String? = navigationArgs.addonLogo
     internal var currentStreamDescription: String? = navigationArgs.streamDescription

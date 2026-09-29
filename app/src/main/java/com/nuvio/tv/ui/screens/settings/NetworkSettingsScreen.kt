@@ -751,6 +751,11 @@ fun AdvancedSettingsContent(
             }
         }
 
+        item(key = "playback_strategy") {
+            // G3: hidden while PLAYBACK_STRATEGY_ENGINE is OFF; Official is the default selection.
+            com.nuvio.tv.fork.playback.PlaybackStrategyCard()
+        }
+
         item(key = "clear_cw_cache") {
             SettingsGroupCard(
                 modifier = Modifier.fillMaxWidth(),

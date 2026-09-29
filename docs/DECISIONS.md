@@ -261,3 +261,11 @@ catalog fan-out) key on low-RAM; allocation-safety limits key on constrained. `O
 official values everywhere. Lite edition switches (`liteMode`) and Lite's cap of 8 fetches on
 strong devices are not imported. Playback budgets change in G2b: constrained devices join official's low tier, with a 250 MB
 Java-heap buffer ceiling and at most 4 session connections; stored settings are not rewritten.
+
+## D043 — Playback strategies are selectable; Official stays the default
+`PLAYBACK_STRATEGY_ENGINE` defaults to `AUTO` in `FeatureRegistry.DECIDED_DEFAULTS`, which only makes
+the strategy selector visible. The stored per-profile selection defaults to Official, so official
+playback is unchanged until a user picks another strategy. Strategies are session-only overrides of
+official buffer/network settings (never written back, never the MPV path or the global performance
+engine); unsupported combinations fall back to Official with a reason shown in the HUD. Auto uses
+device tier and file facts; a measured network signal is left to G4.
