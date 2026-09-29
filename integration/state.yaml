@@ -12,7 +12,7 @@ active_gate_name: Adaptive Resource Manager
 active_branch: feat/adaptive-resource-manager
 active_task_packet: tasks/G2_ADAPTIVE_RESOURCE_MANAGER.md
 active_status: IN_PROGRESS
-active_pr: null
+active_pr: 15
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
