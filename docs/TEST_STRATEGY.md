@@ -66,7 +66,7 @@ Status must be one of:
 - FAIL
 - MANUAL-PENDING
 
-MANUAL-PENDING is acceptable for development/beta only where the gate/release policy permits it. Never convert MANUAL-PENDING to PASS without execution evidence.
+MANUAL-PENDING is intentionally allowed during G1–G13 development and does not, by itself, block the next gate once code is merged and automated CI/DoD is green. Manual device testing is batched into one consolidated G14 hardware-certification campaign. Never convert MANUAL-PENDING to PASS without execution evidence. Stable release is blocked until all release-blocking MANUAL-PENDING items are resolved.
 
 ## Regression ownership
 If a gate touches a known baseline-failing component/test, the PR must explicitly state whether it fixes, preserves or supersedes that debt.
