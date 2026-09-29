@@ -24,9 +24,9 @@ an explicit scope; current PR HEAD must independently pass GitHub checks before 
 
 ## Upstream
 The accepted baseline and latest observed upstream HEAD are separate state fields.
-Official settings PR #3746 at e78de241 is observed, not accepted. The governance-only
-scope preserves fd7973d. Review/sync before the first gate that touches those settings;
-G0 foundation remains isolated. Never silently update source pins.
+Current observed official dev is `71632b9271e8bce6783e415d64f34cfa4e8b894c`; it is **not accepted** by observation alone.
+The governance scope keeps the accepted baseline at `fd7973d91dd75d790c5f9b3d68dae652655e92c4`.
+Use a dedicated reviewed upstream-sync PR before adoption. Never silently update source pins.
 
 ## Administration
 GitHub connector branch-protection read returned 403; admin writes are not exposed.
