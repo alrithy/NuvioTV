@@ -177,3 +177,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: extra 256 KiB + 4 MiB per REMUX press; startup gain MANUAL-PENDING (TCL C6K A/B)
+
+### G4c — Matroska mid-stream resync (21); 22, 23 verified official
+- Roadmap gate: G4
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): core/player/dvmkv/MatroskaExtractor.java (resyncToNextCluster, MAX_RESYNC_ATTEMPTS, MAX_RESYNC_SCAN_BYTES, RESYNC_BLOCK_BYTES, resetParsingState, read() catch)
+- Import mode: ALGORITHM_PORT (Cluster ID block scan, budget) + DELTA_PORT (catch site, reset extraction)
+- Current official equivalent: vendored dvmkv MatroskaExtractor with truncated-tail end-of-input (22), EBML-reader level-1 resync on zero padding between elements, nested SeekHead following capped at 4 (23)
+- What already existed upstream: 22 and 23 (ysosrs is older there and lacks both); a corrupted element inside cluster data still failed playback with ParserException 3001
+- What was imported: after the seek map, a ParserException / IllegalStateException in cluster data resets parsing state (the official seek() body) and block-scans forward to the next Cluster ID, 8 attempts per extractor, 64 MiB scan span, 64 KiB blocks
+- What was intentionally not imported: ysosrs removal of official truncated-tail handling (peekFullyOrEnd, finishReadAtEndOfInput, shouldTreatEbmlErrorAsEndOfInput), removal of nested SeekHead following, VarintReader IllegalStateException regression, MKV DefaultDuration frame rate (nt2, AFR, G5), DolbyVisionExtractorsFactory HDR/DV deltas (G5)
+- Local adaptations: official truncated-tail handling keeps priority (checked first, so unknown-length streams and holes in the last max(8 MiB, 2%) still end the stream as official does); scan helper and flag in `fork/recovery/MkvResync.kt`; flag read from registry defaults like `AdaptiveResources.install`
+- Feature flag / fallback: FeatureId.REMUX_PERFORMANCE (AUTO, D044); OFF restores official extractor behavior; budget exhaustion surfaces the error and G4a failover moves to the next source
+- Tests ported/added: MatroskaMalformedResyncTest (5, in-memory EBML fixtures; the two recovery fixtures fail with ParserException when resync is disabled)
+- License / attribution notes: GPL-3.0 (app) + Apache-2.0 (vendored media3 extractor header kept); attributed in comments and KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: a skipped hole drops up to one cluster of samples (brief visual/audio skip); real Usenet zero-fill files MANUAL-PENDING (TCL C6K)
