@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
-  "minimum_test_count": 1611,
+  "baseline_sha": "71632b9271e8bce6783e415d64f34cfa4e8b894c",
+  "minimum_test_count": 1752,
   "failures": [
     {
       "test_id": "androidx.media3.datasource.LocalhostZeroCopyDataSourceTest#testHttpError404",

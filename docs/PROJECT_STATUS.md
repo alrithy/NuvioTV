@@ -5,7 +5,7 @@
 - Active branch: `feat/unified-diagnostics`
 - Status: READY
 - Task: `tasks/G1_UNIFIED_DIAGNOSTICS.md`
-- Accepted official baseline: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
+- Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
 <!-- canonical-state:end -->
@@ -13,22 +13,18 @@
 This view's header is generated from state; use `state_view.py` after state changes.
 
 ## Work boundary
-G0 Fork Foundation is DONE (PR #7, merge `791716a`). G1 is READY; an upstream sync to
-official `71632b9` is required first because G1 touches settings and player diagnostics
-that changed upstream. No external fork feature has been imported yet. Legacy PR #1/#2
-stay reference-only.
+G0 Fork Foundation is DONE (PR #7). G1 is READY and starts after upstream-sync PR #9
+(official `71632b9`, D040) merges. No external fork feature has been imported yet.
+Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
-A no-new-regressions PASS is not an all-tests-pass claim. The governance PR exact head
-passed the complete regression guard and Full Debug build before merge; integration push
-CI remains authoritative for the current merged HEAD.
+A no-new-regressions PASS is not an all-tests-pass claim. Reviewed inventory: clean official
+`71632b9` replay, 1,752 tests, 18 known failures + 1 intermittent registered, 1 skipped.
 
 ## Upstream
-The accepted baseline and latest observed upstream HEAD are separate state fields.
-Current observed official dev is `71632b9271e8bce6783e415d64f34cfa4e8b894c`; it is **not accepted** by observation alone.
-The governance scope keeps the accepted baseline at `fd7973d91dd75d790c5f9b3d68dae652655e92c4`.
-Use a dedicated reviewed upstream-sync PR before adoption. Never silently update source pins.
+Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c` (UPSTREAM_SYNC_LOG
+2026-09-29). Future movement uses dedicated reviewed sync PRs; never silently update pins.
 
 ## Administration
 GitHub connector branch-protection read returned 403; admin writes are not exposed.

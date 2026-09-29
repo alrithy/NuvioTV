@@ -5,27 +5,23 @@
 - Active branch: `feat/unified-diagnostics`
 - Status: READY
 - Task: `tasks/G1_UNIFIED_DIAGNOSTICS.md`
-- Accepted official baseline: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
+- Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
 <!-- canonical-state:end -->
 
 ## Current work boundary
-G0 is DONE: PR #7 squash-merged as `791716a86f1f363832f48e4ab950285f33a74ef1` after exact-head
-CI run `36545736693` (governance PASS, full-suite guard `new_failures: []`, fullDebug APK PASS).
-G1 is READY but must NOT start coding until the upstream sync below is merged.
-`user_visible_behavior_change_allowed` is true for G1 (diagnostics/health UI), still behind
+G0 is DONE (PR #7, merge `791716a`; closeout PR #8, merge `59ed661`).
+Upstream sync PR #9 adopts official `71632b9271e8bce6783e415d64f34cfa4e8b894c`
+(integration merge `898bc83`, D040). G1 is READY; do not start G1 coding until PR #9 is merged.
+`user_visible_behavior_change_allowed` is true for G1 (diagnostics/health UI), behind
 FeatureRegistry groups that default OFF unless a documented decision says otherwise.
 
 ## Exact next action
-1. Upstream sync first (UPSTREAM_SYNC.md, D036/D037): official dev moved
-   `fd7973d..71632b9` (7 first-parent merges incl. settings reorganization #3746 and
-   PlayerRuntimeController/ViewModel changes). G1 touches settings (device assessment
-   apply/revert, Add-on Health screen) and player diagnostics, so adopt it via a dedicated
-   `chore/upstream-sync-2026-09-29` PR. A local dry-run merge onto integration had no conflicts.
-   The sync PR must also update UPSTREAM_SYNC_LOG, SOURCE_MAP, BASELINE and
-   baseline_test_debt.json (check_pr_scope requirement) with clean-baseline replay evidence.
-2. After the sync merges: create `feat/unified-diagnostics` from integration HEAD, run
+1. If PR #9 is still open: it needs exact-head maintainer approval for the reviewed inventory
+   removal (D040; Baseline Change policy) — a maintainer must approve the PR at its head SHA or
+   comment `BASELINE_DEBT_APPROVED <head sha>`. Agents must not self-approve. Then squash-merge.
+2. After PR #9 merges: create `feat/unified-diagnostics` from integration HEAD, run
    `python3 scripts/superfork/preflight.py --fetch`, read `tasks/G1_UNIFIED_DIAGNOSTICS.md`.
 3. G1 audit order: official `PlayerDebugStatsOverlay` and addon repository first; classify
    each of features 14–16, 61–81, 281–291 as already official / missing delta / unsupported /
@@ -38,9 +34,10 @@ constructor `overrides` seam), SourceAttribution + ImportMode. Tests in the matc
 package (12). No persistence/UI/DI. Feature 318 deferred with reason in traceability.
 
 ## Evidence / limits
-Accepted official baseline remains `fd7973d91dd75d790c5f9b3d68dae652655e92c4` until the sync PR merges.
-Local Android execution is unavailable (no Android SDK); use actual GitHub CI evidence.
-No hardware tests run or claimed.
+Sync evidence: clean replays in PR #9 (UPSTREAM_SYNC_LOG 2026-09-29); inventory recorded from
+the replay job log because this agent environment cannot download Actions artifacts
+(blob storage egress blocked). Local Android execution is unavailable (no Android SDK); use
+actual GitHub CI evidence. No hardware tests run or claimed.
 
 ## Ownership / unfinished work
 Sequential writer, no lease. Admin actions (default branch, protection) remain in

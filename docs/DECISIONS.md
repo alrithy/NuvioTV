@@ -222,3 +222,19 @@ intermittent baseline debt with both results preserved. This is a reviewed, expl
 initial registration of 19 entries (18 reproduced + 1 intermittent), not automatic growth.
 Repeat official replay once to characterize it; do not discard the failing evidence or
 use reruns to claim the test is fixed. Future additions require exact-head maintainer review.
+
+## D040 — Adopt official 71632b9 before G1 and review one renamed baseline test
+Official dev moved `fd7973d..71632b9` with settings reorganization (#3746) and player
+controller changes that G1 depends on, so D036/D037 require a reviewed sync before G1 coding.
+Merged via PR #9 without conflicts or fork changes.
+
+Clean replays of official `71632b9` and the integration merge found zero new failures and the
+same 18 reproduced debts (HomeEnrichment intermittent case passed; it stays registered as
+intermittent until the removal rule is met). One reviewed-inventory case disappeared:
+`com.nuvio.tv.core.debrid.TorboxFileSelectorTest#selects file by torbox file id first`. Upstream commit `71632b9` deliberately replaced it with
+`does not treat torrent index as torbox file id` (same fixture, inverted expectation: a torrent
+index must not be treated as a TorBox file id) plus two new selector tests. This is an official
+behavior correction with replacement coverage, not a lost regression test. The reviewed
+inventory is replaced with the clean official replay; the suite floor rises 1,611 → 1,752.
+Debt entries keep their original registration SHA/date. Exact-head maintainer approval is
+required by the Baseline Change policy for this inventory removal.
