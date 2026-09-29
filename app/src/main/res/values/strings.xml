@@ -1715,7 +1715,7 @@
     <string name="playback_strategy_remux">REMUX / Throughput</string>
     <string name="playback_strategy_remux_sub">Parallel connections and a device-sized buffer for large files.</string>
     <string name="playback_strategy_seek">Seek optimized</string>
-    <string name="playback_strategy_seek_sub">Disk cache for faster seeking; single connection.</string>
+    <string name="playback_strategy_seek_sub">Disk cache and read-ahead for faster seeking; single connection.</string>
     <string name="playback_strategy_low_memory">Low memory</string>
     <string name="playback_strategy_low_memory_sub">Small buffer and a single connection.</string>
     <string name="playback_strategy_auto">Auto</string>

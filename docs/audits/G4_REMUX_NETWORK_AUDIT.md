@@ -79,3 +79,11 @@ ysosrs delta is "MP4 session mode" in `PlayerMediaSourceFactory` (single-connect
 session for progressive MP4 when parallel is off, so scatter reads survive data-source recreation on
 seek). It changes network behavior, so per D044 it belongs to a strategy: moved to G4d with the disk
 seek buffer, under Seek optimized.
+
+## G4d result
+Seek optimized gains one seek mechanism per stream (D045): ysosrs MP4 session mode (24) for
+progressive MP4, the Reshaped `SeekReadAhead` ring (25) for other progressive files. Neither runs
+on the parallel path (D006). Correction to 26: Reshaped does size the libmpv demuxer cache (from its
+seek-buffer setting, capped by RAM); strategies are ExoPlayer-only, so 26 is deferred with 280.
+Remaining rows: 7 verified_official (official performance mode + managed budget, selected by the
+REMUX strategy); 5, 6 deferred to the A/B data; 17 deferred to G8.

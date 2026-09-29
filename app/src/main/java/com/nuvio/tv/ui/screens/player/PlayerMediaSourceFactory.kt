@@ -124,6 +124,9 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
     var vodCacheSizeMode: VodCacheSizeMode = PlayerSettings.DEFAULT_VOD_CACHE_SIZE_MODE
     var vodCacheSizeMb: Int = PlayerSettings.DEFAULT_VOD_CACHE_SIZE_MB
 
+    // G4d: set per playback when the effective strategy is Seek optimized (REMUX_PERFORMANCE on).
+    var seekOptimized: Boolean = false
+
     // OkHttp client used only by the opt-in parallel-connections path.
     private val playbackHttpClient by lazy {
         PlayerPlaybackNetworking.playbackHttpClient.newBuilder()
@@ -205,9 +208,46 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
                 PlayerMemoryReporter.snapshot(context)
         )
         PlayerMemoryReporter.startSampling(context)
-        val useChunkSessionSource = useParallelConnections && !isHls && !isDash
+        // G4d (features 24, 25): Seek optimized adds one mechanism per stream, off the parallel path.
+        val seekMediaMode = com.nuvio.tv.fork.playback.SeekOptimizedMedia.mode(
+            seekOptimized = seekOptimized,
+            parallelConnections = useParallelConnections,
+            adaptive = isHls || isDash,
+            loopback = isLoopbackUrl(url),
+            mp4 = resolvedMimeType == MimeTypes.VIDEO_MP4,
+            readAheadMb = com.nuvio.tv.fork.playback.SeekOptimizedMedia.readAheadMb(
+                com.nuvio.tv.fork.resource.AdaptiveResources.policy
+            )
+        )
+        if (seekMediaMode != com.nuvio.tv.fork.playback.SeekMediaMode.READ_AHEAD) {
+            com.nuvio.tv.ui.screens.player.seekbuffer.SeekReadAhead.release()
+        }
+        if (seekMediaMode != com.nuvio.tv.fork.playback.SeekMediaMode.OFFICIAL) {
+            Log.i("PlayerMediaSource", "SEEK_OPTIMIZED: ${seekMediaMode.name}")
+        }
+        val mp4SessionMode = seekMediaMode == com.nuvio.tv.fork.playback.SeekMediaMode.MP4_SESSION
+        val useChunkSessionSource = (useParallelConnections || mp4SessionMode) && !isHls && !isDash
         parallelStartupPrefetchUnlocked.set(!useChunkSessionSource)
-        val progressiveUpstreamFactory: DataSource.Factory = if (useChunkSessionSource) {
+        val progressiveUpstreamFactory: DataSource.Factory = if (mp4SessionMode) {
+            // ysosrs 45e0984 MP4 session mode: one connection, 8 MiB chunks, whole-chunk retention.
+            val okHttpFactory = OkHttpDataSource.Factory(playbackHttpClient).apply {
+                setDefaultRequestProperties(sanitizedHeaders)
+                if (sanitizedHeaders.none { it.key.equals("User-Agent", ignoreCase = true) }) {
+                    setUserAgent(DEFAULT_USER_AGENT)
+                }
+            }
+            val connections = com.nuvio.tv.fork.playback.SeekOptimizedMedia.MP4_SESSION_CONNECTIONS
+            ParallelRangeDataSource.Factory(
+                okHttpFactory,
+                connections,
+                com.nuvio.tv.fork.playback.SeekOptimizedMedia.MP4_SESSION_CHUNK_BYTES,
+                useNativeMemory = nuvioPerformanceModeEnabled || NuvioEngineConfig.get().isNativeAllocationEnabled(),
+                prefetchDepthChunks = connections + 1,
+                shouldAllowBackgroundPrefetch = { parallelStartupPrefetchUnlocked.get() },
+                onResolvedUri = { resolved -> currentVodCacheResolvedUrl = resolved?.toString() },
+                allowContinuationReopen = false
+            )
+        } else if (useChunkSessionSource) {
             val okHttpFactory = OkHttpDataSource.Factory(playbackHttpClient).apply {
                 setDefaultRequestProperties(sanitizedHeaders)
                 if (sanitizedHeaders.none { it.key.equals("User-Agent", ignoreCase = true) }) {
@@ -235,6 +275,15 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
             )
         } else if (isLoopbackUrl(url)) {
             PlayerPlaybackNetworking.createHttpDataSourceFactory(sanitizedHeaders, useLongReadTimeout = true)
+        } else if (seekMediaMode == com.nuvio.tv.fork.playback.SeekMediaMode.READ_AHEAD) {
+            com.nuvio.tv.ui.screens.player.seekbuffer.SeekReadAhead.wrap(
+                context = context,
+                sourceUrl = url,
+                chosenBytes = com.nuvio.tv.fork.playback.SeekOptimizedMedia.readAheadMb(
+                    com.nuvio.tv.fork.resource.AdaptiveResources.policy
+                ) * 1024L * 1024L,
+                upstream = httpDataSourceFactory
+            )
         } else {
             httpDataSourceFactory
         }
