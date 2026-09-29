@@ -11,9 +11,9 @@ active_gate: G0
 active_gate_name: Fork Foundation
 active_branch: chore/fork-foundation-impl
 active_task_packet: tasks/G0_FORK_FOUNDATION.md
-active_status: READY
+active_status: REVIEW
 active_pr: null
-active_owner: unclaimed
+active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: false
 last_green_commit: c96e6bcf3455449199fe9a934d89f03b290d05d4

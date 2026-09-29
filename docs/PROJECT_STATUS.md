@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G0 — Fork Foundation
 - Active branch: `chore/fork-foundation-impl`
-- Status: READY
+- Status: REVIEW
 - Task: `tasks/G0_FORK_FOUNDATION.md`
 - Accepted official baseline: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
 - Governance: READY
@@ -14,8 +14,9 @@ This view's header is generated from state; use `state_view.py` after state chan
 
 ## Work boundary
 Governance hardening is merged through PR #6. PR #5 is closed as superseded after its
-useful policies were preserved. No G0 runtime foundation and no external fork feature
-has been imported. Legacy PR #1/#2 stay reference-only.
+useful policies were preserved. G0 foundation (FeatureMode, FeatureId, FeatureRegistry,
+SourceAttribution; all groups OFF) is in REVIEW on `chore/fork-foundation-impl`. No
+external fork feature has been imported. Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
