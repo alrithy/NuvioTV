@@ -31,9 +31,10 @@ TrueHD/Atmos/DD+/DTS-HD passthrough via live platform capabilities, downmix, FFm
 modes; gaps: per-format passthrough controls,
 lossless default, soft clip, HDR10 on the DV strip path, track-format AFR/settle). 46 deferred.
 D047 records the batched-validation policy of `9c627ca`.
+Audit merged (PR #31, `7ccb762`). G5a soft clip for boosted volume (48, Reshaped `softClipBoosted`) in review; D048 decides AUDIO_DV_AFR AUTO with official output kept by default.
 
 ## Exact next action
-1. Merge the G5 audit PR, then slices G5a (soft clip, 48), G5b (lossless default, 37), G5c
+1. Merge G5a, then slices G5b (lossless default, 37), G5c
    (per-format passthrough controls + capability report, 38-42), G5d (DV/HDR, 52-55, 60), G5e (AFR,
    56, 58, 59). No slice edits AudioSelectionOverlay / PlaybackEvents without a prior upstream sync.
 2. Continue G5→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
