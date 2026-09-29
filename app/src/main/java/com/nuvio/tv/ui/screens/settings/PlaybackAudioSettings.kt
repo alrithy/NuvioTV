@@ -105,7 +105,12 @@ internal fun PlaybackAudioSection(
         enabled = enabled && settings.decoderPriority != 0
     )
     // G5: fork audio output rows (per-profile, default = official behavior).
-    com.nuvio.tv.fork.audio.AudioOutputSection(enabled = enabled)
+    // Per-format switches need the FFmpeg decoder and are inert while force-optical is on (G5c).
+    com.nuvio.tv.fork.audio.AudioOutputSection(
+        enabled = enabled,
+        passthroughControlsEnabled = enabled && settings.decoderPriority != 0 &&
+            !settings.forceOpticalPassthrough
+    )
 }
 
 @Composable

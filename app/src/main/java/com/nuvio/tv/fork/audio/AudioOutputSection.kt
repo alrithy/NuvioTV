@@ -10,7 +10,11 @@ import com.nuvio.tv.ui.screens.settings.SettingsToggleRow
 
 /** Fork audio output rows (G5) inside the official audio settings; nothing while the group is OFF. */
 @Composable
-internal fun AudioOutputSection(enabled: Boolean, viewModel: AudioOutputViewModel = hiltViewModel()) {
+internal fun AudioOutputSection(
+    enabled: Boolean,
+    passthroughControlsEnabled: Boolean = enabled,
+    viewModel: AudioOutputViewModel = hiltViewModel(),
+) {
     if (!viewModel.enabled) return
     val preferLossless by viewModel.preferLossless.collectAsStateWithLifecycle()
     SettingsToggleRow(
@@ -27,7 +31,7 @@ internal fun AudioOutputSection(enabled: Boolean, viewModel: AudioOutputViewMode
             title = stringResource(format.titleRes()),
             subtitle = stringResource(R.string.audio_passthrough_format_sub),
             checked = allowed,
-            enabled = enabled,
+            enabled = passthroughControlsEnabled,
             onToggle = { viewModel.setPassthroughAllowed(format, !allowed) }
         )
     }
