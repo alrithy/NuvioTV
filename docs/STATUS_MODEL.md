@@ -52,6 +52,14 @@ Alternative:
 
 Do not use DONE/implemented to mean “code exists somewhere.” It means the project’s acceptance criteria were met.
 
+## Manual-validation batching
+
+For G1–G13, a gate whose implementation is merged and whose automated tests/CI are green may stop being the active development gate even when device-only checks remain `MANUAL-PENDING`.
+
+Those gates are tracked in `integration/state.yaml: validation_pending_gates`. This is **not** a claim that the gate is fully validated or release-DONE. It means development may proceed while hardware evidence is intentionally batched.
+
+All remaining MANUAL-PENDING hardware checks are resolved in the G14 final hardware certification before any Stable release claim. A FAIL there reopens the affected feature/gate for correction.
+
 ## Gate completion invariant
 A gate cannot be DONE while one of its feature rows is unexplained `planned` or `in_progress`.
 

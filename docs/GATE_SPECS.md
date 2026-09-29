@@ -3,7 +3,9 @@
 Primary feature traceability: integration/feature_traceability.csv.
 Global completion rules: docs/DEFINITION_OF_DONE.md.
 
-A gate may not be declared complete merely because code compiles. All applicable deliverables and exit checks below must be satisfied, and feature statuses must be updated in traceability.
+A gate may not be declared release-complete merely because code compiles. All applicable deliverables and automated exit checks below must be satisfied, and feature statuses must be updated in traceability.
+
+**Batched hardware-validation rule (G1–G13):** device-only/manual checks may remain `MANUAL-PENDING` after implementation is merged and automated CI/DoD is green. They are recorded in the manual-test log/checklists and `integration/state.yaml: validation_pending_gates`, but they do **not** block starting the next development gate unless the missing hardware result is required to design that next gate safely. G14 performs one consolidated hardware-certification campaign before Stable release.
 
 ## G0 — Fork Foundation
 IDs: 1, 2, 311, 313–315, 317–319
@@ -86,11 +88,16 @@ Required:
 - evaluate adaptive connections/chunks, deep buffering, rate-limit handling, stall recovery, pre-resolve/warmup, failover, container recovery, disk seek-buffer interaction;
 - disk seek-buffer and parallel REMUX paths remain coordinated strategies, not blindly stacked.
 
-Exit:
-- mandatory same-file/source A/B;
-- no unexplained regression in startup, rebuffer, waste, RAM or seek;
-- malformed/non-faststart fixtures where applicable;
-- fullDebug green.
+Development exit:
+- all G4 code slices merged;
+- malformed/non-faststart automated fixtures where applicable;
+- no new automated regressions;
+- fullDebug green;
+- the real-device same-file/source A/B remains explicitly MANUAL-PENDING and is queued for final hardware certification.
+
+Final validation before Stable:
+- mandatory same-file/source A/B on the target device;
+- no unexplained regression in startup, rebuffer, waste, RAM or seek.
 
 ## G5 — Audio / DV / HDR / AFR
 IDs: 32–44, 46–60
@@ -239,6 +246,7 @@ IDs: 293–310, 312, 316, 320
 Sources: official + project.
 
 Required:
+- run the consolidated hardware-certification campaign for every MANUAL-PENDING item accumulated from G1–G13, including the TCL C6K checklist and later gate-specific device checks;
 - validate official self-host/server-discovery ownership rather than re-port old Enhanced code;
 - server trust/security closure;
 - release/updater/stable/beta channel hardening;
@@ -251,6 +259,6 @@ Required:
 Exit:
 - release policy satisfied, including Stable/Beta updater, ABI APKs, checksums, provenance/license, automated upstream checks and final regression certification;
 - security review complete;
-- required automated/manual tests recorded;
+- required automated tests recorded and every release-blocking MANUAL-PENDING hardware check resolved as PASS or FAIL-with-fix/decision;
 - final traceability has no unexplained planned or in_progress rows;
 - release artifacts map exactly to tagged commit.

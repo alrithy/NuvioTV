@@ -1,6 +1,10 @@
 # Definition of Done
 
-No gate or feature is complete until every applicable item below is satisfied.
+This document distinguishes **development progression** from **final release validation**.
+
+For G1–G13, the project may advance to the next development gate when implementation is merged, automated requirements below are satisfied, and any device-only checks are honestly recorded as `MANUAL-PENDING`. This does not turn unexecuted hardware tests into PASS and does not make the project release-certified.
+
+G14 resolves the accumulated MANUAL-PENDING hardware checks before Stable release.
 
 ## A. Scope
 - [ ] Work belongs to the current roadmap gate.
@@ -35,9 +39,9 @@ No gate or feature is complete until every applicable item below is satisfied.
 - [ ] Resource usage is bounded for caches, queues, previews and background work.
 
 ## E. Regression
-- [ ] Relevant items in docs/TEST_MATRIX.md executed.
-- [ ] Playback-changing work compared against official behavior where feasible.
-- [ ] TV D-pad/focus behavior checked for UI changes.
+- [ ] Relevant automated items in docs/TEST_MATRIX.md executed.
+- [ ] Playback-changing work compared against official behavior where feasible in automation.
+- [ ] Device-only D-pad/focus/audio/video/performance checks are either executed or explicitly recorded as MANUAL-PENDING for the final hardware campaign.
 - [ ] Low-memory behavior considered for expensive features.
 - [ ] Known regressions are documented.
 
@@ -61,4 +65,6 @@ No gate or feature is complete until every applicable item below is satisfied.
 - [ ] Known issues recorded.
 - [ ] Exact next action and recommended branch recorded.
 
-If any required item fails, status is NOT DONE. Use BLOCKED or IN_PROGRESS, never claim completion.
+If an automated/code requirement fails, use BLOCKED or IN_PROGRESS and do not advance.
+
+A device-only MANUAL-PENDING item is different: record it, add the gate to `validation_pending_gates`, and continue development. Never call that manual item PASS without evidence. G14 cannot complete and Stable cannot ship until all release-blocking MANUAL-PENDING items are resolved.
