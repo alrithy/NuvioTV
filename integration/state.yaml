@@ -7,19 +7,19 @@ current_official_baseline_sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
 integration_upstream_sync_commit: 898bc83abfc8e59cf1664699980942d3bd6718f6
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G2
-active_gate_name: Adaptive Resource Manager
-active_branch: feat/adaptive-resource-manager
-active_task_packet: tasks/G2_ADAPTIVE_RESOURCE_MANAGER.md
-active_status: IN_PROGRESS
-active_pr: 16
-active_owner: claude-code (sequential; no lease)
+active_gate: G3
+active_gate_name: Playback Strategy Framework
+active_branch: feat/playback-strategies
+active_task_packet: tasks/G3_PLAYBACK_STRATEGIES.md
+active_status: READY
+active_pr: null
+active_owner: unclaimed
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 8df77b7fdb426d7051c0ab109dae59a4dd99a99f
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36565841444 ; G2b PR
-  #15 exact head (debt-removal confirming run), squash-merged as 9002d54.
-last_green_scope: Full suite guard (1816 tests, 15 known failures, 0 new failures), governance
+last_green_commit: 6756530e620cffecd9890ab097488b2d0bcf0436
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36567832833 ; G2c PR
+  #16 exact head, squash-merged as 52ffbd3.
+last_green_scope: Full suite guard (1822 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
@@ -28,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G3
-next_gate_name: Playback Strategy Framework
-next_branch: feat/playback-strategies
+next_gate: G4
+next_gate_name: REMUX / Network Performance
+next_branch: feat/remux-network
 known_operational_risks:
 - id: R001
   severity: high
@@ -62,10 +62,10 @@ last_review:
   reviewer_role: architecture_audit
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-09-29T11:10:00Z'
+  checked_at: '2026-09-29T12:40:00Z'
   sha: 7d3cea09e07a62ce1bc149f537367108a7885977
   accepted: false
-  reason: 'Official PR #3740 (audio delay step/range + press-and-hold in AudioSelectionOverlay, PlayerRuntimeControllerPlaybackEvents). Does not touch G2 resource/buffer owners; adopt through a reviewed sync at a later gate boundary.'
+  reason: 'Official head unchanged since G1 closeout: PR #3740 (audio delay step/range + press-and-hold in AudioSelectionOverlay, PlayerRuntimeControllerPlaybackEvents). Touches no G2 owner. G3 must decide before feature work whether it edits those player owners; if so, adopt it first through a separate reviewed sync PR.'
 completed_gates:
 - gate: G0
   name: Fork Foundation
@@ -84,3 +84,12 @@ completed_gates:
   evidence: 'CI runs 36553508801 (1777 tests), 36556405877 (1788), 36558548508 (1801): 0 new
     failures, fullDebug APK built; audit docs/audits/G1_DIAGNOSTICS_AUDIT.md'
   deferred_features: [289]
+- gate: G2
+  name: Adaptive Resource Manager
+  pr: [14, 15, 16]
+  merge_sha: 52ffbd36881838ee8240d3b2ac2a9c924c6d4b52
+  slice_merges: [b2a13d186bb36c8b5d9d21f3acb657049c5864b2, 9002d547f97f9bb77eb90cf48883149020a49390,
+    52ffbd36881838ee8240d3b2ac2a9c924c6d4b52]
+  evidence: 'CI runs 36562615830 (1814 tests), 36564393631 + confirming 36565841444 (1816, debt
+    19 -> 16), 36567832833 (1822): 0 new failures, fullDebug APK built; audit docs/audits/G2_RESOURCE_AUDIT.md'
+  deferred_features: [276, 279, 280]

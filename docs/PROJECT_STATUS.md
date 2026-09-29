@@ -1,10 +1,10 @@
 # Project status
 
 <!-- canonical-state:start -->
-- Active gate: G2 — Adaptive Resource Manager
-- Active branch: `feat/adaptive-resource-manager`
-- Status: IN_PROGRESS
-- Task: `tasks/G2_ADAPTIVE_RESOURCE_MANAGER.md`
+- Active gate: G3 — Playback Strategy Framework
+- Active branch: `feat/playback-strategies`
+- Status: READY
+- Task: `tasks/G3_PLAYBACK_STRATEGIES.md`
 - Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -14,12 +14,14 @@ This view's header is generated from state; use `state_view.py` after state chan
 
 ## Work boundary
 G0 DONE (PR #7). G1 Unified Diagnostics & Add-on Health DONE (PRs #10, #11, #12; 289 deferred to
-G8). G2 Adaptive Resource Manager IN_PROGRESS (G2a, G2b merged; G2c caches/list/bidi). Legacy PR #1/#2 stay reference-only.
+G8). G2 Adaptive Resource Manager DONE (PRs #14, #15, #16; 276 deferred, 279 → G7, 280 → G3). G3 Playback
+Strategy Framework READY. Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
 A no-new-regressions PASS is not an all-tests-pass claim. Reviewed inventory: clean official
-`71632b9` replay, 1,752 tests, 18 known failures + 1 intermittent registered, 1 skipped.
+`71632b9` replay, 1,752 tests, 18 known failures + 1 intermittent registered, 1 skipped. G2b removed 3
+fixed entries (registry now 15 reproduced + 1 intermittent).
 
 ## Upstream
 Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c` (UPSTREAM_SYNC_LOG
