@@ -122,7 +122,11 @@ internal fun PlayerDebugStatsOverlay(
                 )
             }
             val forkRows = if (viewModel.forkDiagnosticsEnabled) {
-                forkHudRows(viewModel, player, snapshot, view.display?.refreshRate, driftMeter)
+                forkHudRows(
+                    viewModel, player, snapshot, view.display?.refreshRate, driftMeter,
+                    displayMode = view.display?.mode,
+                    displayHdrTypes = view.display?.let(::supportedHdrTypesOf)
+                )
             } else {
                 emptyList()
             }
@@ -167,6 +171,16 @@ internal fun PlayerDebugStatsOverlay(
     }
 }
 
+/** G5d (53): HDR types the display accepts; per mode from API 34, display-wide before. */
+@Suppress("DEPRECATION")
+private fun supportedHdrTypesOf(display: android.view.Display): List<Int>? = runCatching {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+        display.mode.supportedHdrTypes.toList()
+    } else {
+        display.hdrCapabilities?.supportedHdrTypes?.toList()
+    }
+}.getOrNull()
+
 // Superfork G1b rows. Player fields are read here, on the application thread, once per sample.
 @OptIn(UnstableApi::class)
 private fun forkHudRows(
@@ -174,7 +188,9 @@ private fun forkHudRows(
     player: Player?,
     snapshot: PlayerSnapshot?,
     displayRefreshHz: Float?,
-    driftMeter: ClockDriftMeter
+    driftMeter: ClockDriftMeter,
+    displayMode: android.view.Display.Mode? = null,
+    displayHdrTypes: List<Int>? = null
 ): List<DebugStat> {
     val exo = player as? androidx.media3.exoplayer.ExoPlayer
     val video = runCatching { exo?.videoFormat }.getOrNull()
@@ -206,7 +222,11 @@ private fun forkHudRows(
         audioBitrateBps = audio?.bitrate,
         audioPassthroughDenied = audio?.let(viewModel::isAudioPassthroughDeniedByUser) == true,
         audioChain = com.nuvio.tv.fork.diagnostics.AudioChainProbe.latest,
+        dvStreamInfo = com.nuvio.tv.fork.video.DvStreamInfo.hudLine(),
         displayRefreshHz = displayRefreshHz,
+        displayWidth = displayMode?.physicalWidth,
+        displayHeight = displayMode?.physicalHeight,
+        displayHdrTypes = displayHdrTypes,
         requiredBps = fileBps?.toLong() ?: trackBps.takeIf { it > 0L },
         availableBps = hud.bandwidthEstimateBps,
         parallelConnections = ParallelRangeDataSource.hudConnections,

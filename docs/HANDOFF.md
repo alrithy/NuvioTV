@@ -31,11 +31,10 @@ TrueHD/Atmos/DD+/DTS-HD passthrough via live platform capabilities, downmix, FFm
 modes; gaps: per-format passthrough controls,
 lossless default, soft clip, HDR10 on the DV strip path, track-format AFR/settle). 46 deferred.
 D047 records the batched-validation policy of `9c627ca`.
-Audit merged (PR #31, `7ccb762`). G5a soft clip (48) merged (PR #32, `d55a866`; D048 AUDIO_DV_AFR AUTO, official output kept by default). G5b lossless default (37) merged (PR #33, `6c824f7`; per-profile setting, default off). G5c per-format passthrough controls (38) and HUD audio diagnostics (39-42) in review.
+Audit merged (PR #31, `7ccb762`). G5a soft clip (48) merged (PR #32, `d55a866`; D048 AUDIO_DV_AFR AUTO, official output kept by default). G5b lossless default (37) merged (PR #33, `6c824f7`; per-profile setting, default off). G5c per-format passthrough controls (38) and HUD audio diagnostics (39-42) merged (PR #34, `2cc2659`). G5d Dolby Vision / HDR (52-54, 60; 55 verified official) in review.
 
 ## Exact next action
-1. Merge G5c, then slices G5d (DV/HDR, 52-55, 60), G5e (AFR,
-   56, 58, 59). No slice edits AudioSelectionOverlay / PlaybackEvents without a prior upstream sync.
+1. Merge G5d, then G5e (AFR, 58, 59; 56 verified official) and the G5 closeout. No slice edits AudioSelectionOverlay / PlaybackEvents without a prior upstream sync.
 2. Continue G5→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of G5 runtime work.

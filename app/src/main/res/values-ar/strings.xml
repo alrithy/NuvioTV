@@ -1357,6 +1357,8 @@
     <string name="audio_passthrough_dts">جهاز الصوت يفك DTS</string>
     <string name="audio_passthrough_dtshd">جهاز الصوت يفك DTS-HD / DTS:X</string>
     <string name="audio_passthrough_format_sub">عند الإيقاف: التطبيق يفك هذه الصيغة إلى PCM بدل إرسالها كما هي. أوقفه فقط إذا كان الصوت صامتًا أو يفشل بهذه الصيغة. يطبق من التشغيل التالي.</string>
+    <string name="dv_hdr10_sei_on_strip">إضافة بيانات HDR10 عند إزالة Dolby Vision</string>
+    <string name="dv_hdr10_sei_on_strip_sub">عند إزالة طبقة Dolby Vision لشاشة HDR10 (عناوين DV 8.1)، أضف بيانات الإتقان من بيانات DV حتى يضبط التلفاز الألوان والإضاءة بشكل صحيح. فقط إذا لم يكن الفيديو يحملها.</string>
     <string name="player_dead_source_failover">المصدر غير متاح \u2014 جارٍ تجربة المصدر التالي (%1$d/%2$d)</string>
     <string name="player_error_startup_timeout">لم يبدأ التشغيل \u2014 قد لا يستجيب مفكك ترميز الفيديو. إعادة تشغيل الجهاز تحل ذلك عادةً. اضغط رجوع وحاول مجددًا، أو اختر مصدرًا آخر.</string>
     <string name="player_error_startup_video_track_unsupported">لم يبدأ التشغيل \u2014 هذا الجهاز لا يستطيع تشغيل صيغة الفيديو في هذا المصدر. اضغط رجوع واختر مصدرًا آخر.</string>

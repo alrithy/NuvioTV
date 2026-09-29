@@ -30,9 +30,24 @@ internal class DolbyVisionMatroskaTransformer(
     private val config: DolbyVisionConversionConfig,
     private val stripRpuOnly: Boolean = false,
     private val stripHdr10PlusSei: Boolean = false,
+    /** G5d (feature 54): add HDR10 static SEI from the RPU on the strip path (P8 only). */
+    private val injectHdr10Sei: Boolean = false,
 ) : MatroskaExtractor.DolbyVisionSampleTransformer {
 
     private var lastTransformedLength = 0
+
+    // G5d (features 52-54, ysosrs 45e0984 DV7 F3 / item 2 / task 1), only with config.forkDvFixes:
+    // once-per-stream EL-type and RPU static-metadata probes for the HUD, and the strip-path SEI.
+    private var elTypeProbed = false
+    private var metadataProbed = false
+    private var metadataProbeAttempts = 0
+    private var streamMetadata: com.nuvio.tv.fork.video.RpuStaticMetadata? = null
+    private var cachedHdr10SeiNals: List<ByteArray>? = null
+    private var injectOutcomeLogged = false
+
+    init {
+        if (config.forkDvFixes) com.nuvio.tv.fork.video.DvStreamInfo.reset()
+    }
 
     // Reused across samples; grows to the largest frame once.
     private val scratch = ExposedByteArrayOutputStream(64 * 1024)
@@ -69,6 +84,33 @@ internal class DolbyVisionMatroskaTransformer(
 
     // Reuses the package-private ExposedByteArrayOutputStream from HevcDvRpuStripper.kt
 
+    // G5d (ysosrs 45e0984 DV7 review F5), only with config.forkDvFixes: failed RPU conversions are
+    // dropped and counted; after RPU_FAILURE_ABANDON_THRESHOLD consecutive failures conversion
+    // stops for the stream (the base layer continues as HDR10).
+    private var consecutiveRpuFailures = 0
+    private var rpuConversionAbandoned = false
+    private var droppedRpuCount = 0L
+
+    private fun registerRpuFailure() {
+        consecutiveRpuFailures++
+        droppedRpuCount++
+        if (consecutiveRpuFailures == 1 || consecutiveRpuFailures % 100 == 0) {
+            android.util.Log.w(
+                TAG,
+                "DV7_MKV: RPU conversion failed; dropping RPU " +
+                    "(consecutive=$consecutiveRpuFailures dropped=$droppedRpuCount)"
+            )
+        }
+        if (!rpuConversionAbandoned && consecutiveRpuFailures >= RPU_FAILURE_ABANDON_THRESHOLD) {
+            rpuConversionAbandoned = true
+            android.util.Log.w(
+                TAG,
+                "DV7_MKV: $RPU_FAILURE_ABANDON_THRESHOLD consecutive RPU conversion failures; " +
+                    "abandoning conversion for this stream (base layer continues as HDR10)"
+            )
+        }
+    }
+
     override fun onDolbyVisionBlockAdditionalData(
         blockAdditionalData: ByteArray?,
         blockAddIdType: Int,
@@ -78,8 +120,22 @@ internal class DolbyVisionMatroskaTransformer(
         if (stripRpuOnly) return ByteArray(0)
         val profile = resolveProfile(null, dolbyVisionConfigBytes)
         if (!config.shouldConvert(profile)) return null
-        // Single conversion site for BlockAdditional RPUs; transformHevcSample appends as-is.
-        return convertRpuNal(blockAdditionalData, config.conversionMode(profile))
+        if (!config.forkDvFixes) {
+            // Single conversion site for BlockAdditional RPUs; transformHevcSample appends as-is.
+            return convertRpuNal(blockAdditionalData, config.conversionMode(profile))
+        }
+        // G5d: an empty result tells transformHevcSample the RPU was dropped.
+        if (rpuConversionAbandoned) {
+            registerRpuFailure()
+            return ByteArray(0)
+        }
+        val converted = convertRpuNal(blockAdditionalData, config.conversionMode(profile))
+        if (converted != null) {
+            consecutiveRpuFailures = 0
+            return converted
+        }
+        registerRpuFailure()
+        return ByteArray(0)
     }
 
     override fun shouldTransform(codecs: String?, dolbyVisionConfigBytes: ByteArray?): Boolean {
@@ -113,6 +169,8 @@ internal class DolbyVisionMatroskaTransformer(
 
         lastTransformedLength = sampleLength
 
+        if (config.forkDvFixes) probeRpuMetadata(sample, sampleLength, nalUnitLengthFieldLength, blockAdditionalData)
+
         if (stripRpuOnly) {
             if (profile == 5) {
                 if (!shouldStripDv5Rpu(sample, sampleLength, nalUnitLengthFieldLength)) {
@@ -125,7 +183,10 @@ internal class DolbyVisionMatroskaTransformer(
             )
             if (changed) {
                 val stripped = finishScratch()
-                return stripHdr10PlusIfEnabled(stripped, lastTransformedLength, nalUnitLengthFieldLength) ?: stripped
+                val afterHdr10Plus =
+                    stripHdr10PlusIfEnabled(stripped, lastTransformedLength, nalUnitLengthFieldLength) ?: stripped
+                return injectHdr10SeiIfEnabled(afterHdr10Plus, lastTransformedLength, profile, nalUnitLengthFieldLength)
+                    ?: afterHdr10Plus
             }
             return stripHdr10PlusIfEnabled(sample, sampleLength, nalUnitLengthFieldLength) ?: sample
         }
@@ -149,6 +210,15 @@ internal class DolbyVisionMatroskaTransformer(
             return stripHdr10PlusIfEnabled(dvResult, lastTransformedLength, nalUnitLengthFieldLength) ?: dvResult
         }
 
+        if (blockAdditionalData.isEmpty()) {
+            // G5d: the hook dropped a failed RPU; emit the (possibly EL-stripped) base layer only.
+            if (!baseChanged) {
+                return stripHdr10PlusIfEnabled(sample, sampleLength, nalUnitLengthFieldLength) ?: sample
+            }
+            val baseOnly = finishScratch()
+            return stripHdr10PlusIfEnabled(baseOnly, lastTransformedLength, nalUnitLengthFieldLength) ?: baseOnly
+        }
+
         if (!baseChanged) {
             scratch.reset()
             scratch.write(sample, 0, sampleLength)
@@ -159,6 +229,76 @@ internal class DolbyVisionMatroskaTransformer(
         }
         val dvResult = finishScratch()
         return stripHdr10PlusIfEnabled(dvResult, lastTransformedLength, nalUnitLengthFieldLength) ?: dvResult
+    }
+
+    /**
+     * G5d: reads the RPU's static HDR metadata once per stream (in-band RPU, else the BlockAdditional
+     * one), bounded so a stream without a reachable RPU stops looking. Read-only.
+     */
+    private fun probeRpuMetadata(sample: ByteArray, sampleLength: Int, nalLengthFieldLength: Int, blockAdditional: ByteArray?) {
+        if (metadataProbed || metadataProbeAttempts >= METADATA_PROBE_ATTEMPT_LIMIT || !DoviBridge.isAvailable()) return
+        metadataProbeAttempts++
+        val inBand = findRpuNal(sample, sampleLength, nalLengthFieldLength)
+        val meta = when {
+            inBand != null -> DoviBridge.getRpuStaticMetadata(sample, inBand.first, inBand.second)
+            blockAdditional != null && blockAdditional.isNotEmpty() ->
+                DoviBridge.getRpuStaticMetadata(blockAdditional, 0, blockAdditional.size)
+            else -> return
+        }
+        metadataProbed = true
+        streamMetadata = meta
+        com.nuvio.tv.fork.video.DvStreamInfo.metadata = meta
+        android.util.Log.i(TAG, "DV_RPU_METADATA: ${meta?.toDiagnosticLine() ?: "none"}")
+    }
+
+    /** Offset and size of the first unspec62 (RPU) NAL of a length-delimited sample. */
+    private fun findRpuNal(sample: ByteArray, sampleLength: Int, nalLengthFieldLength: Int): Pair<Int, Int>? {
+        if (nalLengthFieldLength !in 1..4) return null
+        var offset = 0
+        while (offset + nalLengthFieldLength <= sampleLength) {
+            val nalSize = readLengthField(sample, offset, nalLengthFieldLength)
+            if (nalSize <= 0) return null
+            offset += nalLengthFieldLength
+            if (offset + nalSize > sampleLength) return null
+            if (nalUnitTypeAt(sample, offset) == NAL_TYPE_UNSPEC62) return offset to nalSize
+            offset += nalSize
+        }
+        return null
+    }
+
+    /**
+     * G5d (feature 54): on the strip path, adds the RPU's MDCV (+ CLLI when known) SEI before the
+     * first slice so an HDR10 sink tone-maps against the master. Only for DV profile 8, only when
+     * the base layer carries no HDR10 static SEI, and only once the metadata is known. Returns
+     * null (caller keeps [data]) when nothing is injected.
+     */
+    private fun injectHdr10SeiIfEnabled(data: ByteArray, len: Int, profile: Int?, nalLengthFieldLength: Int): ByteArray? {
+        if (!injectHdr10Sei || !config.forkDvFixes) return null
+        if (profile != 8) {
+            logInjectOutcomeOnce("skipped: profile $profile is not DV8")
+            return null
+        }
+        val nals = cachedHdr10SeiNals ?: run {
+            val built = com.nuvio.tv.fork.video.Hdr10SeiInjector.buildSeiNals(streamMetadata)
+            if (built.isEmpty()) return null
+            cachedHdr10SeiNals = built
+            built
+        }
+        if (com.nuvio.tv.fork.video.Hdr10SeiInjector.hasHdr10StaticSei(data, len, nalLengthFieldLength)) {
+            logInjectOutcomeOnce("skipped: base layer already carries HDR10 SEI")
+            return null
+        }
+        val injected = com.nuvio.tv.fork.video.Hdr10SeiInjector.injectLengthDelimited(data, len, nalLengthFieldLength, nals)
+        com.nuvio.tv.fork.video.DvStreamInfo.hdr10SeiInjected = true
+        logInjectOutcomeOnce("injected ${nals.size} SEI NAL(s)")
+        lastTransformedLength = injected.size
+        return injected
+    }
+
+    private fun logInjectOutcomeOnce(message: String) {
+        if (injectOutcomeLogged) return
+        injectOutcomeLogged = true
+        android.util.Log.i(TAG, "DV_HDR10_SEI: $message")
     }
 
     private fun finishScratch(): ByteArray {
@@ -247,11 +387,25 @@ internal class DolbyVisionMatroskaTransformer(
                 nalType == NAL_TYPE_UNSPEC63 -> changed = true
                 // RPU NAL: convert directly from sample buffer without JVM allocations
                 nalType == NAL_TYPE_UNSPEC62 -> {
-                    val outLen = DoviBridge.convertDv7RpuToDv81NonAllocating(sample, offset, nalSize, mode)
+                    if (config.forkDvFixes && !elTypeProbed) {
+                        elTypeProbed = true
+                        com.nuvio.tv.fork.video.DvStreamInfo.elType =
+                            DoviBridge.detectRpuElType(sample, offset, nalSize)
+                    }
+                    val outLen = if (config.forkDvFixes && rpuConversionAbandoned) {
+                        -1
+                    } else {
+                        DoviBridge.convertDv7RpuToDv81NonAllocating(sample, offset, nalSize, mode)
+                    }
                     if (outLen > 0) {
                         changed = true
+                        consecutiveRpuFailures = 0
                         if (!writeLengthField(out, outLen, nalUnitLengthFieldLength)) return false
                         out.write(DoviBridge.rpuOutBuffer, 0, outLen)
+                    } else if (config.forkDvFixes) {
+                        // G5d: drop the failed RPU instead of forwarding raw P7 under 8.1 signalling.
+                        changed = true
+                        registerRpuFailure()
                     } else {
                         // Conversion failed: forward the ORIGINAL RPU NAL, normalizing the
                         // 2-byte NAL header in place on the output stream. No allocation:
@@ -396,5 +550,10 @@ internal class DolbyVisionMatroskaTransformer(
         const val NAL_TYPE_UNSPEC62 = 62
         const val NAL_TYPE_UNSPEC63 = 63
         const val DV5_DETECTION_SAMPLE_LIMIT = 15
+        const val TAG = "DolbyVisionMkvXform"
+        const val METADATA_PROBE_ATTEMPT_LIMIT = 30
+
+        // G5d (ysosrs): ~2.5 s of 24 fps video; real failure modes here are all-or-nothing.
+        const val RPU_FAILURE_ABANDON_THRESHOLD = 60
     }
 }

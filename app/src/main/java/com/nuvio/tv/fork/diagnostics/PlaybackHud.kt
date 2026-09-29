@@ -42,7 +42,14 @@ data class PlaybackHudInput(
     val audioPassthroughDenied: Boolean = false,
     /** G5c (39): what the platform claimed at sink build. */
     val audioChain: AudioChainSnapshot? = null,
+    /** G5d (53): EL type / RPU mastering metadata / SEI outcome of the current DV stream. */
+    val dvStreamInfo: String? = null,
     val displayRefreshHz: Float? = null,
+    /** G5d (60): physical size of the current display mode. */
+    val displayWidth: Int? = null,
+    val displayHeight: Int? = null,
+    /** G5d (53): Display HDR types the TV reports (android.view.Display.HdrCapabilities constants). */
+    val displayHdrTypes: List<Int>? = null,
     val requiredBps: Long? = null,
     val availableBps: Long? = null,
     val parallelConnections: Int? = null,
@@ -64,7 +71,9 @@ object PlaybackHud {
     fun rows(input: PlaybackHudInput): List<HudRow> = listOfNotNull(
         video(input),
         hdr(input),
+        input.dvStreamInfo?.takeIf { it.isNotBlank() }?.let { HudRow("dv", it) },
         display(input),
+        displayHdr(input.displayHdrTypes),
         audio(input),
         output(input.audioOutputEncoding, input.audioOutputChannels, input.audioPassthroughDenied),
         chain(input.audioChain),
@@ -103,7 +112,27 @@ object PlaybackHud {
         val fps = input.frameRate?.takeIf { it > 0f }
         val ratio = fps?.let { hz / it }
         val mismatch = ratio != null && abs(ratio - ratio.roundToInt()) > CADENCE_TOLERANCE
-        return HudRow("display", String.format(Locale.US, "%.3f Hz", hz), warn = mismatch)
+        val size = if ((input.displayWidth ?: 0) > 0 && (input.displayHeight ?: 0) > 0) {
+            " · ${input.displayWidth}x${input.displayHeight}"
+        } else {
+            ""
+        }
+        return HudRow("display", String.format(Locale.US, "%.3f Hz", hz) + size, warn = mismatch)
+    }
+
+    /** HDR formats the display accepts; the platform does not expose the mode it is currently in. */
+    internal fun displayHdr(types: List<Int>?): HudRow? {
+        types ?: return null
+        val names = types.distinct().sorted().mapNotNull { type ->
+            when (type) {
+                1 -> "DV"
+                2 -> "HDR10"
+                3 -> "HLG"
+                4 -> "HDR10+"
+                else -> null
+            }
+        }
+        return HudRow("tv hdr", if (names.isEmpty()) "SDR only" else names.joinToString(" "))
     }
 
     internal fun audio(input: PlaybackHudInput): HudRow? {

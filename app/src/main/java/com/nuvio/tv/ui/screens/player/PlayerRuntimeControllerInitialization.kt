@@ -977,6 +977,25 @@ internal fun PlayerRuntimeController.initializePlayer(
                 Log.i(PlayerRuntimeController.TAG, "HDR10PLUS_STRIP: enabled — will remove HDR10+ SEI NALs")
             }
 
+            // G5d (feature 52): DV conversion correctness fixes (preserve-mapping mode, drop a failed
+            // RPU); off with the AUDIO_DV_AFR group = official behavior.
+            val forkDvFixesEnabled = com.nuvio.tv.fork.foundation.FeatureRegistry()
+                .mode(com.nuvio.tv.fork.foundation.FeatureId.AUDIO_DV_AFR) !=
+                com.nuvio.tv.fork.foundation.FeatureMode.OFF
+            com.nuvio.tv.core.player.DoviBridge.setDropRpuOnConversionFailure(forkDvFixesEnabled)
+            com.nuvio.tv.fork.video.DvStreamInfo.reset()
+            // G5d (feature 54): per-profile switch, default off.
+            val injectHdr10SeiOnStrip = forkDvFixesEnabled && audioOutputPreferences.hdr10SeiOnDvStripNow()
+            if (injectHdr10SeiOnStrip && stripDvRpuEnabled) {
+                Log.i(PlayerRuntimeController.TAG, "DV_HDR10_SEI: enabled on the strip path")
+            }
+            if (forkDvFixesEnabled && playerSettings.dv7ToDv81PreserveMappingEnabled) {
+                Log.i(
+                    PlayerRuntimeController.TAG,
+                    "DV7_PRESERVE_MAPPING: bundled libdovi has no preserve-mapping mode; using standard 8.1 (mode 2)"
+                )
+            }
+
             // Always use DolbyVisionExtractorsFactory: when no DV feature is active it
             // still swaps stock Matroska for the vendored extractor (DTS-HD MA / DTS:X
             // first-sample sniff). MP4/TS extractors are returned untouched when
@@ -994,10 +1013,12 @@ internal fun PlayerRuntimeController.initializePlayer(
                             preserveMapping = playerSettings.dv7ToDv81PreserveMappingEnabled &&
                                     manualDv81Selected,
                             dv5Enabled = playerSettings.dv5ToDv81Enabled,
-                            manualDv81 = manualDv81Selected && !dv7Mode1Forced
+                            manualDv81 = manualDv81Selected && !dv7Mode1Forced,
+                            forkDvFixes = forkDvFixesEnabled
                         ),
                         stripDvRpu = stripDvRpuEnabled,
-                        stripHdr10PlusSei = stripHdr10PlusSei
+                        stripHdr10PlusSei = stripHdr10PlusSei,
+                        injectHdr10Sei = injectHdr10SeiOnStrip
                     )
 
             setLoadingStatus(

@@ -291,3 +291,60 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: `isDirectPlaybackSupported` reflects vendor audio-policy profiles, which some TVs over-report (the reason 38 exists); device check MANUAL-PENDING (G14 campaign, HV-G5-4)
+
+### G5d1 — Dolby Vision conversion correctness (52, part)
+- Roadmap gate: G5
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): app/src/main/cpp/dovi_bridge.cpp (`map_conversion_mode` case 5, `noteRpuDropOnFailure`, drop on failed conversion in both NAL loops), core/player/DolbyVisionMatroskaTransformer.kt (F5 drop + abandon threshold)
+- Import mode: DELTA_PORT
+- Current official equivalent: a failed RPU conversion is forwarded raw with DV 8.1 signalling; preserve-mapping sends native mode 4
+- What already existed upstream: single conversion site for BlockAdditional RPUs (ysosrs F4 is already official); mode-2 → mode-1 per-RPU fallback
+- What was imported: drop a failed RPU (base layer continues as HDR10) with throttled counting and a 60-failure abandon threshold (MKV); the same drop on the native MP4/TS sample path behind a JNI switch; preserve-mapping uses mode 2 (standard 8.1)
+- What was intentionally not imported: ysosrs `DolbyVisionConversionStats` drop counters for its diagnostics page, the header-include switch (`libdovi/rpu_parser.h`), EL-type and RPU metadata readers (G5d2)
+- Local adaptations: the preserve-mapping fix lives in `DolbyVisionConversionConfig.conversionMode` (Kotlin) instead of the native mapping, so the native mapping stays official; verified against dolby_vision 3.3.2 source (`ConversionMode::from`: 2|3 → To81, 4 → To84, used by `dovi_convert_rpu_with_mode`)
+- Feature flag / fallback: `DolbyVisionConversionConfig.forkDvFixes` and the native switch follow FeatureId.AUDIO_DV_AFR; OFF = official forwarding and mode mapping. Only failure paths and the experimental preserve-mapping option change (D048)
+- Tests ported/added: DolbyVisionConversionConfigForkTest (3), DolbyVisionMatroskaTransformerForkTest (3)
+- License / attribution notes: GPL-3.0, identical LICENSE; libdovi (MIT) unchanged; attributed in comments
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: with preserve mapping on, output now equals standard 8.1 (the preserve-mapping curve is unreachable through the bundled C API); device check MANUAL-PENDING (G14 campaign, HV-G5-5)
+
+### G5d2 — DV stream metadata, EL type and HDR10 SEI on the strip path (52, 53 part, 54)
+- Roadmap gate: G5
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): app/src/main/cpp/dovi_bridge.cpp (`nativeDetectRpuElType`, `nativeGetRpuStaticMetadata`, libdovi header include), core/player/DoviBridge.kt (`RpuStaticMetadata`, readers), core/player/Hdr10SeiInjector.kt (whole file), core/player/DolbyVisionMatroskaTransformer.kt (EL probe, metadata probe, `injectHdr10SeiIfEnabled`)
+- Import mode: FILE_PORT (injector, native readers) + DELTA_PORT (transformer / factory hooks) + ADAPTER (HUD `dv` row, fork setting)
+- Current official equivalent: none (no RPU metadata read, no SEI authoring); official `hdr` HUD row shows the stream format
+- What already existed upstream: libdovi bridge, RPU strip, HDR10+ SEI strip, single-track EL strip
+- What was imported: EL type and static-metadata readers; MDCV + CLLI authoring with emulation prevention; injection before the first slice for DV8 on the MKV strip path when absent
+- What was intentionally not imported: Annex-B injection and the MP4/TS metadata probe (no strip-path injection there in ysosrs either), `DolbyVisionConversionStats` diagnostics page, startup self-test (became unit tests), the bridge startup exercise call
+- Local adaptations: pure injector and metadata types in `fork/video` (length-delimited only); HUD `dv` row fed by `fork/video/DvStreamInfo` (reset per playback); switch in the G5 profile store (`hdr10_sei_on_dv_strip`) with a row in the official Dolby Vision / HDR section (EN/AR)
+- Feature flag / fallback: injection needs the switch (default off, D048) and FeatureId.AUDIO_DV_AFR not OFF; probes run only with the group on and the native bridge available; any read failure leaves the row empty
+- Tests ported/added: Hdr10SeiInjectorTest (6, from ysosrs selfTest), PlaybackHudTest +1
+- License / attribution notes: GPL-3.0, identical LICENSE; libdovi (MIT) credited in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: primaries assumed BT.2020/D65 (RPU does not carry them); device checks MANUAL-PENDING (G14 campaign, HV-G5-6, HV-G5-7)
+
+### G5d3 — Display output state in the HUD (53 part, 60); 55 verified official
+- Roadmap gate: G5
+- Source repository: none (local ADAPTER over the Android Display API; the ysosrs and Reshaped deltas for these IDs are not imported)
+- Source branch: n/a
+- Pinned source SHA: n/a
+- Source commit(s): n/a
+- Source file(s): n/a
+- Import mode: ADAPTER (G1 HUD rows)
+- Current official equivalent: HUD `display` row shows the refresh rate only; official True-black letterbox toggle (55)
+- What already existed upstream: `LetterboxRenderPolicy` / `PlayerWindowBackdrop`, `transparentLetterbox` setting (default off)
+- What was imported: nothing; added the display mode size to the `display` row and a `tv hdr` row (Display HDR types)
+- What was intentionally not imported: Reshaped `LetterboxRenderPolicy.defaultTransparentLetterbox` (turns true-black on for every non-Amazon device, D048), ysosrs deletion of `LetterboxRenderPolicy` (removal not inherited)
+- Local adaptations: `supportedHdrTypesOf` reads `Display.Mode.supportedHdrTypes` on API 34+, `Display.getHdrCapabilities` before; the current panel HDR mode is not exposed by Android and is not claimed
+- Feature flag / fallback: HUD rows appear only in the official stats overlay; unreadable values leave the row out
+- Tests ported/added: PlaybackHudTest +1
+- License / attribution notes: n/a (local)
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: some TVs report HDR types for the panel rather than the HDMI source mode; device check MANUAL-PENDING (G14 campaign, HV-G5-8)

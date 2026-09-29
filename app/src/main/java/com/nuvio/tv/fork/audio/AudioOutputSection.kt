@@ -44,3 +44,17 @@ private fun PassthroughFormat.titleRes(): Int = when (this) {
     PassthroughFormat.DTS -> R.string.audio_passthrough_dts
     PassthroughFormat.DTS_HD -> R.string.audio_passthrough_dtshd
 }
+
+/** G5d (feature 54) row inside the official Dolby Vision / HDR section; nothing while the group is OFF. */
+@Composable
+internal fun DvHdr10SeiRow(enabled: Boolean, viewModel: AudioOutputViewModel = hiltViewModel()) {
+    if (!viewModel.enabled) return
+    val checked by viewModel.hdr10SeiOnDvStrip.collectAsStateWithLifecycle()
+    SettingsToggleRow(
+        title = stringResource(R.string.dv_hdr10_sei_on_strip),
+        subtitle = stringResource(R.string.dv_hdr10_sei_on_strip_sub),
+        checked = checked,
+        enabled = enabled,
+        onToggle = { viewModel.setHdr10SeiOnDvStrip(!checked) }
+    )
+}

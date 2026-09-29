@@ -84,6 +84,23 @@ class PlaybackHudTest {
     }
 
     @Test
+    fun displayRowAddsModeSizeAndTvHdrListsTypes() {
+        // G5d (53, 60)
+        assertEquals("23.976 Hz · 3840x2160", PlaybackHud.display(PlaybackHudInput(displayRefreshHz = 23.976f, displayWidth = 3840, displayHeight = 2160))?.value)
+        assertEquals("60.000 Hz", PlaybackHud.display(PlaybackHudInput(displayRefreshHz = 60f))?.value)
+        assertEquals("DV HDR10 HLG HDR10+", PlaybackHud.displayHdr(listOf(4, 2, 1, 3, 2))?.value)
+        assertEquals("SDR only", PlaybackHud.displayHdr(emptyList())?.value)
+        assertNull(PlaybackHud.displayHdr(null))
+    }
+
+    @Test
+    fun dvRowOnlyWhenTheStreamRevealedSomething() {
+        // G5d (53)
+        assertNull(PlaybackHud.rows(PlaybackHudInput()).firstOrNull { it.label == "dv" })
+        assertEquals("FEL · MDL ~1000 nits", PlaybackHud.rows(PlaybackHudInput(dvStreamInfo = "FEL · MDL ~1000 nits")).first { it.label == "dv" }.value)
+    }
+
+    @Test
     fun chainRowReportsWhatThePlatformClaimed() {
         // G5c (39)
         assertNull(PlaybackHud.chain(null))
