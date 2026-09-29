@@ -12,7 +12,7 @@ active_gate_name: REMUX / Network Performance
 active_branch: feat/remux-network
 active_task_packet: tasks/G4_REMUX_NETWORK.md
 active_status: IN_PROGRESS
-active_pr: null
+active_pr: 22
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
