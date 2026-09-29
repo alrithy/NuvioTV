@@ -101,3 +101,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; source attributed here and in the audit
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: on-device memory and scrolling behavior on 1–2 GB boxes MANUAL-PENDING; the official RGB565 toggle still shows the user value while low-RAM forces it on
+
+### G2b — Playback allocation safety by tier (266–268)
+- Roadmap gate: G2
+- Source repository: hackerslash/NuvioTV-Lite
+- Source branch: dev
+- Pinned source SHA: 2afdcd05d45e27afd48fb83ef9db6c286216a44c
+- Source commit(s): tree at the pinned SHA (file-level diff against official 71632b9)
+- Source file(s): ui/screens/settings/MemoryBudget.kt (isConstrainedTier, LOW_RAM_BUFFER_CEILING_MB, clampParallel), MemoryBudgetTest.kt
+- Import mode: ALGORITHM_PORT (constrained tier drives allocation safety, 250 MB ceiling, 4-connection clamp)
+- Current official equivalent: MemoryBudget heap tier and budget, tierMaxChunkMb, PlayerMediaSourceFactory session connections, NuvioExoPlayerPerformanceHelper native limits
+- What already existed upstream: heap-tier ratio/reserve/floor, 16 MB low-tier chunk cap, native safe/warning limits, prefetch-depth budget
+- What was imported: constrained devices join official's low tier; 250 MB heap budget ceiling and 4 session connections on constrained
+- What was intentionally not imported: Lite bufferCount formula, removal of official prefetchDepthChunks and large-target-buffer override, Lite perf-mode budget-fit chunk clamp, settings/UI changes
+- Local adaptations: `AdaptiveResourcePolicy.heapBufferBudgetMb` / `parallelConnections` (identity on standard); two call sites in official MemoryBudget and one in PlayerMediaSourceFactory
+- Feature flag / fallback: FeatureId.ADAPTIVE_RESOURCE_MANAGER (AUTO, D042); OFF restores official heap-only tiering
+- Tests ported/added: AdaptiveResourcesTest (+2, Lite MemoryBudgetTest ceiling/clamp cases re-expressed on the policy); corrected NuvioExoPlayerPerformanceHelperTest expectations (official 2a22a6f22)
+- License / attribution notes: GPL-3.0, identical LICENSE
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: startup/seek behavior on 2 GB boxes with the lower budget MANUAL-PENDING

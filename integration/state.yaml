@@ -12,15 +12,15 @@ active_gate_name: Adaptive Resource Manager
 active_branch: feat/adaptive-resource-manager
 active_task_packet: tasks/G2_ADAPTIVE_RESOURCE_MANAGER.md
 active_status: IN_PROGRESS
-active_pr: 14
+active_pr: null
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: e07e7e8eff3b9a7cf88934734a80dc75c0c1e083
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36558548508 ; G1c PR
-  #12 exact head, squash-merged as 27c921c.
-last_green_scope: Full suite guard (1801 tests, 0 new failures), governance validator,
-  fullDebug APK
+last_green_commit: a55ee53fed011531f5c3bce5ab4c1eeecd68722d
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36562615830 ; G2a PR
+  #14 exact head, squash-merged as b2a13d1.
+last_green_scope: Full suite guard (1814 tests, 18 known failures, 0 new failures), governance
+  validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
   initial_governance_merge_commit: 1edb0190c87f0932c7547c74de4265206e3a93a5

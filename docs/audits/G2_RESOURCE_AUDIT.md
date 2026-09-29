@@ -45,3 +45,28 @@ cap of 8 fetches on strong devices.
 Strong-device invariant: on `MemoryTier.STANDARD` every policy value equals the official input
 (`AdaptiveResourcesTest.standardTierKeepsEveryOfficialValue`), and low-RAM cuts are `min()`
 clamps that never raise an official value.
+
+## Playback allocation safety (G2b)
+Official owners: `MemoryBudget` (heap ratio 0.65/0.85, 210 MB reserve, 16 MB chunk cap on its
+low tier, DV7 back-buffer and conversion ratio), `PlayerMediaSourceFactory` (session connections,
+`prefetchDepthChunks` floored at 2 chunks per connection), `ParallelRangeDataSource` session chunk
+cap, native safe limits in `NuvioExoPlayerPerformanceHelper` (unknown 200, <1.15 GB 100,
+<2.3 GB 200). Official's low tier is heap-based (`maxHeapMb < 512`), so a 2 GB box with
+`largeHeap` (512 MB) is treated as high-RAM: 0.85 ratio, 128 MB chunks.
+
+| ID | Behavior | Class | Result |
+|---|---|---|---|
+| 266 | Buffer size by RAM tier | PARTIAL_OVERLAP | official heap tier kept; `MemoryBudget.isLowRamTier` also true when constrained (only adds safety); Java-heap budget ceiling 250 MB on constrained (Lite `LOW_RAM_BUFFER_CEILING_MB`); floor unchanged |
+| 267 | Parallel connections by RAM tier | missing delta | session connections capped at 4 (official non-performance maximum) on constrained; performance mode's 16 is kept on standard. Stored setting and UI unchanged |
+| 268 | Chunk size by RAM tier | ALREADY_OFFICIAL mechanism, extended | official 16 MB `tierMaxChunkMb` now also applies to constrained devices through `isLowRamTier` |
+
+Not imported: Lite's `bufferCount = connections * 2` (official moved to `+ 2` and a prefetch-depth
+budget), removal of official `prefetchDepthChunks` / large-target-buffer override, Lite's
+budget-fit chunk clamp in performance mode (official tier cap is kept as the single chunk
+ceiling), and any change to stored settings.
+
+Baseline debt in this subsystem: `NuvioExoPlayerPerformanceHelperTest` default/1 GB/2 GB cases
+expected 250/150/250; official `2a22a6f22` ("lower the native memory tiers and seed the target
+below them") changed the values to 200/100/200 on purpose without updating the test. The
+expectations are corrected; the three debt entries are removed only after a full-suite report
+shows them passing and a confirming run (BASELINE_TEST_DEBT).

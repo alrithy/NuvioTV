@@ -214,7 +214,8 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
                     setUserAgent(DEFAULT_USER_AGENT)
                 }
             }
-            val sessionConnections = parallelConnectionCount
+            val sessionConnections =
+                com.nuvio.tv.fork.resource.AdaptiveResources.policy.parallelConnections(parallelConnectionCount)
             val sessionChunkBytes = parallelChunkSizeKb
                 .coerceAtMost(com.nuvio.tv.ui.screens.settings.MemoryBudget.tierMaxChunkMb * 1024)
                 .toLong() * 1024L

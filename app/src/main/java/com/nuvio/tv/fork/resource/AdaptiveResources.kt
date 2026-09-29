@@ -60,6 +60,22 @@ class AdaptiveResourcePolicy(val tier: MemoryTier) {
             MemoryTier.STANDARD -> null
         }
 
+    /**
+     * Allocation safety: ceiling on the Java-heap playback buffer budget. `largeHeap` reports the
+     * same ~512 MB heap on a 2 GB box as on an 8 GB one, so the heap ratio alone would hand a
+     * constrained device ~300 MB of buffers and get the process LMK-killed before any OOM.
+     */
+    fun heapBufferBudgetMb(official: Int): Int =
+        if (isConstrained) official.coerceAtMost(CONSTRAINED_BUFFER_BUDGET_CEILING_MB) else official
+
+    /**
+     * Allocation safety: parallel range connections for one playback session. Performance mode
+     * stores up to 16, and the prefetch floor is two chunks per connection, which alone exceeds
+     * the native safe limit of a 2 GB device.
+     */
+    fun parallelConnections(official: Int): Int =
+        if (isConstrained) official.coerceAtMost(CONSTRAINED_MAX_PARALLEL_CONNECTIONS) else official
+
     /** Home catalog rows loading at once; never above the official value. */
     fun catalogLoadConcurrency(official: Int): Int =
         if (isLowRam) official.coerceAtMost(LOW_RAM_CATALOG_CONCURRENCY) else official
@@ -94,6 +110,10 @@ class AdaptiveResourcePolicy(val tier: MemoryTier) {
 
     companion object {
         const val LOW_RAM_CATALOG_CONCURRENCY = 2
+        const val CONSTRAINED_BUFFER_BUDGET_CEILING_MB = 250
+
+        /** Official `MemoryBudget.MAX_CONNECTIONS`, the non-performance-mode maximum. */
+        const val CONSTRAINED_MAX_PARALLEL_CONNECTIONS = 4
         const val LOW_RAM_IMAGE_CACHE_PERCENT = 0.08
         const val LOW_RAM_DECODE_PARALLELISM = 2
 
