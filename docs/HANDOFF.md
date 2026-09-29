@@ -27,16 +27,17 @@ selection (default Official, D043), HUD `strategy` row. Audit:
 G4 IN_PROGRESS (user chose option 2, 2026-09-29: build every slice, keep hardware A/B
 MANUAL-PENDING, G4 not DONE until the same-file A/B runs on the user's TCL C6K). Audit merged (PR #20,
 `5a6a308`; 4, 10, 12, 13 verified_official). G4a merged (PR #21, `12ca7ba`): dead-source failover +
-startup watchdog (19, 20, D044, IMPORT_LEDGER G4a). G4b on `feat/remux-network`: press-time
-connection warm-up for the REMUX / Throughput strategy (18, IMPORT_LEDGER G4b); 8, 9, 11
-verified_official (ysosrs ParallelRangeDataSource equals official code). Local evidence: JVM harness
-90 tests, 0 failures.
+startup watchdog (19, 20, D044). G4b merged (PR #22, `8cb77f9`): press-time warm-up for REMUX (18);
+8, 9, 11 verified_official. G4c on `feat/remux-network`: Matroska mid-stream resync to the next
+Cluster (21, IMPORT_LEDGER G4c); 22, 23 verified_official (official is newer than ysosrs). Local
+evidence: fork JVM harness 90 tests, extractor harness (vendored media3 jars) 14 tests, 0 failures.
 
 ## Exact next action
-1. Drive the G4b PR to green and squash-merge it; merge integration back into the branch.
-2. G4c: MKV mid-stream resync to the next Cluster (21; ysosrs MatroskaExtractor), keeping official
-   truncated-tail (22) and nested SeekHead (23) handling that ysosrs lacks; check MP4 non-faststart
-   (24). G4d: Reshaped disk seek buffer (25) in Seek optimized only; classify/defer 5, 6, 7, 17, 26.
+1. Drive the G4c PR to green and squash-merge it; merge integration back into the branch.
+2. G4d (code ready locally on `wip/g4d` if the container survived; otherwise redo from the audit
+   G4c/G4d notes): Seek optimized adds ysosrs MP4 session mode (24) for progressive MP4 and the
+   Reshaped disk read-ahead ring (25) for other progressive files, never on the parallel path
+   (D006); classify/defer 5, 6, 7, 17, 26.
 3. Then write `docs/HARDWARE_VALIDATION_TCL_C6K.md` (one checklist for all MANUAL-PENDING items,
    including the G4 A/B protocol). Do not mark G4 DONE before that A/B runs.
 
