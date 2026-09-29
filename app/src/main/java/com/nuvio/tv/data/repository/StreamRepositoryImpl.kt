@@ -31,6 +31,8 @@ import com.nuvio.tv.fork.diagnostics.AddonHealthClassifier
 import com.nuvio.tv.fork.diagnostics.AddonHealthState
 import com.nuvio.tv.fork.diagnostics.AddonHealthTracker
 import com.nuvio.tv.fork.diagnostics.AddonRequest
+import com.nuvio.tv.fork.resource.AdaptiveResources
+import com.nuvio.tv.fork.resource.addonFetchLimiter
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -192,9 +194,11 @@ class StreamRepositoryImpl @Inject constructor(
                 val totalJobs = streamAddons.size + 1
                 val completedJobs = java.util.concurrent.atomic.AtomicInteger(0)
 
-                // Launch addon jobs
+                // Launch addon jobs (bounded on constrained devices; unbounded otherwise)
+                val addonFetchLimiter = AdaptiveResources.policy.addonFetchLimiter()
                 streamAddons.forEach { addon ->
                     launch {
+                        addonFetchLimiter?.acquire()
                         val startedAt = System.nanoTime()
                         fun elapsedMs() = (System.nanoTime() - startedAt) / 1_000_000
                         try {
@@ -259,6 +263,7 @@ class StreamRepositoryImpl @Inject constructor(
                                 detail = e.message ?: context.getString(com.nuvio.tv.R.string.stream_error_detail_addon_request_failed)
                             )
                         } finally {
+                            addonFetchLimiter?.release()
                             if (completedJobs.incrementAndGet() >= totalJobs) {
                                 resultChannel.close()
                             }

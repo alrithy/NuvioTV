@@ -37,6 +37,7 @@ import com.nuvio.tv.domain.repository.CatalogRepository
 import com.nuvio.tv.domain.repository.LibraryRepository
 import com.nuvio.tv.domain.repository.MetaRepository
 import com.nuvio.tv.domain.repository.WatchProgressRepository
+import com.nuvio.tv.fork.resource.AdaptiveResources
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -228,7 +229,8 @@ class HomeViewModel @Inject constructor(
     internal var currentHeroCatalogKeys: List<String> = emptyList()
     internal var catalogUpdateJob: Job? = null
     internal var hasRenderedFirstCatalog = false
-    internal val catalogLoadSemaphore = Semaphore(MAX_CATALOG_LOAD_CONCURRENCY)
+    internal val catalogLoadSemaphore =
+        Semaphore(AdaptiveResources.policy.catalogLoadConcurrency(MAX_CATALOG_LOAD_CONCURRENCY))
     internal var pendingCatalogLoads = 0
     internal val activeCatalogLoadJobs = mutableSetOf<Job>()
     internal var activeCatalogLoadSignature: String? = null

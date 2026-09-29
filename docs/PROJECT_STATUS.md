@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G2 — Adaptive Resource Manager
 - Active branch: `feat/adaptive-resource-manager`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G2_ADAPTIVE_RESOURCE_MANAGER.md`
 - Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
@@ -14,7 +14,7 @@ This view's header is generated from state; use `state_view.py` after state chan
 
 ## Work boundary
 G0 DONE (PR #7). G1 Unified Diagnostics & Add-on Health DONE (PRs #10, #11, #12; 289 deferred to
-G8). G2 Adaptive Resource Manager READY. Legacy PR #1/#2 stay reference-only.
+G8). G2 Adaptive Resource Manager IN_PROGRESS (G2a tiers + fan-out/image/post-play). Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.

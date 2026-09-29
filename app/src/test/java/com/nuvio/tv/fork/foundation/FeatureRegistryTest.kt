@@ -26,12 +26,16 @@ class FeatureRegistryTest {
     }
 
     @Test
-    fun onlyPassiveDiagnosticsHasADecidedDefault() {
+    fun onlyRecordedDecisionsHaveADecidedDefault() {
         assertEquals(
-            mapOf(FeatureId.UNIFIED_DIAGNOSTICS to FeatureMode.AUTO),
+            mapOf(
+                FeatureId.UNIFIED_DIAGNOSTICS to FeatureMode.AUTO, // D041
+                FeatureId.ADAPTIVE_RESOURCE_MANAGER to FeatureMode.AUTO, // D042
+            ),
             FeatureRegistry.DECIDED_DEFAULTS,
         )
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.UNIFIED_DIAGNOSTICS))
+        assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.ADAPTIVE_RESOURCE_MANAGER))
     }
 
     @Test
