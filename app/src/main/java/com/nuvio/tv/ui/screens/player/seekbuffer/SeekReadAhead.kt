@@ -30,7 +30,8 @@ import kotlin.concurrent.withLock
  * DavidVamaiotu/NuvioTV-Reshaped @ 0ccf049 `seekbuffer/SeekReadAhead.kt`, engaged only by the Seek
  * optimized strategy, sized by [SeekOptimizedMedia.readAheadMb] and never on the parallel path
  * (D006). Adaptations: size passed in (no Reshaped settings screen), no Live TV registry, no
- * seek-bar or throughput-sampler hooks, leftover files removed on first use in the process.
+ * seek-bar or throughput-sampler hooks, leftover files removed on first use in the process,
+ * exception class names instead of throwables in logs (AR-001).
  *
  * ExoPlayer's own buffer lives in memory and is capped by the device budget. Here one connection
  * reads the stream ahead of playback into a ring file of the chosen size and the player reads
@@ -460,7 +461,7 @@ private class ReadAheadSession(val key: String, private val file: File, private 
             }
         } catch (unexpected: Throwable) {
             // Never expected; the player must not hang on (or the app die with) a stopped read-ahead.
-            Log.w("SeekReadAhead", "read-ahead stopped", unexpected)
+            Log.w("SeekReadAhead", "read-ahead stopped: ${unexpected.javaClass.simpleName}")
             lock.withLock { if (error == null) error = unexpected as? IOException ?: IOException(unexpected) }
             close()
         } finally {
@@ -472,7 +473,7 @@ private class ReadAheadSession(val key: String, private val file: File, private 
     }
 
     private fun failDisk(failure: IOException) {
-        Log.w("SeekReadAhead", "read-ahead file unwritable, reading directly", failure)
+        Log.w("SeekReadAhead", "read-ahead file unwritable, reading directly: ${failure.javaClass.simpleName}")
         diskFailed = true
         close()
     }
