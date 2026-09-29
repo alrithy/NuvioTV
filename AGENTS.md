@@ -107,6 +107,9 @@ Never merge another fork wholesale. Never overwrite a current official subsystem
 - Never silently drop a difficult feature; mark blocked/deferred with evidence.
 - Never invent hardware/manual test results.
 
+## Architecture review queue
+Before finalizing a PR, check `docs/ARCHITECT_REVIEW_QUEUE.md` **only for open items that apply to the current gate/PR/touched subsystem**. Review them; do not implement them automatically. Record ACCEPTED / REJECTED / DEFERRED / IMPLEMENTED / OBSOLETE with rationale and evidence so the response survives across agents.
+
 ## Quality gate
 Every code gate must satisfy `docs/DEFINITION_OF_DONE.md`.
 At minimum run the governance validator, the full unit suite with the no-new-regressions baseline guard, the relevant build, and gate-specific tests. Pre-existing failures are governed only by `docs/BASELINE_TEST_DEBT.md`; new failures must not be waived silently.
