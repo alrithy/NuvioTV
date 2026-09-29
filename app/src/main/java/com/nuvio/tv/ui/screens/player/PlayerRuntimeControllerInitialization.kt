@@ -1889,7 +1889,10 @@ internal fun PlayerRuntimeController.initializePlayer(
                         eventTime: AnalyticsListener.EventTime,
                         audioTrackConfig: AudioSink.AudioTrackConfig
                     ) {
-                        playbackAnalyticsDiagnostics.onAudioTrackInitialized(audioTrackConfig.encoding)
+                        playbackAnalyticsDiagnostics.onAudioTrackInitialized(
+                            encoding = audioTrackConfig.encoding,
+                            channelConfig = audioTrackConfig.channelConfig
+                        )
                     }
 
                     override fun onAudioUnderrun(
@@ -2290,6 +2293,12 @@ private class SubtitleOffsetRenderersFactory(
             .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
             .setAudioProcessors(arrayOf(gainAudioProcessor))
         val baseAudioSink = builder.build()
+        // G5c (39): platform claims for the HUD `chain` row; read-only, never opens an AudioTrack.
+        if (com.nuvio.tv.fork.foundation.FeatureRegistry().mode(com.nuvio.tv.fork.foundation.FeatureId.AUDIO_DV_AFR) !=
+            com.nuvio.tv.fork.foundation.FeatureMode.OFF
+        ) {
+            com.nuvio.tv.fork.diagnostics.AudioChainProbe.capture(context)
+        }
         val playbackSpeedAwareAudioSink = PlaybackSpeedAwareAudioSink(
             sink = baseAudioSink,
             initialForcePcm = initialForcePcm,

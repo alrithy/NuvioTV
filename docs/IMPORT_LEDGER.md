@@ -272,3 +272,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: FFmpeg decode cost of TrueHD/DTS-HD on the TV CPU; device check MANUAL-PENDING (G14 campaign, HV-G5-3)
+
+### G5c — Audio output diagnostics (39–42)
+- Roadmap gate: G5
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/screens/player/AudioCapabilityReport.kt (direct-support probe, surround mode, per-encoding HDMI PCM channels), its capture in the sink build
+- Import mode: ALGORITHM_PORT (probe) + ADAPTER (G1 HUD rows)
+- Current official equivalent: `AudioCapabilities` / `AudioOutputRouteDetector` decide output; the G1 HUD shows source codec/channels and the output encoding
+- What already existed upstream: the official stats overlay; G1b HUD rows `audio` / `output`
+- What was imported: platform claim snapshot (formats accepted directly, surround mode, max PCM channels) shown as the HUD `chain` row; output PCM channel count; decode reason when a G5c receiver switch is off; stream-reported audio bitrate
+- What was intentionally not imported: ysosrs negotiated-encodings line and Device Assessment per-format rows (tied to its F2/F3 learning), `AudioTrackRejectionLog` (F3 learning input), diagnostics page text export
+- Local adaptations: pure `AudioChainSnapshot` + formatting in `fork/diagnostics/PlaybackHud.kt` (G1 owner); Android probe in `fork/diagnostics/AudioChainProbe.kt`, captured only while FeatureId.AUDIO_DV_AFR is not OFF
+- Feature flag / fallback: HUD rows appear only in the official stats overlay; a failed or pre-API-29 probe leaves the row out
+- Tests ported/added: PlaybackHudTest +3
+- License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: `isDirectPlaybackSupported` reflects vendor audio-policy profiles, which some TVs over-report (the reason 38 exists); device check MANUAL-PENDING (G14 campaign, HV-G5-4)

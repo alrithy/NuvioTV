@@ -211,6 +211,10 @@ class PlayerViewModel @Inject constructor(
 
     fun getRebufferCount(): Int = controller.rebufferCount
 
+    /** G5c (40): the current audio format is decoded because its receiver switch is off. */
+    internal fun isAudioPassthroughDeniedByUser(format: androidx.media3.common.Format): Boolean =
+        controller.playbackSpeedAwareAudioSink?.isPolicyDeniedPassthrough(format) == true
+
     /** Selected/effective playback strategy for the HUD (G3); official until a session is built. */
     fun getPlaybackStrategyLabel(): String =
         controller.currentStrategyDecision?.hudLabel ?: com.nuvio.tv.fork.diagnostics.PlaybackHud.OFFICIAL_STRATEGY
