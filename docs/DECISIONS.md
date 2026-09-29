@@ -278,3 +278,13 @@ endless spinner; failover keeps the user's source order, never revisits a dead U
 3 per chain. Deliberately not dead: HTTP 429 and timeouts. G4 changes to network transfer behavior
 (ParallelRangeDataSource refinements, disk seek buffer) apply only when a G3 strategy selects them.
 OFF restores official error handling. G4 is not DONE until the same-file A/B on the TCL C6K runs.
+
+## D045 — Seek optimized: one seek mechanism per stream, sized by tier
+The Seek optimized strategy (D006) adds, only off the parallel path and only for remote progressive
+http(s) streams: ysosrs MP4 session mode (single connection, 8 MiB chunks) for MP4, and the
+Reshaped disk read-ahead ring for everything else. Never both on one stream (a ring thrashes on MP4
+scatter reads) and never with parallel REMUX. Ring size comes from the G2 tier: 512 MB standard,
+256 MB constrained, off on low-RAM (Reshaped shipped it off by default because full-speed disk
+writes are heavy on weak TVs); it also keeps half of free storage and a 1 GiB reserve. The
+official VOD disk cache stays as the strategy already sets it (it keeps what was played; the ring
+holds what comes next). No separate settings screen: the strategy selector is the only switch.

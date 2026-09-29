@@ -196,3 +196,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 (app) + Apache-2.0 (vendored media3 extractor header kept); attributed in comments and KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: a skipped hole drops up to one cluster of samples (brief visual/audio skip); real Usenet zero-fill files MANUAL-PENDING (TCL C6K)
+
+### G4d — Seek optimized: MP4 session mode (24) and disk read-ahead ring (25)
+- Roadmap gate: G4
+- Source repository: ysosrs123/NuvioTV-Fork (24); DavidVamaiotu/NuvioTV-Reshaped (25)
+- Source branch: nuvio-test (24); subtitle-autosync (25)
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb (24); 0ccf049d2789600835f3f7a75423e9149ea416ba (25)
+- Source commit(s): trees at the pinned SHAs (file-level diff)
+- Source file(s): ysosrs ui/screens/player/PlayerMediaSourceFactory.kt (resolveChunkSessionShape mp4SessionMode, MP4_SESSION_CHUNK_BYTES, allowContinuationReopen = !mp4SessionMode); Reshaped ui/screens/player/seekbuffer/SeekReadAhead.kt (whole file), PlayerMediaSourceFactory / PlayerRuntimeControllerLifecycle / PlayerRuntimeControllerMpv hooks
+- Import mode: DELTA_PORT (24, factory branch) + FILE_PORT (25, SeekReadAhead) + ADAPTER (strategy gate, tier size)
+- Current official equivalent: parallel `ParallelRangeDataSource` sessions (opt-in), VOD disk cache (keeps played data); no MP4-specific session and no read-ahead ring
+- What already existed upstream: `ParallelRangeDataSource.Factory(allowContinuationReopen)`, the VOD cache, the G3 Seek optimized strategy (single connection + VOD cache)
+- What was imported: MP4 session mode (1 connection, 8 MiB chunks, prefetch depth 2, whole-chunk retention) for progressive MP4; SeekReadAhead ring (one connection, pread/pwrite ring file, relocation on out-of-ring reads, one-connection-per-link handling, disk-failure fallback to direct reads, unbounded-stream handoff) for other progressive files; release on player release and on the MPV switch
+- What was intentionally not imported: Reshaped SeekBufferSettings screen and SharedPreferences store, MPV demuxer cache sizing from that setting (26, deferred), seek-bar buffered-position extension and throughput-sampler hook (touch PlaybackEvents, which official #3740 changes), Live TV registry (Reshaped-only feature), ysosrs `shouldAllowBackgroundPrefetch = { true }` change (official startup gating kept), ysosrs nt13 prestartChunk0 wiring (G4b warm-up covers startup)
+- Local adaptations: `fork/playback/SeekOptimizedMedia.kt` decides the mode (never both, never with parallel) and the tier size; ring cleanup of an earlier run's files on first use in the process instead of an Application hook; a non-read-ahead playback releases any live ring
+- Feature flag / fallback: engaged only when the effective G3 strategy is Seek optimized and REMUX_PERFORMANCE is not OFF (D044, D045); Official/REMUX/Low memory/Auto-default never touch it
+- Tests ported/added: SeekOptimizedMediaTest (5)
+- License / attribution notes: GPL-3.0, identical LICENSE in both sources; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: ring concurrency is Reshaped's (untested on JVM: android.system.Os pread/pwrite); disk wear and storage use on the TV; seek latency and rebuffer A/B MANUAL-PENDING (TCL C6K)
