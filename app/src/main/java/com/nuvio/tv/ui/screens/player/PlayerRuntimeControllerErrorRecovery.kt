@@ -510,7 +510,7 @@ internal fun PlayerRuntimeController.tryParsingErrorProbeFallback(
         } else {
             // G4a: the probe found no better container, so a non-media body is permanent
             // for this URL; advance before the engine failover (dead on either engine).
-            if (isDeadSourcePlaybackError(error) && advanceToNextLiveSource(detailedError)) {
+            if (isDeadSourcePlaybackError(error) && advanceToNextLiveSource(error.failoverReason())) {
                 return@launch
             }
             if (maybeAutoSwitchInternalPlayerOnStartupError(detailedError = detailedError, allowEngineFailover = allowEngineFailover)) {
@@ -519,7 +519,7 @@ internal fun PlayerRuntimeController.tryParsingErrorProbeFallback(
             if (attemptAutoRetry(error, detailedError)) {
                 return@launch
             }
-            if (attemptStartupExhaustedSourceFailover(detailedError)) {
+            if (attemptStartupExhaustedSourceFailover(error.failoverReason())) {
                 return@launch
             }
             val userFacingError = error.toDisplayMessage(context)

@@ -278,3 +278,13 @@ endless spinner; failover keeps the user's source order, never revisits a dead U
 3 per chain. Deliberately not dead: HTTP 429 and timeouts. G4 changes to network transfer behavior
 (ParallelRangeDataSource refinements, disk seek buffer) apply only when a G3 strategy selects them.
 OFF restores official error handling. G4 is not DONE until the same-file A/B on the TCL C6K runs.
+
+## D046 — REMUX_PERFORMANCE stays AUTO before the hardware A/B (AR-003)
+Reviewed against the stability-first alternative (OFF until the TCL C6K A/B passes). Kept `AUTO`:
+every default-on G4 path engages only where official already failed or hung. Dead-source failover
+runs after official retries and shows the error when it cannot help; the startup watchdog never
+stops the player and retracts its error on a late first frame; MKV resync runs only on malformed
+cluster data that official turns into a playback error, with official truncated-tail handling
+first. The network-transfer changes (G4b warm-up, G4d MP4 session and read-ahead) stay behind the
+strategy selection, whose default is Official (D043). If the A/B shows a regression in any
+default-on path, that path's default goes to OFF in a follow-up decision.
