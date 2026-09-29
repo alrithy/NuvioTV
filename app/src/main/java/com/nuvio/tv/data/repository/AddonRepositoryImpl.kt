@@ -11,6 +11,9 @@ import com.nuvio.tv.data.mapper.toDomain
 import com.nuvio.tv.data.remote.api.AddonApi
 import com.nuvio.tv.domain.model.Addon
 import com.nuvio.tv.domain.repository.AddonRepository
+import com.nuvio.tv.fork.diagnostics.AddonHealthClassifier
+import com.nuvio.tv.fork.diagnostics.AddonHealthTracker
+import com.nuvio.tv.fork.diagnostics.AddonRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +60,8 @@ class AddonRepositoryImpl(
      */
     private val dispatcher: CoroutineDispatcher,
     /** Source of the refresh clock, injectable so the TTL policy can be tested without waiting. */
-    private val clock: () -> Long
+    private val clock: () -> Long,
+    private val healthTracker: AddonHealthTracker = AddonHealthTracker.DISABLED
 ) : AddonRepository {
 
     @Inject
@@ -66,7 +70,8 @@ class AddonRepositoryImpl(
         preferences: AddonPreferences,
         addonSyncService: AddonSyncService,
         authManager: AuthManager,
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        healthTracker: AddonHealthTracker
     ) : this(
         api = api,
         preferences = preferences,
@@ -74,7 +79,8 @@ class AddonRepositoryImpl(
         authManager = authManager,
         context = context,
         dispatcher = Dispatchers.IO,
-        clock = System::currentTimeMillis
+        clock = System::currentTimeMillis,
+        healthTracker = healthTracker
     )
 
     companion object {
@@ -302,8 +308,12 @@ class AddonRepositoryImpl(
         val baseQuery = if (queryStart >= 0) cleanBaseUrl.substring(queryStart) else ""
         val manifestUrl = "$basePath/manifest.json$baseQuery"
 
-        return when (val result = safeApiCall(context) { api.getManifest(manifestUrl) }) {
+        val startedAt = System.nanoTime()
+        val result = safeApiCall(context) { api.getManifest(manifestUrl) }
+        val latencyMs = (System.nanoTime() - startedAt) / 1_000_000
+        return when (result) {
             is NetworkResult.Success -> {
+                healthTracker.record(cleanBaseUrl, AddonHealthClassifier.success(latencyMs), latencyMs)
                 val addon = result.data.toDomain(cleanBaseUrl)
                 if (putCachedManifestIfChanged(cleanBaseUrl, addon)) {
                     Log.d(TAG, "Updated addon manifest cache url=$cleanBaseUrl version=${addon.version} configVersion=${addon.configVersion}")
@@ -311,6 +321,11 @@ class AddonRepositoryImpl(
                 NetworkResult.Success(addon)
             }
             is NetworkResult.Error -> {
+                healthTracker.record(
+                    cleanBaseUrl,
+                    AddonHealthClassifier.failure(AddonRequest.MANIFEST, result.code, result.message),
+                    latencyMs
+                )
                 Log.w(TAG, "Failed to fetch addon manifest for url=$manifestUrl code=${result.code} message=${result.message}")
                 result
             }

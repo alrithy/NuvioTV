@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G1 — Unified Diagnostics & Add-on Health
 - Active branch: `feat/unified-diagnostics`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G1_UNIFIED_DIAGNOSTICS.md`
 - Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
@@ -13,9 +13,9 @@
 This view's header is generated from state; use `state_view.py` after state changes.
 
 ## Work boundary
-G0 Fork Foundation is DONE (PR #7). G1 is READY and starts after upstream-sync PR #9
-(official `71632b9`, D040) merges. No external fork feature has been imported yet.
-Legacy PR #1/#2 stay reference-only.
+G0 DONE (PR #7). Official baseline `71632b9` accepted (PR #9). G1 IN_PROGRESS: G1a add-on
+health in review; G1b diagnostics HUD model and G1c device assessment follow on the same
+branch. Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.

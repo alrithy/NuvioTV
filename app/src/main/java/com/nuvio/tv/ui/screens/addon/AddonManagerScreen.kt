@@ -100,6 +100,7 @@ import androidx.tv.material3.Text
 import com.nuvio.tv.domain.model.Addon
 import com.nuvio.tv.domain.model.CatalogDescriptor
 import com.nuvio.tv.domain.model.ExperienceMode
+import com.nuvio.tv.fork.diagnostics.AddonHealthState
 import com.nuvio.tv.ui.components.LoadingIndicator
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.util.contentTextDirection
@@ -491,7 +492,8 @@ fun AddonManagerScreen(
                         onEnabledChange = { enabled -> viewModel.setAddonEnabled(addon.baseUrl, enabled) },
                         isReadOnly = viewModel.isReadOnly,
                         showReorder = !isEssential,
-                        toggleFocusRequester = if (index == 0) firstAddonToggleFocusRequester else null
+                        toggleFocusRequester = if (index == 0) firstAddonToggleFocusRequester else null,
+                        healthState = uiState.healthByUrl[addon.baseUrl]?.state
                     )
                 }
             }
@@ -1256,7 +1258,8 @@ private fun AddonCard(
     onEnabledChange: (Boolean) -> Unit,
     isReadOnly: Boolean = false,
     showReorder: Boolean = true,
-    toggleFocusRequester: FocusRequester? = null
+    toggleFocusRequester: FocusRequester? = null,
+    healthState: AddonHealthState? = null
 ) {
     if (isReadOnly) {
         Surface(
@@ -1277,7 +1280,7 @@ private fun AddonCard(
             shape = ClickableSurfaceDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md)),
             scale = ClickableSurfaceDefaults.scale(focusedScale = 1f)
         ) {
-            AddonCardContent(addon = addon, isReadOnly = true)
+            AddonCardContent(addon = addon, isReadOnly = true, healthState = healthState)
         }
     } else {
         val internalToggleFocusRequester = remember { FocusRequester() }
@@ -1303,7 +1306,8 @@ private fun AddonCard(
                 onRemove = onRemove,
                 onEnabledChange = onEnabledChange,
                 showReorder = showReorder,
-                toggleFocusRequester = effectiveToggleFocusRequester
+                toggleFocusRequester = effectiveToggleFocusRequester,
+                healthState = healthState
             )
         }
     }
@@ -1321,7 +1325,8 @@ private fun AddonCardContent(
     onRemove: () -> Unit = {},
     onEnabledChange: (Boolean) -> Unit = {},
     showReorder: Boolean = true,
-    toggleFocusRequester: FocusRequester? = null
+    toggleFocusRequester: FocusRequester? = null,
+    healthState: AddonHealthState? = null
 ) {
     Column(modifier = Modifier.padding(20.dp)) {
         Row(
@@ -1352,6 +1357,9 @@ private fun AddonCardContent(
                             style = MaterialTheme.typography.labelSmall,
                             color = NuvioTheme.colors.TextSecondary
                         )
+                    }
+                    if (addon.enabled && healthState != null) {
+                        AddonHealthBadge(healthState)
                     }
                 }
             }
@@ -1462,6 +1470,25 @@ private fun AddonCardContent(
             color = NuvioTheme.colors.TextTertiary
         )
     }
+}
+
+@Composable
+private fun AddonHealthBadge(state: AddonHealthState) {
+    val (label, color) = when (state) {
+        AddonHealthState.UNKNOWN -> return
+        AddonHealthState.HEALTHY -> R.string.addon_health_healthy to NuvioTheme.colors.Success
+        AddonHealthState.SLOW -> R.string.addon_health_slow to NuvioTheme.colors.Warning
+        AddonHealthState.NO_STREAMS -> R.string.addon_health_no_streams to NuvioTheme.colors.TextSecondary
+        AddonHealthState.TIMEOUT -> R.string.addon_health_timeout to NuvioTheme.colors.Error
+        AddonHealthState.AUTH_ERROR -> R.string.addon_health_auth_error to NuvioTheme.colors.Error
+        AddonHealthState.MANIFEST_ERROR -> R.string.addon_health_manifest_error to NuvioTheme.colors.Error
+        AddonHealthState.REQUEST_ERROR -> R.string.addon_health_request_error to NuvioTheme.colors.Error
+    }
+    Text(
+        text = stringResource(label),
+        style = MaterialTheme.typography.labelSmall,
+        color = color
+    )
 }
 
 private fun CatalogDescriptor.isSearchOnlyCatalog(): Boolean {

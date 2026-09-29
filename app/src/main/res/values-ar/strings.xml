@@ -1308,6 +1308,13 @@
     <string name="addon_empty">لا توجد إضافات مثبتة. أضف واحدة للبدء.</string>
     <string name="addon_remove">إزالة</string>
     <string name="addons_badge_disabled">معطل</string>
+    <string name="addon_health_healthy">سليم</string>
+    <string name="addon_health_slow">بطيء</string>
+    <string name="addon_health_timeout">انتهت المهلة</string>
+    <string name="addon_health_auth_error">خطأ مصادقة</string>
+    <string name="addon_health_manifest_error">خطأ في البيان</string>
+    <string name="addon_health_no_streams">لا توجد مصادر</string>
+    <string name="addon_health_request_error">خطأ في الطلب</string>
     <string name="addon_manage_from_phone_title">الإدارة من الهاتف</string>
     <string name="addon_manage_from_phone_subtitle">امسح رمز QR لإدارة الإضافات والقوائم الرئيسية من هاتفك</string>
     <string name="addon_manage_addons_only_from_phone_subtitle">امسح رمز QR لإدارة الإضافات من هاتفك</string>

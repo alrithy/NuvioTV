@@ -47,6 +47,7 @@ import com.nuvio.tv.domain.model.TmdbCollectionSourceType
 import com.nuvio.tv.domain.model.TraktCollectionSource
 import com.nuvio.tv.domain.model.enabledAddons
 import com.nuvio.tv.domain.repository.AddonRepository
+import com.nuvio.tv.fork.diagnostics.AddonHealthTracker
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -74,7 +75,8 @@ class AddonManagerViewModel @Inject constructor(
     private val profileManager: ProfileManager,
     private val tmdbCollectionSourceResolver: TmdbCollectionSourceResolver,
     private val traktPublicListSourceResolver: TraktPublicListSourceResolver,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val addonHealthTracker: AddonHealthTracker
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddonManagerUiState())
@@ -104,7 +106,16 @@ class AddonManagerViewModel @Inject constructor(
         observeInstalledAddons()
         observeCatalogPreferences()
         observeCollections()
+        observeAddonHealth()
         loadLogoBytes()
+    }
+
+    private fun observeAddonHealth() {
+        viewModelScope.launch {
+            addonHealthTracker.health.collect { health ->
+                _uiState.update { it.copy(healthByUrl = health) }
+            }
+        }
     }
 
     fun requestAddonSyncNow() {

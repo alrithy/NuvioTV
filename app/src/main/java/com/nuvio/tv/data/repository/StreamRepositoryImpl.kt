@@ -27,6 +27,10 @@ import com.nuvio.tv.core.streams.supportsStreamResource
 import com.nuvio.tv.domain.model.enabledAddons
 import com.nuvio.tv.domain.repository.AddonRepository
 import com.nuvio.tv.domain.repository.StreamRepository
+import com.nuvio.tv.fork.diagnostics.AddonHealthClassifier
+import com.nuvio.tv.fork.diagnostics.AddonHealthState
+import com.nuvio.tv.fork.diagnostics.AddonHealthTracker
+import com.nuvio.tv.fork.diagnostics.AddonRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
@@ -54,7 +58,8 @@ class StreamRepositoryImpl @Inject constructor(
     private val debridSettingsDataStore: DebridSettingsDataStore,
     private val tmdbService: TmdbService,
     private val debridStreamPresentation: DebridStreamPresentation,
-    private val localDebridAvailabilityService: LocalDebridAvailabilityService
+    private val localDebridAvailabilityService: LocalDebridAvailabilityService,
+    private val healthTracker: AddonHealthTracker = AddonHealthTracker.DISABLED
 ) : StreamRepository {
     private val streamSearchSessions = StreamSearchSessionCache()
     private val localPluginSearchPaused = MutableStateFlow(false)
@@ -190,11 +195,15 @@ class StreamRepositoryImpl @Inject constructor(
                 // Launch addon jobs
                 streamAddons.forEach { addon ->
                     launch {
+                        val startedAt = System.nanoTime()
+                        fun elapsedMs() = (System.nanoTime() - startedAt) / 1_000_000
                         try {
                             val streamsResult = getStreamsFromAddon(addon, type, videoId)
+                            val latencyMs = elapsedMs()
                             when (streamsResult) {
                                 is NetworkResult.Success -> {
                                     if (streamsResult.data.isNotEmpty()) {
+                                        healthTracker.record(addon.baseUrl, AddonHealthClassifier.success(latencyMs), latencyMs)
                                         val namedStreams = streamsResult.data.map {
                                             it.copy(addonName = addon.displayName, addonLogo = addon.logo)
                                         }
@@ -212,6 +221,7 @@ class StreamRepositoryImpl @Inject constructor(
                                             addon, type, videoId
                                         )
                                         if (inlineStreams.isNotEmpty()) {
+                                            healthTracker.record(addon.baseUrl, AddonHealthClassifier.success(latencyMs), latencyMs)
                                             resultChannel.send(
                                                 AddonStreams(
                                                     addonName = addon.displayName,
@@ -220,17 +230,28 @@ class StreamRepositoryImpl @Inject constructor(
                                                 )
                                             )
                                         } else {
+                                            healthTracker.record(addon.baseUrl, AddonHealthState.NO_STREAMS, latencyMs)
                                             attemptedFailures += buildMissingStreamFailure(addon)
                                         }
                                     }
                                 }
                                 is NetworkResult.Error -> {
+                                    healthTracker.record(
+                                        addon.baseUrl,
+                                        AddonHealthClassifier.failure(AddonRequest.STREAMS, streamsResult.code, streamsResult.message),
+                                        latencyMs
+                                    )
                                     attemptedFailures += buildAddonFailure(addon, streamsResult)
                                 }
                                 NetworkResult.Loading -> Unit
                             }
                         } catch (e: Exception) {
                             if (e is CancellationException) throw e
+                            healthTracker.record(
+                                addon.baseUrl,
+                                AddonHealthClassifier.failure(AddonRequest.STREAMS, null, e.message),
+                                elapsedMs()
+                            )
                             Log.e(TAG, "Addon ${addon.name} failed: ${e.message}")
                             attemptedFailures += StreamAttemptFailure(
                                 addonName = addon.displayName,

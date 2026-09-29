@@ -2,6 +2,7 @@ package com.nuvio.tv.fork.foundation
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FeatureRegistryTest {
@@ -17,11 +18,20 @@ class FeatureRegistryTest {
     }
 
     @Test
-    fun everyDefaultPreservesOfficialBehavior() {
+    fun everyUndecidedDefaultPreservesOfficialBehavior() {
         val registry = FeatureRegistry()
-        FeatureId.entries.forEach { id ->
+        FeatureId.entries.filter { it !in FeatureRegistry.DECIDED_DEFAULTS }.forEach { id ->
             assertEquals("$id default", FeatureMode.OFF, registry.mode(id))
         }
+    }
+
+    @Test
+    fun onlyPassiveDiagnosticsHasADecidedDefault() {
+        assertEquals(
+            mapOf(FeatureId.UNIFIED_DIAGNOSTICS to FeatureMode.AUTO),
+            FeatureRegistry.DECIDED_DEFAULTS,
+        )
+        assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.UNIFIED_DIAGNOSTICS))
     }
 
     @Test
@@ -41,14 +51,15 @@ class FeatureRegistryTest {
         val registry = FeatureRegistry()
         assertEquals(FeatureMode.OFF, registry.mode(FeatureId.AI_MEDIA))
         assertEquals(FeatureMode.OFF, registry.mode(FeatureId.MAT_AUDIO))
+        assertTrue(FeatureRegistry.DECIDED_DEFAULTS.keys.none { it.experimental })
     }
 
     @Test
     fun overridesApplyOnlyToTheirFeature() {
-        val registry = FeatureRegistry(mapOf(FeatureId.UNIFIED_DIAGNOSTICS to FeatureMode.AUTO))
-        assertEquals(FeatureMode.AUTO, registry.mode(FeatureId.UNIFIED_DIAGNOSTICS))
+        val registry = FeatureRegistry(mapOf(FeatureId.UNIFIED_DIAGNOSTICS to FeatureMode.OFF))
+        assertEquals(FeatureMode.OFF, registry.mode(FeatureId.UNIFIED_DIAGNOSTICS))
         FeatureId.entries.filter { it != FeatureId.UNIFIED_DIAGNOSTICS }.forEach {
-            assertEquals(FeatureMode.OFF, registry.mode(it))
+            assertEquals(FeatureRegistry.DEFAULTS.getValue(it), registry.mode(it))
         }
     }
 
