@@ -24,6 +24,7 @@ import com.nuvio.tv.domain.model.Meta
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.repository.MetaRepository
 import com.nuvio.tv.domain.repository.WatchProgressRepository
+import com.nuvio.tv.fork.resource.AdaptiveResources
 import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -113,6 +114,7 @@ internal class PostPlayRecommendationController(
     private val recommendationCache = mutableMapOf<Int, PostPlayRecommendation>()
     private var recommendationLoadAttempted = false
     private val postPlayTrailerPlaybackEnabled = AppFeaturePolicy.inAppTrailerPlaybackEnabled
+    private val resourcePolicy = AdaptiveResources.policy
     private var autoPlayTrailerEnabled = postPlayTrailerPlaybackEnabled
     private var lastSnapshot: PlaybackSnapshot? = null
     private var lastPlaybackIdentity: PlaybackIdentity? = null
@@ -378,7 +380,7 @@ internal class PostPlayRecommendationController(
             autoPlayTrailerEnabled = postPlayTrailerPlaybackEnabled && runCatching {
                 trailerSettingsDataStore.settings.first().enabled
             }.getOrDefault(true)
-            candidates.indices.forEach(::startCandidateResolution)
+            resourcePolicy.postPlayPrefetchIndices(candidates.size, 0).forEach(::startCandidateResolution)
             val resolvedCandidate = awaitCandidateResolution(0)
             if (resolvedCandidate == null) {
                 clearRecommendationPipeline()
@@ -405,7 +407,10 @@ internal class PostPlayRecommendationController(
     private fun prefetchRecommendationDetails(preferences: RatingPreferences) {
         recommendationPrefetchJob?.cancel()
         recommendationPrefetchJob = scope.launch {
-            recommendationCandidates.indices.forEach { index ->
+            resourcePolicy.postPlayPrefetchIndices(
+                recommendationCandidates.size,
+                _uiState.value.recommendationIndex
+            ).forEach { index ->
                 launch {
                     val resolvedCandidate = awaitCandidateResolution(index) ?: return@launch
                     cacheRecommendation(index, resolvedCandidate, preferences)

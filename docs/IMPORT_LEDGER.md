@@ -82,3 +82,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; source attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: TV D-pad focus through the new card MANUAL-PENDING; recommendations limited to the three rows above
+
+### G2a — Resource tiers + fan-out/image/post-play policies (262–265, 269–273)
+- Roadmap gate: G2
+- Source repository: hackerslash/NuvioTV-Lite
+- Source branch: dev
+- Pinned source SHA: 2afdcd05d45e27afd48fb83ef9db6c286216a44c
+- Source commit(s): tree at the pinned SHA (file-level diff against official 71632b9)
+- Source file(s): core/device/DeviceMemoryTier.kt, NuvioApplication.kt (image loader), StreamRepositoryImpl.kt, SubtitleRepositoryImpl.kt, HomeViewModel.kt, PostPlayRecommendationState.kt (postPlayPrefetchIndices), PostPlayRecommendationController.kt, DeviceMemoryTierTest.kt
+- Import mode: ALGORITHM_PORT (tier cuts, unknown-as-low-RAM, fetch permits, prefetch indices) + DELTA_PORT (image loader and consumer call sites)
+- Current official equivalent: NuvioExoPlayerPerformanceHelper.getDevicePhysicalRamBytes, NuvioApplication.newImageLoader RAM-scaled cache share, MemoryBudget heap tier
+- What already existed upstream: physical RAM read (263), RAM-scaled poster cache, RGB565 user toggle
+- What was imported: two-cut tier; add-on fetch permits 3/6; poster cache 0.08, forced RGB565, no animated decoders, no SWR revalidation, decode parallelism 2 on low-RAM; single-card post-play prefetch; catalog concurrency 2 on low-RAM
+- What was intentionally not imported: liteMode edition switches, MemoryDiagnostics, Lite reverts of official features, cap of 8 fetches on strong devices, Lite catalog concurrency 4, 100 MB disk cache
+- Local adaptations: pure `fork/resource/AdaptiveResources.kt` (MemoryTier, AdaptiveResourcePolicy, AdaptiveResources holder); Android `AdaptiveResourcesInstaller.kt`; standard tier = official values; clamps never raise official values; OFF/not-installed = OFFICIAL policy
+- Feature flag / fallback: FeatureId.ADAPTIVE_RESOURCE_MANAGER (AUTO, D042); OFF restores official values
+- Tests ported/added: AdaptiveResourcesTest (13; Lite DeviceMemoryTierTest cases re-expressed on MemoryTier)
+- License / attribution notes: GPL-3.0, identical LICENSE; source attributed here and in the audit
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: on-device memory and scrolling behavior on 1–2 GB boxes MANUAL-PENDING; the official RGB565 toggle still shows the user value while low-RAM forces it on

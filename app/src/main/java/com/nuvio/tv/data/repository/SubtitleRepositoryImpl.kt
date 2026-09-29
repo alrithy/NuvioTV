@@ -10,6 +10,9 @@ import com.nuvio.tv.domain.model.Addon
 import com.nuvio.tv.domain.model.Subtitle
 import com.nuvio.tv.domain.model.enabledAddons
 import com.nuvio.tv.domain.repository.SubtitleRepository
+import com.nuvio.tv.fork.resource.AdaptiveResources
+import com.nuvio.tv.fork.resource.addonFetchLimiter
+import com.nuvio.tv.fork.resource.withOptionalPermit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -75,13 +78,17 @@ class SubtitleRepositoryImpl @Inject constructor(
         val accumulatedSubtitles = java.util.Collections.synchronizedList(mutableListOf<Subtitle>())
 
         // Fetch subtitles from all addons in parallel and stream results immediately
+        // Bounded on constrained devices; unbounded (official) otherwise.
+        val addonFetchLimiter = AdaptiveResources.policy.addonFetchLimiter()
         val result = supervisorScope {
             subtitleAddons.map { addon ->
                 async {
                     val addonStartMs = System.currentTimeMillis()
                     val subtitles = try {
-                        withTimeoutOrNull(PER_ADDON_TIMEOUT_MS) {
-                            fetchSubtitlesFromAddon(addon, type, id, videoId, videoHash, videoSize, filename)
+                        addonFetchLimiter.withOptionalPermit {
+                            withTimeoutOrNull(PER_ADDON_TIMEOUT_MS) {
+                                fetchSubtitlesFromAddon(addon, type, id, videoId, videoHash, videoSize, filename)
+                            }
                         }
                     } catch (e: CancellationException) {
                         throw e

@@ -250,3 +250,13 @@ Feature 289 (add-on retry policy) is deferred to G8. The pinned ysosrs source ha
 breaker only changes the displayed level, and official `safeApiCall` returns the first error.
 Retrying add-on requests changes network behavior and belongs to the stream/failover owner, not
 to a diagnostics gate.
+
+## D042 — Adaptive resources run by default and only tighten limits on weak devices
+`ADAPTIVE_RESOURCE_MANAGER` defaults to `AUTO` in `FeatureRegistry.DECIDED_DEFAULTS`. The tier is
+physical RAM (Lite cuts: ≤1600 MB low-RAM, ≤2560 MB constrained; `isLowRamDevice` and unreadable
+RAM count as low-RAM). On the standard tier every value is the official one, so strong devices
+are never capped; weak-device cuts are `min()` clamps that never raise an official value. Comfort
+cuts (poster cache share, animated posters, revalidation, decode parallelism, post-play prefetch,
+catalog fan-out) key on low-RAM; allocation-safety limits key on constrained. `OFF` restores
+official values everywhere. Lite edition switches (`liteMode`) and Lite's cap of 8 fetches on
+strong devices are not imported. Playback budgets (buffer/parallel/chunk) change only in G2b.

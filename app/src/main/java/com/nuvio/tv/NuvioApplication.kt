@@ -28,6 +28,8 @@ import com.nuvio.tv.core.network.IPv4FirstDns
 import com.nuvio.tv.data.local.ImagePerformancePreferences
 import com.nuvio.tv.data.local.SentrySettingsDataStore
 import com.nuvio.tv.data.simkl.SimklAnimeIdPreferenceHolder
+import com.nuvio.tv.fork.resource.AdaptiveResources
+import com.nuvio.tv.fork.resource.install
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.Cookie
 import okhttp3.CookieJar
@@ -77,6 +79,8 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
     }
 
     override fun onCreate() {
+        // Before super.onCreate() (Hilt injection): singletons read the resource tier on first touch.
+        AdaptiveResources.install(this)
         super.onCreate()
         SentryInitializer.start(this, sentrySettingsDataStore)
         PluginRuntimeHooks.onApplicationCreate(this)
@@ -89,6 +93,7 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
     }
 
     override fun newImageLoader(context: android.content.Context): ImageLoader {
+        val resourcePolicy = AdaptiveResources.policy
         val imageOkHttpClient by lazy {
             val imageDispatcher = okhttp3.Dispatcher().apply {
                 maxRequests = 32
@@ -119,23 +124,31 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         return ImageLoader.Builder(this)
             .components {
                 add(CustomPosterFallbackInterceptor())
-                if (Build.VERSION.SDK_INT >= 28) {
-                    add(AnimatedImageDecoder.Factory())
-                } else {
-                    add(GifDecoder.Factory())
+                // Low-RAM: animated posters retain every frame, so they decode as stills.
+                if (resourcePolicy.animatedPosters) {
+                    if (Build.VERSION.SDK_INT >= 28) {
+                        add(AnimatedImageDecoder.Factory())
+                    } else {
+                        add(GifDecoder.Factory())
+                    }
                 }
                 add(SvgDecoder.Factory())
-                add(
-                    coil3.network.okhttp.OkHttpNetworkFetcherFactory(
-                        callFactory = { imageOkHttpClient },
-                        cacheStrategy = {
-                            StaleWhileRevalidateCacheStrategy(
-                                revalidationClient = { imageOkHttpClient },
-                                imageLoaderProvider = imageLoaderRef,
-                            )
-                        },
+                // Low-RAM: no background revalidation; posters refresh on normal cache expiry.
+                if (resourcePolicy.posterRevalidation) {
+                    add(
+                        coil3.network.okhttp.OkHttpNetworkFetcherFactory(
+                            callFactory = { imageOkHttpClient },
+                            cacheStrategy = {
+                                StaleWhileRevalidateCacheStrategy(
+                                    revalidationClient = { imageOkHttpClient },
+                                    imageLoaderProvider = imageLoaderRef,
+                                )
+                            },
+                        )
                     )
-                )
+                } else {
+                    add(coil3.network.okhttp.OkHttpNetworkFetcherFactory(callFactory = { imageOkHttpClient }))
+                }
             }
             .memoryCache {
                 val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
@@ -147,11 +160,13 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
                 // Mid-range devices (≤3GB): use 0.20 for decent image caching.
                 // Normal devices (>3GB): use 0.25 for snappy image loading.
                 // - allowHardware(false) keeps bitmaps on heap instead of GPU memory
-                val cachePercent = when {
-                    totalRamMb <= 2048 -> 0.15
-                    totalRamMb <= 3072 -> 0.20
-                    else -> 0.25
-                }
+                val cachePercent = resourcePolicy.imageMemoryCachePercent(
+                    when {
+                        totalRamMb <= 2048 -> 0.15
+                        totalRamMb <= 3072 -> 0.20
+                        else -> 0.25
+                    }
+                )
                 MemoryCache.Builder()
                     .maxSizePercent(context, cachePercent)
                     .build()
@@ -165,8 +180,8 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
             .crossfade(false)
             .precision(coil3.size.Precision.INEXACT)
             .allowHardware(false)
-            .allowRgb565(imagePerformancePreferences.rgb565Enabled)
-            .bitmapFactoryMaxParallelism(4)
+            .allowRgb565(resourcePolicy.allowRgb565(imagePerformancePreferences.rgb565Enabled))
+            .bitmapFactoryMaxParallelism(resourcePolicy.imageDecodeParallelism(4))
             .build()
     }
 }
