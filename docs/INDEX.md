@@ -63,5 +63,6 @@ Start here if you are human. Coding agents start at `AGENTS.md`.
 - `docs/FEATURE_FLAG_POLICY.md`
 - `docs/LICENSE_AND_ATTRIBUTION.md`
 - `docs/MANUAL_TEST_LOG.md`
+- `docs/HARDWARE_VALIDATION_TCL_C6K.md`
 - `integration/baseline_test_debt.json` and `integration/evidence/`
 - `scripts/superfork/preflight.py` / `claim_task.py` / `run_full_unit_suite.py`

@@ -73,6 +73,8 @@ internal fun PlayerRuntimeController.releasePlayer(flushPlaybackState: Boolean) 
         runCatching { player.release() }
     }
     _exoPlayer = null
+    // G4d: stops the read-ahead connection and deletes its ring file.
+    com.nuvio.tv.ui.screens.player.seekbuffer.SeekReadAhead.release()
     _loadControl = null
     currentBitrateAwareLoadControl = null
     currentParallelChunkOverheadMb = 0

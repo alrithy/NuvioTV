@@ -1344,7 +1344,7 @@
     <string name="playback_strategy_remux">REMUX / سرعة النقل</string>
     <string name="playback_strategy_remux_sub">اتصالات متوازية وتخزين مؤقت بحجم يناسب الجهاز للملفات الكبيرة.</string>
     <string name="playback_strategy_seek">مُحسّنة للتقديم</string>
-    <string name="playback_strategy_seek_sub">ذاكرة تخزين على القرص لتقديم أسرع؛ اتصال واحد.</string>
+    <string name="playback_strategy_seek_sub">تخزين وقراءة مسبقة على القرص لتقديم أسرع؛ اتصال واحد.</string>
     <string name="playback_strategy_low_memory">ذاكرة منخفضة</string>
     <string name="playback_strategy_low_memory_sub">تخزين مؤقت صغير واتصال واحد.</string>
     <string name="playback_strategy_auto">تلقائي</string>
