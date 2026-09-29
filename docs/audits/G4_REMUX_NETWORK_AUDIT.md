@@ -68,3 +68,14 @@ playback (`PlayerPlaybackNetworking.prewarmPlaybackConnection`), and official al
 windows it produces (`PrefetchWindowStore`). Ported (IMPORT_LEDGER G4b): head + tail window warm at
 press, only when the press resolves to REMUX / Throughput. Not ported: second-socket head
 fallback, focus-time warm (G8), POOL_ID logging.
+
+## G4c result
+Per-file dvmkv diff (official vs ysosrs; Reshaped equals official): ysosrs differs only in
+`MatroskaExtractor`, `DefaultEbmlReader` and `VarintReader`. Official is newer for truncated tails
+(22) and nested SeekHead (23); ysosrs removes both, so those removals are not inherited. The ysosrs
+delta is mid-stream resync to the next Cluster after malformed cluster data (21), ported with
+official truncated-tail handling checked first. 24: neither source has MP4 extractor changes; the
+ysosrs delta is "MP4 session mode" in `PlayerMediaSourceFactory` (single-connection 8 MiB chunk
+session for progressive MP4 when parallel is off, so scatter reads survive data-source recreation on
+seek). It changes network behavior, so per D044 it belongs to a strategy: moved to G4d with the disk
+seek buffer, under Seek optimized.

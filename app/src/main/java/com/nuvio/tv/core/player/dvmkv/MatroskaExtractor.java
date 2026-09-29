@@ -59,6 +59,7 @@ import androidx.media3.extractor.TrueHdSampleRechunker;
 import androidx.media3.extractor.text.SubtitleParser;
 import androidx.media3.extractor.text.SubtitleTranscodingExtractorOutput;
 import com.google.common.collect.ImmutableList;
+import com.nuvio.tv.fork.recovery.MkvResync;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
@@ -559,6 +560,9 @@ public class MatroskaExtractor implements Extractor {
   private final ParsableByteArray nalStartCode;
   private final ParsableByteArray nalLength;
   private final ParsableByteArray scratch;
+  // Superfork G4c (feature 21): malformed-container resync buffer and per-extractor budget.
+  private final byte[] resyncBlock = new byte[MkvResync.BLOCK_BYTES];
+  private int resyncBudget = MkvResync.MAX_ATTEMPTS;
   private final ParsableByteArray vorbisNumPageSamples;
   private final ParsableByteArray seekEntryIdBytes;
   private final ParsableByteArray sampleStrippedBytes;
@@ -776,6 +780,11 @@ public class MatroskaExtractor implements Extractor {
   @CallSuper
   @Override
   public void seek(long position, long timeUs) {
+    resetParsingState();
+  }
+
+  // Superfork G4c: the original seek() body, shared with the malformed-container resync.
+  private void resetParsingState() {
     clusterTimecodeUs = C.TIME_UNSET;
     blockState = BLOCK_STATE_START;
     reader.reset();
@@ -831,7 +840,15 @@ public class MatroskaExtractor implements Extractor {
     haveOutputSample = false;
     boolean continueReading = true;
     while (continueReading && !haveOutputSample) {
-      continueReading = reader.read(input);
+      try {
+        continueReading = reader.read(input);
+      } catch (ParserException | IllegalStateException malformed) {
+        if (!maybeResyncAfterMalformedData(input, malformed)) {
+          throw malformed;
+        }
+        continueReading = true;
+        continue;
+      }
       if (pendingFinishTracks) {
         pendingFinishTracks = false;
         // Input is positioned right after the Tracks element (typically the first cluster),
@@ -847,6 +864,70 @@ public class MatroskaExtractor implements Extractor {
       return finishReadAtEndOfInput();
     }
     return Extractor.RESULT_CONTINUE;
+  }
+
+  /**
+   * Superfork G4c (feature 21, ysosrs 45e0984): a zero-filled hole inside cluster data corrupts an
+   * element header or size varint. Past the seek map, skip forward to the next Cluster instead of
+   * failing playback. A truncated tail stays with the official end-of-input handling, and the
+   * budget lets a pervasively damaged file still fail (and fail over to another source).
+   */
+  private boolean maybeResyncAfterMalformedData(ExtractorInput input, Exception malformed)
+      throws IOException {
+    if (!MkvResync.enabled
+        || !sentSeekMap
+        || resyncBudget <= 0
+        || shouldTreatEbmlErrorAsEndOfInput(input, malformed)) {
+      return false;
+    }
+    long failPosition = input.getPosition();
+    resyncBudget--;
+    resetParsingState();
+    if (!resyncToNextCluster(input)) {
+      return false;
+    }
+    Log.w(
+        TAG,
+        "MKV_RESYNC: skipped malformed data near byte "
+            + failPosition
+            + " to "
+            + input.getPosition()
+            + " (budget left "
+            + resyncBudget
+            + ")");
+    return true;
+  }
+
+  /** Leaves the input at the next Cluster ID, scanning at most {@link MkvResync#MAX_SCAN_BYTES}. */
+  private boolean resyncToNextCluster(ExtractorInput input) throws IOException {
+    long scanned = 0;
+    while (scanned < MkvResync.MAX_SCAN_BYTES) {
+      input.resetPeekPosition();
+      int want = (int) Math.min((long) MkvResync.BLOCK_BYTES, MkvResync.MAX_SCAN_BYTES - scanned);
+      int got = 0;
+      while (got < want) {
+        int read = input.peek(resyncBlock, got, want - got);
+        if (read == C.RESULT_END_OF_INPUT) {
+          break;
+        }
+        got += read;
+      }
+      if (got < MkvResync.CLUSTER_ID_BYTES) {
+        return false;
+      }
+      int index = MkvResync.indexOfClusterId(resyncBlock, got);
+      if (index >= 0) {
+        input.skipFully(index);
+        return true;
+      }
+      if (got < want) {
+        return false;
+      }
+      int advance = MkvResync.advanceAfterMiss(got);
+      input.skipFully(advance);
+      scanned += advance;
+    }
+    return false;
   }
 
   private int finishReadAtEndOfInput() throws ParserException {
