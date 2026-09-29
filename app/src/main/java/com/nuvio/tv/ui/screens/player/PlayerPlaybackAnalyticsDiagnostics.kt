@@ -76,6 +76,7 @@ internal class PlayerPlaybackAnalyticsDiagnostics {
     private var audioUnderrunBufferSizeMs: Long? = null
     private var audioUnderrunElapsedSinceLastFeedMs: Long? = null
     private var audioFormat: PlaybackIssuePlaybackFormatInput? = null
+    private var audioOutputEncoding: Int? = null
 
     private var bandwidthEstimateBps: Long? = null
     private var bandwidthTransferDurationMs: Int? = null
@@ -114,6 +115,26 @@ internal class PlayerPlaybackAnalyticsDiagnostics {
         startPositionMs = positionMs.takeIf { it > 0L }
     }
 
+    /** Live counters for the stats HUD (ysosrs 45e0984 HudSample, reduced to what the HUD shows). */
+    data class HudSample(
+        val audioUnderrunCount: Int,
+        val loadErrorCount: Int,
+        val bandwidthEstimateBps: Long?,
+        val audioOutputEncoding: Int?
+    )
+
+    fun hudSample(): HudSample = HudSample(
+        audioUnderrunCount = audioUnderrunCount,
+        loadErrorCount = loadErrorCount,
+        bandwidthEstimateBps = bandwidthEstimateBps,
+        audioOutputEncoding = audioOutputEncoding
+    )
+
+    fun onAudioTrackInitialized(encoding: Int) {
+        audioOutputEncoding = encoding
+    }
+
+    @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     fun reset() {
         sessionStartedAtElapsedMs = SystemClock.elapsedRealtime()
         sessionStartedAtWallTimeMs = System.currentTimeMillis()
@@ -157,6 +178,9 @@ internal class PlayerPlaybackAnalyticsDiagnostics {
         audioUnderrunBufferSizeMs = null
         audioUnderrunElapsedSinceLastFeedMs = null
         audioFormat = null
+        audioOutputEncoding = null
+        ParallelRangeDataSource.hudConnections = 0
+        ParallelRangeDataSource.hudChunkBytes = 0L
         bandwidthEstimateBps = null
         bandwidthTransferDurationMs = null
         bandwidthBytesTransferred = null

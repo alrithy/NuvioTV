@@ -138,6 +138,10 @@ internal class ParallelRangeDataSource(
         @Volatile var hudHedgeRestarts: Int = 0
         @Volatile var hudHedgeExhausted: Boolean = false
 
+        // Connection count and chunk size of the parallel session currently serving media.
+        @Volatile var hudConnections: Int = 0
+        @Volatile var hudChunkBytes: Long = 0L
+
         private val obsAnnounced = AtomicBoolean(false)
 
         fun hudClampCooldownRemainingMs(nowUptimeMs: Long): Long {
@@ -588,6 +592,8 @@ internal class ParallelRangeDataSource(
 
         originalDataSpec = dataSpec
         position = dataSpec.position
+        hudConnections = parallelConnections
+        hudChunkBytes = chunkSize
         bootstrapPrefetchDeferred = false
         bootstrapChunk = null
         bootstrapStartPosition = C.TIME_UNSET
