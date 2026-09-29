@@ -7,12 +7,11 @@ current_official_baseline_sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
 integration_upstream_sync_commit: 898bc83abfc8e59cf1664699980942d3bd6718f6
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G4
-active_gate_name: REMUX / Network Performance
-active_branch: feat/remux-network
-active_task_packet: tasks/G4_REMUX_NETWORK.md
-active_status: BLOCKED
-blocker: 'G4 exit criterion is the mandatory same-file A/B (startup, throughput, rebuffer, waste, RAM, seek) on a real device. Every G4 slice is merged (PRs #21, #22, #24, #25, #26); the A/B needs the user''s TCL C6K. Next step: the user runs docs/HARDWARE_VALIDATION_TCL_C6K.md (sections 1-5) and shares the logs and the A/B table; record them in docs/MANUAL_TEST_LOG.md and close G4 only if section 5 passes.'
+active_gate: G5
+active_gate_name: Audio / DV / HDR / AFR
+active_branch: feat/audio-video
+active_task_packet: tasks/G5_AUDIO_VIDEO.md
+active_status: READY
 active_pr: null
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
@@ -29,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G5
-next_gate_name: Audio / DV / HDR / AFR
-next_branch: feat/audio-video
+next_gate: G6
+next_gate_name: Subtitle Intelligence
+next_branch: feat/subtitle-intelligence
 known_operational_risks:
 - id: R001
   severity: high
@@ -61,6 +60,19 @@ known_operational_risks:
 last_review:
   date: 2026-09-29
   reviewer_role: architecture_audit
+validation_policy:
+  mode: batched_final_hardware_certification
+  development_rule: 'Manual-only hardware checks do not block G1-G13 progression once code is merged and automated CI/DoD is green.'
+  final_rule: 'All MANUAL-PENDING hardware checks must be executed and resolved during G14 before any Stable release claim.'
+validation_pending_gates:
+- gate: G1
+  evidence: 'Manual TV focus/HUD/device-assessment checks remain MANUAL-PENDING.'
+- gate: G2
+  evidence: 'Manual low-RAM/scroll/RTL/device memory checks remain MANUAL-PENDING.'
+- gate: G3
+  evidence: 'Manual strategy focus/playback checks remain MANUAL-PENDING.'
+- gate: G4
+  evidence: 'All code merged in PRs #21, #22, #24, #25, #26; TCL C6K functional checks and same-file A/B remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 governance_status: READY
 upstream_observation:
   checked_at: '2026-09-29T13:20:00Z'
