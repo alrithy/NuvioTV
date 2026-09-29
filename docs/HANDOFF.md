@@ -34,8 +34,7 @@ evidence: fork JVM harness 90 tests, extractor harness (vendored media3 jars) 14
 
 ## Exact next action
 1. Drive the G4c PR to green and squash-merge it; merge integration back into the branch.
-2. G4d (code ready locally on `wip/g4d` if the container survived; otherwise redo from the audit
-   G4c/G4d notes): Seek optimized adds ysosrs MP4 session mode (24) for progressive MP4 and the
+2. G4d: Seek optimized adds ysosrs MP4 session mode (24) for progressive MP4 and the
    Reshaped disk read-ahead ring (25) for other progressive files, never on the parallel path
    (D006); classify/defer 5, 6, 7, 17, 26.
 3. Then write `docs/HARDWARE_VALIDATION_TCL_C6K.md` (one checklist for all MANUAL-PENDING items,
