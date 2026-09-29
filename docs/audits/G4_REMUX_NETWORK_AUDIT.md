@@ -59,3 +59,12 @@ Ported (see IMPORT_LEDGER G4a): dead-source failover for 404/410 and non-media b
 malformed/IO failover after official same-URL retries, startup-exhausted failover, 3-failover cap,
 startup watchdog. Not ported: ysosrs' removal of official VC-1 guards, total cross-ladder recovery
 budget, source-panel greying (UI), mime-override re-init.
+
+## G4b result
+Correction to the table above: the ysosrs `ParallelRangeDataSource` delta is comments only. With
+comments stripped the two files differ in five lines, all official additions (HUD connection and
+chunk fields), so 8, 9 and 11 are verified_official. Correction to 18: ysosrs does warm before
+playback (`PlayerPlaybackNetworking.prewarmPlaybackConnection`), and official already consumes the
+windows it produces (`PrefetchWindowStore`). Ported (IMPORT_LEDGER G4b): head + tail window warm at
+press, only when the press resolves to REMUX / Throughput. Not ported: second-socket head
+fallback, focus-time warm (G8), POOL_ID logging.

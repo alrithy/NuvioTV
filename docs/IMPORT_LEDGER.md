@@ -158,3 +158,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: hardware A/B (dead link, stuck startup) MANUAL-PENDING on TCL C6K
+
+### G4b — Press-time connection warm-up (18); 8, 9, 11 verified official
+- Roadmap gate: G4
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/screens/player/PlayerPlaybackNetworking.kt (prewarmPlaybackConnection, enqueueConcurrentSuffixTail, enqueueTailPrewarm, parsePrewarmContentRange*, prewarmHttpClient), ui/screens/stream/StreamScreen.kt (press sites)
+- Import mode: ALGORITHM_PORT (dedup, window validation, Content-Range parsing) + DELTA_PORT (OkHttp warm requests, press hook)
+- Current official equivalent: `PrefetchWindowStore` and its consumer in `ParallelRangeDataSource` (head consume, tail peek), shared connection pool; nothing produced entries
+- What already existed upstream: the store, the consumer, the pool; ysosrs `ParallelRangeDataSource` code equals official apart from comments (official adds two HUD fields), so 8, 9, 11 are official
+- What was imported: head window warm (bytes 0-262143) stored as the bootstrap entry, concurrent suffix-range tail (4 MiB) with exact-window validation, head-triggered fallback tail, 60 s same-URL dedup, pool-sharing client built like the parallel path's
+- What was intentionally not imported: duplicate head warm on a failed/range-hostile head (second-socket fallback), focus-time warm (`PrefetchSelectionSupplier`, stream prefetch, G8), POOL_ID diagnostics logging, AFR preflight head peek
+- Local adaptations: runs only when the press resolves to the REMUX / Throughput strategy (G3 `decide`, new) and REMUX_PERFORMANCE is not OFF; torrents and non-http URLs skipped; no tail window on the low-RAM tier (stored windows are heap, 5 min TTL); host-only logging; one hook in `onInternalPlayerLaunching`
+- Feature flag / fallback: FeatureId.REMUX_PERFORMANCE (AUTO, D044) + PLAYBACK_STRATEGY_ENGINE selection (default Official, D043); Official/Seek/Low memory send no extra requests
+- Tests ported/added: ConnectionPrewarmPolicyTest (7)
+- License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: extra 256 KiB + 4 MiB per REMUX press; startup gain MANUAL-PENDING (TCL C6K A/B)
