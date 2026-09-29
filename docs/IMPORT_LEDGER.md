@@ -62,3 +62,23 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; source attributed in PlaybackHud.kt KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: 77 is 1 Hz drift, not sub-frame jitter; HDR10+ and TrueHD-Atmos are not signalled by media3 Format and are not claimed; on-device values MANUAL-PENDING
+
+### G1c — Device assessment + apply/revert (14–16)
+- Roadmap gate: G1
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): core/assessment/AssessmentModels.kt, DeviceAssessmentApplier.kt, DeviceAssessmentEngine.kt, ui/screens/settings/DeviceAssessmentScreen.kt
+- Import mode: ALGORITHM_PORT (tier model, apply order via official setters, snapshot-then-write, revert-last-apply)
+- Current official equivalent: NetworkSettingsScreen stream test, MemoryBudget, NuvioExoPlayerPerformanceHelper, DisplayCapabilities, PlayerSettingsDataStore setters
+- What already existed upstream: the measurement (stream test) and every setting assessed
+- What was imported: MEASURED/CALCULATED/VERIFY tiers; plan with null = untouched; snapshot before first write; revert restores and clears
+- What was intentionally not imported: StreamSweepEngine, intent profiles, DV/HDR10+/VOD/performance-mode/passthrough/MAT rows, ysosrs screen
+- Local adaptations: pure `fork/diagnostics/DeviceAssessment.kt`; `DeviceAssessmentApplier` (typed DataStore keys, not org.json); `DeviceAssessmentViewModel` two-pass buffer cap; `DeviceAssessmentSection` card in the official advanced settings list; EN + AR strings
+- Persistence: new profile-scoped DataStore file `fork_device_assessment` (via ProfileDataStoreFactory, `_p<id>` suffix for non-primary profiles). Keys: `snapshot_use_parallel_connections` (bool), `snapshot_parallel_connection_count` (int), `snapshot_target_buffer_size_mb` (int), `snapshot_frame_rate_matching_mode` (string, FrameRateMatchingMode name; presence = revert available). No official key is renamed or reused. Fresh install: no file, no revert offered. Corrupt mode value: snapshot discarded, no setting written. Downgrade: older builds ignore the file.
+- Feature flag / fallback: FeatureId.UNIFIED_DIAGNOSTICS (AUTO, D041); settings change only on the explicit Apply action
+- Tests ported/added: DeviceAssessmentTest (7), DeviceAssessmentApplierTest (6)
+- License / attribution notes: GPL-3.0, identical LICENSE; source attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: TV D-pad focus through the new card MANUAL-PENDING; recommendations limited to the three rows above
