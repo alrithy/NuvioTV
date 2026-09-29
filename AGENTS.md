@@ -24,7 +24,7 @@ Then:
    - the active task packet from `active_task_packet`
    - the active gate section in `docs/GATE_SPECS.md`
    - `docs/DEFINITION_OF_DONE.md`
-5. Before editing, acquire the single-writer lease described in `docs/AGENT_PLAYBOOK.md`.
+5. Use the optional writer lease only if two coding sessions might overlap. Sequential agent handoffs do not require a lease.
 
 Read additional documents **only when the active task needs them**:
 - importing/porting code: `SOURCE_MAP`, `FORK_RESEARCH`, `PORTING_PROTOCOL`, `IMPORT_LEDGER`
@@ -78,9 +78,9 @@ Compatibility/redirect documents are not independent sources of truth.
 - `dev` is legacy/default until GitHub admin changes the default. Never implement Superfork features there.
 - Never develop directly on `superfork/integration`.
 - Work on `integration/state.yaml: active_branch`.
-- Exactly one active writer per task branch; acquire the atomic lease described in AGENT_PLAYBOOK.
+- Exactly one active writer per task branch by policy. The optional lease in AGENT_PLAYBOOK is only for intentional/possible overlap; normal sequential work relies on fresh remote-head checks and Git non-fast-forward protection.
 - Preserve and inspect unknown uncommitted work before editing.
-- Never force-push task/integration history. Only compare-and-delete your exact `agent-locks/` lease on release.
+- Never force-push task/integration history. If an optional `agent-locks/` lease is used, only compare-and-delete your exact lease on release.
 
 ## Core integration strategy
 REUSE -> CHERRY-PICK -> FILE_PORT -> DELTA_PORT -> ALGORITHM_PORT -> ADAPTER -> REWRITE ONLY AS LAST RESORT.
