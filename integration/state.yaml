@@ -11,7 +11,7 @@ active_gate: G6
 active_gate_name: Subtitle Intelligence
 active_branch: feat/subtitle-intelligence
 active_task_packet: tasks/G6_SUBTITLE_INTELLIGENCE.md
-active_status: READY
+active_status: IN_PROGRESS
 active_pr: null
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
