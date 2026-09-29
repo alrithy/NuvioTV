@@ -1,10 +1,10 @@
 # Project status
 
 <!-- canonical-state:start -->
-- Active gate: G0 — Fork Foundation
-- Active branch: `chore/fork-foundation-impl`
-- Status: REVIEW
-- Task: `tasks/G0_FORK_FOUNDATION.md`
+- Active gate: G1 — Unified Diagnostics & Add-on Health
+- Active branch: `feat/unified-diagnostics`
+- Status: READY
+- Task: `tasks/G1_UNIFIED_DIAGNOSTICS.md`
 - Accepted official baseline: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -13,10 +13,10 @@
 This view's header is generated from state; use `state_view.py` after state changes.
 
 ## Work boundary
-Governance hardening is merged through PR #6. PR #5 is closed as superseded after its
-useful policies were preserved. G0 foundation (FeatureMode, FeatureId, FeatureRegistry,
-SourceAttribution; all groups OFF) is in REVIEW on `chore/fork-foundation-impl`. No
-external fork feature has been imported. Legacy PR #1/#2 stay reference-only.
+G0 Fork Foundation is DONE (PR #7, merge `791716a`). G1 is READY; an upstream sync to
+official `71632b9` is required first because G1 touches settings and player diagnostics
+that changed upstream. No external fork feature has been imported yet. Legacy PR #1/#2
+stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.

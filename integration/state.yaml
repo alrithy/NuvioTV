@@ -7,19 +7,19 @@ current_official_baseline_sha: fd7973d91dd75d790c5f9b3d68dae652655e92c4
 integration_upstream_sync_commit: 3cf04ccdcc20515acb093c28ad9b7c3943a39057
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G0
-active_gate_name: Fork Foundation
-active_branch: chore/fork-foundation-impl
-active_task_packet: tasks/G0_FORK_FOUNDATION.md
-active_status: REVIEW
+active_gate: G1
+active_gate_name: Unified Diagnostics & Add-on Health
+active_branch: feat/unified-diagnostics
+active_task_packet: tasks/G1_UNIFIED_DIAGNOSTICS.md
+active_status: READY
 active_pr: null
-active_owner: claude-code (sequential; no lease)
+active_owner: unclaimed
 concurrent_writers_allowed: false
-user_visible_behavior_change_allowed: false
-last_green_commit: c96e6bcf3455449199fe9a934d89f03b290d05d4
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36488329983 ; later
-  governance changes require their own exact-head CI.
-last_green_scope: Full suite guard (18 observed), governance validator, fullDebug
+user_visible_behavior_change_allowed: true
+last_green_commit: 74ff659d3b93a25a0f5ff71279c003b4f5b2795c
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36545736693 ; G0 PR
+  exact head (merge-ref 33de60d), squash-merged as 791716a.
+last_green_scope: Full suite guard (0 new failures), governance validator, fullDebug
   APK
 bootstrap:
   initial_governance_pr: 3
@@ -28,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G1
-next_gate_name: Unified Diagnostics & Add-on Health
-next_branch: feat/unified-diagnostics
+next_gate: G2
+next_gate_name: Adaptive Resource Manager
+next_branch: feat/adaptive-resource-manager
 known_operational_risks:
 - id: R001
   severity: high
@@ -66,4 +66,12 @@ upstream_observation:
   sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
   accepted: false
   reason: 'Observed current official dev after governance baseline. Not accepted or silently merged; use a dedicated upstream-sync review before adoption.'
-completed_gates: []
+completed_gates:
+- gate: G0
+  name: Fork Foundation
+  pr: 7
+  head_sha: 74ff659d3b93a25a0f5ff71279c003b4f5b2795c
+  merge_sha: 791716a86f1f363832f48e4ab950285f33a74ef1
+  evidence: https://github.com/alrithy/NuvioTV/actions/runs/36545736693 (Governance
+    CI, full-suite guard new_failures=[], assembleFullDebug PASS)
+  deferred_features: [318]
