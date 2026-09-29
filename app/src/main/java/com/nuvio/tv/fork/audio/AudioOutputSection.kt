@@ -20,4 +20,23 @@ internal fun AudioOutputSection(enabled: Boolean, viewModel: AudioOutputViewMode
         enabled = enabled,
         onToggle = { viewModel.setPreferLossless(!preferLossless) }
     )
+    val passthroughAllowed by viewModel.passthroughAllowed.collectAsStateWithLifecycle()
+    PassthroughFormat.entries.forEach { format ->
+        val allowed = passthroughAllowed[format] ?: true
+        SettingsToggleRow(
+            title = stringResource(format.titleRes()),
+            subtitle = stringResource(R.string.audio_passthrough_format_sub),
+            checked = allowed,
+            enabled = enabled,
+            onToggle = { viewModel.setPassthroughAllowed(format, !allowed) }
+        )
+    }
+}
+
+private fun PassthroughFormat.titleRes(): Int = when (this) {
+    PassthroughFormat.AC3 -> R.string.audio_passthrough_ac3
+    PassthroughFormat.EAC3 -> R.string.audio_passthrough_eac3
+    PassthroughFormat.TRUEHD -> R.string.audio_passthrough_truehd
+    PassthroughFormat.DTS -> R.string.audio_passthrough_dts
+    PassthroughFormat.DTS_HD -> R.string.audio_passthrough_dtshd
 }

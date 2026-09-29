@@ -22,4 +22,15 @@ class AudioOutputViewModel @Inject constructor(
     fun setPreferLossless(value: Boolean) {
         viewModelScope.launch { preferences.setPreferLossless(value) }
     }
+
+    val passthroughAllowed: StateFlow<Map<PassthroughFormat, Boolean>> =
+        preferences.passthroughAllowed.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5_000),
+            PassthroughFormat.entries.associateWith { true }
+        )
+
+    fun setPassthroughAllowed(format: PassthroughFormat, value: Boolean) {
+        viewModelScope.launch { preferences.setPassthroughAllowed(format, value) }
+    }
 }

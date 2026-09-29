@@ -903,6 +903,22 @@ internal fun PlayerRuntimeController.initializePlayer(
                 )
             }
 
+            // G5c (feature 38): per-format passthrough switches for this playback. Inert while
+            // force-optical is active (its FFmpeg path expects AC-3 to pass through), without the
+            // FFmpeg renderer (decoder priority OFF) or when FFmpeg failed to load.
+            val audioPassthroughPolicy = audioOutputPreferences.passthroughPolicyNow(
+                softwareDecodersAvailable = !isForcePassthroughActive &&
+                    effectiveDecoderPriority != DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF &&
+                    runCatching { androidx.media3.decoder.ffmpeg.FfmpegLibrary.isAvailable() }.getOrDefault(false)
+            )
+            if (!audioPassthroughPolicy.allowsEverything()) {
+                Log.i(
+                    PlayerRuntimeController.TAG,
+                    "AUDIO_PASSTHROUGH_POLICY: decode ${audioPassthroughPolicy.deniedGroups().joinToString()} " +
+                        "active=${audioPassthroughPolicy.softwareDecodersAvailable}"
+                )
+            }
+
             // ── Renderers Factory (Combining Libass offsets + Audio Gain + Video Fallback) ──
             val renderersFactory = SubtitleOffsetRenderersFactory(
                 context = context,
@@ -928,6 +944,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                 downmixNormalizationEnabled = !playerSettings.maintainOriginalAudioOnDownmix,
                 forceOpticalPassthrough = isForcePassthroughActive,
                 bluetoothForcePcm = isBluetoothAudioOutput,
+                audioPassthroughPolicy = audioPassthroughPolicy,
                 playbackSpeedProvider = { _uiState.value.playbackSpeed },
                 initialForcePcm = hasTriedAudioPcmFallback || isBluetoothAudioOutput,
                 preferSoftwareAudioOnly = isBluetoothAudioOutput,
@@ -2210,6 +2227,8 @@ private class SubtitleOffsetRenderersFactory(
     private val downmixNormalizationEnabled: Boolean,
     private val forceOpticalPassthrough: Boolean,
     private val bluetoothForcePcm: Boolean = false,
+    private val audioPassthroughPolicy: com.nuvio.tv.fork.audio.AudioPassthroughPolicy =
+        com.nuvio.tv.fork.audio.AudioPassthroughPolicy.ALLOW_ALL,
     private val playbackSpeedProvider: () -> Float,
     private val initialForcePcm: Boolean = false,
     /**
@@ -2274,7 +2293,8 @@ private class SubtitleOffsetRenderersFactory(
         val playbackSpeedAwareAudioSink = PlaybackSpeedAwareAudioSink(
             sink = baseAudioSink,
             initialForcePcm = initialForcePcm,
-            forcePcmForBluetooth = bluetoothForcePcm
+            forcePcmForBluetooth = bluetoothForcePcm,
+            passthroughPolicy = audioPassthroughPolicy
         )
         playbackSpeedAwareAudioSink.setInitialPlaybackSpeed(playbackSpeedProvider())
         onPlaybackSpeedAwareAudioSinkCreated(playbackSpeedAwareAudioSink)

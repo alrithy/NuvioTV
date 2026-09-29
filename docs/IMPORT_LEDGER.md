@@ -253,3 +253,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: a sink without TrueHD/DTS-HD passthrough decodes the lossless track in software (G5c adds capability awareness); device check MANUAL-PENDING (G14 campaign, HV-G5-2)
+
+### G5c — Per-format passthrough controls (38)
+- Roadmap gate: G5
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): core/player/AudioPassthroughPolicy.kt (whole file, user switches), ui/screens/player/PlaybackSpeedAwareAudioSink.kt (`shouldRejectDirectPlayback` deny, `isPolicyDeniedPassthrough`), PlaybackSpeedAwareAudioRenderer.kt (`getDecoderInfos` empty for denied formats), PlayerRuntimeControllerInitialization.kt (policy build and factory param)
+- Import mode: FILE_PORT (policy) + DELTA_PORT (sink / renderer / factory hooks)
+- Current official equivalent: one "force optical passthrough" switch; otherwise the platform capability report decides
+- What already existed upstream: `PlaybackSpeedAwareAudioSink` force-PCM chokepoint (speed, Bluetooth, recovery), FFmpeg audio renderer
+- What was imported: five "receiver decodes this" switches; a denied format is refused by the sink and routed to the FFmpeg decoder; formats FFmpeg cannot decode (AC-4, DTS Express, DTS:X P2) are never denied
+- What was intentionally not imported: learned per-route rejection groups (F3, `audioRejectionsConfirmed`), AC-3 transcode of denied formats (F5 `DeniedTranscodePlanner`), error-recovery FFmpeg fallback hook, Kodi label wording
+- Local adaptations: switches in the profile-scoped `fork_audio_output` store (not the official PlayerSettings); snapshot per playback in the player build; policy made inert while force-optical is active (the vendored FFmpeg renderer then expects AC-3 to pass through, so denying it would leave no renderer), with decoder priority OFF, or when FFmpeg is unavailable; one host-free log line when a format is denied
+- Feature flag / fallback: every switch defaults on (= official, D048); ALLOW_ALL when FeatureId.AUDIO_DV_AFR is OFF (rows hidden)
+- Tests ported/added: AudioPassthroughPolicyTest (4), BluetoothAudioRoutePolicyTest +2 (sink deny / default)
+- License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: FFmpeg decode cost of TrueHD/DTS-HD on the TV CPU; device check MANUAL-PENDING (G14 campaign, HV-G5-3)

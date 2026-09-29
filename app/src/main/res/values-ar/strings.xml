@@ -1351,6 +1351,12 @@
     <string name="playback_strategy_auto_sub">ذاكرة منخفضة على الأجهزة قليلة الذاكرة، وREMUX / سرعة النقل للملفات الكبيرة، وإلا فالرسمية.</string>
     <string name="audio_prefer_lossless">تفضيل الصوت غير المضغوط</string>
     <string name="audio_prefer_lossless_sub">ابدأ بأفضل مسار صوت غير مضغوط (TrueHD أو DTS-HD MA أو FLAC أو PCM) بلغتك إذا ما اخترت مسارًا.</string>
+    <string name="audio_passthrough_ac3">جهاز الصوت يفك Dolby Digital</string>
+    <string name="audio_passthrough_eac3">جهاز الصوت يفك Dolby Digital Plus / Atmos</string>
+    <string name="audio_passthrough_truehd">جهاز الصوت يفك Dolby TrueHD</string>
+    <string name="audio_passthrough_dts">جهاز الصوت يفك DTS</string>
+    <string name="audio_passthrough_dtshd">جهاز الصوت يفك DTS-HD / DTS:X</string>
+    <string name="audio_passthrough_format_sub">عند الإيقاف: التطبيق يفك هذه الصيغة إلى PCM بدل إرسالها كما هي. أوقفه فقط إذا كان الصوت صامتًا أو يفشل بهذه الصيغة. يطبق من التشغيل التالي.</string>
     <string name="player_dead_source_failover">المصدر غير متاح \u2014 جارٍ تجربة المصدر التالي (%1$d/%2$d)</string>
     <string name="player_error_startup_timeout">لم يبدأ التشغيل \u2014 قد لا يستجيب مفكك ترميز الفيديو. إعادة تشغيل الجهاز تحل ذلك عادةً. اضغط رجوع وحاول مجددًا، أو اختر مصدرًا آخر.</string>
     <string name="player_error_startup_video_track_unsupported">لم يبدأ التشغيل \u2014 هذا الجهاز لا يستطيع تشغيل صيغة الفيديو في هذا المصدر. اضغط رجوع واختر مصدرًا آخر.</string>

@@ -107,6 +107,14 @@ internal class PlaybackSpeedAwareAudioRenderer(
         format: Format,
         requiresSecureDecoder: Boolean
     ): List<MediaCodecInfo> {
+        // G5c (ysosrs 45e0984): a format the user turned off goes to the bundled FFmpeg decoder,
+        // not the device one (measured on Amlogic: the vendor DTS-HD decoder folds 5.1 to 2.0).
+        // No MediaCodec decoder makes supportsFormat() report UNSUPPORTED_SUBTYPE, so selection
+        // falls through to FfmpegAudioRenderer; the policy only denies formats FFmpeg decodes and
+        // only while that renderer is present.
+        if (playbackSpeedAwareAudioSink.isPolicyDeniedPassthrough(format)) {
+            return emptyList()
+        }
         val decoderInfos = if (!playbackSpeedAwareAudioSink.shouldForcePcmForFormat(format) && playbackSpeedAwareAudioSink.supportsFormat(format)) {
             MediaCodecUtil.getDecryptOnlyDecoderInfo()?.let(::listOf)
                 ?: MediaCodecUtil.getDecoderInfosSoftMatch(
