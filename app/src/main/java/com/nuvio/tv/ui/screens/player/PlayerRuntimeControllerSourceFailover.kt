@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.screens.player
 
+import android.os.SystemClock
 import android.util.Log
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -35,12 +36,21 @@ internal fun PlayerRuntimeController.isDeadSourcePlaybackError(error: PlaybackEx
 }
 
 /**
+ * Structured, log-safe failover reason: the error code name plus the HTTP status. Exception text is
+ * never logged here because it is not provably free of request URLs (AR-001).
+ */
+internal fun PlaybackException.failoverReason(): String {
+    val status = findInvalidResponseCodeException()?.responseCode
+    return if (status != null) "$errorCodeName HTTP $status" else errorCodeName
+}
+
+/**
  * Marks the current URL dead for this player session and switches to the next live source in the
  * user's existing order, keeping the playback position. Bounded by
  * [DeadSourcePolicy.MAX_FAILOVERS]; returns false (caller shows the error) when disabled, capped
- * or out of sources.
+ * or out of sources. [reason] must be log-safe ([failoverReason] or an exception class name).
  */
-internal fun PlayerRuntimeController.advanceToNextLiveSource(detailedError: String): Boolean {
+internal fun PlayerRuntimeController.advanceToNextLiveSource(reason: String): Boolean {
     if (!playbackRecoveryEnabled) return false
     deadSourceStreamUrls.add(currentStreamUrl)
     val state = _uiState.value
@@ -74,7 +84,7 @@ internal fun PlayerRuntimeController.advanceToNextLiveSource(detailedError: Stri
     val attemptNo = deadSourceFailoverCount
     Log.w(
         PlayerRuntimeController.TAG,
-        "Dead source ($detailedError) - failing over to next source " +
+        "Dead source ($reason) - failing over to next source " +
             "($attemptNo/${DeadSourcePolicy.MAX_FAILOVERS}): host=${next.getStreamUrl()?.failoverHost()}"
     )
     val savedPosition = _exoPlayer?.currentPosition?.takeIf { it > 0L } ?: 0L
@@ -99,10 +109,10 @@ internal fun PlayerRuntimeController.advanceToNextLiveSource(detailedError: Stri
 }
 
 /** A startup failure that exhausted the official ladders treats the URL as dead (ysosrs Task 1.6). */
-internal fun PlayerRuntimeController.attemptStartupExhaustedSourceFailover(detailedError: String): Boolean {
+internal fun PlayerRuntimeController.attemptStartupExhaustedSourceFailover(reason: String): Boolean {
     if (!playbackRecoveryEnabled || hasRenderedFirstFrame) return false
-    Log.w(PlayerRuntimeController.TAG, "Startup recovery exhausted; attempting next-source failover for: $detailedError")
-    return advanceToNextLiveSource(detailedError)
+    Log.w(PlayerRuntimeController.TAG, "Startup recovery exhausted; attempting next-source failover for: $reason")
+    return advanceToNextLiveSource(reason)
 }
 
 internal fun PlayerRuntimeController.cancelStartupWatchdog() {
@@ -119,13 +129,14 @@ internal fun PlayerRuntimeController.scheduleStartupWatchdog() {
     cancelStartupWatchdog()
     if (!playbackRecoveryEnabled) return
     startupWatchdogJob = scope.launch {
-        val armedAtMs = System.currentTimeMillis()
+        // Monotonic: a wall-clock change must not fire or starve the watchdog (AR-002).
+        val armedAtMs = SystemClock.elapsedRealtime()
         var lastBufferedAheadMs = 0L
         while (isActive) {
             delay(StartupWatchdogPolicy.TIMEOUT_MS)
             if (hasRenderedFirstFrame) return@launch
             val livePlayer = _exoPlayer ?: return@launch
-            val elapsedMs = System.currentTimeMillis() - armedAtMs
+            val elapsedMs = SystemClock.elapsedRealtime() - armedAtMs
             val bufferedAheadMs = livePlayer.totalBufferedDuration.coerceAtLeast(0L)
             if (StartupWatchdogPolicy.verdict(elapsedMs, bufferedAheadMs, lastBufferedAheadMs) ==
                 StartupWatchdogPolicy.Verdict.EXTEND
