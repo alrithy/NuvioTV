@@ -61,11 +61,10 @@ last_review:
   reviewer_role: architecture_audit
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-09-28T21:40:00Z'
-  sha: e78de241acb8a6128c29076422377de1206ee8cd
+  checked_at: '2026-09-29T02:33:56Z'
+  sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
   accepted: false
-  reason: 'Settings reorganization PR #3746 changes 65 files and build/tests; isolated
-    upstream review required. This governance task retains latest accepted sync fd7973d.'
+  reason: 'Observed current official dev after governance baseline. Not accepted or silently merged; use a dedicated upstream-sync review before adoption.'
 completed_gates: []
 readiness_conditions:
 - 'PR #6 merged into integration'
