@@ -93,9 +93,12 @@ class StreamScreenViewModel @Inject constructor(
     private val subtitleRepository: com.nuvio.tv.domain.repository.SubtitleRepository,
     private val subtitleFileCache: com.nuvio.tv.core.player.SubtitleFileCache,
     private val torrentService: TorrentService,
+    private val playbackStrategySession: com.nuvio.tv.fork.playback.PlaybackStrategySession,
+    featureRegistry: com.nuvio.tv.fork.foundation.FeatureRegistry,
     profileManager: com.nuvio.tv.core.profile.ProfileManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+    private val remuxPerformanceMode = featureRegistry.mode(com.nuvio.tv.fork.foundation.FeatureId.REMUX_PERFORMANCE)
     private var autoPlayHandledForSession = false
     private var directAutoPlayModeInitializedForSession = false
     private var directAutoPlayFlowEnabledForSession = false
@@ -1293,10 +1296,46 @@ class StreamScreenViewModel @Inject constructor(
         updateUiStateIfChanged { it.copy(playbackErrorMessage = null) }
     }
 
-    fun onInternalPlayerLaunching() {
+    fun onInternalPlayerLaunching(playbackInfo: StreamPlaybackInfo? = null) {
+        playbackInfo?.let(::prewarmPlaybackConnection)
         streamRepository.setLocalPluginSearchPaused(true)
         updateUiStateIfChanged {
             it.copy(showDirectAutoPlayOverlay = false, directAutoPlayMessage = null)
+        }
+    }
+
+    /**
+     * G4b (feature 18): warms the connection while the player is built, only when this playback
+     * resolves to the REMUX / Throughput strategy. Every other strategy sends nothing extra.
+     */
+    private fun prewarmPlaybackConnection(playbackInfo: StreamPlaybackInfo) {
+        val url = playbackInfo.url ?: return
+        if (remuxPerformanceMode == com.nuvio.tv.fork.foundation.FeatureMode.OFF || playbackInfo.isTorrent) return
+        viewModelScope.launch {
+            val engine = playerSettingsDataStore.playerSettings.first().internalPlayerEngine
+            val decision = playbackStrategySession.decide(
+                com.nuvio.tv.fork.playback.PlaybackFacts(
+                    exoPlayerEngine = engine != com.nuvio.tv.data.local.InternalPlayerEngine.MVP_PLAYER,
+                    progressiveHttp = com.nuvio.tv.fork.playback.PlaybackStrategies.isProgressiveHttp(
+                        url = url,
+                        mimeType = null,
+                        isTorrent = false,
+                        isLoopback = com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory.isLoopbackUrl(url)
+                    ),
+                    fileSizeBytes = playbackInfo.videoSize,
+                    filename = playbackInfo.filename,
+                    lowRamDevice = com.nuvio.tv.fork.resource.AdaptiveResources.policy.isLowRam
+                )
+            )
+            if (com.nuvio.tv.fork.playback.ConnectionPrewarmPolicy.shouldPrewarm(remuxPerformanceMode, decision, url)) {
+                com.nuvio.tv.ui.screens.player.PlaybackConnectionPrewarm.prewarm(
+                    url = url,
+                    headers = playbackInfo.headers,
+                    warmTail = com.nuvio.tv.fork.playback.ConnectionPrewarmPolicy.warmTail(
+                        com.nuvio.tv.fork.resource.AdaptiveResources.policy.isLowRam
+                    )
+                )
+            }
         }
     }
 
