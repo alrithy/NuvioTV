@@ -8,16 +8,13 @@
 4. Read HANDOFF -> active task packet -> active GATE_SPECS section -> DoD. Load DECISIONS/source/porting/policy docs only when the task touches them.
 5. Switch/create the recorded task branch only with clean/preserved work. Follow FAILURE_RECOVERY for behind-only, divergence, conflicts or unknown commits.
 6. Run `python3 scripts/superfork/preflight.py --fetch` and the governance validator.
-7. Claim the single-writer lease using `claim_task.py claim --owner <unique-agent-session>`.
-   Record the returned lease SHA and owner in HANDOFF/state, set IN_PROGRESS, commit and push.
-   A claim conflict is a real ownership blocker; do not steal another writer's work.
+7. For normal sequential work, no lease is required: verify the remote task-branch HEAD immediately before editing/pushing and rely on Git's non-fast-forward protection.
+   If two coding sessions might overlap, optionally claim the branch with `claim_task.py claim --owner <unique-agent-session>`; a claim conflict then means another writer owns that branch.
 
 Default-branch/protection admin restrictions do not block authorized development; see
-GITHUB_ADMIN_CHECKLIST. If git write credentials are unavailable but the connector can
-write: create the same unique lease commit then **create** its new ref atomically through
-GitHub (never update an existing lock ref). Preserve the returned lease SHA. No writer
-claim is needed for read-only inspection. A governance maintenance session uses its own
-explicitly authorized branch, with the same one-writer rule.
+GITHUB_ADMIN_CHECKLIST. The optional lease exists only as a coordination aid for overlapping
+sessions; it is not part of the normal sequential Codex/Claude workflow. No writer claim is
+needed for read-only inspection.
 
 ## Implement only the active task
 Identify feature IDs; use pinned source repo/branch/SHA; inspect source commits/files/tests;
@@ -43,9 +40,9 @@ Any new failure, incomplete suite or newly skipped baseline test blocks.
 Commit coherent work. Update state/traceability, IMPORT_LEDGER when importing, and HANDOFF:
 last verified commit (an ancestor is valid; never invent a self-referential HEAD), commands,
 CI URLs/results, changed modules/feature IDs, blockers and exact next command.
-Regenerate headers with `state_view.py`, rerun validator, push normally, verify clean tree
-and remote HEAD, then release the exact lease SHA. Document interrupted/dirty work instead
-of hiding it. The next writer claims a new lease and needs no chat history.
+Regenerate headers with `state_view.py`, rerun validator, push normally, then verify the
+remote HEAD still equals the commit you pushed. Release an optional lease only if you used one.
+Document interrupted/dirty work instead of hiding it. The next sequential writer needs no chat history.
 
 ## PR / gate lifecycle
 Open PR against superfork/integration. Keep the active gate unchanged while it is REVIEW.
