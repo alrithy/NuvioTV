@@ -172,48 +172,6 @@
       "classification": "reproduced_baseline_failure"
     },
     {
-      "test_id": "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test default fallback values when RAM is zero or unknown",
-      "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
-      "recorded_on": "2026-09-28",
-      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
-      "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
-        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
-        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
-      ],
-      "source_file": "app/src/test/java/com/nuvio/tv/ui/screens/player/NuvioExoPlayerPerformanceHelperTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
-      "classification": "reproduced_baseline_failure"
-    },
-    {
-      "test_id": "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test 2 GB RAM tier classification",
-      "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
-      "recorded_on": "2026-09-28",
-      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
-      "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
-        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
-        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
-      ],
-      "source_file": "app/src/test/java/com/nuvio/tv/ui/screens/player/NuvioExoPlayerPerformanceHelperTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
-      "classification": "reproduced_baseline_failure"
-    },
-    {
-      "test_id": "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test 1 GB RAM tier classification",
-      "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
-      "recorded_on": "2026-09-28",
-      "reason": "Reproduced on unmodified official fd7973d and clean integration 3cf04cc before Superfork features; not attributed to governance.",
-      "evidence": [
-        "https://github.com/alrithy/NuvioTV/actions/runs/36479376404/job/109121079197",
-        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571356",
-        "https://github.com/alrithy/NuvioTV/actions/runs/36488330126/job/109150571733"
-      ],
-      "source_file": "app/src/test/java/com/nuvio/tv/ui/screens/player/NuvioExoPlayerPerformanceHelperTest.kt",
-      "removal": "Remove explicitly in a reviewed PR after this exact test executes and passes in a full-suite report; missing/skipped is not fixed.",
-      "classification": "reproduced_baseline_failure"
-    },
-    {
       "test_id": "com.nuvio.tv.ui.screens.player.PostPlayRecommendationStateTest#loaded recommendation holds natural completion until overlay evaluation",
       "baseline_sha": "fd7973d91dd75d790c5f9b3d68dae652655e92c4",
       "recorded_on": "2026-09-28",

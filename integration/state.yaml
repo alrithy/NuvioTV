@@ -53,7 +53,7 @@ known_operational_risks:
 - id: R006
   severity: medium
   status: controlled
-  description: 'Full suite has 19 registered baseline debts: 18 reproduced and 1 intermittent,
+  description: 'Full suite has 16 registered baseline debts: 15 reproduced and 1 intermittent,
     with immutable clean-run evidence.'
   mitigation: Canonical full-suite runner and integration/baseline_test_debt.json;
     clean replay evidence is mandatory.

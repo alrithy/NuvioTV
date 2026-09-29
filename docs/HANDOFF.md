@@ -24,10 +24,10 @@ corrected to official `2a22a6f22`. Audit: `docs/audits/G2_RESOURCE_AUDIT.md`. Lo
 JVM harness for `fork/` (56 tests, 0 failures); official call sites only via CI.
 
 ## Exact next action
-1. Drive the G2b PR to green. When the full-suite report shows the three corrected
-   `NuvioExoPlayerPerformanceHelperTest` cases passing, remove their entries from
-   `integration/baseline_test_debt.json` (+ BASELINE_TEST_DEBT.md note) in a second push; that
-   push's run is the confirming run. Then squash-merge.
+1. G2b PR #15: run 36564393631 (head `9debaab`) passed the three corrected
+   `NuvioExoPlayerPerformanceHelperTest` cases (1816 tests, 15 failures, 0 new). Their debt
+   entries are removed (19 → 16, BASELINE_TEST_DEBT.md "G2b removals"); when the removal push's
+   exact-head run is green (confirming run), squash-merge.
 2. G2c: bounded metadata/rating caches (LruCacheMap), offline queue, stream-list recomposition
    (Lite c760295eb), bidi (d491bd09e), MPV low-RAM cache; 279 (Seekr) → defer to G7.
 3. Upstream observation: official `7d3cea0` (#3740, audio delay UI) is not accepted and touches
