@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G0 — Fork Foundation
 - Active branch: `chore/fork-foundation-impl`
-- Status: READY
+- Status: REVIEW
 - Task: `tasks/G0_FORK_FOUNDATION.md`
 - Accepted official baseline: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
 - Governance: READY
@@ -11,39 +11,44 @@
 <!-- canonical-state:end -->
 
 ## Current work boundary
-Governance hardening is merged via PR #6 at `de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798`.
-PR #5 is closed as superseded. G0 feature implementation has NOT started.
+G0 implementation is complete on `chore/fork-foundation-impl` and awaiting exact-head CI/merge.
+Governance hardening is merged via PR #6 (`de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798`);
+PR #5 is closed as superseded (every file it added exists on integration). No external fork
+code was imported, so IMPORT_LEDGER is unchanged.
+
+## G0 delivered
+Package `app/src/main/java/com/nuvio/tv/fork/foundation/` (new files only, no official code touched):
+- `FeatureMode.kt` — OFF / ON / AUTO.
+- `FeatureId.kt` — the 14 module-level groups from the task packet, names unchanged;
+  `experimental = true` only for AI_MEDIA and MAT_AUDIO.
+- `FeatureRegistry.kt` — immutable EnumMap defaults, all OFF; optional constructor
+  `overrides` map (defensively copied) is the only seam for later gates. No Context, I/O,
+  persistence or UI.
+- `SourceAttribution.kt` — provenance value (repository, ref, full pinned SHA, ImportMode,
+  optional full-SHA source commits, optional FeatureId). IMPORT_LEDGER stays canonical.
+Not created by design: ForkSettingsDataStore, settings UI, DI bindings, runtime activation.
+
+Tests: `app/src/test/java/com/nuvio/tv/fork/foundation/` — FeatureRegistryTest (8) and
+SourceAttributionTest (4). Verified locally in a standalone Kotlin 2.3.0/JUnit 4.13.2 JVM
+harness (12/12 PASS). The Android full suite and fullDebug APK are verified only by GitHub CI.
+
+Traceability: 1, 2, 311, 313, 314, 315, 317, 319 → implemented with evidence;
+318 (Simple/Advanced settings) → deferred with reason/next action.
 
 ## Exact next action
-1. Fetch origin and verify `chore/fork-foundation-impl` contains current `superfork/integration`.
-2. Switch to the active branch and run `python3 scripts/superfork/preflight.py --fetch`.
-3. Read `tasks/G0_FORK_FOUNDATION.md`; implement only FeatureId, FeatureMode,
-   FeatureRegistry and SourceAttribution with OFF defaults plus foundation tests.
-4. Run the required validator/tests/build, then update affected traceability rows and this handoff.
-Use the optional writer lease only if another coding session may overlap.
+1. Check exact-head Superfork CI + PR Policy for the G0 PR; fix any red result.
+2. When green, merge to `superfork/integration`, then open a `chore/governance-g0-closeout`
+   PR that records G0 in `completed_gates` (PR, merge SHA, CI run), sets G0 DONE and
+   activates G1 (`feat/unified-diagnostics`, `tasks/G1_UNIFIED_DIAGNOSTICS.md`).
+3. G1 reads the official diagnostics owner first and ports only the missing ysosrs delta.
 
 ## Evidence / limits
 Accepted official sync: 3cf04ccdcc20515acb093c28ad9b7c3943a39057 (fd7973d baseline).
-The G0 branch initially had zero unique commits; it can be advanced without rewriting history.
-Independent clean baseline replays and full test identifiers are retained under
-integration/evidence and baseline_test_debt.json. Local Android execution is unavailable
-(no Android SDK/cache); use actual GitHub CI evidence, not a claimed local build.
-No hardware tests run or claimed in this governance task.
+Observed official dev `71632b9271e8bce6783e415d64f34cfa4e8b894c` is not accepted; G0 does not
+touch the subsystems it changes (settings PR #3746 per DECISIONS), so no sync was needed for G0.
+Local Android execution is unavailable (no Android SDK); use actual GitHub CI evidence.
+No hardware tests run or claimed.
 
 ## Ownership / unfinished work
-No G0 writer is assigned. Sequential work may begin after fresh-branch/preflight checks; use an optional lease only for overlapping sessions. Coherent governance work
-is committed through PRs; never resume an old governance branch as the feature branch.
-Admin actions remain in GITHUB_ADMIN_CHECKLIST only. Current upstream observation is
-explicitly unaccepted, preserving the latest accepted integration anchor.
-
-## Governance verification
-PR #6 exact head `df0b41491da0974d230392df5768562ebaa9ca15` passed Superfork Governance CI,
-the complete no-new-regressions unit-suite guard, and Full Debug APK assembly in run
-`36542083884` before squash merge. Integration push CI remains the final repository check
-for the merged state.
-
-Baseline replay attempt 2 confirms the additional HomeEnrichment case is intermittent,
-not fixed: complete official suite returned to 18 failing / 1 skipped. Registry retains
-19 explicit entries, with original failure and passing replay evidence. Governance and
-Git-safety suite: 31 tests PASS (including writer contention, wrong release, stale branch,
-dirty tree, duplicate feature IDs, test identity collisions, missing reports and new failures).
+Sequential writer, no lease. Admin actions (default branch, protection) remain in
+GITHUB_ADMIN_CHECKLIST; connector access to those settings is not available.
