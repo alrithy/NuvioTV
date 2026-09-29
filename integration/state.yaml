@@ -11,9 +11,9 @@ active_gate: G1
 active_gate_name: Unified Diagnostics & Add-on Health
 active_branch: feat/unified-diagnostics
 active_task_packet: tasks/G1_UNIFIED_DIAGNOSTICS.md
-active_status: READY
+active_status: IN_PROGRESS
 active_pr: null
-active_owner: unclaimed
+active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
 last_green_commit: 74ff659d3b93a25a0f5ff71279c003b4f5b2795c

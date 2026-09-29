@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G1 — Unified Diagnostics & Add-on Health
 - Active branch: `feat/unified-diagnostics`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G1_UNIFIED_DIAGNOSTICS.md`
 - Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
@@ -11,33 +11,40 @@
 <!-- canonical-state:end -->
 
 ## Current work boundary
-G0 is DONE (PR #7, merge `791716a`; closeout PR #8, merge `59ed661`).
-Upstream sync PR #9 adopts official `71632b9271e8bce6783e415d64f34cfa4e8b894c`
-(integration merge `898bc83`, D040). G1 is READY; do not start G1 coding until PR #9 is merged.
-`user_visible_behavior_change_allowed` is true for G1 (diagnostics/health UI), behind
-FeatureRegistry groups that default OFF unless a documented decision says otherwise.
+G0 DONE (PR #7). Upstream sync to official `71632b9` merged (PR #9, merge `a909827`, D040).
+G1 is IN_PROGRESS on `feat/unified-diagnostics`, delivered as sequential PRs from this branch:
+- **G1a add-on health (this PR):** 281–287, 291 implemented; 288, 290 verified_official;
+  289 deferred to G8 (D041). Audit: `docs/audits/G1_DIAGNOSTICS_AUDIT.md`.
+- **G1b (next):** diagnostics model in official `PlayerDebugStatsOverlay` — features 61–81.
+- **G1c:** device assessment + apply/revert — features 14–16.
+G1 is DONE only after G1c merges and every G1 row has a terminal status.
+
+## G1a delivered
+- `fork/diagnostics/AddonHealth.kt`: states + classifier (ALGORITHM_PORT from ysosrs 45e0984).
+- `fork/diagnostics/AddonHealthTracker.kt`: in-memory, keyed by canonical add-on base URL;
+  records nothing when UNIFIED_DIAGNOSTICS is OFF. No URLs/headers/messages stored or logged.
+- `fork/foundation/ForkFoundationModule.kt`: Hilt provider for FeatureRegistry.
+- FeatureRegistry: `DECIDED_DEFAULTS` = UNIFIED_DIAGNOSTICS→AUTO (D041); all others OFF.
+- Hooks: `AddonRepositoryImpl.fetchAddon` (manifest), `StreamRepositoryImpl` per-add-on stream
+  fetch; badge in `AddonManagerScreen` cards via `AddonManagerViewModel`/`UiState.healthByUrl`.
+- Strings: `addon_health_*` in values + values-ar.
+- Tests: AddonHealthTest (10), StreamRepositoryAddonHealthTest (2), FeatureRegistryTest (9),
+  SourceAttributionTest (4). Fork-package tests pass in a local Kotlin/JVM harness; Android
+  compile/full suite/APK are verified only by GitHub CI.
 
 ## Exact next action
-1. If PR #9 is still open: it needs exact-head maintainer approval for the reviewed inventory
-   removal (D040; Baseline Change policy) — a maintainer must approve the PR at its head SHA or
-   comment `BASELINE_DEBT_APPROVED <head sha>`. Agents must not self-approve. Then squash-merge.
-2. After PR #9 merges: create `feat/unified-diagnostics` from integration HEAD, run
-   `python3 scripts/superfork/preflight.py --fetch`, read `tasks/G1_UNIFIED_DIAGNOSTICS.md`.
-3. G1 audit order: official `PlayerDebugStatsOverlay` and addon repository first; classify
-   each of features 14–16, 61–81, 281–291 as already official / missing delta / unsupported /
-   blocked; port only the missing ysosrs delta at the pinned SHA in SOURCE_MAP.
-
-## G0 delivered (for reference)
-`app/src/main/java/com/nuvio/tv/fork/foundation/`: FeatureMode (OFF/ON/AUTO), FeatureId
-(14 module groups; AI_MEDIA and MAT_AUDIO experimental), FeatureRegistry (immutable, all OFF,
-constructor `overrides` seam), SourceAttribution + ImportMode. Tests in the matching test
-package (12). No persistence/UI/DI. Feature 318 deferred with reason in traceability.
+1. Drive the G1a PR to green (exact-head CI) and merge it (squash).
+2. Continue on `feat/unified-diagnostics` (merge integration first) with G1b: read the ysosrs
+   `PlaybackStatsOverlay`/`PlayerViewModel.samplePlaybackStats` samplers at 45e0984, port only
+   metrics missing from official `PlayerDebugStatsOverlay`, keep it the single HUD, sample off
+   the Compose hot path, show unavailable values as unavailable. 81 stays unavailable until G3.
+3. Then G1c device assessment (`core/assessment/*`) with apply/revert and tests.
 
 ## Evidence / limits
-Sync evidence: clean replays in PR #9 (UPSTREAM_SYNC_LOG 2026-09-29); inventory recorded from
-the replay job log because this agent environment cannot download Actions artifacts
-(blob storage egress blocked). Local Android execution is unavailable (no Android SDK); use
-actual GitHub CI evidence. No hardware tests run or claimed.
+Local Android execution is unavailable (no Android SDK); use GitHub CI evidence. Actions
+artifacts cannot be downloaded from this agent environment (blob storage egress blocked);
+the baseline-audit workflow prints the safe inventory to the job log instead.
+No hardware/manual tests run or claimed (TV focus of the new badge: MANUAL-PENDING).
 
 ## Ownership / unfinished work
 Sequential writer, no lease. Admin actions (default branch, protection) remain in

@@ -1679,6 +1679,13 @@
     <string name="addon_delete_no">No</string>
     <string name="addon_delete_yes">Yes</string>
     <string name="addons_badge_disabled">Disabled</string>
+    <string name="addon_health_healthy">Healthy</string>
+    <string name="addon_health_slow">Slow</string>
+    <string name="addon_health_timeout">Timeout</string>
+    <string name="addon_health_auth_error">Auth error</string>
+    <string name="addon_health_manifest_error">Manifest error</string>
+    <string name="addon_health_no_streams">No streams</string>
+    <string name="addon_health_request_error">Request error</string>
     <string name="addon_manage_from_phone_title">Manage from phone</string>
     <string name="addon_manage_from_phone_subtitle">Scan a QR code to manage addons, catalogs, and collections from your phone</string>
     <string name="addon_manage_addons_only_from_phone_subtitle">Scan a QR code to install or remove add-ons from your phone</string>

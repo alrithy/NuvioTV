@@ -238,3 +238,15 @@ behavior correction with replacement coverage, not a lost regression test. The r
 inventory is replaced with the clean official replay; the suite floor rises 1,611 → 1,752.
 Debt entries keep their original registration SHA/date. Exact-head maintainer approval is
 required by the Baseline Change policy for this inventory removal.
+
+## D041 — Passive diagnostics run by default; add-on retry belongs to stream intelligence
+`UNIFIED_DIAGNOSTICS` defaults to `AUTO` in `FeatureRegistry.DECIDED_DEFAULTS`. G1 diagnostics
+are passive and read-only: they observe outcomes of requests the app already makes, keep state
+in memory, add no network traffic, persistence or logging of URLs/headers, and only add status
+text to existing official screens. Every other group stays `OFF`; experimental groups can never
+receive a decided default (FeatureRegistryTest).
+
+Feature 289 (add-on retry policy) is deferred to G8. The pinned ysosrs source has no retry: its
+breaker only changes the displayed level, and official `safeApiCall` returns the first error.
+Retrying add-on requests changes network behavior and belongs to the stream/failover owner, not
+to a diagnostics gate.
