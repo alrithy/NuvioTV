@@ -66,6 +66,9 @@ internal fun PlayerRuntimeController.maybeRunTrackFormatAfr(rawFps: Float, width
     val activity = currentHostActivity() ?: return
 
     afrTrackSwitchInFlight = true
+    // Engage the hold even if the first READY already primed playWhenReady (the frame is not yet
+    // playing, checked above); the release re-applies the start.
+    player?.playWhenReady = false
     val generation = afrTrackGeneration
     scope.launch {
         try {
