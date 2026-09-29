@@ -365,35 +365,6 @@ internal fun resolveReturnFocusStep(
 
 private const val RETURN_FOCUS_SEASON_ADVANCE_WAIT_MS = 400L
 
-private fun resolveHeroPlaybackVideo(
-    meta: Meta,
-    nextToWatch: NextToWatch?,
-    episodesForSeason: List<Video>
-): Video? {
-    if (meta.type != ContentType.SERIES && meta.videos.isEmpty()) return null
-
-    val byId = nextToWatch?.nextVideoId?.let { id ->
-        meta.videos.firstOrNull { it.id == id }
-    }
-    val bySeasonEpisode = if (
-        byId == null &&
-        nextToWatch?.nextSeason != null &&
-        nextToWatch.nextEpisode != null
-    ) {
-        meta.videos.firstOrNull {
-            it.season == nextToWatch.nextSeason && it.episode == nextToWatch.nextEpisode
-        }
-    } else {
-        null
-    }
-    val defaultVideoId = meta.behaviorHints?.defaultVideoId
-    val defaultVideo = meta.videos.firstOrNull {
-        it.id == defaultVideoId && it.available != false
-    }
-
-    return byId ?: bySeasonEpisode ?: defaultVideo ?: episodesForSeason.firstOrNull()
-}
-
 private const val USER_INTERACTION_DISPATCH_DEBOUNCE_MS = 120L
 
 
@@ -828,6 +799,10 @@ fun MetaDetailsScreen(
                     }
                     if (!playbackAvailability.isLoaded) return@LaunchedEffect
                     playOnLoadConsumed.value = true
+                    if (uiState.shufflePoolEmpty) {
+                        playOnLoadReturnObserved.value = true
+                        return@LaunchedEffect
+                    }
                     if (!playbackAvailability.canStream(meta.apiType, playOnLoadVideo?.id ?: meta.id, meta.id, playOnLoadVideo)) {
                         playOnLoadReturnObserved.value = true
                         Toast.makeText(context, R.string.playback_unavailable_message, Toast.LENGTH_SHORT).show()
@@ -877,6 +852,10 @@ fun MetaDetailsScreen(
                     watchedEpisodes = uiState.watchedEpisodes,
                     episodeWatchedPendingKeys = uiState.episodeWatchedPendingKeys,
                     blurUnwatchedEpisodes = uiState.blurUnwatchedEpisodes,
+                    randomEpisodeEnabled = uiState.randomEpisodeEnabled,
+                    episodeShuffle = uiState.episodeShuffle,
+                    shufflePoolEmpty = uiState.shufflePoolEmpty,
+                    onEpisodeShuffleChange = viewModel::setEpisodeShuffle,
                     episodeOptionsOverlayStyle = uiState.episodeOptionsOverlayStyle,
                     showFullReleaseDate = uiState.showFullReleaseDate,
                     overallRatingsVisibility = uiState.overallRatingsVisibility,
@@ -1196,6 +1175,10 @@ private fun MetaDetailsContent(
     watchedEpisodes: Set<Pair<Int, Int>>,
     episodeWatchedPendingKeys: Set<String>,
     blurUnwatchedEpisodes: Boolean,
+    randomEpisodeEnabled: Boolean,
+    episodeShuffle: com.nuvio.tv.domain.model.EpisodeShuffleSettings,
+    shufflePoolEmpty: Boolean,
+    onEpisodeShuffleChange: suspend (com.nuvio.tv.domain.model.EpisodeShuffleSettings) -> Boolean,
     episodeOptionsOverlayStyle: EpisodeOptionsOverlayStyle,
     showFullReleaseDate: Boolean,
     overallRatingsVisibility: HomeImdbRatingsVisibility,
@@ -1335,7 +1318,10 @@ private fun MetaDetailsContent(
         }
     }
     val selectedSeasonFocusRequester = remember { FocusRequester() }
-    val heroPlayFocusRequester = remember { FocusRequester() }
+    val heroPlayButtonFocusRequester = remember { FocusRequester() }
+    var synopsisTruncated by remember(meta.id, meta.description) { mutableStateOf(false) }
+    val heroPlayFocusRequester = if (synopsisTruncated) null else heroPlayButtonFocusRequester
+    val randomEpisodeFocusRequester = remember { FocusRequester() }
     val castTabFocusRequester = remember { FocusRequester() }
     val moreLikeTabFocusRequester = remember { FocusRequester() }
     val trailerTabFocusRequester = remember { FocusRequester() }
@@ -1366,6 +1352,17 @@ private fun MetaDetailsContent(
     var initialHeroFocusRequested by rememberSaveable(meta.id) { mutableStateOf(false) }
     var showHeroPlayOptionsDialog by rememberSaveable(meta.id) { mutableStateOf(false) }
     var showSynopsisOverlay by rememberSaveable(meta.id) { mutableStateOf(false) }
+    var showRandomEpisodeOverlay by rememberSaveable(meta.id) { mutableStateOf(false) }
+    var randomEpisodePlaybackPending by rememberSaveable(meta.id) { mutableStateOf(false) }
+    var stoppingShuffle by remember(meta.id) { mutableStateOf(false) }
+    val showRandomEpisodeButton = remember(randomEpisodeEnabled, isSeries, meta.videos, episodeShuffle.enabled) {
+        randomEpisodeEnabled && isSeries && (episodeShuffle.enabled || meta.videos.any {
+            (it.season ?: 0) > 0 && (it.episode ?: 0) > 0
+        })
+    }
+    LaunchedEffect(showRandomEpisodeButton) {
+        if (!showRandomEpisodeButton) showRandomEpisodeOverlay = false
+    }
     var lastReturnFocusRestoreId by rememberSaveable(
         meta.id,
         detailReturnEpisodeFocusRequest?.season,
@@ -1630,6 +1627,7 @@ private fun MetaDetailsContent(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
+                randomEpisodePlaybackPending = false
                 launchPendingFocusRestore()
             }
         }
@@ -2114,7 +2112,7 @@ private fun MetaDetailsContent(
         ) {
             repeat(3) {
                 if (initialHeroFocusRequested) return@repeat
-                heroPlayFocusRequester.requestFocusAfterFrames()
+                heroPlayButtonFocusRequester.requestFocusAfterFrames()
                 delay(80)
             }
         }
@@ -2252,7 +2250,12 @@ private fun MetaDetailsContent(
 
     // Always-composed bottom gradient alpha (avoids add/remove during scroll)
 
-    Box(modifier = modifier.fillMaxSize().background(backgroundColor)) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .background(backgroundColor)
+            .onPreviewKeyEvent { randomEpisodePlaybackPending }
+    ) {
         // Sticky background — backdrop or trailer
         BackdropLayer(
             backdropRequest = backdropRequest,
@@ -2366,7 +2369,7 @@ private fun MetaDetailsContent(
                         fun requesterForKey(key: Any?): FocusRequester? {
                             val name = key as? String ?: return null
                             return when {
-                                name == "hero" -> heroPlayFocusRequester
+                                name == "hero" -> heroPlayButtonFocusRequester
                                 name == "season_tabs" -> selectedSeasonFocusRequester
                                 name.startsWith("episodes_") ->
                                     seasonDownFocusRequester ?: selectedSeasonFocusRequester
@@ -2424,9 +2427,9 @@ private fun MetaDetailsContent(
                         meta = meta,
                         nextEpisode = nextEpisode,
                         nextToWatch = nextToWatch,
-                        onPlayClick = heroPlayClick,
-                        isPlayEnabled = isPlayEnabled,
-                        onPlayLongPress = if (isPlayEnabled && (showManualPlayOption || nextToWatch?.isResume == true)) {
+                        onPlayClick = { if (shufflePoolEmpty) showRandomEpisodeOverlay = true else heroPlayClick() },
+                        isPlayEnabled = shufflePoolEmpty || isPlayEnabled,
+                        onPlayLongPress = if (!shufflePoolEmpty && isPlayEnabled && (showManualPlayOption || nextToWatch?.isResume == true)) {
                             { showHeroPlayOptionsDialog = true }
                         } else {
                             null
@@ -2443,9 +2446,27 @@ private fun MetaDetailsContent(
                         showFullReleaseDate = showFullReleaseDate,
                         trailerAvailable = trailerButtonEnabled && !trailerUrl.isNullOrBlank(),
                         onTrailerClick = onTrailerButtonClick,
+                        showRandomEpisodeButton = showRandomEpisodeButton,
+                        onRandomEpisodeClick = {
+                            if (!episodeShuffle.enabled) {
+                                showRandomEpisodeOverlay = true
+                            } else if (!stoppingShuffle) {
+                                stoppingShuffle = true
+                                coroutineScope.launch {
+                                    try {
+                                        onEpisodeShuffleChange(episodeShuffle.copy(enabled = false))
+                                    } finally {
+                                        stoppingShuffle = false
+                                    }
+                                }
+                            }
+                        },
+                        episodeShuffle = episodeShuffle,
+                        shuffleActionPending = stoppingShuffle,
+                        randomEpisodeFocusRequester = randomEpisodeFocusRequester,
                         hideLogoDuringTrailer = hideLogoDuringTrailer,
                         isTrailerPlaying = isTrailerPlaying,
-                        playButtonFocusRequester = heroPlayFocusRequester,
+                        playButtonFocusRequester = heroPlayButtonFocusRequester,
                         onHeroActionFocused = {
                             if (listState.firstVisibleItemIndex > 0 || listState.firstVisibleItemScrollOffset > 0) {
                                 coroutineScope.launch {
@@ -2464,7 +2485,8 @@ private fun MetaDetailsContent(
                             initialHeroFocusRequested = true
                             clearPendingRestore()
                         },
-                        onShowFullDescription = { showSynopsisOverlay = true }
+                        onShowFullDescription = { showSynopsisOverlay = true },
+                        onTruncationChanged = { synopsisTruncated = it }
                     )
                 }
             }
@@ -2525,7 +2547,7 @@ private fun MetaDetailsContent(
                             onOpenEpisodeComments = episodeCommentsClick,
                             showOpenEpisodeComments = shouldShowCommentsSection,
                             onMarkPreviousEpisodesWatched = onMarkPreviousEpisodesWatched,
-                            upFocusRequester = if (showSeasonTabs) selectedSeasonFocusRequester else heroPlayFocusRequester,
+                            upFocusRequester = if (showSeasonTabs) selectedSeasonFocusRequester else (heroPlayFocusRequester ?: heroPlayButtonFocusRequester),
                             downFocusRequester = episodesDownFocusRequester,
                             episodeFocusRequesters = seasonEpisodeFocusRequesters,
                             restoreEpisodeId = visibleEpisodeRestoreId,
@@ -3015,6 +3037,47 @@ private fun MetaDetailsContent(
             )
         }
 
+        if (showRandomEpisodeOverlay && showRandomEpisodeButton) {
+            EpisodeShuffleDialog(
+                meta = meta,
+                shuffleSettings = episodeShuffle,
+                onSaveSettings = onEpisodeShuffleChange,
+                watchedEpisodes = watchedEpisodes,
+                episodeProgress = episodeProgressMap,
+                blurUnwatchedEpisodes = blurUnwatchedEpisodes,
+                showManualPlayOption = showManualPlayOption,
+                onDismiss = {
+                    showRandomEpisodeOverlay = false
+                    coroutineScope.launch { randomEpisodeFocusRequester.requestFocusAfterFrames() }
+                },
+                onPlay = { video ->
+                    if (canPlayEpisode(video)) {
+                        randomEpisodePlaybackPending = true
+                        showRandomEpisodeOverlay = false
+                        video.season?.let(onSeasonSelected)
+                    }
+                    episodeClick(video)
+                },
+                onPlayManually = { video ->
+                    if (canPlayEpisode(video)) {
+                        randomEpisodePlaybackPending = true
+                        showRandomEpisodeOverlay = false
+                        video.season?.let(onSeasonSelected)
+                    }
+                    episodeManualClick(video)
+                },
+                onStartFromBeginning = { video ->
+                    if (canPlayEpisode(video)) {
+                        randomEpisodePlaybackPending = true
+                        showRandomEpisodeOverlay = false
+                        video.season?.let(onSeasonSelected)
+                        markEpisodeRestore(video.id)
+                    }
+                    onEpisodeStartFromBeginningClick(video)
+                }
+            )
+        }
+
         selectedComment?.let { review ->
             CommentOverlay(
                 review = review,
@@ -3051,6 +3114,9 @@ private fun MetaDetailsContent(
                 description = synopsis,
                 onDismiss = { showSynopsisOverlay = false }
             )
+        }
+        if (randomEpisodePlaybackPending) {
+            PlaybackHandoffBackdrop(backdropUrl = heroBackdropUrl ?: meta.backdropUrl)
         }
     }
 }
