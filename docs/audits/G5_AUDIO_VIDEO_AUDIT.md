@@ -40,13 +40,13 @@ that needs them first adopts official through a reviewed `chore/upstream-sync-*`
 ## Features
 | ID | Behavior | Class | Result / plan |
 |---|---|---|---|
-| 32 | TrueHD passthrough | ALREADY_OFFICIAL | `buildStableAudioCapabilities` claims `ENCODING_DOLBY_TRUEHD` when the sink supports it |
-| 33 | Atmos passthrough | ALREADY_OFFICIAL | TrueHD (Atmos rides inside) and `ENCODING_E_AC3_JOC` claimed |
-| 34 | DTS-HD MA passthrough | missing delta | official never claims `ENCODING_DTS_HD`: a DTS-HD sink gets core DTS only (only the "force optical" switch adds it). ysosrs per-format policy claims it → G5c |
-| 35 | DTS:X passthrough | missing delta | same gap as 34 (DTS:X rides in DTS-HD) → G5c |
+| 32 | TrueHD passthrough | ALREADY_OFFICIAL | default sink = `DefaultAudioSink.Builder(context)` (live platform/HDMI capabilities) bitstreams `ENCODING_DOLBY_TRUEHD` when the sink reports it; the force-optical stable list keeps it when detected |
+| 33 | Atmos passthrough | ALREADY_OFFICIAL | TrueHD (Atmos rides inside) and `ENCODING_E_AC3_JOC` through the same live capabilities |
+| 34 | DTS-HD MA passthrough | ALREADY_OFFICIAL | the default sink uses the live platform capabilities, which include `ENCODING_DTS_HD` when the HDMI sink reports it; `buildStableAudioCapabilities` (core-DTS-only when not forced) is used only on the force-optical path, and there it adds `ENCODING_DTS_HD`. ysosrs adds no claim, only a per-format deny (38) |
+| 35 | DTS:X passthrough | ALREADY_OFFICIAL | DTS:X rides in the DTS-HD MA bitstream, same path as 34 |
 | 36 | DD / DD+ passthrough | ALREADY_OFFICIAL | `ENCODING_AC3`, `ENCODING_E_AC3` claimed |
 | 37 | Best lossless track by default | missing delta | official picks by language/container flags only; ysosrs `LosslessAudioTrackDefault` (below user pick / remembered / failover carry-over) → G5b |
-| 38 | Per-format passthrough controls | missing delta | official has one "force optical passthrough" switch; ysosrs `AudioPassthroughPolicy` (per-format receiver capability, Kodi model) → G5c |
+| 38 | Per-format passthrough controls | missing delta | official has one "force optical passthrough" switch; ysosrs `AudioPassthroughPolicy` = per-format deny (AC3 / E-AC3 / TrueHD / DTS / DTS-HD, all allowed by default = official) for chains whose EDID over-reports, only where FFmpeg can decode the format → G5c |
 | 39 | Detect real device/TV/AVR capabilities | PARTIAL_OVERLAP | official `AudioCapabilities` + `AudioOutputRouteDetector`; ysosrs `AudioCapabilityReport` (what the platform claimed, per sink build) → G5c |
 | 40 | Audio output diagnostics | PARTIAL_OVERLAP | G1 HUD `output` row (passthrough encoding / PCM); ysosrs rejection log + capability report → G5c |
 | 41 | Actual audio bitrate | missing delta | not shown (HUD shows codec/channels/rate) → G5c if the format exposes it, else deferred with reason |
@@ -74,7 +74,7 @@ MAT (45) belongs to G13 and is not touched here.
 ## Slice plan
 - G5a: soft clipping for boosted volume (48); 47 verified official.
 - G5b: default to the best lossless audio track (37).
-- G5c: per-format passthrough (34, 35, 38) with capability report and output diagnostics (39–42).
+- G5c: per-format passthrough controls (38) with capability report and output diagnostics (39–42); 34/35 verified official.
 - G5d: DV/HDR: HDR10 fallback on the strip path (54), EL handling (52), output state (53, 60), letterbox default (55).
 - G5e: AFR precision, track-format AFR and settle hold (56, 58, 59).
 - 46 deferred: needs device data, recorded in the G14 campaign.
