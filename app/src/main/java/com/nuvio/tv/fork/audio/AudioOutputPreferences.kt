@@ -27,6 +27,7 @@ class AudioOutputPreferences @Inject constructor(
     val enabled: Boolean = registry.mode(FeatureId.AUDIO_DV_AFR) != FeatureMode.OFF
 
     private val preferLosslessKey = booleanPreferencesKey("prefer_lossless_audio")
+    private val passthroughKeys = PassthroughFormat.entries.associateWith { booleanPreferencesKey(it.key) }
 
     private fun store(profileId: Int = profileManager.activeProfileId.value) = factory.get(profileId, FEATURE)
 
@@ -43,6 +44,32 @@ class AudioOutputPreferences @Inject constructor(
     /** Snapshot for one playback; false on any read failure (official behavior). */
     suspend fun preferLosslessNow(): Boolean =
         enabled && runCatching { preferLossless.first() }.getOrDefault(false)
+
+    /** G5c (feature 38): "receiver decodes this format" per format; all on = official. */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val passthroughAllowed: Flow<Map<PassthroughFormat, Boolean>> = profileManager.activeProfileId.flatMapLatest { profileId ->
+        store(profileId).data.map { prefs ->
+            PassthroughFormat.entries.associateWith { !enabled || (prefs[passthroughKeys.getValue(it)] ?: true) }
+        }
+    }
+
+    suspend fun setPassthroughAllowed(format: PassthroughFormat, value: Boolean) {
+        store().edit { it[passthroughKeys.getValue(format)] = value }
+    }
+
+    /** Snapshot for one playback; ALLOW_ALL when the group is OFF or on any read failure. */
+    suspend fun passthroughPolicyNow(softwareDecodersAvailable: Boolean): AudioPassthroughPolicy {
+        if (!enabled) return AudioPassthroughPolicy.ALLOW_ALL
+        val allowed = runCatching { passthroughAllowed.first() }.getOrNull() ?: return AudioPassthroughPolicy.ALLOW_ALL
+        return AudioPassthroughPolicy(
+            allowAc3 = allowed.getValue(PassthroughFormat.AC3),
+            allowEac3 = allowed.getValue(PassthroughFormat.EAC3),
+            allowTrueHd = allowed.getValue(PassthroughFormat.TRUEHD),
+            allowDts = allowed.getValue(PassthroughFormat.DTS),
+            allowDtsHd = allowed.getValue(PassthroughFormat.DTS_HD),
+            softwareDecodersAvailable = softwareDecodersAvailable,
+        )
+    }
 
     private companion object {
         const val FEATURE = "fork_audio_output"

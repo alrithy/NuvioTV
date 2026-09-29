@@ -6,6 +6,18 @@ import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
+/**
+ * G5c (39): the audio chain as the platform reports it, captured once per sink build.
+ * [direct] lists the bitstream formats the platform accepts directly (same question media3 asks),
+ * [surroundMode] is the Android TV surround setting (AUTO/MANUAL/...), [maxPcmChannels] the
+ * highest PCM channel count the HDMI output negotiated. Null parts were not readable.
+ */
+data class AudioChainSnapshot(
+    val direct: List<String>,
+    val surroundMode: String? = null,
+    val maxPcmChannels: Int? = null,
+)
+
 /** One HUD line. A null value means the device or stream does not expose it; the row is dropped. */
 data class HudRow(val label: String, val value: String, val warn: Boolean = false)
 
@@ -22,6 +34,14 @@ data class PlaybackHudInput(
     val audioChannels: Int? = null,
     val audioSampleRate: Int? = null,
     val audioOutputEncoding: Int? = null,
+    /** G5c (42): channel count the AudioTrack was configured with; meaningful for PCM only. */
+    val audioOutputChannels: Int? = null,
+    /** G5c (41): stream-reported audio bitrate (Format.bitrate); null or <= 0 = not reported. */
+    val audioBitrateBps: Int? = null,
+    /** G5c (40): decoded because the user's per-format receiver switch is off. */
+    val audioPassthroughDenied: Boolean = false,
+    /** G5c (39): what the platform claimed at sink build. */
+    val audioChain: AudioChainSnapshot? = null,
     val displayRefreshHz: Float? = null,
     val requiredBps: Long? = null,
     val availableBps: Long? = null,
@@ -46,7 +66,8 @@ object PlaybackHud {
         hdr(input),
         display(input),
         audio(input),
-        output(input.audioOutputEncoding),
+        output(input.audioOutputEncoding, input.audioOutputChannels, input.audioPassthroughDenied),
+        chain(input.audioChain),
         bitrateNeed(input.requiredBps, input.availableBps),
         connections(input.parallelConnections, input.chunkBytes),
         HudRow("rebuffer", input.rebuffers.toString(), warn = input.rebuffers > 0),
@@ -95,11 +116,12 @@ object PlaybackHud {
         }
         val channels = input.audioChannels?.let(::channelLayout)?.let { " $it" } ?: ""
         val rate = input.audioSampleRate?.takeIf { it > 0 }?.let { " ${it / 1000}kHz" } ?: ""
-        return HudRow("audio", codec + objectAudio + channels + rate)
+        val bitrate = input.audioBitrateBps?.takeIf { it > 0 }?.let { " ${formatBitrate(it)}" } ?: ""
+        return HudRow("audio", codec + objectAudio + channels + rate + bitrate)
     }
 
     /** Real output path as configured on the AudioTrack: bitstream passthrough or decoded PCM. */
-    internal fun output(encoding: Int?): HudRow? {
+    internal fun output(encoding: Int?, outputChannels: Int? = null, passthroughDenied: Boolean = false): HudRow? {
         encoding ?: return null
         val passthrough = when (encoding) {
             C.ENCODING_AC3 -> "AC3"
@@ -112,7 +134,24 @@ object PlaybackHud {
             C.ENCODING_DOLBY_TRUEHD -> "TrueHD"
             else -> null
         }
-        return if (passthrough != null) HudRow("output", "passthrough $passthrough") else HudRow("output", "PCM (decoded)")
+        if (passthrough != null) return HudRow("output", "passthrough $passthrough")
+        val reason = if (passthroughDenied) "decoded, receiver switch off" else "decoded"
+        val channels = outputChannels?.let(::channelLayout)?.let { " $it" } ?: ""
+        return HudRow("output", "PCM ($reason)$channels")
+    }
+
+    /** What the platform claimed the audio chain takes directly (ysosrs AudioCapabilityReport). */
+    internal fun chain(snapshot: AudioChainSnapshot?): HudRow? {
+        snapshot ?: return null
+        val direct = if (snapshot.direct.isEmpty()) "PCM only" else snapshot.direct.joinToString(" ")
+        val surround = snapshot.surroundMode?.let { " · surround $it" } ?: ""
+        val pcm = snapshot.maxPcmChannels?.let(::channelLayout)?.let { " · PCM $it" } ?: ""
+        return HudRow("chain", direct + surround + pcm)
+    }
+
+    internal fun formatBitrate(bps: Int): String = when {
+        bps >= 1_000_000 -> String.format(Locale.US, "%.1f Mb/s", bps / 1_000_000.0)
+        else -> "${bps / 1000} kb/s"
     }
 
     /** Required stream bitrate against the player's bandwidth estimate. */

@@ -259,6 +259,33 @@ class BluetoothAudioRoutePolicyTest {
         assertFalse(shouldKeepPlaying)
     }
 
+    @Test
+    fun `G5c denied format is decoded and other formats keep passthrough`() {
+        val sink = PlaybackSpeedAwareAudioSink(
+            sink = AlwaysSupportedDelegateSink(),
+            passthroughPolicy = com.nuvio.tv.fork.audio.AudioPassthroughPolicy(allowDtsHd = false)
+        )
+        val dtsHd = mime(MimeTypes.AUDIO_DTS_HD)
+        assertEquals(AudioSink.SINK_FORMAT_UNSUPPORTED, sink.getFormatSupport(dtsHd))
+        assertTrue(sink.shouldForcePcmForFormat(dtsHd))
+        assertTrue(sink.isPolicyDeniedPassthrough(dtsHd))
+        for (other in listOf(MimeTypes.AUDIO_DTS, MimeTypes.AUDIO_TRUEHD, MimeTypes.AUDIO_E_AC3, MimeTypes.AUDIO_DTS_EXPRESS)) {
+            val format = mime(other)
+            assertEquals(other, AudioSink.SINK_FORMAT_SUPPORTED_DIRECTLY, sink.getFormatSupport(format))
+            assertFalse(other, sink.isPolicyDeniedPassthrough(format))
+        }
+    }
+
+    @Test
+    fun `G5c default policy keeps official passthrough`() {
+        val sink = PlaybackSpeedAwareAudioSink(sink = AlwaysSupportedDelegateSink())
+        for (type in listOf(MimeTypes.AUDIO_AC3, MimeTypes.AUDIO_E_AC3, MimeTypes.AUDIO_TRUEHD, MimeTypes.AUDIO_DTS, MimeTypes.AUDIO_DTS_HD)) {
+            val format = mime(type)
+            assertEquals(type, AudioSink.SINK_FORMAT_SUPPORTED_DIRECTLY, sink.getFormatSupport(format))
+            assertFalse(type, sink.isPolicyDeniedPassthrough(format))
+        }
+    }
+
     private fun mime(sampleMimeType: String): Format {
         return Format.Builder()
             .setSampleMimeType(sampleMimeType)

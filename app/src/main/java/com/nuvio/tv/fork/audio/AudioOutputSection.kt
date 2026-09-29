@@ -10,7 +10,11 @@ import com.nuvio.tv.ui.screens.settings.SettingsToggleRow
 
 /** Fork audio output rows (G5) inside the official audio settings; nothing while the group is OFF. */
 @Composable
-internal fun AudioOutputSection(enabled: Boolean, viewModel: AudioOutputViewModel = hiltViewModel()) {
+internal fun AudioOutputSection(
+    enabled: Boolean,
+    passthroughControlsEnabled: Boolean = enabled,
+    viewModel: AudioOutputViewModel = hiltViewModel(),
+) {
     if (!viewModel.enabled) return
     val preferLossless by viewModel.preferLossless.collectAsStateWithLifecycle()
     SettingsToggleRow(
@@ -20,4 +24,23 @@ internal fun AudioOutputSection(enabled: Boolean, viewModel: AudioOutputViewMode
         enabled = enabled,
         onToggle = { viewModel.setPreferLossless(!preferLossless) }
     )
+    val passthroughAllowed by viewModel.passthroughAllowed.collectAsStateWithLifecycle()
+    PassthroughFormat.entries.forEach { format ->
+        val allowed = passthroughAllowed[format] ?: true
+        SettingsToggleRow(
+            title = stringResource(format.titleRes()),
+            subtitle = stringResource(R.string.audio_passthrough_format_sub),
+            checked = allowed,
+            enabled = passthroughControlsEnabled,
+            onToggle = { viewModel.setPassthroughAllowed(format, !allowed) }
+        )
+    }
+}
+
+private fun PassthroughFormat.titleRes(): Int = when (this) {
+    PassthroughFormat.AC3 -> R.string.audio_passthrough_ac3
+    PassthroughFormat.EAC3 -> R.string.audio_passthrough_eac3
+    PassthroughFormat.TRUEHD -> R.string.audio_passthrough_truehd
+    PassthroughFormat.DTS -> R.string.audio_passthrough_dts
+    PassthroughFormat.DTS_HD -> R.string.audio_passthrough_dtshd
 }

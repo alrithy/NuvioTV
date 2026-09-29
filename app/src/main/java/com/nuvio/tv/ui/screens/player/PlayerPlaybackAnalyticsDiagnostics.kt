@@ -77,6 +77,7 @@ internal class PlayerPlaybackAnalyticsDiagnostics {
     private var audioUnderrunElapsedSinceLastFeedMs: Long? = null
     private var audioFormat: PlaybackIssuePlaybackFormatInput? = null
     private var audioOutputEncoding: Int? = null
+    private var audioOutputChannels: Int? = null
 
     private var bandwidthEstimateBps: Long? = null
     private var bandwidthTransferDurationMs: Int? = null
@@ -120,18 +121,21 @@ internal class PlayerPlaybackAnalyticsDiagnostics {
         val audioUnderrunCount: Int,
         val loadErrorCount: Int,
         val bandwidthEstimateBps: Long?,
-        val audioOutputEncoding: Int?
+        val audioOutputEncoding: Int?,
+        val audioOutputChannels: Int? = null
     )
 
     fun hudSample(): HudSample = HudSample(
         audioUnderrunCount = audioUnderrunCount,
         loadErrorCount = loadErrorCount,
         bandwidthEstimateBps = bandwidthEstimateBps,
-        audioOutputEncoding = audioOutputEncoding
+        audioOutputEncoding = audioOutputEncoding,
+        audioOutputChannels = audioOutputChannels
     )
 
-    fun onAudioTrackInitialized(encoding: Int) {
+    fun onAudioTrackInitialized(encoding: Int, channelConfig: Int = 0) {
         audioOutputEncoding = encoding
+        audioOutputChannels = Integer.bitCount(channelConfig).takeIf { it > 0 }
     }
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
@@ -179,6 +183,7 @@ internal class PlayerPlaybackAnalyticsDiagnostics {
         audioUnderrunElapsedSinceLastFeedMs = null
         audioFormat = null
         audioOutputEncoding = null
+        audioOutputChannels = null
         ParallelRangeDataSource.hudConnections = 0
         ParallelRangeDataSource.hudChunkBytes = 0L
         bandwidthEstimateBps = null

@@ -903,6 +903,22 @@ internal fun PlayerRuntimeController.initializePlayer(
                 )
             }
 
+            // G5c (feature 38): per-format passthrough switches for this playback. Inert while
+            // force-optical is active (its FFmpeg path expects AC-3 to pass through), without the
+            // FFmpeg renderer (decoder priority OFF) or when FFmpeg failed to load.
+            val audioPassthroughPolicy = audioOutputPreferences.passthroughPolicyNow(
+                softwareDecodersAvailable = !isForcePassthroughActive &&
+                    effectiveDecoderPriority != DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF &&
+                    runCatching { androidx.media3.decoder.ffmpeg.FfmpegLibrary.isAvailable() }.getOrDefault(false)
+            )
+            if (!audioPassthroughPolicy.allowsEverything()) {
+                Log.i(
+                    PlayerRuntimeController.TAG,
+                    "AUDIO_PASSTHROUGH_POLICY: decode ${audioPassthroughPolicy.deniedGroups().joinToString()} " +
+                        "active=${audioPassthroughPolicy.softwareDecodersAvailable}"
+                )
+            }
+
             // ── Renderers Factory (Combining Libass offsets + Audio Gain + Video Fallback) ──
             val renderersFactory = SubtitleOffsetRenderersFactory(
                 context = context,
@@ -928,6 +944,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                 downmixNormalizationEnabled = !playerSettings.maintainOriginalAudioOnDownmix,
                 forceOpticalPassthrough = isForcePassthroughActive,
                 bluetoothForcePcm = isBluetoothAudioOutput,
+                audioPassthroughPolicy = audioPassthroughPolicy,
                 playbackSpeedProvider = { _uiState.value.playbackSpeed },
                 initialForcePcm = hasTriedAudioPcmFallback || isBluetoothAudioOutput,
                 preferSoftwareAudioOnly = isBluetoothAudioOutput,
@@ -1872,7 +1889,10 @@ internal fun PlayerRuntimeController.initializePlayer(
                         eventTime: AnalyticsListener.EventTime,
                         audioTrackConfig: AudioSink.AudioTrackConfig
                     ) {
-                        playbackAnalyticsDiagnostics.onAudioTrackInitialized(audioTrackConfig.encoding)
+                        playbackAnalyticsDiagnostics.onAudioTrackInitialized(
+                            encoding = audioTrackConfig.encoding,
+                            channelConfig = audioTrackConfig.channelConfig
+                        )
                     }
 
                     override fun onAudioUnderrun(
@@ -2210,6 +2230,8 @@ private class SubtitleOffsetRenderersFactory(
     private val downmixNormalizationEnabled: Boolean,
     private val forceOpticalPassthrough: Boolean,
     private val bluetoothForcePcm: Boolean = false,
+    private val audioPassthroughPolicy: com.nuvio.tv.fork.audio.AudioPassthroughPolicy =
+        com.nuvio.tv.fork.audio.AudioPassthroughPolicy.ALLOW_ALL,
     private val playbackSpeedProvider: () -> Float,
     private val initialForcePcm: Boolean = false,
     /**
@@ -2271,10 +2293,17 @@ private class SubtitleOffsetRenderersFactory(
             .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
             .setAudioProcessors(arrayOf(gainAudioProcessor))
         val baseAudioSink = builder.build()
+        // G5c (39): platform claims for the HUD `chain` row; read-only, never opens an AudioTrack.
+        if (com.nuvio.tv.fork.foundation.FeatureRegistry().mode(com.nuvio.tv.fork.foundation.FeatureId.AUDIO_DV_AFR) !=
+            com.nuvio.tv.fork.foundation.FeatureMode.OFF
+        ) {
+            com.nuvio.tv.fork.diagnostics.AudioChainProbe.capture(context)
+        }
         val playbackSpeedAwareAudioSink = PlaybackSpeedAwareAudioSink(
             sink = baseAudioSink,
             initialForcePcm = initialForcePcm,
-            forcePcmForBluetooth = bluetoothForcePcm
+            forcePcmForBluetooth = bluetoothForcePcm,
+            passthroughPolicy = audioPassthroughPolicy
         )
         playbackSpeedAwareAudioSink.setInitialPlaybackSpeed(playbackSpeedProvider())
         onPlaybackSpeedAwareAudioSinkCreated(playbackSpeedAwareAudioSink)

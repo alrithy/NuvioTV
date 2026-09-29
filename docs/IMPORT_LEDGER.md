@@ -253,3 +253,41 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: a sink without TrueHD/DTS-HD passthrough decodes the lossless track in software (G5c adds capability awareness); device check MANUAL-PENDING (G14 campaign, HV-G5-2)
+
+### G5c — Per-format passthrough controls (38)
+- Roadmap gate: G5
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): core/player/AudioPassthroughPolicy.kt (whole file, user switches), ui/screens/player/PlaybackSpeedAwareAudioSink.kt (`shouldRejectDirectPlayback` deny, `isPolicyDeniedPassthrough`), PlaybackSpeedAwareAudioRenderer.kt (`getDecoderInfos` empty for denied formats), PlayerRuntimeControllerInitialization.kt (policy build and factory param)
+- Import mode: FILE_PORT (policy) + DELTA_PORT (sink / renderer / factory hooks)
+- Current official equivalent: one "force optical passthrough" switch; otherwise the platform capability report decides
+- What already existed upstream: `PlaybackSpeedAwareAudioSink` force-PCM chokepoint (speed, Bluetooth, recovery), FFmpeg audio renderer
+- What was imported: five "receiver decodes this" switches; a denied format is refused by the sink and routed to the FFmpeg decoder; formats FFmpeg cannot decode (AC-4, DTS Express, DTS:X P2) are never denied
+- What was intentionally not imported: learned per-route rejection groups (F3, `audioRejectionsConfirmed`), AC-3 transcode of denied formats (F5 `DeniedTranscodePlanner`), error-recovery FFmpeg fallback hook, Kodi label wording
+- Local adaptations: switches in the profile-scoped `fork_audio_output` store (not the official PlayerSettings); snapshot per playback in the player build; policy made inert while force-optical is active (the vendored FFmpeg renderer then expects AC-3 to pass through, so denying it would leave no renderer), with decoder priority OFF, or when FFmpeg is unavailable; one host-free log line when a format is denied
+- Feature flag / fallback: every switch defaults on (= official, D048); ALLOW_ALL when FeatureId.AUDIO_DV_AFR is OFF (rows hidden)
+- Tests ported/added: AudioPassthroughPolicyTest (4), BluetoothAudioRoutePolicyTest +2 (sink deny / default)
+- License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: FFmpeg decode cost of TrueHD/DTS-HD on the TV CPU; device check MANUAL-PENDING (G14 campaign, HV-G5-3)
+
+### G5c — Audio output diagnostics (39–42)
+- Roadmap gate: G5
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/screens/player/AudioCapabilityReport.kt (direct-support probe, surround mode, per-encoding HDMI PCM channels), its capture in the sink build
+- Import mode: ALGORITHM_PORT (probe) + ADAPTER (G1 HUD rows)
+- Current official equivalent: `AudioCapabilities` / `AudioOutputRouteDetector` decide output; the G1 HUD shows source codec/channels and the output encoding
+- What already existed upstream: the official stats overlay; G1b HUD rows `audio` / `output`
+- What was imported: platform claim snapshot (formats accepted directly, surround mode, max PCM channels) shown as the HUD `chain` row; output PCM channel count; decode reason when a G5c receiver switch is off; stream-reported audio bitrate
+- What was intentionally not imported: ysosrs negotiated-encodings line and Device Assessment per-format rows (tied to its F2/F3 learning), `AudioTrackRejectionLog` (F3 learning input), diagnostics page text export
+- Local adaptations: pure `AudioChainSnapshot` + formatting in `fork/diagnostics/PlaybackHud.kt` (G1 owner); Android probe in `fork/diagnostics/AudioChainProbe.kt`, captured only while FeatureId.AUDIO_DV_AFR is not OFF
+- Feature flag / fallback: HUD rows appear only in the official stats overlay; a failed or pre-API-29 probe leaves the row out
+- Tests ported/added: PlaybackHudTest +3
+- License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: `isDirectPlaybackSupported` reflects vendor audio-policy profiles, which some TVs over-report (the reason 38 exists); device check MANUAL-PENDING (G14 campaign, HV-G5-4)

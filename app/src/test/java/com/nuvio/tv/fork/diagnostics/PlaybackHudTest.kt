@@ -64,6 +64,37 @@ class PlaybackHudTest {
     }
 
     @Test
+    fun outputShowsOutputChannelsAndTheReceiverSwitchReason() {
+        // G5c (40, 42): output channel count on PCM only, and why the format was decoded.
+        assertEquals("PCM (decoded) 7.1", PlaybackHud.output(C.ENCODING_PCM_16BIT, outputChannels = 8)?.value)
+        assertEquals("PCM (decoded) stereo", PlaybackHud.output(C.ENCODING_PCM_FLOAT, outputChannels = 2)?.value)
+        assertEquals(
+            "PCM (decoded, receiver switch off) 5.1",
+            PlaybackHud.output(C.ENCODING_PCM_16BIT, outputChannels = 6, passthroughDenied = true)?.value
+        )
+        assertEquals("passthrough TrueHD", PlaybackHud.output(C.ENCODING_DOLBY_TRUEHD, outputChannels = 8)?.value)
+    }
+
+    @Test
+    fun audioShowsBitrateOnlyWhenTheStreamReportsIt() {
+        // G5c (41): Format.bitrate, never estimated.
+        assertEquals("AC3 5.1 640 kb/s", PlaybackHud.audio(PlaybackHudInput(audioMime = MimeTypes.AUDIO_AC3, audioChannels = 6, audioBitrateBps = 640_000))?.value)
+        assertEquals("TrueHD 7.1 4.2 Mb/s", PlaybackHud.audio(PlaybackHudInput(audioMime = MimeTypes.AUDIO_TRUEHD, audioChannels = 8, audioBitrateBps = 4_200_000))?.value)
+        assertEquals("TrueHD 7.1", PlaybackHud.audio(PlaybackHudInput(audioMime = MimeTypes.AUDIO_TRUEHD, audioChannels = 8, audioBitrateBps = -1))?.value)
+    }
+
+    @Test
+    fun chainRowReportsWhatThePlatformClaimed() {
+        // G5c (39)
+        assertNull(PlaybackHud.chain(null))
+        assertEquals(
+            "AC3 E-AC3 JOC TrueHD · surround AUTO · PCM 7.1",
+            PlaybackHud.chain(AudioChainSnapshot(listOf("AC3", "E-AC3", "JOC", "TrueHD"), "AUTO", 8))?.value
+        )
+        assertEquals("PCM only", PlaybackHud.chain(AudioChainSnapshot(emptyList()))?.value)
+    }
+
+    @Test
     fun requiredBitrateWarnsWithoutTwentyPercentHeadroom() {
         assertEquals(HudRow("need", "40.0 / 100.0 Mbps", warn = false), PlaybackHud.bitrateNeed(40_000_000, 100_000_000))
         assertTrue(PlaybackHud.bitrateNeed(40_000_000, 45_000_000)!!.warn)

@@ -18,7 +18,10 @@ import androidx.media3.exoplayer.audio.ForwardingAudioSink
 internal class PlaybackSpeedAwareAudioSink(
     sink: AudioSink,
     initialForcePcm: Boolean = false,
-    forcePcmForBluetooth: Boolean = false
+    forcePcmForBluetooth: Boolean = false,
+    /** G5c (feature 38): per-format "receiver decodes this" switches; ALLOW_ALL = official. */
+    private val passthroughPolicy: com.nuvio.tv.fork.audio.AudioPassthroughPolicy =
+        com.nuvio.tv.fork.audio.AudioPassthroughPolicy.ALLOW_ALL
 ) : ForwardingAudioSink(sink) {
 
     // Set when the sink is built with forcePcm (error recovery). Don't clear on speed reset.
@@ -114,6 +117,12 @@ internal class PlaybackSpeedAwareAudioSink(
         return shouldRejectDirectPlayback(format)
     }
 
+    /** True when the user's per-format switch (G5c) is why this bitstream format is decoded. */
+    fun isPolicyDeniedPassthrough(format: Format): Boolean {
+        return isEncodedPassthroughCandidate(format) &&
+            passthroughPolicy.deniesPassthrough(format.sampleMimeType)
+    }
+
     private fun shouldRejectDirectPlayback(format: Format): Boolean {
         if (!isEncodedPassthroughCandidate(format)) {
             return false
@@ -123,7 +132,11 @@ internal class PlaybackSpeedAwareAudioSink(
             return true
         }
         // Non-1x speed cannot be applied to bitstream passthrough tracks.
-        return playbackSpeed != 1f
+        if (playbackSpeed != 1f) {
+            return true
+        }
+        // G5c: a format the user's receiver cannot decode. Inert on ALLOW_ALL.
+        return passthroughPolicy.deniesPassthrough(format.sampleMimeType)
     }
 
     private fun markPcmFallbackIfNeeded(format: Format?, speed: Float): Boolean {
