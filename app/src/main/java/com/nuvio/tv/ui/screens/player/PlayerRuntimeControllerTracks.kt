@@ -314,6 +314,7 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
         audioTracks = audioTracks,
         subtitleTracks = subtitleTracks
     )
+    applyLosslessAudioDefaultIfUnset(audioTracks)
     if (currentStreamHasVideoTrack) {
         maybeScheduleFirstFrameWatchdog()
     } else {
@@ -928,6 +929,8 @@ internal fun PlayerRuntimeController.applyPersistedTrackPreference(
     var updatedAddonSubtitle: com.nuvio.tv.domain.model.Subtitle? = null
 
     pending.audio?.let { audioSelection ->
+        // G5b: an audio preference exists for this stream; the lossless default never runs over it.
+        persistedAudioPreferenceSeenForStream = true
         if (audioTracks.isEmpty()) {
             logSwitchTrace(
                 stage = "restore-audio",

@@ -104,6 +104,8 @@ internal fun PlaybackAudioSection(
         onToggle = { onUpdate { setForceOpticalPassthrough(!settings.forceOpticalPassthrough) } },
         enabled = enabled && settings.decoderPriority != 0
     )
+    // G5: fork audio output rows (per-profile, default = official behavior).
+    com.nuvio.tv.fork.audio.AudioOutputSection(enabled = enabled)
 }
 
 @Composable

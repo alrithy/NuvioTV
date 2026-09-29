@@ -84,6 +84,7 @@ for. Never mark a row PASS from memory or expectation. Copy finished rows into
 | Test | Steps | Expected | Result | Evidence |
 |---|---|---|---|---|
 | HV-G5-1 soft clip (48) | Settings → audio amplification to +10 dB. Play a loud action scene (explosions) with PCM output (not passthrough). Repeat with the amplification at 0. | At +10 dB peaks sound compressed, not crackly or distorted; at 0 dB the sound is unchanged from official. | MANUAL-PENDING | short note / recording |
+| HV-G5-2 lossless default (37) | Settings → Audio → turn on *Prefer lossless audio*. Play a remux with TrueHD (or DTS-HD MA) and AC3 tracks in your language, never opened before. Then turn the setting off and play another such title. | On: the audio menu shows the TrueHD/DTS-HD track selected, and a commentary track is never picked. Picking another track by hand is remembered next time. Off: the same track official picks today. | MANUAL-PENDING | audio menu photo on / off |
 
 ## 5. G4 final validation — same-file A/B (required before Stable release)
 

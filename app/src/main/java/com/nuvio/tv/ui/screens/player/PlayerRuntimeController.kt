@@ -104,6 +104,8 @@ class PlayerRuntimeController(
     internal val playbackStrategySession: com.nuvio.tv.fork.playback.PlaybackStrategySession,
     /** G4a dead-source failover + startup watchdog; false while REMUX_PERFORMANCE is OFF. */
     internal val playbackRecoveryEnabled: Boolean,
+    /** G5 fork audio output preferences (lossless default); official behavior by default. */
+    internal val audioOutputPreferences: com.nuvio.tv.fork.audio.AudioOutputPreferences,
     savedStateHandle: SavedStateHandle,
     internal val scope: CoroutineScope
 ) {
@@ -526,6 +528,18 @@ class PlayerRuntimeController(
     internal var pendingAudioSelectionAfterSubtitleRefresh: PendingAudioSelection? = null
     internal var rememberedTrackPreference: TrackPreference? = null
     internal var persistedTrackPreference: TrackPreference? = null
+    // G5b (feature 37): lossless default, applied at most once per stream and never over a
+    // persisted/remembered/carried-over audio choice.
+    @Volatile internal var preferLosslessAudioDefault: Boolean = false
+    internal var losslessAudioDefaultAppliedForStream: Boolean = false
+    internal var persistedAudioPreferenceSeenForStream: Boolean = false
+
+    init {
+        // G5b: follow the per-profile "Prefer lossless audio" toggle (false = official selection).
+        // Declared after the field so its initializer cannot overwrite the first emission.
+        scope.launch { audioOutputPreferences.preferLossless.collect { preferLosslessAudioDefault = it } }
+    }
+
     internal var pendingEngineSwitchTrackPreference: PendingEngineSwitchTrackPreference? = null
     internal var explicitSubtitleSelectionForEngineSwitch: ExplicitSubtitleSelectionForEngineSwitch? = null
     internal var effectiveSubtitleSelectionForEngineSwitch: ExplicitSubtitleSelectionForEngineSwitch? = null

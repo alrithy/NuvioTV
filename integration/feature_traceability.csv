@@ -35,7 +35,7 @@ feature_id,gate,source_group,owner,status,feature,evidence,reason,next_action
 34,G5,official+ysosrs+reshaped,audio-video,verified_official,DTS-HD MA passthrough.,G5 audit: the official default sink uses live platform capabilities incl. ENCODING_DTS_HD when the HDMI sink reports it; force-optical adds it explicitly; device output MANUAL-PENDING (G14); docs/audits/G5_AUDIO_VIDEO_AUDIT.md.,,
 35,G5,official+ysosrs+reshaped,audio-video,verified_official,DTS:X passthrough.,G5 audit: DTS:X rides in the DTS-HD MA bitstream (same official path as 34); device output MANUAL-PENDING (G14); docs/audits/G5_AUDIO_VIDEO_AUDIT.md.,,
 36,G5,official+ysosrs+reshaped,audio-video,verified_official,Dolby Digital / DD+ passthrough.,G5 audit: official claims ENCODING_AC3 / ENCODING_E_AC3; device output MANUAL-PENDING (G14); docs/audits/G5_AUDIO_VIDEO_AUDIT.md.,,
-37,G5,official+ysosrs+reshaped,audio-video,planned,Automatically select best lossless audio track.,,,
+37,G5,official+ysosrs+reshaped,audio-video,implemented,Automatically select best lossless audio track.,"G5b: ysosrs LosslessAudioTrackDefault tiering (TrueHD > DTS-HD MA > FLAC > PCM, commentary skipped, preferred language first) applied once per stream on both engines after the persisted/remembered restore, behind the Prefer lossless audio setting (default off, D048); LosslessAudioDefaultTest; device check MANUAL-PENDING (G14, HV-G5-2).",,
 38,G5,official+ysosrs+reshaped,audio-video,planned,Per-format passthrough controls.,,,
 39,G5,official+ysosrs+reshaped,audio-video,planned,Detect real audio device / TV / AVR capabilities.,,,
 40,G5,official+ysosrs+reshaped,audio-video,planned,Audio output diagnostics.,,,
