@@ -46,6 +46,18 @@ jobs:
           } >> "$GITHUB_ENV"
       - name: Replay complete unmodified baseline suite
         run: python3 scripts/superfork/run_full_unit_suite.py --project clean-baseline --output build/superfork/baseline-${{ matrix.name }}.json
+      - name: Print safe result inventory
+        if: always()
+        # Same identifiers/outcomes as the artifact, readable from job logs where artifact
+        # downloads are unavailable. No raw test output, headers or URLs are printed.
+        run: |
+          python3 - "build/superfork/baseline-${{ matrix.name }}.json" <<'EOF'
+          import json, sys
+          report = json.load(open(sys.argv[1]))
+          print('SUPERFORK_META ' + json.dumps({k: v for k, v in report.items() if k != 'results'}, sort_keys=True))
+          for test_id, outcome in sorted(report.get('results', {}).items()):
+              print(f'SUPERFORK_RESULT {outcome} {test_id}')
+          EOF
       - name: Publish safe result inventory
         if: always()
         uses: actions/upload-artifact@v7
