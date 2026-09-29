@@ -14,7 +14,7 @@ This view's header is generated from state; use `state_view.py` after state chan
 
 ## Work boundary
 G0 DONE (PR #7). G1 Unified Diagnostics & Add-on Health DONE (PRs #10, #11, #12; 289 deferred to
-G8). G2 Adaptive Resource Manager IN_PROGRESS (G2a merged; G2b playback allocation safety). Legacy PR #1/#2 stay reference-only.
+G8). G2 Adaptive Resource Manager IN_PROGRESS (G2a, G2b merged; G2c caches/list/bidi). Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.

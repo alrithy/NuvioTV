@@ -38,6 +38,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 private const val TAG = "TmdbMetadataService"
 private val TMDB_API_KEY = BuildConfig.TMDB_API_KEY
@@ -54,15 +55,15 @@ class TmdbMetadataService(
     constructor(tmdbApi: TmdbApi) : this(tmdbApi, Dispatchers.IO)
 
     // In-memory caches
-    private val enrichmentCache = ConcurrentHashMap<String, TmdbEnrichment>()
-    private val episodeCache = ConcurrentHashMap<String, Map<Pair<Int, Int>, TmdbEpisodeEnrichment>>()
+    private val enrichmentCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, TmdbEnrichment>(), 48)
+    private val episodeCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, Map<Pair<Int, Int>, TmdbEpisodeEnrichment>>(), 48)
     private val enrichmentInFlight = ConcurrentHashMap<String, CompletableDeferred<TmdbEnrichment?>>()
     private val episodeInFlight = ConcurrentHashMap<String, CompletableDeferred<Map<Pair<Int, Int>, TmdbEpisodeEnrichment>>>()
-    private val personCache = ConcurrentHashMap<String, PersonDetail>()
-    private val moreLikeThisCache = ConcurrentHashMap<String, List<MetaPreview>>()
-    private val entityHeaderCache = ConcurrentHashMap<String, TmdbEntityHeader>()
-    private val entityRailCache = ConcurrentHashMap<String, List<MetaPreview>>()
-    private val entityBrowseCache = ConcurrentHashMap<String, TmdbEntityBrowseData>()
+    private val personCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, PersonDetail>(), 48)
+    private val moreLikeThisCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, List<MetaPreview>>(), 48)
+    private val entityHeaderCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, TmdbEntityHeader>(), 48)
+    private val entityRailCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, List<MetaPreview>>(), 48)
+    private val entityBrowseCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, TmdbEntityBrowseData>(), 48)
 
     suspend fun fetchEnrichment(
         tmdbId: String,
@@ -776,7 +777,7 @@ class TmdbMetadataService(
         }
     }
 
-    private val collectionCache = ConcurrentHashMap<String, TmdbMovieCollection>()
+    private val collectionCache = AdaptiveResources.policy.boundedCache(ConcurrentHashMap<String, TmdbMovieCollection>(), 48)
 
     suspend fun fetchMovieCollection(
         collectionId: Int,

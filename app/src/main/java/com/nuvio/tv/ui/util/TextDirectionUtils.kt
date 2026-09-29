@@ -1,7 +1,10 @@
 package com.nuvio.tv.ui.util
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
 
 /**
@@ -74,3 +77,16 @@ fun String.isContentRtl(): Boolean = contentTextDirection() == TextDirection.Rtl
  */
 fun TextDirection.toAbsoluteAlignment(): Alignment.Horizontal =
     if (this == TextDirection.Rtl) AbsoluteAlignment.Right else AbsoluteAlignment.Left
+
+/**
+ * [contentTextDirection] applied to this style, remembered per string: a `copy` allocates a new
+ * `SpanStyle` and `ParagraphStyle`, and list cards recompose on every focus move (G2c, Lite).
+ */
+@Composable
+fun TextStyle.directedFor(text: String): TextStyle =
+    remember(this, text) { copy(textDirection = text.contentTextDirection()) }
+
+/** [contentTextDirection] remembered per string, for alignment on the same recompose-heavy paths. */
+@Composable
+fun String.rememberContentTextDirection(): TextDirection =
+    remember(this) { contentTextDirection() }

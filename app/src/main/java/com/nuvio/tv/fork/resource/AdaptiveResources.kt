@@ -76,6 +76,14 @@ class AdaptiveResourcePolicy(val tier: MemoryTier) {
     fun parallelConnections(official: Int): Int =
         if (isConstrained) official.coerceAtMost(CONSTRAINED_MAX_PARALLEL_CONNECTIONS) else official
 
+    /**
+     * An in-memory metadata/rating cache: the [official] map on standard devices, a bounded LRU
+     * of [constrainedMaxEntries] on constrained ones, where a TTL alone never drops old entries
+     * and every row, card and detail page visited stays resident for the process lifetime.
+     */
+    fun <K, V> boundedCache(official: MutableMap<K, V>, constrainedMaxEntries: Int): MutableMap<K, V> =
+        if (isConstrained) lruCacheMap(constrainedMaxEntries) else official
+
     /** Home catalog rows loading at once; never above the official value. */
     fun catalogLoadConcurrency(official: Int): Int =
         if (isLowRam) official.coerceAtMost(LOW_RAM_CATALOG_CONCURRENCY) else official
