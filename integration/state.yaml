@@ -12,7 +12,7 @@ active_gate_name: Playback Strategy Framework
 active_branch: feat/playback-strategies
 active_task_packet: tasks/G3_PLAYBACK_STRATEGIES.md
 active_status: IN_PROGRESS
-active_pr: null
+active_pr: 18
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
