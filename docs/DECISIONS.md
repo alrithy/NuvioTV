@@ -4,7 +4,9 @@ This file records the decisions that must survive across coding agents and chat 
 
 ## D001 — Base
 Use official `NuvioMedia/NuvioTV:dev` as the base. Current pinned baseline is:
-`c257a2365ee3386b582dc2974ec235cfe0381f33`.
+`fd7973d91dd75d790c5f9b3d68dae652655e92c4`.
+
+Initial governance work began at `c257a2365ee3386b582dc2974ec235cfe0381f33`, then the baseline was refreshed before G0 to `fd7973d91dd75d790c5f9b3d68dae652655e92c4`. See `docs/UPSTREAM_SYNC_LOG.md`.
 
 Reason: forks overlap, diverge and are based on different upstream points. The official dev branch is the integration anchor.
 
@@ -136,7 +138,7 @@ GitHub is the source of truth. Codex, Claude Code, Gemini or another agent may w
 ## D025 — Branch ownership
 Never develop directly on `superfork/integration`.
 One active task/feature branch per coherent work item.
-Do not have two agents editing the same task branch concurrently unless explicitly coordinated.
+Exactly one writer may edit a task branch. Parallel read-only review is allowed; another writer needs a separately assigned branch and scope.
 
 ## D026 — Handoff
 Before changing agents, commit completed work and update `docs/HANDOFF.md` with branch, SHA, tests, unresolved issues and exact next task.
@@ -152,3 +154,71 @@ Expose simple defaults for normal users and advanced controls for expert users. 
 
 ## D030 — Zero-prompt agent behavior
 When the user says only "اشتغل على نوفيو" / "work on Nuvio" / "continue Nuvio", the coding agent should inspect repository state and continue the current/next documented gate rather than asking the user to restate the project.
+
+## D031 — Full-suite baseline debt uses a no-new-regressions guard
+The official-based baseline currently exposes 18 failures when the entire `:app:testFullDebugUnitTest` suite is run, even though official PR CI is green because it gates a narrower updater-focused subset plus build.
+
+Decision:
+- run the full unit suite on every Superfork PR;
+- record the 18 known failures in `integration/baseline_test_debt.json`;
+- fail CI on any unrecorded/new failure;
+- allow known failures to remain temporarily;
+- remove debt entries once fixed.
+
+This is documented in `docs/BASELINE_TEST_DEBT.md`.
+
+## D032 — Pre-Superfork PRs are reference sources, not merge candidates
+Legacy PR #1 (Cinema View) and PR #2 (Prototype Hub) target old `dev` and predate the current architecture.
+
+Decision:
+- do not merge them directly into `superfork/integration`;
+- optionally harvest selected G12 ideas through the normal current-baseline porting protocol.
+
+## D033 — Dependency and permission expansion require explicit review
+Imported fork code may not silently add binary artifacts, SDKs, Android permissions, telemetry, or globally relaxed network security.
+
+Use `docs/DEPENDENCY_POLICY.md`. New permissions/dependencies must be justified by feature IDs/gate, audited for license/security, and scoped to the narrowest trust boundary.
+
+## D034 — Persisted settings require backward-compatible migration discipline
+Fork features must not casually overwrite/rename official settings or leak profile data. New settings use safe explicit defaults; secrets remain Keystore-backed where required.
+
+Use `docs/DATA_MIGRATION_POLICY.md`.
+
+## D035 — Product priority stack resolves trade-offs
+When two technically valid implementations conflict, use `docs/PRODUCT_REQUIREMENTS.md`:
+P0 stability/security/upstream/data integrity, then P1 playback/subtitle/remote reliability, followed by capability expansion, experience/social, then experimental systems.
+
+Durable exceptions require a new decision record.
+
+## D036 — Freeze the implementation baseline within a gate
+Before G0 starts, take one final reviewed refresh from official `dev`. Once a gate is active, do not continuously chase upstream inside that feature branch.
+
+Official updates use dedicated upstream-sync PRs, normally at gate boundaries, when the affected subsystem materially changed, or for critical fixes. This preserves reproducibility while keeping long-term drift controlled.
+
+## D037 — Governance closure keeps accepted and observed upstream distinct
+During the 2026-09-28 audit official dev moved to e78de241acb8a6128c29076422377de1206ee8cd
+(settings PR #3746, 65 changed files including build/tests). This governance-only task
+retains the latest accepted fd7973d sync; no runtime merge is hidden inside governance.
+The final reviewed pre-G0 anchor remains fd7973d. G0 foundation does not touch settings;
+review the observed upstream delta through a dedicated sync before a settings-touching gate.
+D036 means latest **reviewed/accepted** official anchor, not an uncontrolled moving HEAD.
+
+## D038 — Fail-closed baseline debt and singular governance owners
+Use GOVERNANCE_OWNERS and BASELINE_TEST_DEBT. Exact fully qualified IDs, fresh complete
+execution, inventory checks and explicit reviewed baseline changes replace simple-name
+allowlists/count locks/catch-alls. One writer lease guards each task branch. No G0 feature
+is marked implemented by this governance-only review.
+
+## D039 — Explicit initial classification of the 19th baseline failure
+Clean official replay 36488330126 / job 109150571733 executed 1,611 tests and failed 19.
+The new guard correctly rejected HomeEnrichmentRepositoryBoundaryTest#`a real repository
+transport failure is retried and then resolves`; clean integration replay had 18 failures
+and this test passed. Test/build inputs are identical. Its source uses wall-clock delays,
+Unconfined coroutines and a 5-second request wait; scheduling sensitivity is a hypothesis,
+not a proven root cause. This failure is observed before any Superfork feature code.
+
+During the explicitly requested baseline audit, register its fully qualified ID as
+intermittent baseline debt with both results preserved. This is a reviewed, explicit
+initial registration of 19 entries (18 reproduced + 1 intermittent), not automatic growth.
+Repeat official replay once to characterize it; do not discard the failing evidence or
+use reruns to claim the test is fixed. Future additions require exact-head maintainer review.

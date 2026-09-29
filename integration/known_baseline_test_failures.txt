@@ -1,0 +1,3 @@
+# Compatibility redirect only; NOT an allowlist.
+# Canonical debt: integration/baseline_test_debt.json
+# Execute: python3 scripts/superfork/run_full_unit_suite.py

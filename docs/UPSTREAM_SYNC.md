@@ -1,22 +1,40 @@
-# Upstream Sync Policy
+# Upstream Sync Procedure
 
-Official upstream is `NuvioMedia/NuvioTV:dev`.
+Permanent history: `docs/UPSTREAM_SYNC_LOG.md`. Every accepted sync must append an entry there.
 
-The pinned baseline is immutable evidence. A later sync creates a new recorded sync point; it does not rewrite history.
+Official upstream: NuvioMedia/NuvioTV
+Integration branch: superfork/integration
 
-## Sync when
-- a new high-risk gate touches code changed materially upstream;
-- release hardening begins;
-- upstream gained a feature/fix we were about to port.
+## Rules
+- docs/BASELINE.md preserves the original pinned baseline as history.
+- New upstream sync points are appended to an upstream-sync log.
+- Never mix an upstream sync with a feature port in the same commit.
+- Never silently advance fork source SHAs.
 
-## Procedure
-1. Fetch official upstream and record old/new SHA.
-2. Review commits touching relevant subsystems.
-3. Use dedicated `chore/upstream-sync-YYYYMMDD` branch.
-4. Resolve conflicts preferring current official behavior unless an intentional Superfork delta is documented.
-5. Run validator, fullDebug tests/build and affected gate checks.
-6. Update baseline/source docs only if the project intentionally advances.
-7. Record redundant/removed fork deltas in IMPORT_LEDGER.
-8. Merge via PR.
+## Sync workflow
+1. Ensure feature tasks have no uncommitted work.
+2. Fetch official upstream.
+3. Create `chore/upstream-sync-YYYY-MM-DD` from superfork/integration.
+4. Integrate the new official dev state.
+5. Resolve conflicts using docs/DECISIONS.md.
+6. Re-audit PlayerRuntimeController, PlayerMediaSourceFactory, ParallelRangeDataSource, StreamSpeedTester, PlayerDebugStatsOverlay, PlayerSettingsDataStore, SkipIntroRepository, navigation and layout stores.
+7. Run full debug unit tests/build plus relevant regressions.
+8. Record old/new official SHA, conflicts and decisions.
+9. PR only the upstream sync into superfork/integration.
+10. Rebase active feature branches only after the sync is accepted.
 
-Never silently force integration to upstream HEAD or retain duplicate fork code after official gains equivalent behavior.
+## Feature convergence
+If official gains a feature already imported here, compare implementations, prefer official ownership when equivalent/better, migrate only our unique delta, remove duplication with tests, and update the ledger/decisions.
+
+## Baseline freeze policy
+Before the first implementation gate begins, refresh to the latest reviewed official `dev` available at that moment.
+
+After G0 starts, do **not** chase every upstream commit continuously inside feature branches. Upstream movement must use dedicated sync PRs and should normally occur:
+- between gates;
+- before beginning a gate that will touch an upstream subsystem that changed materially;
+- for a critical official bug/security fix;
+- when drift becomes large enough to increase future merge risk.
+
+An active feature PR must not silently absorb unrelated upstream commits.
+
+This balances two goals: start from current official code, and avoid permanent moving-target development.

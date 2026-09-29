@@ -1,321 +1,321 @@
-feature_id,gate,source_group,owner,status,feature
-1,G0,foundation,project,planned,"Build on the latest official NuvioTV rather than an old fork."
-2,G0,foundation,project,planned,"Keep continuous upstream sync capability without losing fork changes."
-3,G3,official+ysosrs+reshaped,playback,planned,"Automatic Playback Strategy selection by device/file/network."
-4,G4,official+ysosrs+reshaped,playback-network,planned,"Parallel Range Downloading for high-throughput playback."
-5,G4,official+ysosrs+reshaped,playback-network,planned,"Adaptive Connection Count."
-6,G4,official+ysosrs+reshaped,playback-network,planned,"Adaptive Chunk Size."
-7,G4,official+ysosrs+reshaped,playback-network,planned,"Deep buffering for large 4K REMUX files."
-8,G4,official+ysosrs+reshaped,playback-network,planned,"Avoid re-downloading already fetched data."
-9,G4,official+ysosrs+reshaped,playback-network,planned,"CDN throttle recovery."
-10,G4,official+ysosrs+reshaped,playback-network,planned,"Intelligent HTTP 429/503 handling."
-11,G4,official+ysosrs+reshaped,playback-network,planned,"Detect stalled connections and reopen a fresh one."
-12,G4,official+ysosrs+reshaped,playback-network,planned,"Off-heap/network buffer strategy where beneficial."
-13,G4,official+ysosrs+reshaped,playback-network,planned,"Speed testing against the actual stream URL."
-14,G1,official+ysosrs,diagnostics,planned,"Device Settings Assessment."
-15,G1,official+ysosrs,diagnostics,planned,"Apply Recommended Settings action."
-16,G1,official+ysosrs,diagnostics,planned,"Revert recommended settings."
-17,G4,official+ysosrs+reshaped,playback-network,planned,"Pre-resolve stream before playback."
-18,G4,official+ysosrs+reshaped,playback-network,planned,"Warm connection before playback to reduce startup delay."
-19,G4,official+ysosrs+reshaped,playback-network,planned,"Automatic source failover mid-playback."
-20,G4,official+ysosrs+reshaped,playback-network,planned,"Startup watchdog for stuck playback."
-21,G4,official+ysosrs+reshaped,playback-network,planned,"Recover from partially malformed MKV when possible."
-22,G4,official+ysosrs+reshaped,playback-network,planned,"Better truncated MKV handling."
-23,G4,official+ysosrs+reshaped,playback-network,planned,"Nested MKV SeekHead support/fixes."
-24,G4,official+ysosrs+reshaped,playback-network,planned,"Better seeking for non-faststart/poorly interleaved MP4."
-25,G4,official+ysosrs+reshaped,playback-network,planned,"Disk-based seek buffer."
-26,G4,official+ysosrs+reshaped,playback-network,planned,"Adaptive MPV demux cache by RAM/device tier."
-27,G3,official+ysosrs+reshaped,playback,planned,"Standard Playback mode."
-28,G3,official+ysosrs+reshaped,playback,planned,"REMUX / Throughput playback mode."
-29,G3,official+ysosrs+reshaped,playback,planned,"Seek Optimized playback mode."
-30,G3,official+ysosrs+reshaped,playback,planned,"Low-RAM playback mode."
-31,G3,official+ysosrs+reshaped,playback,planned,"Auto playback mode."
-32,G5,official+ysosrs+reshaped,audio-video,planned,"TrueHD passthrough."
-33,G5,official+ysosrs+reshaped,audio-video,planned,"Dolby Atmos passthrough."
-34,G5,official+ysosrs+reshaped,audio-video,planned,"DTS-HD MA passthrough."
-35,G5,official+ysosrs+reshaped,audio-video,planned,"DTS:X passthrough."
-36,G5,official+ysosrs+reshaped,audio-video,planned,"Dolby Digital / DD+ passthrough."
-37,G5,official+ysosrs+reshaped,audio-video,planned,"Automatically select best lossless audio track."
-38,G5,official+ysosrs+reshaped,audio-video,planned,"Per-format passthrough controls."
-39,G5,official+ysosrs+reshaped,audio-video,planned,"Detect real audio device / TV / AVR capabilities."
-40,G5,official+ysosrs+reshaped,audio-video,planned,"Audio output diagnostics."
-41,G5,official+ysosrs+reshaped,audio-video,planned,"Display actual audio bitrate."
-42,G5,official+ysosrs+reshaped,audio-video,planned,"Display source channels vs output channels."
-43,G5,official+ysosrs+reshaped,audio-video,planned,"Improved FFmpeg downmix."
-44,G5,official+ysosrs+reshaped,audio-video,planned,"Software decode fallback when required."
-45,G13,ysosrs+fornace,experimental,planned,"Experimental Kodi-style MAT / IEC61937 path."
-46,G5,official+ysosrs+reshaped,audio-video,planned,"Reduce cold-start delay for TrueHD / DTS-HD."
-47,G5,official+ysosrs+reshaped,audio-video,planned,"Volume boost up to 200%."
-48,G5,official+ysosrs+reshaped,audio-video,planned,"Soft clipping for boosted volume."
-49,G5,official+ysosrs+reshaped,audio-video,planned,"libdovi integration."
-50,G5,official+ysosrs+reshaped,audio-video,planned,"Dolby Vision Profile 7 -> 8.1 conversion when required."
-51,G5,official+ysosrs+reshaped,audio-video,planned,"Dolby Vision Profile 5 -> 8.1 fallback when required."
-52,G5,official+ysosrs+reshaped,audio-video,planned,"Better handling of DV enhancement layers / single-track cases."
-53,G5,official+ysosrs+reshaped,audio-video,planned,"Detect actual DV/HDR playback state."
-54,G5,official+ysosrs+reshaped,audio-video,planned,"Improved HDR10 fallback."
-55,G5,official+ysosrs+reshaped,audio-video,planned,"True-black HDR letterboxing."
-56,G5,official+ysosrs+reshaped,audio-video,planned,"Accurate 23.976 / 24 Hz matching."
-57,G5,official+ysosrs+reshaped,audio-video,planned,"Automatic Frame Rate matching."
-58,G5,official+ysosrs+reshaped,audio-video,planned,"Seamless frame-rate-switch detection."
-59,G5,official+ysosrs+reshaped,audio-video,planned,"HDMI/eARC settle/resume handling after display mode changes."
-60,G5,official+ysosrs+reshaped,audio-video,planned,"Display source resolution vs output resolution."
-61,G1,official+ysosrs,diagnostics,planned,"Unified Stats for Nerds HUD."
-62,G1,official+ysosrs,diagnostics,planned,"Video codec."
-63,G1,official+ysosrs,diagnostics,planned,"Actual video bitrate."
-64,G1,official+ysosrs,diagnostics,planned,"Source FPS."
-65,G1,official+ysosrs,diagnostics,planned,"Display refresh rate."
-66,G1,official+ysosrs,diagnostics,planned,"HDR / Dolby Vision profile/status."
-67,G1,official+ysosrs,diagnostics,planned,"Audio codec."
-68,G1,official+ysosrs,diagnostics,planned,"Atmos / DTS:X status."
-69,G1,official+ysosrs,diagnostics,planned,"Real passthrough status."
-70,G1,official+ysosrs,diagnostics,planned,"Live network throughput."
-71,G1,official+ysosrs,diagnostics,planned,"Required bitrate vs available throughput."
-72,G1,official+ysosrs,diagnostics,planned,"Buffer ahead."
-73,G1,official+ysosrs,diagnostics,planned,"Connection count and chunk size."
-74,G1,official+ysosrs,diagnostics,planned,"Rebuffer count."
-75,G1,official+ysosrs,diagnostics,planned,"Dropped frames."
-76,G1,official+ysosrs,diagnostics,planned,"Audio underruns."
-77,G1,official+ysosrs,diagnostics,planned,"Audio clock jitter."
-78,G1,official+ysosrs,diagnostics,planned,"RAM and player-buffer usage."
-79,G1,official+ysosrs,diagnostics,planned,"SoC / CPU status."
-80,G1,official+ysosrs,diagnostics,planned,"Thermal-throttling indication where measurable."
-81,G1,official+ysosrs,diagnostics,planned,"Current playback strategy."
-82,G6,reshaped+vibe-subtitle,subtitles,planned,"Subtitle AutoSync."
-83,G6,reshaped+vibe-subtitle,subtitles,planned,"Embedded subtitle reference."
-84,G6,reshaped+vibe-subtitle,subtitles,planned,"Same-release subtitle reference."
-85,G6,reshaped+vibe-subtitle,subtitles,planned,"Hash-matched subtitle reference."
-86,G6,reshaped+vibe-subtitle,subtitles,planned,"Cue-rhythm alignment across different languages."
-87,G6,reshaped+vibe-subtitle,subtitles,planned,"Automatic subtitle offset estimation."
-88,G6,reshaped+vibe-subtitle,subtitles,planned,"Clock-scale correction for gradual drift."
-89,G6,reshaped+vibe-subtitle,subtitles,planned,"Piecewise drift correction."
-90,G6,reshaped+vibe-subtitle,subtitles,planned,"Confidence scoring before applying automatic sync."
-91,G6,reshaped+vibe-subtitle,subtitles,planned,"Fail closed if sync confidence is low."
-92,G6,reshaped+vibe-subtitle,subtitles,planned,"Audio-based subtitle sync fallback."
-93,G6,reshaped+vibe-subtitle,subtitles,planned,"On-device speech recognition where practical."
-94,G6,reshaped+vibe-subtitle,subtitles,planned,"Arabic AutoSync."
-95,G6,reshaped+vibe-subtitle,subtitles,planned,"Language-independent AutoSync."
-96,G6,reshaped+vibe-subtitle,subtitles,planned,"Secondary subtitle language."
-97,G6,reshaped+vibe-subtitle,subtitles,planned,"Automatic secondary-language fallback."
-98,G6,reshaped+vibe-subtitle,subtitles,planned,"Auto-Synced indicator."
-99,G6,reshaped+vibe-subtitle,subtitles,planned,"Subtitle sync notifications."
-100,G6,reshaped+vibe-subtitle,subtitles,planned,"Custom subtitle fonts."
-101,G6,reshaped+vibe-subtitle,subtitles,planned,"Upload TTF/OTF from phone via QR."
-102,G6,reshaped+vibe-subtitle,subtitles,planned,"Download font from URL."
-103,G6,reshaped+vibe-subtitle,subtitles,planned,"Validate font before use."
-104,G6,reshaped+vibe-subtitle,subtitles,planned,"Fall back to default font if custom font fails."
-105,G6,reshaped+vibe-subtitle,subtitles,planned,"Arabic cinema subtitle preset."
-106,G6,reshaped+vibe-subtitle,subtitles,planned,"Avoid video reload when switching sidecar subtitles."
-107,G7,reshaped+cxsmo,seek,planned,"Hybrid Seek Preview engine."
-108,G7,reshaped+cxsmo,seek,planned,"Local preview frames from the current video."
-109,G7,reshaped+cxsmo,seek,planned,"Use real keyframes where available."
-110,G7,reshaped+cxsmo,seek,planned,"Seekr thumbnail fallback."
-111,G7,reshaped+cxsmo,seek,planned,"Seekr auto-calibration against real rendered frames."
-112,G7,reshaped+cxsmo,seek,planned,"Manual preview-sync adjustment."
-113,G7,reshaped+cxsmo,seek,planned,"Confidence-based Seekr calibration."
-114,G7,reshaped+cxsmo,seek,planned,"Reject weak calibration."
-115,G7,reshaped+cxsmo,seek,planned,"Bound Seek Preview RAM usage."
-116,G7,reshaped+cxsmo,seek,planned,"Bounded disk cache for seek previews."
-117,G9,official+cxsmo,discovery,planned,"Multi-provider Skip Intro engine."
-118,G9,official+cxsmo,discovery,planned,"Skip Recap."
-119,G9,official+cxsmo,discovery,planned,"Skip Credits / Outro."
-120,G9,official+cxsmo,discovery,planned,"Skip Preview."
-121,G9,official+cxsmo,discovery,planned,"Content-warning segments."
-122,G9,official+cxsmo,discovery,planned,"Mute segments where metadata supports it."
-123,G9,official+cxsmo,discovery,planned,"IntroDB."
-124,G9,official+cxsmo,discovery,planned,"SkipMe.db."
-125,G9,official+cxsmo,discovery,planned,"TheIntroDB."
-126,G9,official+cxsmo,discovery,planned,"PublicMetaDB."
-127,G9,official+cxsmo,discovery,planned,"MovieHavenDB."
-128,G9,official+cxsmo,discovery,planned,"VideoSkip."
-129,G9,official+cxsmo,discovery,planned,"NotScare public-page integration."
-130,G9,official+cxsmo,discovery,planned,"Parallel provider requests."
-131,G9,official+cxsmo,discovery,planned,"Independent timeout per provider."
-132,G9,official+cxsmo,discovery,planned,"Merge overlapping evidence."
-133,G9,official+cxsmo,discovery,planned,"Confidence-weighted skip timing."
-134,G9,official+cxsmo,discovery,planned,"TMDB -> IMDb normalization where required."
-135,G9,official+cxsmo,discovery,planned,"Encrypt provider credentials per profile."
-136,G9,official+cxsmo,discovery,planned,"Configurable post-play recommendation engine."
-137,G9,official+cxsmo,discovery,planned,"Trakt recommendations."
-138,G9,official+cxsmo,discovery,planned,"TMDB recommendations."
-139,G9,official+cxsmo,discovery,planned,"Simkl recommendations."
-140,G9,official+cxsmo,discovery,planned,"MDBList recommendations."
-141,G9,official+cxsmo,discovery,planned,"Kurato AI recommendations."
-142,G9,official+cxsmo,discovery,planned,"BingeCat AI recommendations."
-143,G9,official+cxsmo,discovery,planned,"Auto recommendation-provider mode."
-144,G9,official+cxsmo,discovery,planned,"Full pagination."
-145,G9,official+cxsmo,discovery,planned,"Lazy metadata loading."
-146,G9,official+cxsmo,discovery,planned,"Multi-source trailer fallback."
-147,G8,official+reshaped+cxsmo,streams,planned,"Progressive AIOStreams results."
-148,G8,official+reshaped+cxsmo,streams,planned,"Show results while slower addons continue."
-149,G8,official+reshaped+cxsmo,streams,planned,"Cumulative NDJSON snapshots."
-150,G8,official+reshaped+cxsmo,streams,planned,"Deduplicate progressive results."
-151,G8,official+reshaped+cxsmo,streams,planned,"Fall back to normal AIOStreams endpoint."
-152,G8,official+reshaped+cxsmo,streams,planned,"Instant scrape timeout mode."
-153,G8,official+reshaped+cxsmo,streams,planned,"Bounded scrape timeout mode."
-154,G8,official+reshaped+cxsmo,streams,planned,"Unlimited scrape mode with safeguards."
-155,G8,official+reshaped+cxsmo,streams,planned,"Improved stream ranking."
-156,G8,official+reshaped+cxsmo,streams,planned,"Real-Debrid cached first."
-157,G8,official+reshaped+cxsmo,streams,planned,"Keep uncached results visible."
-158,G8,official+reshaped+cxsmo,streams,planned,"4K above 1080p when configured."
-159,G8,official+reshaped+cxsmo,streams,planned,"REMUX preference."
-160,G8,official+reshaped+cxsmo,streams,planned,"Release-group quality ranking, TRaSH-style where appropriate."
-161,G8,official+reshaped+cxsmo,streams,planned,"Codec ranking."
-162,G8,official+reshaped+cxsmo,streams,planned,"HDR / DV ranking."
-163,G8,official+reshaped+cxsmo,streams,planned,"Lossless-audio ranking."
-164,G8,official+reshaped+cxsmo,streams,planned,"Bitrate ranking."
-165,G8,official+reshaped+cxsmo,streams,planned,"Connection-fit ranking."
-166,G8,official+reshaped+cxsmo,streams,planned,"Source-reliability ranking."
-167,G8,official+reshaped+cxsmo,streams,planned,"Preserve addon order where possible."
-168,G8,official+reshaped+cxsmo,streams,planned,"Auto-play best stream using the same ranking engine."
-169,G9,official+cxsmo,discovery,planned,"Random Episode picker."
-170,G9,official+cxsmo,discovery,planned,"Random across all seasons."
-171,G9,official+cxsmo,discovery,planned,"Random within current season."
-172,G9,official+cxsmo,discovery,planned,"Unwatched-only mode."
-173,G9,official+cxsmo,discovery,planned,"Fallback after all episodes watched."
-174,G9,official+cxsmo,discovery,planned,"Mystery Episode mode."
-175,G9,official+cxsmo,discovery,planned,"Hide episode title in Mystery Mode."
-176,G9,official+cxsmo,discovery,planned,"Hide episode number."
-177,G9,official+cxsmo,discovery,planned,"Hide image/overview to avoid spoilers."
-178,G9,official+cxsmo,discovery,planned,"Native in-app Calendar."
-179,G9,official+cxsmo,discovery,planned,"Upcoming episodes."
-180,G9,official+cxsmo,discovery,planned,"Recently released episodes."
-181,G9,official+cxsmo,discovery,planned,"Combine Library + metadata-addon dates."
-182,G9,official+cxsmo,discovery,planned,"Nuvio Sync integration."
-183,G9,official+cxsmo,discovery,planned,"Trakt integration."
-184,G9,official+cxsmo,discovery,planned,"Simkl integration."
-185,G9,official+cxsmo,discovery,planned,"MDBList integration."
-186,G9,official+cxsmo,discovery,planned,"Real-time watched-state updates."
-187,G9,official+cxsmo,discovery,planned,"Spoiler-safe Calendar."
-188,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Multiple Home Layouts rather than forcing one."
-189,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Original layout."
-190,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Classic layout."
-191,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Grid layout."
-192,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Modern layout."
-193,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Glass layout."
-194,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Cinematic Glass layout."
-195,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Modern sidebar navigation."
-196,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Top navigation."
-197,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Glass top navigation."
-198,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Pill navigation."
-199,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Liquid-glass effect on capable devices."
-200,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Lightweight fallback on weaker devices."
-201,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Full-screen Hero."
-202,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Rotating Hero artwork."
-203,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Hero trailer support."
-204,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Clock in top navigation."
-205,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Profile access in top navigation."
-206,G9,official+cxsmo,discovery,planned,"App Dimmer."
-207,G9,official+cxsmo,discovery,planned,"Player-accessible dimmer control."
-208,G10,reshaped,live-tv,planned,"Live TV module."
-209,G10,reshaped,live-tv,planned,"M3U playlists."
-210,G10,reshaped,live-tv,planned,"Xtream Codes."
-211,G10,reshaped,live-tv,planned,"Stalker Portal."
-212,G10,reshaped,live-tv,planned,"Multiple IPTV sources."
-213,G10,reshaped,live-tv,planned,"Add Live TV source from phone via QR."
-214,G10,reshaped,live-tv,planned,"EPG."
-215,G10,reshaped,live-tv,planned,"Now Playing information."
-216,G10,reshaped,live-tv,planned,"Next Program information."
-217,G10,reshaped,live-tv,planned,"Program progress bar."
-218,G10,reshaped,live-tv,planned,"Time remaining."
-219,G10,reshaped,live-tv,planned,"Favorites."
-220,G10,reshaped,live-tv,planned,"Categories."
-221,G10,reshaped,live-tv,planned,"Reorder categories."
-222,G10,reshaped,live-tv,planned,"Hide categories."
-223,G10,reshaped,live-tv,planned,"Hide channels."
-224,G10,reshaped,live-tv,planned,"Channel search."
-225,G10,reshaped,live-tv,planned,"Channel logos."
-226,G10,reshaped,live-tv,planned,"Channel preview."
-227,G10,reshaped,live-tv,planned,"Low-resolution preview on constrained devices."
-228,G10,reshaped,live-tv,planned,"Zap Up/Down."
-229,G10,reshaped,live-tv,planned,"CH+/CH- support."
-230,G10,reshaped,live-tv,planned,"Channel list inside player."
-231,G10,reshaped,live-tv,planned,"Category panel inside player."
-232,G10,reshaped,live-tv,planned,"Now/Next card on OK."
-233,G10,reshaped,live-tv,planned,"Improved Xtream TS/HLS handling."
-234,G10,reshaped,live-tv,planned,"Channel-start retry."
-235,G10,reshaped,live-tv,planned,"Faster MPEG-TS startup from first useful I-frame."
-236,G10,reshaped,live-tv,planned,"Live-TV-aware AFR behavior."
-237,G11,antonino-watchparty,watchparty,planned,"Watch Party."
-238,G11,antonino-watchparty,watchparty,planned,"Six-character room code."
-239,G11,antonino-watchparty,watchparty,planned,"TV <-> TV Watch Party."
-240,G11,antonino-watchparty,watchparty,planned,"TV <-> Android phone Watch Party."
-241,G11,antonino-watchparty,watchparty,planned,"Play/Pause sync."
-242,G11,antonino-watchparty,watchparty,planned,"Seek sync."
-243,G11,antonino-watchparty,watchparty,planned,"Share the resolved stream URL only with explicit permission."
-244,G11,antonino-watchparty,watchparty,planned,"Share only required headers and handle them securely."
-245,G11,antonino-watchparty,watchparty,planned,"WebRTC P2P communication."
-246,G11,antonino-watchparty,watchparty,planned,"Encrypted Watch Party data channel."
-247,G11,antonino-watchparty,watchparty,planned,"Soft drift correction for small drift."
-248,G11,antonino-watchparty,watchparty,planned,"Hard seek for large drift."
-249,G11,antonino-watchparty,watchparty,planned,"Never log sensitive stream URLs/headers."
-250,G13,ysosrs+fornace,experimental,planned,"AI Media Provider platform."
-251,G13,ysosrs+fornace,experimental,planned,"AI-generated subtitles."
-252,G13,ysosrs+fornace,experimental,planned,"AI speech-to-text."
-253,G13,ysosrs+fornace,experimental,planned,"AI subtitle translation."
-254,G13,ysosrs+fornace,experimental,planned,"AI voice translation / voice overlay."
-255,G13,ysosrs+fornace,experimental,planned,"BYOK."
-256,G13,ysosrs+fornace,experimental,planned,"Multiple AI vendors."
-257,G13,ysosrs+fornace,experimental,planned,"Provider APK architecture."
-258,G13,ysosrs+fornace,experimental,planned,"Keep AI providers isolated from the core app."
-259,G13,ysosrs+fornace,experimental,planned,"SHA-256 verification for provider APKs."
-260,G13,ysosrs+fornace,experimental,planned,"Signer verification."
-261,G13,ysosrs+fornace,experimental,planned,"Encrypt API keys using Android Keystore."
-262,G2,hackerslash-lite,resource,planned,"Adaptive Resource Manager."
-263,G2,hackerslash-lite,resource,planned,"Detect physical RAM."
-264,G2,hackerslash-lite,resource,planned,"Low-RAM tier."
-265,G2,hackerslash-lite,resource,planned,"Constrained-device tier."
-266,G2,hackerslash-lite,resource,planned,"Buffer size by RAM tier."
-267,G2,hackerslash-lite,resource,planned,"Parallel connection count by RAM tier."
-268,G2,hackerslash-lite,resource,planned,"Chunk size by RAM tier."
-269,G2,hackerslash-lite,resource,planned,"Bound addon request concurrency."
-270,G2,hackerslash-lite,resource,planned,"Reduce poster cache on weak devices."
-271,G2,hackerslash-lite,resource,planned,"RGB565 posters only when required."
-272,G2,hackerslash-lite,resource,planned,"Reduce/disable animated posters on weak devices."
-273,G2,hackerslash-lite,resource,planned,"Reduce post-play prefetch on weak devices."
-274,G2,hackerslash-lite,resource,planned,"Bounded metadata caches."
-275,G2,hackerslash-lite,resource,planned,"Bounded rating cache."
-276,G2,hackerslash-lite,resource,planned,"Bounded offline sync queue."
-277,G2,hackerslash-lite,resource,planned,"Reduce stream-list recompositions."
-278,G2,hackerslash-lite,resource,planned,"Optimize Bidi/RTL rendering work."
-279,G2,hackerslash-lite,resource,planned,"Memory-safe Seekr handling."
-280,G2,hackerslash-lite,resource,planned,"Low-RAM MPV cache policy."
-281,G1,official+ysosrs,diagnostics,planned,"Add-on Health system."
-282,G1,official+ysosrs,diagnostics,planned,"Healthy state."
-283,G1,official+ysosrs,diagnostics,planned,"Slow state."
-284,G1,official+ysosrs,diagnostics,planned,"Timeout state."
-285,G1,official+ysosrs,diagnostics,planned,"Authentication-error state."
-286,G1,official+ysosrs,diagnostics,planned,"Manifest-error state."
-287,G1,official+ysosrs,diagnostics,planned,"No-streams state."
-288,G1,official+ysosrs,diagnostics,planned,"Do not permanently hide an addon for a temporary manifest failure."
-289,G1,official+ysosrs,diagnostics,planned,"Addon retry policy."
-290,G1,official+ysosrs,diagnostics,planned,"Isolate a failing addon from other sources."
-291,G1,official+ysosrs,diagnostics,planned,"Add-on Health screen."
-292,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,"Optional screensaver."
-293,G14,official+project,hardening-release,planned,"Official self-hosted Nuvio server support."
-294,G14,official+project,hardening-release,planned,"/.well-known/nuvio discovery."
-295,G14,official+project,hardening-release,planned,"Custom backend switching."
-296,G14,official+project,hardening-release,planned,"Custom Supabase configuration."
-297,G14,official+project,hardening-release,planned,"Server trust confirmation."
-298,G14,official+project,hardening-release,planned,"Easy return to official Nuvio server."
-299,G14,official+project,hardening-release,planned,"Android Keystore for sensitive credentials."
-300,G14,official+project,hardening-release,planned,"Profile-scoped secrets."
-301,G14,official+project,hardening-release,planned,"Do not send stream credentials to subtitle-sync services."
-302,G14,official+project,hardening-release,planned,"Do not forward Cookies/Authorization to unrelated subtitle hosts."
-303,G14,official+project,hardening-release,planned,"QR local-server session tokens."
-304,G14,official+project,hardening-release,planned,"Cross-origin protection for local QR pages."
-305,G14,official+project,hardening-release,planned,"Do not log API keys or sensitive URLs."
-306,G14,official+project,hardening-release,planned,"SHA-256 checks for distributed APK releases."
-307,G14,official+project,hardening-release,planned,"ABI-specific APKs: arm64 / armeabi-v7a / universal."
-308,G14,official+project,hardening-release,planned,"In-app updater for the fork."
-309,G14,official+project,hardening-release,planned,"Stable release channel."
-310,G14,official+project,hardening-release,planned,"Beta release channel."
-311,G0,foundation,project,planned,"GitHub Actions CI for builds."
-312,G14,official+project,hardening-release,planned,"Tests before APK release."
-313,G0,foundation,project,planned,"Every major feature is isolated behind a module and/or feature flag where practical."
-314,G0,foundation,project,planned,"Avoid invasive core changes unless necessary for maintainability/upstream sync."
-315,G0,foundation,project,planned,"One feature/gate per coherent commit/PR."
-316,G14,official+project,hardening-release,planned,"Automated upstream sync checks."
-317,G0,foundation,project,planned,"Experimental features disabled by default."
-318,G0,foundation,project,planned,"Simple settings for normal users plus Advanced controls for power users."
-319,G0,foundation,project,planned,"Stability takes priority over blindly enabling every feature."
-320,G14,official+project,hardening-release,planned,"End goal: one Nuvio distribution combining the strongest playback, subtitle, Live TV, UI, diagnostics, discovery and community features from the important forks."
+feature_id,gate,source_group,owner,status,feature,evidence,reason,next_action
+1,G0,foundation,project,planned,Build on the latest official NuvioTV rather than an old fork.,,,
+2,G0,foundation,project,planned,Keep continuous upstream sync capability without losing fork changes.,,,
+3,G3,official+ysosrs+reshaped,playback,planned,Automatic Playback Strategy selection by device/file/network.,,,
+4,G4,official+ysosrs+reshaped,playback-network,planned,Parallel Range Downloading for high-throughput playback.,,,
+5,G4,official+ysosrs+reshaped,playback-network,planned,Adaptive Connection Count.,,,
+6,G4,official+ysosrs+reshaped,playback-network,planned,Adaptive Chunk Size.,,,
+7,G4,official+ysosrs+reshaped,playback-network,planned,Deep buffering for large 4K REMUX files.,,,
+8,G4,official+ysosrs+reshaped,playback-network,planned,Avoid re-downloading already fetched data.,,,
+9,G4,official+ysosrs+reshaped,playback-network,planned,CDN throttle recovery.,,,
+10,G4,official+ysosrs+reshaped,playback-network,planned,Intelligent HTTP 429/503 handling.,,,
+11,G4,official+ysosrs+reshaped,playback-network,planned,Detect stalled connections and reopen a fresh one.,,,
+12,G4,official+ysosrs+reshaped,playback-network,planned,Off-heap/network buffer strategy where beneficial.,,,
+13,G4,official+ysosrs+reshaped,playback-network,planned,Speed testing against the actual stream URL.,,,
+14,G1,official+ysosrs,diagnostics,planned,Device Settings Assessment.,,,
+15,G1,official+ysosrs,diagnostics,planned,Apply Recommended Settings action.,,,
+16,G1,official+ysosrs,diagnostics,planned,Revert recommended settings.,,,
+17,G4,official+ysosrs+reshaped,playback-network,planned,Pre-resolve stream before playback.,,,
+18,G4,official+ysosrs+reshaped,playback-network,planned,Warm connection before playback to reduce startup delay.,,,
+19,G4,official+ysosrs+reshaped,playback-network,planned,Automatic source failover mid-playback.,,,
+20,G4,official+ysosrs+reshaped,playback-network,planned,Startup watchdog for stuck playback.,,,
+21,G4,official+ysosrs+reshaped,playback-network,planned,Recover from partially malformed MKV when possible.,,,
+22,G4,official+ysosrs+reshaped,playback-network,planned,Better truncated MKV handling.,,,
+23,G4,official+ysosrs+reshaped,playback-network,planned,Nested MKV SeekHead support/fixes.,,,
+24,G4,official+ysosrs+reshaped,playback-network,planned,Better seeking for non-faststart/poorly interleaved MP4.,,,
+25,G4,official+ysosrs+reshaped,playback-network,planned,Disk-based seek buffer.,,,
+26,G4,official+ysosrs+reshaped,playback-network,planned,Adaptive MPV demux cache by RAM/device tier.,,,
+27,G3,official+ysosrs+reshaped,playback,planned,Standard Playback mode.,,,
+28,G3,official+ysosrs+reshaped,playback,planned,REMUX / Throughput playback mode.,,,
+29,G3,official+ysosrs+reshaped,playback,planned,Seek Optimized playback mode.,,,
+30,G3,official+ysosrs+reshaped,playback,planned,Low-RAM playback mode.,,,
+31,G3,official+ysosrs+reshaped,playback,planned,Auto playback mode.,,,
+32,G5,official+ysosrs+reshaped,audio-video,planned,TrueHD passthrough.,,,
+33,G5,official+ysosrs+reshaped,audio-video,planned,Dolby Atmos passthrough.,,,
+34,G5,official+ysosrs+reshaped,audio-video,planned,DTS-HD MA passthrough.,,,
+35,G5,official+ysosrs+reshaped,audio-video,planned,DTS:X passthrough.,,,
+36,G5,official+ysosrs+reshaped,audio-video,planned,Dolby Digital / DD+ passthrough.,,,
+37,G5,official+ysosrs+reshaped,audio-video,planned,Automatically select best lossless audio track.,,,
+38,G5,official+ysosrs+reshaped,audio-video,planned,Per-format passthrough controls.,,,
+39,G5,official+ysosrs+reshaped,audio-video,planned,Detect real audio device / TV / AVR capabilities.,,,
+40,G5,official+ysosrs+reshaped,audio-video,planned,Audio output diagnostics.,,,
+41,G5,official+ysosrs+reshaped,audio-video,planned,Display actual audio bitrate.,,,
+42,G5,official+ysosrs+reshaped,audio-video,planned,Display source channels vs output channels.,,,
+43,G5,official+ysosrs+reshaped,audio-video,planned,Improved FFmpeg downmix.,,,
+44,G5,official+ysosrs+reshaped,audio-video,planned,Software decode fallback when required.,,,
+45,G13,ysosrs+fornace,experimental,planned,Experimental Kodi-style MAT / IEC61937 path.,,,
+46,G5,official+ysosrs+reshaped,audio-video,planned,Reduce cold-start delay for TrueHD / DTS-HD.,,,
+47,G5,official+ysosrs+reshaped,audio-video,planned,Volume boost up to 200%.,,,
+48,G5,official+ysosrs+reshaped,audio-video,planned,Soft clipping for boosted volume.,,,
+49,G5,official+ysosrs+reshaped,audio-video,planned,libdovi integration.,,,
+50,G5,official+ysosrs+reshaped,audio-video,planned,Dolby Vision Profile 7 -> 8.1 conversion when required.,,,
+51,G5,official+ysosrs+reshaped,audio-video,planned,Dolby Vision Profile 5 -> 8.1 fallback when required.,,,
+52,G5,official+ysosrs+reshaped,audio-video,planned,Better handling of DV enhancement layers / single-track cases.,,,
+53,G5,official+ysosrs+reshaped,audio-video,planned,Detect actual DV/HDR playback state.,,,
+54,G5,official+ysosrs+reshaped,audio-video,planned,Improved HDR10 fallback.,,,
+55,G5,official+ysosrs+reshaped,audio-video,planned,True-black HDR letterboxing.,,,
+56,G5,official+ysosrs+reshaped,audio-video,planned,Accurate 23.976 / 24 Hz matching.,,,
+57,G5,official+ysosrs+reshaped,audio-video,planned,Automatic Frame Rate matching.,,,
+58,G5,official+ysosrs+reshaped,audio-video,planned,Seamless frame-rate-switch detection.,,,
+59,G5,official+ysosrs+reshaped,audio-video,planned,HDMI/eARC settle/resume handling after display mode changes.,,,
+60,G5,official+ysosrs+reshaped,audio-video,planned,Display source resolution vs output resolution.,,,
+61,G1,official+ysosrs,diagnostics,planned,Unified Stats for Nerds HUD.,,,
+62,G1,official+ysosrs,diagnostics,planned,Video codec.,,,
+63,G1,official+ysosrs,diagnostics,planned,Actual video bitrate.,,,
+64,G1,official+ysosrs,diagnostics,planned,Source FPS.,,,
+65,G1,official+ysosrs,diagnostics,planned,Display refresh rate.,,,
+66,G1,official+ysosrs,diagnostics,planned,HDR / Dolby Vision profile/status.,,,
+67,G1,official+ysosrs,diagnostics,planned,Audio codec.,,,
+68,G1,official+ysosrs,diagnostics,planned,Atmos / DTS:X status.,,,
+69,G1,official+ysosrs,diagnostics,planned,Real passthrough status.,,,
+70,G1,official+ysosrs,diagnostics,planned,Live network throughput.,,,
+71,G1,official+ysosrs,diagnostics,planned,Required bitrate vs available throughput.,,,
+72,G1,official+ysosrs,diagnostics,planned,Buffer ahead.,,,
+73,G1,official+ysosrs,diagnostics,planned,Connection count and chunk size.,,,
+74,G1,official+ysosrs,diagnostics,planned,Rebuffer count.,,,
+75,G1,official+ysosrs,diagnostics,planned,Dropped frames.,,,
+76,G1,official+ysosrs,diagnostics,planned,Audio underruns.,,,
+77,G1,official+ysosrs,diagnostics,planned,Audio clock jitter.,,,
+78,G1,official+ysosrs,diagnostics,planned,RAM and player-buffer usage.,,,
+79,G1,official+ysosrs,diagnostics,planned,SoC / CPU status.,,,
+80,G1,official+ysosrs,diagnostics,planned,Thermal-throttling indication where measurable.,,,
+81,G1,official+ysosrs,diagnostics,planned,Current playback strategy.,,,
+82,G6,reshaped+vibe-subtitle,subtitles,planned,Subtitle AutoSync.,,,
+83,G6,reshaped+vibe-subtitle,subtitles,planned,Embedded subtitle reference.,,,
+84,G6,reshaped+vibe-subtitle,subtitles,planned,Same-release subtitle reference.,,,
+85,G6,reshaped+vibe-subtitle,subtitles,planned,Hash-matched subtitle reference.,,,
+86,G6,reshaped+vibe-subtitle,subtitles,planned,Cue-rhythm alignment across different languages.,,,
+87,G6,reshaped+vibe-subtitle,subtitles,planned,Automatic subtitle offset estimation.,,,
+88,G6,reshaped+vibe-subtitle,subtitles,planned,Clock-scale correction for gradual drift.,,,
+89,G6,reshaped+vibe-subtitle,subtitles,planned,Piecewise drift correction.,,,
+90,G6,reshaped+vibe-subtitle,subtitles,planned,Confidence scoring before applying automatic sync.,,,
+91,G6,reshaped+vibe-subtitle,subtitles,planned,Fail closed if sync confidence is low.,,,
+92,G6,reshaped+vibe-subtitle,subtitles,planned,Audio-based subtitle sync fallback.,,,
+93,G6,reshaped+vibe-subtitle,subtitles,planned,On-device speech recognition where practical.,,,
+94,G6,reshaped+vibe-subtitle,subtitles,planned,Arabic AutoSync.,,,
+95,G6,reshaped+vibe-subtitle,subtitles,planned,Language-independent AutoSync.,,,
+96,G6,reshaped+vibe-subtitle,subtitles,planned,Secondary subtitle language.,,,
+97,G6,reshaped+vibe-subtitle,subtitles,planned,Automatic secondary-language fallback.,,,
+98,G6,reshaped+vibe-subtitle,subtitles,planned,Auto-Synced indicator.,,,
+99,G6,reshaped+vibe-subtitle,subtitles,planned,Subtitle sync notifications.,,,
+100,G6,reshaped+vibe-subtitle,subtitles,planned,Custom subtitle fonts.,,,
+101,G6,reshaped+vibe-subtitle,subtitles,planned,Upload TTF/OTF from phone via QR.,,,
+102,G6,reshaped+vibe-subtitle,subtitles,planned,Download font from URL.,,,
+103,G6,reshaped+vibe-subtitle,subtitles,planned,Validate font before use.,,,
+104,G6,reshaped+vibe-subtitle,subtitles,planned,Fall back to default font if custom font fails.,,,
+105,G6,reshaped+vibe-subtitle,subtitles,planned,Arabic cinema subtitle preset.,,,
+106,G6,reshaped+vibe-subtitle,subtitles,planned,Avoid video reload when switching sidecar subtitles.,,,
+107,G7,reshaped+cxsmo,seek,planned,Hybrid Seek Preview engine.,,,
+108,G7,reshaped+cxsmo,seek,planned,Local preview frames from the current video.,,,
+109,G7,reshaped+cxsmo,seek,planned,Use real keyframes where available.,,,
+110,G7,reshaped+cxsmo,seek,planned,Seekr thumbnail fallback.,,,
+111,G7,reshaped+cxsmo,seek,planned,Seekr auto-calibration against real rendered frames.,,,
+112,G7,reshaped+cxsmo,seek,planned,Manual preview-sync adjustment.,,,
+113,G7,reshaped+cxsmo,seek,planned,Confidence-based Seekr calibration.,,,
+114,G7,reshaped+cxsmo,seek,planned,Reject weak calibration.,,,
+115,G7,reshaped+cxsmo,seek,planned,Bound Seek Preview RAM usage.,,,
+116,G7,reshaped+cxsmo,seek,planned,Bounded disk cache for seek previews.,,,
+117,G9,official+cxsmo,discovery,planned,Multi-provider Skip Intro engine.,,,
+118,G9,official+cxsmo,discovery,planned,Skip Recap.,,,
+119,G9,official+cxsmo,discovery,planned,Skip Credits / Outro.,,,
+120,G9,official+cxsmo,discovery,planned,Skip Preview.,,,
+121,G9,official+cxsmo,discovery,planned,Content-warning segments.,,,
+122,G9,official+cxsmo,discovery,planned,Mute segments where metadata supports it.,,,
+123,G9,official+cxsmo,discovery,planned,IntroDB.,,,
+124,G9,official+cxsmo,discovery,planned,SkipMe.db.,,,
+125,G9,official+cxsmo,discovery,planned,TheIntroDB.,,,
+126,G9,official+cxsmo,discovery,planned,PublicMetaDB.,,,
+127,G9,official+cxsmo,discovery,planned,MovieHavenDB.,,,
+128,G9,official+cxsmo,discovery,planned,VideoSkip.,,,
+129,G9,official+cxsmo,discovery,planned,NotScare public-page integration.,,,
+130,G9,official+cxsmo,discovery,planned,Parallel provider requests.,,,
+131,G9,official+cxsmo,discovery,planned,Independent timeout per provider.,,,
+132,G9,official+cxsmo,discovery,planned,Merge overlapping evidence.,,,
+133,G9,official+cxsmo,discovery,planned,Confidence-weighted skip timing.,,,
+134,G9,official+cxsmo,discovery,planned,TMDB -> IMDb normalization where required.,,,
+135,G9,official+cxsmo,discovery,planned,Encrypt provider credentials per profile.,,,
+136,G9,official+cxsmo,discovery,planned,Configurable post-play recommendation engine.,,,
+137,G9,official+cxsmo,discovery,planned,Trakt recommendations.,,,
+138,G9,official+cxsmo,discovery,planned,TMDB recommendations.,,,
+139,G9,official+cxsmo,discovery,planned,Simkl recommendations.,,,
+140,G9,official+cxsmo,discovery,planned,MDBList recommendations.,,,
+141,G9,official+cxsmo,discovery,planned,Kurato AI recommendations.,,,
+142,G9,official+cxsmo,discovery,planned,BingeCat AI recommendations.,,,
+143,G9,official+cxsmo,discovery,planned,Auto recommendation-provider mode.,,,
+144,G9,official+cxsmo,discovery,planned,Full pagination.,,,
+145,G9,official+cxsmo,discovery,planned,Lazy metadata loading.,,,
+146,G9,official+cxsmo,discovery,planned,Multi-source trailer fallback.,,,
+147,G8,official+reshaped+cxsmo,streams,planned,Progressive AIOStreams results.,,,
+148,G8,official+reshaped+cxsmo,streams,planned,Show results while slower addons continue.,,,
+149,G8,official+reshaped+cxsmo,streams,planned,Cumulative NDJSON snapshots.,,,
+150,G8,official+reshaped+cxsmo,streams,planned,Deduplicate progressive results.,,,
+151,G8,official+reshaped+cxsmo,streams,planned,Fall back to normal AIOStreams endpoint.,,,
+152,G8,official+reshaped+cxsmo,streams,planned,Instant scrape timeout mode.,,,
+153,G8,official+reshaped+cxsmo,streams,planned,Bounded scrape timeout mode.,,,
+154,G8,official+reshaped+cxsmo,streams,planned,Unlimited scrape mode with safeguards.,,,
+155,G8,official+reshaped+cxsmo,streams,planned,Improved stream ranking.,,,
+156,G8,official+reshaped+cxsmo,streams,planned,Real-Debrid cached first.,,,
+157,G8,official+reshaped+cxsmo,streams,planned,Keep uncached results visible.,,,
+158,G8,official+reshaped+cxsmo,streams,planned,4K above 1080p when configured.,,,
+159,G8,official+reshaped+cxsmo,streams,planned,REMUX preference.,,,
+160,G8,official+reshaped+cxsmo,streams,planned,"Release-group quality ranking, TRaSH-style where appropriate.",,,
+161,G8,official+reshaped+cxsmo,streams,planned,Codec ranking.,,,
+162,G8,official+reshaped+cxsmo,streams,planned,HDR / DV ranking.,,,
+163,G8,official+reshaped+cxsmo,streams,planned,Lossless-audio ranking.,,,
+164,G8,official+reshaped+cxsmo,streams,planned,Bitrate ranking.,,,
+165,G8,official+reshaped+cxsmo,streams,planned,Connection-fit ranking.,,,
+166,G8,official+reshaped+cxsmo,streams,planned,Source-reliability ranking.,,,
+167,G8,official+reshaped+cxsmo,streams,planned,Preserve addon order where possible.,,,
+168,G8,official+reshaped+cxsmo,streams,planned,Auto-play best stream using the same ranking engine.,,,
+169,G9,official+cxsmo,discovery,planned,Random Episode picker.,,,
+170,G9,official+cxsmo,discovery,planned,Random across all seasons.,,,
+171,G9,official+cxsmo,discovery,planned,Random within current season.,,,
+172,G9,official+cxsmo,discovery,planned,Unwatched-only mode.,,,
+173,G9,official+cxsmo,discovery,planned,Fallback after all episodes watched.,,,
+174,G9,official+cxsmo,discovery,planned,Mystery Episode mode.,,,
+175,G9,official+cxsmo,discovery,planned,Hide episode title in Mystery Mode.,,,
+176,G9,official+cxsmo,discovery,planned,Hide episode number.,,,
+177,G9,official+cxsmo,discovery,planned,Hide image/overview to avoid spoilers.,,,
+178,G9,official+cxsmo,discovery,planned,Native in-app Calendar.,,,
+179,G9,official+cxsmo,discovery,planned,Upcoming episodes.,,,
+180,G9,official+cxsmo,discovery,planned,Recently released episodes.,,,
+181,G9,official+cxsmo,discovery,planned,Combine Library + metadata-addon dates.,,,
+182,G9,official+cxsmo,discovery,planned,Nuvio Sync integration.,,,
+183,G9,official+cxsmo,discovery,planned,Trakt integration.,,,
+184,G9,official+cxsmo,discovery,planned,Simkl integration.,,,
+185,G9,official+cxsmo,discovery,planned,MDBList integration.,,,
+186,G9,official+cxsmo,discovery,planned,Real-time watched-state updates.,,,
+187,G9,official+cxsmo,discovery,planned,Spoiler-safe Calendar.,,,
+188,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Multiple Home Layouts rather than forcing one.,,,
+189,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Original layout.,,,
+190,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Classic layout.,,,
+191,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Grid layout.,,,
+192,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Modern layout.,,,
+193,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Glass layout.,,,
+194,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Cinematic Glass layout.,,,
+195,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Modern sidebar navigation.,,,
+196,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Top navigation.,,,
+197,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Glass top navigation.,,,
+198,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Pill navigation.,,,
+199,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Liquid-glass effect on capable devices.,,,
+200,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Lightweight fallback on weaker devices.,,,
+201,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Full-screen Hero.,,,
+202,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Rotating Hero artwork.,,,
+203,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Hero trailer support.,,,
+204,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Clock in top navigation.,,,
+205,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Profile access in top navigation.,,,
+206,G9,official+cxsmo,discovery,planned,App Dimmer.,,,
+207,G9,official+cxsmo,discovery,planned,Player-accessible dimmer control.,,,
+208,G10,reshaped,live-tv,planned,Live TV module.,,,
+209,G10,reshaped,live-tv,planned,M3U playlists.,,,
+210,G10,reshaped,live-tv,planned,Xtream Codes.,,,
+211,G10,reshaped,live-tv,planned,Stalker Portal.,,,
+212,G10,reshaped,live-tv,planned,Multiple IPTV sources.,,,
+213,G10,reshaped,live-tv,planned,Add Live TV source from phone via QR.,,,
+214,G10,reshaped,live-tv,planned,EPG.,,,
+215,G10,reshaped,live-tv,planned,Now Playing information.,,,
+216,G10,reshaped,live-tv,planned,Next Program information.,,,
+217,G10,reshaped,live-tv,planned,Program progress bar.,,,
+218,G10,reshaped,live-tv,planned,Time remaining.,,,
+219,G10,reshaped,live-tv,planned,Favorites.,,,
+220,G10,reshaped,live-tv,planned,Categories.,,,
+221,G10,reshaped,live-tv,planned,Reorder categories.,,,
+222,G10,reshaped,live-tv,planned,Hide categories.,,,
+223,G10,reshaped,live-tv,planned,Hide channels.,,,
+224,G10,reshaped,live-tv,planned,Channel search.,,,
+225,G10,reshaped,live-tv,planned,Channel logos.,,,
+226,G10,reshaped,live-tv,planned,Channel preview.,,,
+227,G10,reshaped,live-tv,planned,Low-resolution preview on constrained devices.,,,
+228,G10,reshaped,live-tv,planned,Zap Up/Down.,,,
+229,G10,reshaped,live-tv,planned,CH+/CH- support.,,,
+230,G10,reshaped,live-tv,planned,Channel list inside player.,,,
+231,G10,reshaped,live-tv,planned,Category panel inside player.,,,
+232,G10,reshaped,live-tv,planned,Now/Next card on OK.,,,
+233,G10,reshaped,live-tv,planned,Improved Xtream TS/HLS handling.,,,
+234,G10,reshaped,live-tv,planned,Channel-start retry.,,,
+235,G10,reshaped,live-tv,planned,Faster MPEG-TS startup from first useful I-frame.,,,
+236,G10,reshaped,live-tv,planned,Live-TV-aware AFR behavior.,,,
+237,G11,antonino-watchparty,watchparty,planned,Watch Party.,,,
+238,G11,antonino-watchparty,watchparty,planned,Six-character room code.,,,
+239,G11,antonino-watchparty,watchparty,planned,TV <-> TV Watch Party.,,,
+240,G11,antonino-watchparty,watchparty,planned,TV <-> Android phone Watch Party.,,,
+241,G11,antonino-watchparty,watchparty,planned,Play/Pause sync.,,,
+242,G11,antonino-watchparty,watchparty,planned,Seek sync.,,,
+243,G11,antonino-watchparty,watchparty,planned,Share the resolved stream URL only with explicit permission.,,,
+244,G11,antonino-watchparty,watchparty,planned,Share only required headers and handle them securely.,,,
+245,G11,antonino-watchparty,watchparty,planned,WebRTC P2P communication.,,,
+246,G11,antonino-watchparty,watchparty,planned,Encrypted Watch Party data channel.,,,
+247,G11,antonino-watchparty,watchparty,planned,Soft drift correction for small drift.,,,
+248,G11,antonino-watchparty,watchparty,planned,Hard seek for large drift.,,,
+249,G11,antonino-watchparty,watchparty,planned,Never log sensitive stream URLs/headers.,,,
+250,G13,ysosrs+fornace,experimental,planned,AI Media Provider platform.,,,
+251,G13,ysosrs+fornace,experimental,planned,AI-generated subtitles.,,,
+252,G13,ysosrs+fornace,experimental,planned,AI speech-to-text.,,,
+253,G13,ysosrs+fornace,experimental,planned,AI subtitle translation.,,,
+254,G13,ysosrs+fornace,experimental,planned,AI voice translation / voice overlay.,,,
+255,G13,ysosrs+fornace,experimental,planned,BYOK.,,,
+256,G13,ysosrs+fornace,experimental,planned,Multiple AI vendors.,,,
+257,G13,ysosrs+fornace,experimental,planned,Provider APK architecture.,,,
+258,G13,ysosrs+fornace,experimental,planned,Keep AI providers isolated from the core app.,,,
+259,G13,ysosrs+fornace,experimental,planned,SHA-256 verification for provider APKs.,,,
+260,G13,ysosrs+fornace,experimental,planned,Signer verification.,,,
+261,G13,ysosrs+fornace,experimental,planned,Encrypt API keys using Android Keystore.,,,
+262,G2,hackerslash-lite,resource,planned,Adaptive Resource Manager.,,,
+263,G2,hackerslash-lite,resource,planned,Detect physical RAM.,,,
+264,G2,hackerslash-lite,resource,planned,Low-RAM tier.,,,
+265,G2,hackerslash-lite,resource,planned,Constrained-device tier.,,,
+266,G2,hackerslash-lite,resource,planned,Buffer size by RAM tier.,,,
+267,G2,hackerslash-lite,resource,planned,Parallel connection count by RAM tier.,,,
+268,G2,hackerslash-lite,resource,planned,Chunk size by RAM tier.,,,
+269,G2,hackerslash-lite,resource,planned,Bound addon request concurrency.,,,
+270,G2,hackerslash-lite,resource,planned,Reduce poster cache on weak devices.,,,
+271,G2,hackerslash-lite,resource,planned,RGB565 posters only when required.,,,
+272,G2,hackerslash-lite,resource,planned,Reduce/disable animated posters on weak devices.,,,
+273,G2,hackerslash-lite,resource,planned,Reduce post-play prefetch on weak devices.,,,
+274,G2,hackerslash-lite,resource,planned,Bounded metadata caches.,,,
+275,G2,hackerslash-lite,resource,planned,Bounded rating cache.,,,
+276,G2,hackerslash-lite,resource,planned,Bounded offline sync queue.,,,
+277,G2,hackerslash-lite,resource,planned,Reduce stream-list recompositions.,,,
+278,G2,hackerslash-lite,resource,planned,Optimize Bidi/RTL rendering work.,,,
+279,G2,hackerslash-lite,resource,planned,Memory-safe Seekr handling.,,,
+280,G2,hackerslash-lite,resource,planned,Low-RAM MPV cache policy.,,,
+281,G1,official+ysosrs,diagnostics,planned,Add-on Health system.,,,
+282,G1,official+ysosrs,diagnostics,planned,Healthy state.,,,
+283,G1,official+ysosrs,diagnostics,planned,Slow state.,,,
+284,G1,official+ysosrs,diagnostics,planned,Timeout state.,,,
+285,G1,official+ysosrs,diagnostics,planned,Authentication-error state.,,,
+286,G1,official+ysosrs,diagnostics,planned,Manifest-error state.,,,
+287,G1,official+ysosrs,diagnostics,planned,No-streams state.,,,
+288,G1,official+ysosrs,diagnostics,planned,Do not permanently hide an addon for a temporary manifest failure.,,,
+289,G1,official+ysosrs,diagnostics,planned,Addon retry policy.,,,
+290,G1,official+ysosrs,diagnostics,planned,Isolate a failing addon from other sources.,,,
+291,G1,official+ysosrs,diagnostics,planned,Add-on Health screen.,,,
+292,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Optional screensaver.,,,
+293,G14,official+project,hardening-release,planned,Official self-hosted Nuvio server support.,,,
+294,G14,official+project,hardening-release,planned,/.well-known/nuvio discovery.,,,
+295,G14,official+project,hardening-release,planned,Custom backend switching.,,,
+296,G14,official+project,hardening-release,planned,Custom Supabase configuration.,,,
+297,G14,official+project,hardening-release,planned,Server trust confirmation.,,,
+298,G14,official+project,hardening-release,planned,Easy return to official Nuvio server.,,,
+299,G14,official+project,hardening-release,planned,Android Keystore for sensitive credentials.,,,
+300,G14,official+project,hardening-release,planned,Profile-scoped secrets.,,,
+301,G14,official+project,hardening-release,planned,Do not send stream credentials to subtitle-sync services.,,,
+302,G14,official+project,hardening-release,planned,Do not forward Cookies/Authorization to unrelated subtitle hosts.,,,
+303,G14,official+project,hardening-release,planned,QR local-server session tokens.,,,
+304,G14,official+project,hardening-release,planned,Cross-origin protection for local QR pages.,,,
+305,G14,official+project,hardening-release,planned,Do not log API keys or sensitive URLs.,,,
+306,G14,official+project,hardening-release,planned,SHA-256 checks for distributed APK releases.,,,
+307,G14,official+project,hardening-release,planned,ABI-specific APKs: arm64 / armeabi-v7a / universal.,,,
+308,G14,official+project,hardening-release,planned,In-app updater for the fork.,,,
+309,G14,official+project,hardening-release,planned,Stable release channel.,,,
+310,G14,official+project,hardening-release,planned,Beta release channel.,,,
+311,G0,foundation,project,planned,GitHub Actions CI for builds.,,,
+312,G14,official+project,hardening-release,planned,Tests before APK release.,,,
+313,G0,foundation,project,planned,Every major feature is isolated behind a module and/or feature flag where practical.,,,
+314,G0,foundation,project,planned,Avoid invasive core changes unless necessary for maintainability/upstream sync.,,,
+315,G0,foundation,project,planned,One feature/gate per coherent commit/PR.,,,
+316,G14,official+project,hardening-release,planned,Automated upstream sync checks.,,,
+317,G0,foundation,project,planned,Experimental features disabled by default.,,,
+318,G0,foundation,project,planned,Simple settings for normal users plus Advanced controls for power users.,,,
+319,G0,foundation,project,planned,Stability takes priority over blindly enabling every feature.,,,
+320,G14,official+project,hardening-release,planned,"End goal: one Nuvio distribution combining the strongest playback, subtitle, Live TV, UI, diagnostics, discovery and community features from the important forks.",,,

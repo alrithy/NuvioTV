@@ -1,17 +1,24 @@
-# Branching & Concurrency Policy
+# Branch lifecycle and ownership
 
-## Permanent branches
-- `dev`: legacy/default fork branch; not the Superfork integration target.
-- `superfork/integration`: only reviewed/green Superfork work lands here.
+`superfork/integration` accepts GitHub PR merges only. `dev` is legacy/reference.
+The only task branch selector is `integration/state.yaml`; future names/dependencies
+come from `integration/task_queue.csv`. Never infer work from an old branch name.
 
-## Standard task branches
-`chore/fork-foundation-impl`, `feat/unified-diagnostics`, `feat/adaptive-resource-manager`, `feat/playback-strategies`, `feat/remux-network`, `feat/audio-video`, `feat/subtitle-intelligence`, `feat/seek-intelligence`, `feat/stream-intelligence`, `feat/discovery-skip-recommendations`, `feat/live-tv`, `feat/watch-party`, `feat/ui-styles`, `experimental/ai-media`, `experimental/mat-audio`, `chore/release-hardening`.
+Before editing, run `preflight.py --fetch`, inspect current remote PRs/CI, and acquire
+a unique writer lease with `claim_task.py claim --owner <agent-session-id>`.
+Exactly one writer owns a task branch. Read-only review may occur separately.
+The lease is an atomic remote ref under `agent-locks/`; it is not the task branch.
 
-## Rules
-- No direct feature commits to integration.
-- No Superfork feature work on dev.
-- One active agent per task branch.
-- Different agents may work concurrently only on explicitly independent branches.
-- Before handing a branch to another agent, commit coherent work and update HANDOFF/state.
-- Preserve provenance of imported code.
-- Avoid giant cross-gate PRs.
+When handing off: commit coherent work, record tests/state/HANDOFF and exact next step,
+push normally, verify clean tree and remote HEAD, then release the lease using its exact
+SHA. Another agent must acquire a new lease. Time alone does not prove a lease is abandoned.
+
+After a gate PR merges, use a governance-only transition PR to advance state to the next
+queue row, record the completed gate PR/merge/evidence, then create the new branch from
+that integration HEAD. Gate PRs keep their own gate active through review.
+Never mark DONE before the gate PR is merged and DoD has evidence.
+
+If integration advanced: behind-only/no unique work => fast-forward; real divergent
+work => preserve it, merge current integration into the task branch, resolve minimally,
+rerun CI. Rebase is allowed on private/unpublished work. Do not rewrite published work
+without explicit authorization. Recovery commands: FAILURE_RECOVERY.

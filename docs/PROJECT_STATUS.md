@@ -1,34 +1,34 @@
-# Project Status — Read This First
+# Project status
 
-## One-line status
-The Nuvio Superfork operating system is being installed. After this documentation PR is merged into `superfork/integration`, Gate 0 implementation starts on `chore/fork-foundation-impl`.
-
-## Source of truth
-Machine-readable state: `integration/state.yaml`.
-
-## Current baseline
-- Official upstream: `NuvioMedia/NuvioTV:dev`
-- Pinned baseline: `c257a2365ee3386b582dc2974ec235cfe0381f33`
-- Integration branch: `superfork/integration`
-- Legacy/default fork branch: `dev` — do not build Superfork features directly there.
-
-## Current work
-- Gate: G0 — Fork Foundation
-- Intended implementation branch: `chore/fork-foundation-impl`
+<!-- canonical-state:start -->
+- Active gate: G0 — Fork Foundation
+- Active branch: `chore/fork-foundation-impl`
 - Status: READY
-- Next gate after G0: G1 — Unified Diagnostics
-- Next branch: `feat/unified-diagnostics`
+- Task: `tasks/G0_FORK_FOUNDATION.md`
+- Accepted official baseline: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
+- Governance: READY
+- Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
+<!-- canonical-state:end -->
 
-## Agent start
-Read `AGENTS.md`, run the validator, then follow `docs/AGENT_PLAYBOOK.md`.
+This view's header is generated from state; use `state_view.py` after state changes.
 
-## Hard stops
-- no Superfork coding on dev
-- no direct coding on superfork/integration
-- no whole-fork merges
-- no silent source-pin updates
-- no parallel agents on the same task branch
-- no fake hardware/manual test passes
+## Work boundary
+Governance hardening only. No G0 runtime foundation and no external fork feature imported.
+PR #6 is canonical. PR #5 is superseded only after its useful policies are preserved and
+#6 merges; audit: GOVERNANCE_OWNERS. Legacy PR #1/#2 stay reference-only.
 
-## Coverage
-`integration/feature_traceability.csv` maps all 320 feature IDs to a primary implementation gate. CI validates 320/320 coverage.
+## CI and baseline
+Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
+A no-new-regressions PASS is not an all-tests-pass claim. State's last_green_commit has
+an explicit scope; current PR HEAD must independently pass GitHub checks before merge.
+
+## Upstream
+The accepted baseline and latest observed upstream HEAD are separate state fields.
+Current observed official dev is `71632b9271e8bce6783e415d64f34cfa4e8b894c`; it is **not accepted** by observation alone.
+The governance scope keeps the accepted baseline at `fd7973d91dd75d790c5f9b3d68dae652655e92c4`.
+Use a dedicated reviewed upstream-sync PR before adoption. Never silently update source pins.
+
+## Administration
+GitHub connector branch-protection read returned 403; admin writes are not exposed.
+Default branch and protection are manual actions in GITHUB_ADMIN_CHECKLIST. Existing
+dev AGENTS/CLAUDE redirects were verified. They do not block authorized task development.

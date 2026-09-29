@@ -1,0 +1,37 @@
+{
+  "ci_run": "36488330126",
+  "ci_url": "https://github.com/alrithy/NuvioTV/actions/runs/36488330126",
+  "errors": [],
+  "failures": 18,
+  "full_inventory": "integration/evidence/baseline-suite.json",
+  "gradle_exit": 0,
+  "known_remaining": [
+    "androidx.media3.datasource.LocalhostZeroCopyDataSourceTest#testHttpError404",
+    "androidx.media3.exoplayer.upstream.DefaultAllocatorTest#testLateReleasedAllocationsMemoryLeak",
+    "com.nuvio.tv.core.player.DolbyVisionBaseLayerPolicyTest#Samsung device on DV display still falls through to NATIVE_DV7",
+    "com.nuvio.tv.core.player.DolbyVisionBaseLayerPolicyTest#non-Amazon device on DV display with DV81 decoder falls through to NATIVE_DV7",
+    "com.nuvio.tv.core.player.FrameRateUtilsMkvSparseTracksTest#sparse Tracks fetch terminates the probe file with a stub Cluster",
+    "com.nuvio.tv.core.player.MatroskaAfrProbeTest#stub Cluster terminates Cluster-less head and resizes Segment",
+    "com.nuvio.tv.core.plugin.PluginBinaryFetchTest#binary request and response preserve exact bytes",
+    "com.nuvio.tv.core.plugin.PluginBinaryFetchTest#text request remains UTF8 encoded",
+    "com.nuvio.tv.core.poster.CustomPosterUrlResolverTest#resolve BetterPosters returns null when IMDb id is missing",
+    "com.nuvio.tv.data.local.CollectionsDataStoreSourceMigrationTest#validation rejects trakt sources without list id",
+    "com.nuvio.tv.data.repository.CatalogRepositoryTypeTest#initial and paginated requests retain advertised Series type",
+    "com.nuvio.tv.data.repository.TraktAuthServiceTest#refresh token 400 clears credentials and prevents another refresh",
+    "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test 1 GB RAM tier classification",
+    "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test 2 GB RAM tier classification",
+    "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test default fallback values when RAM is zero or unknown",
+    "com.nuvio.tv.ui.screens.player.PostPlayRecommendationStateTest#loaded recommendation holds natural completion until overlay evaluation",
+    "com.nuvio.tv.ui.screens.player.PostPlayRecommendationStateTest#post play returns to player only while its window is available",
+    "com.nuvio.tv.ui.screens.player.TrackSelectionInvestigationTest#testBuildStreamInfoDataWithActiveVideoFormat"
+  ],
+  "new_failures": [],
+  "original_report_sha256": "be45f6f9138493af5f8ba955c67902006b6f6c33042911f110a7f519e2285304",
+  "resolved_candidates": [],
+  "result_differences": {
+    "com.nuvio.tv.ui.screens.home.HomeEnrichmentRepositoryBoundaryTest#a real repository transport failure is retried and then resolves": "passed"
+  },
+  "skipped": 1,
+  "tested_sha": "3cf04ccdcc20515acb093c28ad9b7c3943a39057",
+  "tests": 1611
+}

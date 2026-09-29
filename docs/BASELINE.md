@@ -1,16 +1,24 @@
 # Nuvio Superfork Baseline
 
+## Baseline history
+- Initial bootstrap anchor: `c257a2365ee3386b582dc2974ec235cfe0381f33`
+- Pre-G0 refresh: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
+- Superfork integration sync commit: `3cf04ccdcc20515acb093c28ad9b7c3943a39057`
+- The pre-G0 refresh happened before feature implementation; `fd7973d91dd75d790c5f9b3d68dae652655e92c4` is the current implementation baseline.
+
 ## Official upstream
 - Repository: NuvioMedia/NuvioTV
 - Branch: dev
-- Pinned baseline: c257a2365ee3386b582dc2974ec235cfe0381f33
+- Pinned baseline: fd7973d91dd75d790c5f9b3d68dae652655e92c4
 - Verified: 2026-09-28
-- Commit: Merge pull request #3725 from NuvioMedia/feat/torengine — feat(torrent): replace TorrServer with Nuvio Engine
+- Commit: Merge pull request #3720 — fix(home): keep a row's window on its focused card after a refresh
 
 ## Fork branches
-- superfork/integration: clean integration baseline
-- chore/fork-foundation: Gate 0 work branch
-- Existing legacy branches remain untouched.
+- superfork/integration: canonical reviewed integration branch.
+- chore/governance-hardening: temporary governance-hardening branch for PR #6.
+- chore/fork-foundation-impl: active G0 implementation branch after PR #6 merges and is rebased/fast-forwarded to integration.
+- chore/fork-foundation: historical bootstrap/governance branch; not an active source of truth.
+- Existing legacy claude/* and old feature branches are reference-only unless explicitly harvested through the current porting protocol.
 
 ## Verified integration seams
 - Navigation: app/src/main/java/com/nuvio/tv/ui/navigation/NuvioNavHost.kt
@@ -28,4 +36,9 @@
 - Speed tester: app/src/main/java/com/nuvio/tv/core/network/StreamSpeedTester.kt
 
 ## Rules
-The baseline SHA is immutable. Future upstream syncs must be recorded separately. Never merge a feature fork wholesale. Diff before import and keep official behavior as fallback where practical.
+Baseline history entries are immutable: never rewrite old sync history. Future official movement must append to docs/UPSTREAM_SYNC_LOG.md and update the current baseline fields through a dedicated upstream-sync PR. Never merge a feature fork wholesale. Diff before import and keep official behavior as fallback where practical.
+## Audit observation (not an accepted sync)
+2026-09-28: official dev = e78de241acb8a6128c29076422377de1206ee8cd, settings PR #3746.
+Current accepted pin remains fd7973d; see D037 and state.upstream_observation.
+The 3cf04cc integration production diff against fd7973d is only a missing final newline
+in ModernHomeContent.kt. Record this precisely; do not claim byte-for-byte parity.

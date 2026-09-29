@@ -41,7 +41,9 @@
 
 ## State / handoff
 - [ ] IMPORT_LEDGER updated if external code imported
-- [ ] integration/state.yaml updated when status changes
+- [ ] integration/state.yaml updated
+- [ ] integration/feature_traceability.csv statuses updated for affected IDs
+- [ ] docs/PROJECT_STATUS.md updated
 - [ ] docs/HANDOFF.md updated
 
 ## Risks / blockers / follow-ups

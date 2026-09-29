@@ -1,53 +1,57 @@
-# Agent Playbook
+# Agent procedure — canonical
 
-## A. Session start — mandatory
-Run:
-```bash
-git status --short
-git branch --show-current
-git rev-parse HEAD
-python3 scripts/superfork/validate_project_state.py
-```
+## Start from any checkout
+1. Read AGENTS, inspect status/branch/HEAD; preserve unknown work.
+2. Fetch origin and official refs. Read **remote integration** state before trusting local state:
+   `git show origin/superfork/integration:integration/state.yaml`.
+3. Inspect the active task branch, its open PR if one exists, and exact-head CI. Inspect other branches/PRs only when state, preflight or recovery requires it.
+4. Read HANDOFF -> active task packet -> active GATE_SPECS section -> DoD. Load DECISIONS/source/porting/policy docs only when the task touches them.
+5. Switch/create the recorded task branch only with clean/preserved work. Follow FAILURE_RECOVERY for behind-only, divergence, conflicts or unknown commits.
+6. Run `python3 scripts/superfork/preflight.py --fetch` and the governance validator.
+7. For normal sequential work, no lease is required: verify the remote task-branch HEAD immediately before editing/pushing and rely on Git's non-fast-forward protection.
+   If two coding sessions might overlap, optionally claim the branch with `claim_task.py claim --owner <unique-agent-session>`; a claim conflict then means another writer owns that branch.
 
-Read: state -> PROJECT_STATUS -> HANDOFF -> active GATE_SPECS -> DECISIONS -> relevant FORK_RESEARCH -> TEST_MATRIX -> DEFINITION_OF_DONE.
+Default-branch/protection admin restrictions do not block authorized development; see
+GITHUB_ADMIN_CHECKLIST. The optional lease exists only as a coordination aid for overlapping
+sessions; it is not part of the normal sequential Codex/Claude workflow. No writer claim is
+needed for read-only inspection.
 
-## B. Branch safety
-- On `dev`: stop coding; switch/create the active task branch from `superfork/integration`.
-- On `superfork/integration`: stop coding; create/switch to the active task branch.
-- If branch differs from `state.yaml: active_branch`, inspect unfinished work before any switch/reset.
-- Never force-push unless explicitly instructed.
-- Never run two agents concurrently on the same task branch.
+## Implement only the active task
+Identify feature IDs; use pinned source repo/branch/SHA; inspect source commits/files/tests;
+diff current accepted official behavior and note any relevant newer upstream change.
+Classify already-official, missing delta, obsolete or blocked. Use PORTING_PROTOCOL and
+record IMPORT_LEDGER before imports. No fork import in G0. No later gate because it looks easier.
+Update only the affected feature rows to in_progress. Preserve official fallback, single
+owners and Arabic/generalized subtitle requirements. Feature flags follow FEATURE_FLAG_POLICY.
 
-## C. Before importing a fork feature
-1. Identify MASTER_FEATURES IDs.
-2. Confirm gate/source in feature_traceability.csv.
-3. Confirm pinned SHA in SOURCE_MAP.
-4. Read relevant FORK_RESEARCH section.
-5. Diff against current official.
-6. Choose the smallest import mode.
-7. Record provenance in IMPORT_LEDGER.
-8. Port behavior + tests together.
-
-## D. While coding
-Keep official fallback for core paths, one owner per concern, and diff scoped to the active gate. Preserve A/B path for high-risk playback changes until validated.
-
-## E. Validation
-Minimum:
+## Validate
 ```bash
 python3 scripts/superfork/validate_project_state.py
-./gradlew :app:testFullDebugUnitTest --stacktrace
+python3 -m unittest discover -s scripts/superfork/tests
+python3 scripts/superfork/run_full_unit_suite.py
 ./gradlew :app:assembleFullDebug --stacktrace
+git diff --check
 ```
-Run gate-specific checks too. Hardware tests are PASS/FAIL/MANUAL-PENDING; never invent results.
+Add gate-specific TEST_MATRIX cases. Report PASS/FAIL/MANUAL-PENDING honestly. Full Debug
+CI success means build + no new regressions, not that known baseline debt passed.
+Any new failure, incomplete suite or newly skipped baseline test blocks.
 
-## F. Handoff
-Commit coherent work, update IMPORT_LEDGER/state/HANDOFF, rerun validator, leave clean tree or document why not, and record exact next action.
+## Handoff or agent switch
+Commit coherent work. Update state/traceability, IMPORT_LEDGER when importing, and HANDOFF:
+last verified commit (an ancestor is valid; never invent a self-referential HEAD), commands,
+CI URLs/results, changed modules/feature IDs, blockers and exact next command.
+Regenerate headers with `state_view.py`, rerun validator, push normally, then verify the
+remote HEAD still equals the commit you pushed. Release an optional lease only if you used one.
+Document interrupted/dirty work instead of hiding it. The next sequential writer needs no chat history.
 
-## G. Recovery
-Never discard unknown changes first. Inspect status/diff/history. Git history wins factual disputes; reconcile docs before continuing.
+## PR / gate lifecycle
+Open PR against superfork/integration. Keep the active gate unchanged while it is REVIEW.
+Merge only on exact-head required checks + applicable DoD. After merge, a small governance
+transition PR records completed gate PR/merge/evidence, selects the next queue row and
+creates/fast-forwards its branch after the transition merges. Never record DONE prematurely.
 
-## H. Source moved
-Use pinned SHA. Updating a pin is a separate explicit decision.
-
-## I. Blocked
-Mark blocked with exact reason and next action. Do not silently skip a feature or advance the gate.
+## Upstream movement or blocker
+Pins stay fixed until a dedicated sync PR is accepted. Use UPSTREAM_SYNC and append its log.
+A moved HEAD is an observation, not permission to import it. Mark blocked/deferred only
+with evidence, reason and next step. Ask the user only when repository/GitHub evidence
+cannot resolve the target, authority, ownership or external dependency.

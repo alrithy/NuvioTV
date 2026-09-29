@@ -63,3 +63,16 @@ AGENTS.md
 /PR.md
 docs/
 status-page/
+
+# Maintained Superfork operating system
+!AGENTS.md
+!CLAUDE.md
+!docs/
+!docs/*.md
+!scripts/superfork/
+!scripts/superfork/**
+!scripts/superfork_guard.py
+
+# Generated Python files stay local even under maintained scripts.
+**/__pycache__/
+*.py[cod]

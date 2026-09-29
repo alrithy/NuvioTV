@@ -2,9 +2,11 @@ name: Superfork CI
 
 on:
   pull_request:
-    branches:
-      - superfork/integration
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: ["superfork/integration"]
   workflow_dispatch:
+  push:
+    branches: ["superfork/integration"]
 
 permissions:
   contents: read
@@ -17,25 +19,31 @@ jobs:
   governance:
     name: Superfork Governance CI
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - name: Validate project operating state
+      - name: Install governance dependency
+        run: python3 -m pip install -r scripts/superfork/requirements.txt
+      - name: Exercise governance regression cases
+        run: python3 -m unittest discover -s scripts/superfork/tests
+      - name: Validate canonical project state
         run: python3 scripts/superfork/validate_project_state.py
+      - name: Git whitespace check
+        run: git diff --check
 
   full-debug:
     name: Superfork Full Debug CI
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
           cache: gradle
-      - name: Prepare local properties
-        run: |
-          touch local.properties
-          touch local.dev.properties
+      - name: Prepare non-secret CI configuration
+        run: touch local.properties local.dev.properties
       - name: Prepare CI signing config
         run: |
           keytool -genkeypair -v -keystore "$RUNNER_TEMP/ci-debug.jks" -storepass android -alias androiddebugkey -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
@@ -45,7 +53,22 @@ jobs:
             echo "NUVIO_RELEASE_KEY_PASSWORD=android"
             echo "NUVIO_RELEASE_STORE_PASSWORD=android"
           } >> "$GITHUB_ENV"
-      - name: Full debug unit tests
-        run: ./gradlew :app:testFullDebugUnitTest --stacktrace
-      - name: Build fullDebug APK
+      - name: Full suite with exact baseline regression guard
+        run: python3 scripts/superfork/run_full_unit_suite.py
+      - name: Assemble full debug
         run: ./gradlew :app:assembleFullDebug --stacktrace
+      - name: Upload full unit-test report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: superfork-full-unit-test-report-${{ github.event.pull_request.number || github.run_id }}
+          path: build/superfork/test-report.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Upload APK
+        uses: actions/upload-artifact@v7
+        with:
+          path: app/build/outputs/apk/full/debug/app-full-universal-debug.apk
+          archive: false
+          if-no-files-found: error
+          retention-days: 7
