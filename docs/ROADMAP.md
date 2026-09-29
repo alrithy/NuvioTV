@@ -15,7 +15,7 @@ RAM/device tiers, bounded caches/concurrency and resource-aware behavior.
 Official / REMUX / Seek Optimized / Low Memory / Auto.
 
 ## G4 — REMUX / Network Performance
-Port only current missing deltas from ysosrs/Reshaped. Mandatory same-file A/B.
+Port only current missing deltas from ysosrs/Reshaped. Same-file A/B is mandatory for final hardware certification but does not block subsequent development gates.
 
 ## G5 — Audio / DV / HDR / AFR
 Lossless passthrough, output diagnostics, DV/HDR/AFR deltas. MAT stays experimental.
@@ -45,6 +45,6 @@ Glass/Pill/top navigation and related visual options while preserving official l
 AI Media Providers and MAT/IEC61937, OFF by default.
 
 ## G14 — Hardening, Distribution & Upstream Operations
-Self-host validation, security closure, updater/release channels, APK integrity, upstream-sync automation and final 320-feature accounting.
+Consolidated hardware certification for all MANUAL-PENDING checks, self-host validation, security closure, updater/release channels, APK integrity, upstream-sync automation and final 320-feature accounting.
 
-A gate may advance only under `docs/DEFINITION_OF_DONE.md`.
+Development gates G1–G13 may advance under `docs/DEFINITION_OF_DONE.md` with device-only checks recorded as MANUAL-PENDING. G14 is the stop point for the single consolidated hardware-validation campaign before Stable release.
