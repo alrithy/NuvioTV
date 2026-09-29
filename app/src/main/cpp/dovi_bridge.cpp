@@ -1,5 +1,6 @@
 #include <jni.h>
 #include <android/log.h>
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -95,7 +96,33 @@ static inline uint8_t map_conversion_mode(jint mode) {
             return 2U;
     }
 }
+
+// G5d (ysosrs 45e0984 DV7 review F5): when set, an RPU whose conversion fails is dropped instead
+// of forwarded raw under DV 8.1 signalling (codec string and per-frame metadata would disagree);
+// the base layer continues as HDR10. Off = official behavior. Drops are counted with a throttled
+// log (first drop, then every 100th).
+static std::atomic<bool> g_dropRpuOnConversionFailure{false};
+static std::atomic<uint64_t> g_rpuDropCount{0};
+static inline void noteRpuDropOnFailure() {
+    const uint64_t n = g_rpuDropCount.fetch_add(1, std::memory_order_relaxed) + 1;
+    if (n == 1 || n % 100 == 0) {
+        LOGW("DV7_NATIVE: RPU conversion failed; dropping RPU (dropped=%llu)",
+             static_cast<unsigned long long>(n));
+    }
+}
 #endif
+
+extern "C" JNIEXPORT void JNICALL
+Java_com_nuvio_tv_core_player_DoviBridge_nativeSetDropRpuOnConversionFailure(
+        JNIEnv* /* env */,
+        jclass /* clazz */,
+        jboolean enabled) {
+#if DOVI_REAL_LINKED
+    g_dropRpuOnConversionFailure.store(enabled == JNI_TRUE, std::memory_order_relaxed);
+#else
+    (void) enabled;
+#endif
+}
 
 extern "C" JNIEXPORT jstring JNICALL
 Java_com_nuvio_tv_core_player_DoviBridge_nativeGetBridgeVersion(JNIEnv* env, jclass /* clazz */) {
@@ -544,8 +571,12 @@ Java_com_nuvio_tv_core_player_DoviBridge_nativeProcessVideoSample(
                             }
                             dovi_rpu_free(rpu);
                         }
+                        if (!processed && g_dropRpuOnConversionFailure.load(std::memory_order_relaxed)) {
+                            shouldDrop = true;
+                            noteRpuDropOnFailure();
+                        }
 #endif
-                        if (!processed) {
+                        if (!processed && !shouldDrop) {
                             processed = true;
                             processedNal.resize(nalSize);
                             std::memcpy(processedNal.data(), sampleBuffer.data() + nalStart, nalSize);
@@ -655,8 +686,12 @@ Java_com_nuvio_tv_core_player_DoviBridge_nativeProcessVideoSample(
                                 }
                                 dovi_rpu_free(rpu);
                             }
+                            if (!processed && g_dropRpuOnConversionFailure.load(std::memory_order_relaxed)) {
+                                shouldDrop = true;
+                                noteRpuDropOnFailure();
+                            }
 #endif
-                            if (!processed) {
+                            if (!processed && !shouldDrop) {
                                 processed = true;
                                 processedNal.resize(nalSize);
                                 std::memcpy(processedNal.data(), sampleBuffer.data() + nalBegin, nalSize);

@@ -39,6 +39,16 @@ object DoviBridge {
 
     fun isAvailable(): Boolean = isNativeEnabledInBuild && nativeLoaded
 
+    /**
+     * G5d (feature 52): native sample path drops an RPU whose conversion failed instead of
+     * forwarding it raw (see [DolbyVisionConversionConfig.forkDvFixes]). False = official.
+     */
+    fun setDropRpuOnConversionFailure(enabled: Boolean) {
+        if (!isAvailable()) return
+        runCatching { nativeSetDropRpuOnConversionFailure(enabled) }
+            .onFailure { Log.w(TAG, "drop-on-failure switch unavailable: ${it.javaClass.simpleName}") }
+    }
+
     fun getBridgeVersionOrNull(): String? {
         if (!isAvailable()) return null
         return runCatching { nativeGetBridgeVersion() }
@@ -317,6 +327,9 @@ object DoviBridge {
 
     @JvmStatic
     private external fun nativeGetBridgeVersion(): String
+
+    @JvmStatic
+    private external fun nativeSetDropRpuOnConversionFailure(enabled: Boolean)
 
     @JvmStatic
     private external fun nativeIsConversionPathReady(): Boolean

@@ -69,6 +69,33 @@ internal class DolbyVisionMatroskaTransformer(
 
     // Reuses the package-private ExposedByteArrayOutputStream from HevcDvRpuStripper.kt
 
+    // G5d (ysosrs 45e0984 DV7 review F5), only with config.forkDvFixes: failed RPU conversions are
+    // dropped and counted; after RPU_FAILURE_ABANDON_THRESHOLD consecutive failures conversion
+    // stops for the stream (the base layer continues as HDR10).
+    private var consecutiveRpuFailures = 0
+    private var rpuConversionAbandoned = false
+    private var droppedRpuCount = 0L
+
+    private fun registerRpuFailure() {
+        consecutiveRpuFailures++
+        droppedRpuCount++
+        if (consecutiveRpuFailures == 1 || consecutiveRpuFailures % 100 == 0) {
+            android.util.Log.w(
+                TAG,
+                "DV7_MKV: RPU conversion failed; dropping RPU " +
+                    "(consecutive=$consecutiveRpuFailures dropped=$droppedRpuCount)"
+            )
+        }
+        if (!rpuConversionAbandoned && consecutiveRpuFailures >= RPU_FAILURE_ABANDON_THRESHOLD) {
+            rpuConversionAbandoned = true
+            android.util.Log.w(
+                TAG,
+                "DV7_MKV: $RPU_FAILURE_ABANDON_THRESHOLD consecutive RPU conversion failures; " +
+                    "abandoning conversion for this stream (base layer continues as HDR10)"
+            )
+        }
+    }
+
     override fun onDolbyVisionBlockAdditionalData(
         blockAdditionalData: ByteArray?,
         blockAddIdType: Int,
@@ -78,8 +105,22 @@ internal class DolbyVisionMatroskaTransformer(
         if (stripRpuOnly) return ByteArray(0)
         val profile = resolveProfile(null, dolbyVisionConfigBytes)
         if (!config.shouldConvert(profile)) return null
-        // Single conversion site for BlockAdditional RPUs; transformHevcSample appends as-is.
-        return convertRpuNal(blockAdditionalData, config.conversionMode(profile))
+        if (!config.forkDvFixes) {
+            // Single conversion site for BlockAdditional RPUs; transformHevcSample appends as-is.
+            return convertRpuNal(blockAdditionalData, config.conversionMode(profile))
+        }
+        // G5d: an empty result tells transformHevcSample the RPU was dropped.
+        if (rpuConversionAbandoned) {
+            registerRpuFailure()
+            return ByteArray(0)
+        }
+        val converted = convertRpuNal(blockAdditionalData, config.conversionMode(profile))
+        if (converted != null) {
+            consecutiveRpuFailures = 0
+            return converted
+        }
+        registerRpuFailure()
+        return ByteArray(0)
     }
 
     override fun shouldTransform(codecs: String?, dolbyVisionConfigBytes: ByteArray?): Boolean {
@@ -147,6 +188,15 @@ internal class DolbyVisionMatroskaTransformer(
             }
             val dvResult = finishScratch()
             return stripHdr10PlusIfEnabled(dvResult, lastTransformedLength, nalUnitLengthFieldLength) ?: dvResult
+        }
+
+        if (blockAdditionalData.isEmpty()) {
+            // G5d: the hook dropped a failed RPU; emit the (possibly EL-stripped) base layer only.
+            if (!baseChanged) {
+                return stripHdr10PlusIfEnabled(sample, sampleLength, nalUnitLengthFieldLength) ?: sample
+            }
+            val baseOnly = finishScratch()
+            return stripHdr10PlusIfEnabled(baseOnly, lastTransformedLength, nalUnitLengthFieldLength) ?: baseOnly
         }
 
         if (!baseChanged) {
@@ -247,11 +297,20 @@ internal class DolbyVisionMatroskaTransformer(
                 nalType == NAL_TYPE_UNSPEC63 -> changed = true
                 // RPU NAL: convert directly from sample buffer without JVM allocations
                 nalType == NAL_TYPE_UNSPEC62 -> {
-                    val outLen = DoviBridge.convertDv7RpuToDv81NonAllocating(sample, offset, nalSize, mode)
+                    val outLen = if (config.forkDvFixes && rpuConversionAbandoned) {
+                        -1
+                    } else {
+                        DoviBridge.convertDv7RpuToDv81NonAllocating(sample, offset, nalSize, mode)
+                    }
                     if (outLen > 0) {
                         changed = true
+                        consecutiveRpuFailures = 0
                         if (!writeLengthField(out, outLen, nalUnitLengthFieldLength)) return false
                         out.write(DoviBridge.rpuOutBuffer, 0, outLen)
+                    } else if (config.forkDvFixes) {
+                        // G5d: drop the failed RPU instead of forwarding raw P7 under 8.1 signalling.
+                        changed = true
+                        registerRpuFailure()
                     } else {
                         // Conversion failed: forward the ORIGINAL RPU NAL, normalizing the
                         // 2-byte NAL header in place on the output stream. No allocation:
@@ -396,5 +455,9 @@ internal class DolbyVisionMatroskaTransformer(
         const val NAL_TYPE_UNSPEC62 = 62
         const val NAL_TYPE_UNSPEC63 = 63
         const val DV5_DETECTION_SAMPLE_LIMIT = 15
+        const val TAG = "DolbyVisionMkvXform"
+
+        // G5d (ysosrs): ~2.5 s of 24 fps video; real failure modes here are all-or-nothing.
+        const val RPU_FAILURE_ABANDON_THRESHOLD = 60
     }
 }

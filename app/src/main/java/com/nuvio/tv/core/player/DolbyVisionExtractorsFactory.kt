@@ -145,7 +145,14 @@ internal data class DolbyVisionConversionConfig(
     val preserveMapping: Boolean = false,
     val dv5Enabled: Boolean = false,
     /** True when the user explicitly chose "Convert to DV8.1" (not AUTO). */
-    val manualDv81: Boolean = false
+    val manualDv81: Boolean = false,
+    /**
+     * G5d (feature 52, ysosrs 45e0984 DV7 review): preserve-mapping uses standard 8.1 (mode 2)
+     * because the bundled libdovi C API maps native 4 to static 8.4 (dolby_vision 3.3.2
+     * `ConversionMode::from`: 2|3 -> To81, 4 -> To84), and a failed RPU conversion drops the RPU
+     * instead of forwarding raw P7 under 8.1 signalling. False = official behavior.
+     */
+    val forkDvFixes: Boolean = false
 ) {
     /** Manual mode-2 default with per-RPU fallback to mode 1 (not for AUTO / forced). */
     val allowMode2Fallback: Boolean get() = manualDv81 && forcedMode !in 0..4
@@ -173,7 +180,7 @@ internal data class DolbyVisionConversionConfig(
     fun conversionMode(profile: Int?): Int {
         if (forcedMode in 0..4) return forcedMode
         return when {
-            (profile == 7 || profile == null) && preserveMapping -> 5
+            (profile == 7 || profile == null) && preserveMapping -> if (forkDvFixes) 2 else 5
             profile == 5 -> 3
             manualDv81 -> 2 // manual Convert to DV8.1 prefers mode 2 (falls back to 1)
             else -> 1       // AUTO convert stays on mode 1

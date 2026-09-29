@@ -291,3 +291,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: `isDirectPlaybackSupported` reflects vendor audio-policy profiles, which some TVs over-report (the reason 38 exists); device check MANUAL-PENDING (G14 campaign, HV-G5-4)
+
+### G5d1 — Dolby Vision conversion correctness (52, part)
+- Roadmap gate: G5
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): app/src/main/cpp/dovi_bridge.cpp (`map_conversion_mode` case 5, `noteRpuDropOnFailure`, drop on failed conversion in both NAL loops), core/player/DolbyVisionMatroskaTransformer.kt (F5 drop + abandon threshold)
+- Import mode: DELTA_PORT
+- Current official equivalent: a failed RPU conversion is forwarded raw with DV 8.1 signalling; preserve-mapping sends native mode 4
+- What already existed upstream: single conversion site for BlockAdditional RPUs (ysosrs F4 is already official); mode-2 → mode-1 per-RPU fallback
+- What was imported: drop a failed RPU (base layer continues as HDR10) with throttled counting and a 60-failure abandon threshold (MKV); the same drop on the native MP4/TS sample path behind a JNI switch; preserve-mapping uses mode 2 (standard 8.1)
+- What was intentionally not imported: ysosrs `DolbyVisionConversionStats` drop counters for its diagnostics page, the header-include switch (`libdovi/rpu_parser.h`), EL-type and RPU metadata readers (G5d2)
+- Local adaptations: the preserve-mapping fix lives in `DolbyVisionConversionConfig.conversionMode` (Kotlin) instead of the native mapping, so the native mapping stays official; verified against dolby_vision 3.3.2 source (`ConversionMode::from`: 2|3 → To81, 4 → To84, used by `dovi_convert_rpu_with_mode`)
+- Feature flag / fallback: `DolbyVisionConversionConfig.forkDvFixes` and the native switch follow FeatureId.AUDIO_DV_AFR; OFF = official forwarding and mode mapping. Only failure paths and the experimental preserve-mapping option change (D048)
+- Tests ported/added: DolbyVisionConversionConfigForkTest (3), DolbyVisionMatroskaTransformerForkTest (3)
+- License / attribution notes: GPL-3.0, identical LICENSE; libdovi (MIT) unchanged; attributed in comments
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: with preserve mapping on, output now equals standard 8.1 (the preserve-mapping curve is unreachable through the bundled C API); device check MANUAL-PENDING (G14 campaign, HV-G5-5)
