@@ -27,6 +27,7 @@ bootstrap:
   upstream_sync_commit: 3cf04ccdcc20515acb093c28ad9b7c3943a39057
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
+  hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
 next_gate: G1
 next_gate_name: Unified Diagnostics & Add-on Health
 next_branch: feat/unified-diagnostics
@@ -57,7 +58,7 @@ known_operational_risks:
   mitigation: Canonical full-suite runner and integration/baseline_test_debt.json;
     clean replay evidence is mandatory.
 last_review:
-  date: 2026-09-28
+  date: 2026-09-29
   reviewer_role: architecture_audit
 governance_status: READY
 upstream_observation:
@@ -66,8 +67,3 @@ upstream_observation:
   accepted: false
   reason: 'Observed current official dev after governance baseline. Not accepted or silently merged; use a dedicated upstream-sync review before adoption.'
 completed_gates: []
-readiness_conditions:
-- 'PR #6 merged into integration'
-- Task branch contains fetched latest integration HEAD
-- Exact-head required GitHub checks green
-- Single writer lease acquired before edits

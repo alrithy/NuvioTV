@@ -32,5 +32,5 @@ performance metrics/resource tiers (TEST_STRATEGY/TEST_MATRIX), data migration c
 component ownership, risks, full-suite debt intent and workflow timeouts.
 Replaced: its old c257 baseline/READY state, malformed upstream PR-policy YAML, simple-name
 allowlist and count-locked validator. PR #6 is the sole governance integration path.
-The #5 branch and commits remain available; close its PR as superseded only after #6 merges.
+The #5 branch and commits remain available for history; PR #5 was closed as superseded after #6 merged.
 Legacy PR #1/#2 remain reference-only under LEGACY_WORK.

@@ -13,14 +13,15 @@
 This view's header is generated from state; use `state_view.py` after state changes.
 
 ## Work boundary
-Governance hardening only. No G0 runtime foundation and no external fork feature imported.
-PR #6 is canonical. PR #5 is superseded only after its useful policies are preserved and
-#6 merges; audit: GOVERNANCE_OWNERS. Legacy PR #1/#2 stay reference-only.
+Governance hardening is merged through PR #6. PR #5 is closed as superseded after its
+useful policies were preserved. No G0 runtime foundation and no external fork feature
+has been imported. Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
-A no-new-regressions PASS is not an all-tests-pass claim. State's last_green_commit has
-an explicit scope; current PR HEAD must independently pass GitHub checks before merge.
+A no-new-regressions PASS is not an all-tests-pass claim. The governance PR exact head
+passed the complete regression guard and Full Debug build before merge; integration push
+CI remains authoritative for the current merged HEAD.
 
 ## Upstream
 The accepted baseline and latest observed upstream HEAD are separate state fields.
