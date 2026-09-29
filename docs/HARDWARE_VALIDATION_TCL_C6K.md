@@ -79,6 +79,12 @@ for. Never mark a row PASS from memory or expectation. Copy finished rows into
 | HV-G4-8 ring cleanup | Exit the player after HV-G4-7, then run `adb shell run-as com.nuviodebug.com ls cache/nuvio_seek_read_ahead`. | The directory is empty or missing (the ring file is deleted on exit). | MANUAL-PENDING | command output |
 | HV-G4-9 no stacking (D006) | Choose REMUX / Throughput and play F2. | The log has **no** `SEEK_READ_AHEAD` or `SEEK_OPTIMIZED` line. HUD `conn` shows several connections. | MANUAL-PENDING | log + HUD |
 
+## 4b. G5 — Audio / DV / HDR / AFR
+
+| Test | Steps | Expected | Result | Evidence |
+|---|---|---|---|---|
+| HV-G5-1 soft clip (48) | Settings → audio amplification to +10 dB. Play a loud action scene (explosions) with PCM output (not passthrough). Repeat with the amplification at 0. | At +10 dB peaks sound compressed, not crackly or distorted; at 0 dB the sound is unchanged from official. | MANUAL-PENDING | short note / recording |
+
 ## 5. G4 final validation — same-file A/B (required before Stable release)
 
 Use **F1** for arms A and B, and **F2 and F3** for the seek arm. Same TV, same network, same time

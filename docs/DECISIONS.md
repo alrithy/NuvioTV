@@ -308,3 +308,12 @@ MANUAL-PENDING with its exact expected evidence in `docs/HARDWARE_VALIDATION_TCL
 them run once in the G14 hardware-certification campaign before any Stable release claim; a FAIL
 there reopens the owning gate's work, and default-on paths follow the D046 rollback rule. No PASS
 is ever recorded without a real run.
+
+## D048 — AUDIO_DV_AFR runs by default; each slice keeps official output unless limited
+`AUDIO_DV_AFR` defaults to `AUTO` in `FeatureRegistry.DECIDED_DEFAULTS` so G5 behavior reaches
+users without a hidden switch. Each G5 slice must keep official audio/video output unless its change
+is limited to a user-chosen path (for example soft clipping only while amplification is above 0 dB),
+a failure/fallback path, or a per-format control whose default equals official behavior. Anything
+that changes output for every playback (for example claiming a new passthrough format) ships behind
+an explicit setting that defaults to official. OFF restores official G5 behavior; device evidence is
+batched into G14 (D047).

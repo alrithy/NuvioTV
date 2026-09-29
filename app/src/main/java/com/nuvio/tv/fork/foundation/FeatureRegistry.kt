@@ -28,6 +28,7 @@ class FeatureRegistry(overrides: Map<FeatureId, FeatureMode> = emptyMap()) {
             FeatureId.ADAPTIVE_RESOURCE_MANAGER to FeatureMode.AUTO,
             FeatureId.PLAYBACK_STRATEGY_ENGINE to FeatureMode.AUTO,
             FeatureId.REMUX_PERFORMANCE to FeatureMode.AUTO,
+            FeatureId.AUDIO_DV_AFR to FeatureMode.AUTO,
         )
 
         val DEFAULTS: Map<FeatureId, FeatureMode> = immutableModes(

@@ -215,3 +215,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE in both sources; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: ring concurrency is Reshaped's (untested on JVM: android.system.Os pread/pwrite); disk wear and storage use on the TV; seek latency and rebuffer A/B MANUAL-PENDING (TCL C6K)
+
+### G5a — Soft clipping for boosted volume (48)
+- Roadmap gate: G5
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: subtitle-autosync
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/reshaped/volumeboost/VolumeBoostSoftClip.kt (softClipBoosted), ui/screens/player/GainAudioProcessor.kt (two call sites)
+- Import mode: ALGORITHM_PORT (tanh knee at 0.8) + DELTA_PORT (hook in the official gain processor)
+- Current official equivalent: `GainAudioProcessor` amplification 0-10 dB with a hard clamp at full scale
+- What already existed upstream: the boost itself (47, verified official)
+- What was imported: soft clip of amplified PCM16 and float samples above the knee; samples under the knee unchanged
+- What was intentionally not imported: Reshaped `VolumeBoostBar` UI (official already has the amplification setting), Reshaped settings screen
+- Local adaptations: pure `fork/audio/SoftClip.kt`; flag read from registry defaults; the official clamp stays as a final guard
+- Feature flag / fallback: FeatureId.AUDIO_DV_AFR (AUTO, D048); OFF restores the official hard clamp; only reached when amplification > 0 dB
+- Tests ported/added: SoftClipTest (4)
+- License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: audible result MANUAL-PENDING (G14 campaign, HV-G5-1)
