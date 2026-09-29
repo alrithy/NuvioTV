@@ -3,12 +3,11 @@
 One checklist for every MANUAL-PENDING item from G1–G4. Nothing in this file has been run yet.
 Record each result as **PASS**, **FAIL** or **MANUAL-PENDING** (not run), with the evidence asked
 for. Never mark a row PASS from memory or expectation. Copy finished rows into
-`docs/MANUAL_TEST_LOG.md` using its entry template. **G4 stays IN_PROGRESS until section 5 (the
-same-file A/B) has been run.**
+`docs/MANUAL_TEST_LOG.md` using its entry template. **This checklist does not block G5 or later development. It is part of the batched final hardware-certification campaign and must be completed before Stable release.**
 
 > **ملخص بالعربي:** ثبّت نسخة fullDebug، فعّل ADB عبر الشبكة، ثم نفّذ الأقسام 1–6 بالترتيب.
 > كل بند نتيجته PASS أو FAIL أو MANUAL-PENDING فقط، مع الدليل المطلوب (صورة للـHUD أو سطر من
-> logcat أو رقم مقاس). القسم 5 (مقارنة A/B على نفس الملف) هو الشرط لإغلاق G4.
+> logcat أو رقم مقاس). القسم 5 (مقارنة A/B على نفس الملف) يبقى شرط التحقق النهائي من G4، لكنه لا يوقف تطوير الـGates التالية؛ سننفذ الاختبارات اليدوية كلها في حملة واحدة قبل الإصدار المستقر.
 
 ## 0. Setup (once)
 
@@ -80,7 +79,7 @@ same-file A/B) has been run.**
 | HV-G4-8 ring cleanup | Exit the player after HV-G4-7, then run `adb shell run-as com.nuviodebug.com ls cache/nuvio_seek_read_ahead`. | The directory is empty or missing (the ring file is deleted on exit). | MANUAL-PENDING | command output |
 | HV-G4-9 no stacking (D006) | Choose REMUX / Throughput and play F2. | The log has **no** `SEEK_READ_AHEAD` or `SEEK_OPTIMIZED` line. HUD `conn` shows several connections. | MANUAL-PENDING | log + HUD |
 
-## 5. G4 exit — same-file A/B (required to close G4)
+## 5. G4 final validation — same-file A/B (required before Stable release)
 
 Use **F1** for arms A and B, and **F2 and F3** for the seek arm. Same TV, same network, same time
 window. Before every run, force-stop the app (`adb shell am force-stop com.nuviodebug.com`) and
@@ -117,11 +116,10 @@ Notes:
 
 **Exit criterion:** B must not regress against A in startup, rebuffers, RAM or seek, and D must
 not regress against C, beyond run-to-run noise. Any regression needs a written explanation and a
-decision in `docs/DECISIONS.md`; otherwise record FAIL and open a follow-up. Only then can G4
-move to DONE.
+decision in `docs/DECISIONS.md`; otherwise record FAIL and open a follow-up. Only then is G4 hardware validation complete for Stable release.
 
 ## 6. After running
 
 1. Put each test's result and evidence into `docs/MANUAL_TEST_LOG.md`, one entry per test ID.
 2. Send the logs and the A/B table in the chat. The agent updates `integration/state.yaml`,
-   `docs/HANDOFF.md` and the traceability evidence, and closes G4 only if section 5 passes.
+   `docs/HANDOFF.md` and the traceability evidence. A FAIL reopens the affected implementation; PASS resolves the G4 validation-pending entry.
