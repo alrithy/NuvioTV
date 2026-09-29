@@ -24,19 +24,18 @@ Low memory / Auto as session-only overrides of official buffer/network settings,
 selection (default Official, D043), HUD `strategy` row. Audit:
 `docs/audits/G3_PLAYBACK_STRATEGY_AUDIT.md`. One strategy owner: `fork/playback`
 (`PlaybackStrategies`, `PlaybackStrategySession`). 280 stays deferred (MPV memory measurement).
-G4 IN_PROGRESS: mandatory audit done (`docs/audits/G4_REMUX_NETWORK_AUDIT.md`); 4, 10, 12, 13 are
-verified_official. No G4 code yet. Slice plan: G4a failover + startup watchdog (19, 20, ysosrs),
-G4b ParallelRangeDataSource refinements (8, 9, 11, ysosrs, opt-in via G3 REMUX), G4c container
-recovery (21–24, fixtures), G4d Reshaped disk seek buffer (25, Seek optimized only).
+G4 IN_PROGRESS (user chose option 2, 2026-09-29: build every slice, keep hardware A/B
+MANUAL-PENDING, G4 not DONE until the same-file A/B runs on the user's TCL C6K). Audit merged (PR #20,
+`5a6a308`; 4, 10, 12, 13 verified_official). G4a (dead-source failover + startup watchdog, 19, 20,
+D044, IMPORT_LEDGER G4a) is on `feat/remux-network`. Local evidence: JVM harness 83 tests, 0 failures.
 
 ## Exact next action
-1. **Waiting on the user (hardware):** GATE_SPECS G4 exit needs same-file/source A/B on a real
-   device (startup, throughput, rebuffer, waste, RAM, seek). Ask whether they can run it and on which
-   device, or whether to build the slices with the A/B left MANUAL-PENDING.
-2. Then G4a on `feat/remux-network`: port ysosrs `attemptDeadSourceFailover`,
-   `advanceToNextLiveSource`, `attemptStartupExhaustedSourceFailover`, startup watchdog; keep the
-   decision logic pure and unit-tested. Check first whether it edits
-   `PlayerRuntimeControllerPlaybackEvents` (then sync official `7d3cea0` #3740 in a separate PR).
+1. Drive the G4a PR to green and squash-merge it; merge integration back into the branch.
+2. G4b: ysosrs ParallelRangeDataSource refinements (8, 9, 11), applied only when the G3 REMUX /
+   Throughput strategy is effective. G4c: container recovery (21–24) with fixtures. G4d: Reshaped
+   disk seek buffer (25) in Seek optimized only; classify/defer 5, 6, 7, 17, 18, 26.
+3. Then write `docs/HARDWARE_VALIDATION_TCL_C6K.md` (one checklist for all MANUAL-PENDING items,
+   including the G4 A/B protocol). Do not mark G4 DONE before that A/B runs.
 
 ## Evidence / limits
 Local Android execution is unavailable (no Android SDK); use GitHub CI evidence. Actions artifacts

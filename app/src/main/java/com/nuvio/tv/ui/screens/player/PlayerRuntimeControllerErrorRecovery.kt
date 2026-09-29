@@ -255,6 +255,8 @@ internal fun PlayerRuntimeController.attemptAutoRetry(
         return false
     }
     if (!isRetryablePlaybackError(error)) return false
+    // G4a: dead URLs (non-media body, 404/410) never benefit from same-URL retries.
+    if (playbackRecoveryEnabled && isDeadSourcePlaybackError(error)) return false
     if (errorRetryCount >= MAX_AUTO_RETRIES) return false
 
     val paused = userPausedManually
@@ -506,10 +508,18 @@ internal fun PlayerRuntimeController.tryParsingErrorProbeFallback(
             }
             initializePlayer(currentStreamUrl, currentHeaders, startPaused = paused)
         } else {
+            // G4a: the probe found no better container, so a non-media body is permanent
+            // for this URL; advance before the engine failover (dead on either engine).
+            if (isDeadSourcePlaybackError(error) && advanceToNextLiveSource(detailedError)) {
+                return@launch
+            }
             if (maybeAutoSwitchInternalPlayerOnStartupError(detailedError = detailedError, allowEngineFailover = allowEngineFailover)) {
                 return@launch
             }
             if (attemptAutoRetry(error, detailedError)) {
+                return@launch
+            }
+            if (attemptStartupExhaustedSourceFailover(detailedError)) {
                 return@launch
             }
             val userFacingError = error.toDisplayMessage(context)

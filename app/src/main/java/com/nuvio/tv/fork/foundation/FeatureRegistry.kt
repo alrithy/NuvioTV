@@ -21,11 +21,13 @@ class FeatureRegistry(overrides: Map<FeatureId, FeatureMode> = emptyMap()) {
          * D041: passive, read-only diagnostics (no network, no persistence) run by default.
          * D042: the resource manager only tightens limits on low-RAM/constrained devices.
          * D043: the strategy selector is visible; the stored selection defaults to Official.
+         * D044: G4 recovery (dead-source failover, startup watchdog) replaces dead-end error screens.
          */
         internal val DECIDED_DEFAULTS: Map<FeatureId, FeatureMode> = mapOf(
             FeatureId.UNIFIED_DIAGNOSTICS to FeatureMode.AUTO,
             FeatureId.ADAPTIVE_RESOURCE_MANAGER to FeatureMode.AUTO,
             FeatureId.PLAYBACK_STRATEGY_ENGINE to FeatureMode.AUTO,
+            FeatureId.REMUX_PERFORMANCE to FeatureMode.AUTO,
         )
 
         val DEFAULTS: Map<FeatureId, FeatureMode> = immutableModes(

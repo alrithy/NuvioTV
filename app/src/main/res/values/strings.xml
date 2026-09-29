@@ -1720,6 +1720,10 @@
     <string name="playback_strategy_low_memory_sub">Small buffer and a single connection.</string>
     <string name="playback_strategy_auto">Auto</string>
     <string name="playback_strategy_auto_sub">Low memory on low-RAM devices, REMUX / Throughput for large files, otherwise Official.</string>
+    <string name="player_dead_source_failover">Source unavailable \u2014 trying next source (%1$d/%2$d)</string>
+    <string name="player_error_startup_timeout">Playback did not start \u2014 the video decoder may not be responding. A device restart usually clears this. Press back to return and try again, or pick a different stream.</string>
+    <string name="player_error_startup_video_track_unsupported">Playback did not start \u2014 this device cannot play the video format of this stream. Press back and pick a different stream.</string>
+    <string name="player_error_startup_no_stream_data">Playback did not start \u2014 the stream did not deliver data in time. The source may be slow or unavailable. Press back to try again, or pick a different stream.</string>
     <string name="addon_manage_from_phone_title">Manage from phone</string>
     <string name="addon_manage_from_phone_subtitle">Scan a QR code to manage addons, catalogs, and collections from your phone</string>
     <string name="addon_manage_addons_only_from_phone_subtitle">Scan a QR code to install or remove add-ons from your phone</string>

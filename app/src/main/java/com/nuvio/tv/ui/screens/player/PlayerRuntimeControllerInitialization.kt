@@ -1106,6 +1106,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                     phase = "starting_stream",
                     message = context.getString(R.string.player_loading_starting)
                 )
+                scheduleStartupWatchdog()
                 val isTunneledPlayback = playerSettings.effectiveTunnelingEnabled
                 // Hold playWhenReady=false through prepare() so audio does not race ahead
                 // while the video decoder is still opening. The first STATE_READY primes the
@@ -1261,6 +1262,9 @@ internal fun PlayerRuntimeController.initializePlayer(
                                 readyTransition.nextState.shouldEnforceAutoplayOnFirstReady
                             if (readyTransition.nextState.hasRenderedFirstFrame && isTunneledPlayback) {
                                 hasRenderedFirstFrame = true
+                                cancelStartupWatchdog()
+                                retractStartupWatchdogErrorAfterFirstFrame()
+                                deadSourceFailoverCount = 0
                             }
                             when (val action = readyTransition.action) {
                                 is PlayerStartupPlaybackPolicy.ReadyAction.TunneledFirstReady -> {
@@ -1412,6 +1416,9 @@ internal fun PlayerRuntimeController.initializePlayer(
                     override fun onRenderedFirstFrame() {
                         val isFirstFrame = !hasRenderedFirstFrame  // capture BEFORE flipping
                         hasRenderedFirstFrame = true
+                        cancelStartupWatchdog()
+                        retractStartupWatchdogErrorAfterFirstFrame()
+                        deadSourceFailoverCount = 0
                         mediaSourceFactory.unlockStartupPrefetch()
                         if (isFirstFrame && _uiState.value.postPlayDismissedForCurrentEpisode) {
                             _uiState.update { it.copy(postPlayDismissedForCurrentEpisode = false) }
@@ -1637,6 +1644,12 @@ internal fun PlayerRuntimeController.initializePlayer(
                             return
                         }
 
+                        // G4a: HTTP 404/410 is permanent for this URL; advance to the next source
+                        // before the probe and the engine failover (dead on either engine).
+                        if (isDeadSourceHttpError(error) && advanceToNextLiveSource(detailedError)) {
+                            return
+                        }
+
                         if (tryParsingErrorProbeFallback(
                             error = error,
                             detailedError = detailedError,
@@ -1652,6 +1665,20 @@ internal fun PlayerRuntimeController.initializePlayer(
                             return
                         }
                         if (attemptAutoRetry(error, detailedError)) {
+                            return
+                        }
+
+                        // G4a: same-URL retries are spent. Mid-play, a malformed container or an
+                        // unspecified IO error that survived them fails over to the next source;
+                        // at startup, any exhausted failure does.
+                        if (hasRenderedFirstFrame &&
+                            (error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
+                                error.errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED) &&
+                            advanceToNextLiveSource(detailedError)
+                        ) {
+                            return
+                        }
+                        if (attemptStartupExhaustedSourceFailover(detailedError)) {
                             return
                         }
 
@@ -1927,6 +1954,12 @@ internal fun PlayerRuntimeController.initializePlayer(
             ) {
                 return@launch
             }
+            if (attemptStartupExhaustedSourceFailover(
+                    detailedError = e.message ?: context.getString(com.nuvio.tv.R.string.player_error_initialize_failed)
+                )
+            ) {
+                return@launch
+            }
             val displayError = e.toDisplayMessage(context, context.getString(com.nuvio.tv.R.string.player_error_initialize_failed))
             val diagnostics = LastPlaybackDiagnostics(
                 timestampMs = System.currentTimeMillis(),
@@ -2104,6 +2137,7 @@ internal fun PlayerRuntimeController.buildStartupSubtitleConfigurations(startupS
 internal fun PlayerRuntimeController.resetLoadingOverlayForNewStream() {
     cancelFirstFrameWatchdog()
     cancelStallWatchdog()
+    cancelStartupWatchdog()
     val preparingMessage = context.getString(R.string.player_loading_preparing)
     resetLoadingDiagnostics(
         phase = "preparing",

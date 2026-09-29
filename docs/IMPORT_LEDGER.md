@@ -139,3 +139,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in LruCacheMap.kt KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: focus-move smoothness on the source panel and RTL rendering MANUAL-PENDING; 276 deferred (no queue), 279 → G7, 280 → G3
+
+### G4a — Dead-source failover + startup watchdog (19, 20)
+- Roadmap gate: G4
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/screens/player/PlayerRuntimeControllerErrorRecovery.kt (isDeadSourceHttpError, isDeadSourcePlaybackError, advanceToNextLiveSource, attemptStartupExhaustedSourceFailover), PlayerRuntimeControllerObservers.kt (scheduleStartupWatchdog, retractStartupTimeoutErrorAfterFirstFrame), PlayerRuntimeControllerInitialization.kt (hook sites), strings
+- Import mode: ALGORITHM_PORT (dead classification, next-live-source selection, watchdog extend/fire and reason) + DELTA_PORT (hook sites, strings)
+- Current official equivalent: onPlayerError ladders (NPE, MediaPeriodHolder, 416, parsing probe, engine failover, auto-retry), first-frame and stall watchdogs
+- What already existed upstream: every same-URL recovery ladder; nothing advanced to another source; no pre-READY startup watchdog
+- What was imported: 404/410 and non-media-body failover, mid-play malformed/IO failover, startup-exhausted failover, 3-failover cap, dead-URL set, startup watchdog 20 s / 60 s ceiling with buffered-ahead extension and four honest reasons, late-frame retraction; EN strings (AR written here)
+- What was intentionally not imported: ysosrs removal of official VC-1 guards (official is newer), mime-override clear re-init, total auto-recovery budget across all ladders, dead-source greying in the source panel, TtffTrace markers, denied-audio FFmpeg fallback (G5)
+- Local adaptations: pure `fork/recovery/PlaybackRecovery.kt` (DeadSourcePolicy, StartupWatchdogPolicy); controller code in new `PlayerRuntimeControllerSourceFailover.kt`; mid-play failover runs after official auto-retry (ysosrs ran it before); failover count resets at first frame; host-only logging
+- Feature flag / fallback: FeatureId.REMUX_PERFORMANCE (AUTO, D044); OFF restores official error handling
+- Tests ported/added: PlaybackRecoveryTest (7)
+- License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: hardware A/B (dead link, stuck startup) MANUAL-PENDING on TCL C6K
