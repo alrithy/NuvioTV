@@ -1,6 +1,6 @@
 # Active Task Packet — G0 Fork Foundation
 
-Current status comes only from integration/state.yaml. Preflight must verify latest integration ancestry and writer ownership before coding.
+Current status comes only from integration/state.yaml. Preflight must verify latest integration ancestry and that no conflicting writer/work is present before coding.
 
 ## Identity
 - Gate: G0 — Fork Foundation
