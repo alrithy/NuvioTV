@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G5 — Audio / DV / HDR / AFR
 - Active branch: `feat/audio-video`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G5_AUDIO_VIDEO.md`
 - Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
@@ -26,11 +26,20 @@ selection (default Official, D043), HUD `strategy` row. Audit:
 (`PlaybackStrategies`, `PlaybackStrategySession`). 280 stays deferred (MPV memory measurement).
 G4 implementation CODE-COMPLETE: all slices merged (PRs #21, #22, #24, #25, #26) with 0 new CI failures and the debug APK built. Its TCL C6K functional checks and same-file A/B remain MANUAL-PENDING and are intentionally batched with all other device-only checks for G14 final hardware certification. G4 therefore no longer blocks development.
 
+G5 IN_PROGRESS on `feat/audio-video`: audit `docs/audits/G5_AUDIO_VIDEO_AUDIT.md` (official has
+TrueHD/Atmos/DD+/DTS-HD passthrough via live platform capabilities, downmix, FFmpeg fallback, 0-10 dB boost, libdovi, DV7/DV5 to 8.1, AFR
+modes; gaps: per-format passthrough controls,
+lossless default, soft clip, HDR10 on the DV strip path, track-format AFR/settle). 46 deferred.
+D047 records the batched-validation policy of `9c627ca`.
+
 ## Exact next action
-1. Start G5 on `feat/audio-video` from current `superfork/integration`; run preflight and follow `tasks/G5_AUDIO_VIDEO.md`.
+1. Merge the G5 audit PR, then slices G5a (soft clip, 48), G5b (lossless default, 37), G5c
+   (per-format passthrough controls + capability report, 38-42), G5d (DV/HDR, 52-55, 60), G5e (AFR,
+   56, 58, 59). No slice edits AudioSelectionOverlay / PlaybackEvents without a prior upstream sync.
 2. Continue G5→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of G5 runtime work.
+5. Append every G5 device check to `docs/HARDWARE_VALIDATION_TCL_C6K.md` (MANUAL-PENDING, G14).
 
 ## Evidence / limits
 Local Android execution is unavailable (no Android SDK); use GitHub CI evidence. Actions artifacts

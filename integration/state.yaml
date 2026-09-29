@@ -11,8 +11,8 @@ active_gate: G5
 active_gate_name: Audio / DV / HDR / AFR
 active_branch: feat/audio-video
 active_task_packet: tasks/G5_AUDIO_VIDEO.md
-active_status: READY
-active_pr: null
+active_status: IN_PROGRESS
+active_pr: 31
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
@@ -75,10 +75,10 @@ validation_pending_gates:
   evidence: 'All code merged in PRs #21, #22, #24, #25, #26; TCL C6K functional checks and same-file A/B remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-09-29T13:20:00Z'
-  sha: 7d3cea09e07a62ce1bc149f537367108a7885977
+  checked_at: '2026-09-29T20:10:00Z'
+  sha: 8e728cae7c6d8f2a0a089d7a240675e25a33a883
   accepted: false
-  reason: 'Official head unchanged: PR #3740 (audio delay UI in AudioSelectionOverlay, PlayerRuntimeControllerPlaybackEvents). G3 did not touch either file. G4 edits player/media-source/network owners: adopt it first through a separate reviewed sync PR if G4 edits PlayerRuntimeControllerPlaybackEvents.'
+  reason: 'Official dev advanced beyond accepted 71632b9 (MDBList ratings, home/hero, PostPlay*, AudioSelectionOverlay audio-delay UI, PlayerRuntimeControllerPlaybackEvents). G4 touched none of those player files (AR-006). G5 slices avoid AudioSelectionOverlay and PlaybackEvents (docs/audits/G5_AUDIO_VIDEO_AUDIT.md); a slice that needs them first adopts official through a reviewed upstream-sync PR.'
 completed_gates:
 - gate: G0
   name: Fork Foundation
