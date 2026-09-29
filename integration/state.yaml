@@ -11,15 +11,16 @@ active_gate: G4
 active_gate_name: REMUX / Network Performance
 active_branch: feat/remux-network
 active_task_packet: tasks/G4_REMUX_NETWORK.md
-active_status: IN_PROGRESS
-active_pr: 26
+active_status: BLOCKED
+blocker: 'G4 exit criterion is the mandatory same-file A/B (startup, throughput, rebuffer, waste, RAM, seek) on a real device. Every G4 slice is merged (PRs #21, #22, #24, #25, #26); the A/B needs the user''s TCL C6K. Next step: the user runs docs/HARDWARE_VALIDATION_TCL_C6K.md (sections 1-5) and shares the logs and the A/B table; record them in docs/MANUAL_TEST_LOG.md and close G4 only if section 5 passes.'
+active_pr: null
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: a2b789a5a1d12cf91993da3ee2bb6a15d23c86df
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36596142283 ; review follow-ups PR
-  #25 exact head, squash-merged as e56bb37.
-last_green_scope: Full suite guard (1859 tests, 15 known failures, 0 new failures), governance
+last_green_commit: 3589d0dc32a269dcffdf9e85aa20a69cd636cb01
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36598311389 ; G4d PR
+  #26 exact head, squash-merged as feb0f8f.
+last_green_scope: Full suite guard (1864 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
