@@ -198,8 +198,9 @@ internal fun PlayerRuntimeController.initializePlayer(
             currentBitrateAwareLoadControl = null
             configuredBackBufferMs = 0
 
-            val playerSettings = playerSettingsDataStore.playerSettings.first()
+            var playerSettings = playerSettingsDataStore.playerSettings.first()
             currentPlayerSettingsForReport = playerSettings
+            currentStrategyDecision = null
             rememberAudioDelayPerDeviceEnabled = playerSettings.rememberAudioDelayPerDevice
             // Always watch output-device changes so Bluetooth connect/disconnect can switch
             // PCM/passthrough policy in place (Media3 1.8.0 BT semantics; do not rebuild).
@@ -457,6 +458,26 @@ internal fun PlayerRuntimeController.initializePlayer(
             // lowmemorykiller spiral, so for confirmed DV7 on low-RAM we drop the back buffer
             // and shrink the budget at first frame (below).
             val libdoviConversionActive = effectiveDv7Mode == Dv7HandlingMode.DV81_LIBDOVI
+            // Playback strategy (G3): session-only overrides of the buffer/network settings below.
+            val strategyPlan = playbackStrategySession.plan(
+                stored = playerSettings,
+                facts = com.nuvio.tv.fork.playback.PlaybackFacts(
+                    exoPlayerEngine = true,
+                    progressiveHttp = com.nuvio.tv.fork.playback.PlaybackStrategies.isProgressiveHttp(
+                        url = url,
+                        mimeType = currentStreamMimeType,
+                        isTorrent = isTorrentStream,
+                        isLoopback = PlayerMediaSourceFactory.isLoopbackUrl(url)
+                    ),
+                    fileSizeBytes = currentVideoSize,
+                    filename = currentFilename,
+                    lowRamDevice = com.nuvio.tv.fork.resource.AdaptiveResources.policy.isLowRam
+                ),
+                storedEffectiveBufferMb = MemoryBudget.effectiveBufferMb(playerSettings.bufferSettings.targetBufferSizeMb)
+            )
+            currentStrategyDecision = strategyPlan.decision
+            playerSettings = strategyPlan.settings
+            Log.i(PlayerRuntimeController.TAG, "PLAYBACK_STRATEGY: ${strategyPlan.decision.hudLabel}")
             NuvioExoPlayerPerformanceHelper.updateSettings(playerSettings, context)
             NuvioExoPlayerPerformanceHelper.enabled = playerSettings.nuvioPerformanceModeEnabled
             val streamMime = currentStreamMimeType

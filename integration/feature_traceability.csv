@@ -1,7 +1,7 @@
 feature_id,gate,source_group,owner,status,feature,evidence,reason,next_action
 1,G0,foundation,project,implemented,Build on the latest official NuvioTV rather than an old fork.,"Integration built on official dev fd7973d via reviewed sync 3cf04cc (docs/BASELINE.md, UPSTREAM_SYNC_LOG); G0 adds only new fork-owned files.",,
 2,G0,foundation,project,implemented,Keep continuous upstream sync capability without losing fork changes.,docs/UPSTREAM_SYNC.md procedure + chore/upstream-sync-* PR lane in check_pr_scope.py; exercised by sync 3cf04cc; upstream observation kept separate from accepted baseline in state.yaml.,,
-3,G3,official+ysosrs+reshaped,playback,planned,Automatic Playback Strategy selection by device/file/network.,,,
+3,G3,official+ysosrs+reshaped,playback,implemented,Automatic Playback Strategy selection by device/file/network.,"G3a: PlaybackStrategies.resolve Auto: device tier (G2), file size/remux token, stream type; deterministic; PlaybackStrategyTest; docs/audits/G3_PLAYBACK_STRATEGY_AUDIT.md (measured network signal left to G4).",,
 4,G4,official+ysosrs+reshaped,playback-network,planned,Parallel Range Downloading for high-throughput playback.,,,
 5,G4,official+ysosrs+reshaped,playback-network,planned,Adaptive Connection Count.,,,
 6,G4,official+ysosrs+reshaped,playback-network,planned,Adaptive Chunk Size.,,,
@@ -25,11 +25,11 @@ feature_id,gate,source_group,owner,status,feature,evidence,reason,next_action
 24,G4,official+ysosrs+reshaped,playback-network,planned,Better seeking for non-faststart/poorly interleaved MP4.,,,
 25,G4,official+ysosrs+reshaped,playback-network,planned,Disk-based seek buffer.,,,
 26,G4,official+ysosrs+reshaped,playback-network,planned,Adaptive MPV demux cache by RAM/device tier.,,,
-27,G3,official+ysosrs+reshaped,playback,planned,Standard Playback mode.,,,
-28,G3,official+ysosrs+reshaped,playback,planned,REMUX / Throughput playback mode.,,,
-29,G3,official+ysosrs+reshaped,playback,planned,Seek Optimized playback mode.,,,
-30,G3,official+ysosrs+reshaped,playback,planned,Low-RAM playback mode.,,,
-31,G3,official+ysosrs+reshaped,playback,planned,Auto playback mode.,,,
+27,G3,official+ysosrs+reshaped,playback,verified_official,Standard Playback mode.,Official strategy = stored official settings unchanged (same instance); default selection (D043); PlaybackStrategySettingsTest.officialKnobsReturnTheStoredInstance.,,
+28,G3,official+ysosrs+reshaped,playback,implemented,REMUX / Throughput playback mode.,"G3a: REMUX / Throughput = official parallel range + managed buffer, connections capped by G2 policy; PlaybackStrategyTest, PlaybackStrategySettingsTest.",,
+29,G3,official+ysosrs+reshaped,playback,implemented,Seek Optimized playback mode.,"G3a: Seek Optimized = official VOD disk cache + managed buffer, no parallel (D006); Reshaped disk seek buffer remains G4 ID 25; PlaybackStrategyTest.",,
+30,G3,official+ysosrs+reshaped,playback,implemented,Low-RAM playback mode.,"G3a: Low memory = single connection, target buffer min(stored, 50 MB); ExoPlayer only (MPV → 280); PlaybackStrategyTest.",,
+31,G3,official+ysosrs+reshaped,playback,implemented,Auto playback mode.,"G3a: Auto = low-RAM → Low memory, progressive ≥ 20 GiB or remux token → REMUX, else Official; HUD strategy row selected → effective (reason); PlaybackStrategyTest.",,
 32,G5,official+ysosrs+reshaped,audio-video,planned,TrueHD passthrough.,,,
 33,G5,official+ysosrs+reshaped,audio-video,planned,Dolby Atmos passthrough.,,,
 34,G5,official+ysosrs+reshaped,audio-video,planned,DTS-HD MA passthrough.,,,
@@ -278,7 +278,7 @@ feature_id,gate,source_group,owner,status,feature,evidence,reason,next_action
 277,G2,hackerslash-lite,resource,implemented,Reduce stream-list recompositions.,"G2c: StreamSourcesSidePanel pagination via snapshotFlow (Lite c760295eb), same trigger threshold; audit G2c.",,
 278,G2,hackerslash-lite,resource,implemented,Optimize Bidi/RTL rendering work.,"G2c: remembered directedFor/rememberContentTextDirection in TextDirectionUtils (official scan kept) on stream rows, source chip, content card, hero, search dropdown (Lite d491bd09e); audit G2c.",,
 279,G2,hackerslash-lite,resource,deferred,Memory-safe Seekr handling.,Task packet G2 excludes the Seekr implementation.,Seekr is not implemented until G7; no memory policy consumer exists yet.,Apply AdaptiveResourcePolicy limits when Seekr lands in G7.
-280,G2,hackerslash-lite,resource,deferred,Low-RAM MPV cache policy.,Audit G2c: Lite 2afdcd05 keeps official's 64+64 MB MPV demuxer cache; no low-RAM value to port.,No sourced or measured low-RAM MPV cache value; engine buffers belong to the Low Memory playback strategy.,Define the MPV demuxer budget in G3 Low Memory strategy from AdaptiveResourcePolicy with on-device measurement.
+280,G2,hackerslash-lite,resource,deferred,Low-RAM MPV cache policy.,Audit G2c/G3: Lite 2afdcd05 keeps official's 64+64 MB MPV demuxer cache; G3 Low memory is ExoPlayer-only.,No sourced or measured low-RAM MPV cache value; G3 strategies never change the MPV path.,"Measure MPV memory on a 1–1.5 GB device, then add an MPV demuxer budget to the Low memory strategy (G3 owner) or record verified_official."
 281,G1,official+ysosrs,diagnostics,implemented,Add-on Health system.,"G1a: passive in-memory AddonHealthTracker (UNIFIED_DIAGNOSTICS AUTO, D041) fed by AddonRepositoryImpl.fetchAddon and StreamRepositoryImpl; ALGORITHM_PORT from ysosrs 45e0984 (IMPORT_LEDGER G1a).",,
 282,G1,official+ysosrs,diagnostics,implemented,Healthy state.,"G1a: fork/diagnostics AddonHealth classifier + tracker, recorded from manifest/stream fetches, badge in Addon Manager; AddonHealthTest + StreamRepositoryAddonHealthTest; docs/audits/G1_DIAGNOSTICS_AUDIT.md (HEALTHY).",,
 283,G1,official+ysosrs,diagnostics,implemented,Slow state.,"G1a: fork/diagnostics AddonHealth classifier + tracker, recorded from manifest/stream fetches, badge in Addon Manager; AddonHealthTest + StreamRepositoryAddonHealthTest; docs/audits/G1_DIAGNOSTICS_AUDIT.md (SLOW > 8 s).",,

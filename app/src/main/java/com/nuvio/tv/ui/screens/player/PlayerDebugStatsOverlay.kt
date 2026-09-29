@@ -208,6 +208,7 @@ private fun forkHudRows(
         parallelConnections = ParallelRangeDataSource.hudConnections,
         chunkBytes = ParallelRangeDataSource.hudChunkBytes,
         rebuffers = viewModel.getRebufferCount(),
+        strategy = viewModel.getPlaybackStrategyLabel(),
         audioUnderruns = hud.audioUnderrunCount,
         loadErrors = hud.loadErrorCount,
         clockDriftMsPerSecond = drift,

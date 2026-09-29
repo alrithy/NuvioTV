@@ -99,7 +99,8 @@ class PlayerViewModel @Inject constructor(
     private val tvRecommendationManager: com.nuvio.tv.core.recommendations.TvRecommendationManager,
     profileManager: com.nuvio.tv.core.profile.ProfileManager,
     savedStateHandle: SavedStateHandle,
-    featureRegistry: com.nuvio.tv.fork.foundation.FeatureRegistry
+    featureRegistry: com.nuvio.tv.fork.foundation.FeatureRegistry,
+    playbackStrategySession: com.nuvio.tv.fork.playback.PlaybackStrategySession
 ) : ViewModel() {
 
     /** Superfork HUD rows (G1b) are shown only while unified diagnostics are not switched off. */
@@ -151,6 +152,7 @@ class PlayerViewModel @Inject constructor(
         tvRecommendationManager = tvRecommendationManager,
         profileId = savedStateHandle.get<String>("profileId")?.toIntOrNull()
             ?: profileManager.activeProfileId.value,
+        playbackStrategySession = playbackStrategySession,
         savedStateHandle = savedStateHandle,
         scope = viewModelScope
     )
@@ -204,6 +206,10 @@ class PlayerViewModel @Inject constructor(
         controller.playbackAnalyticsDiagnostics.hudSample()
 
     fun getRebufferCount(): Int = controller.rebufferCount
+
+    /** Selected/effective playback strategy for the HUD (G3); official until a session is built. */
+    fun getPlaybackStrategyLabel(): String =
+        controller.currentStrategyDecision?.hudLabel ?: com.nuvio.tv.fork.diagnostics.PlaybackHud.OFFICIAL_STRATEGY
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     fun getPlayerNativeMemoryBytes(): Long? {
