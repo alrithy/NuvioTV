@@ -107,6 +107,9 @@ Never merge another fork wholesale. Never overwrite a current official subsystem
 - Never silently drop a difficult feature; mark blocked/deferred with evidence.
 - Never invent hardware/manual test results.
 
+## Manual hardware validation
+For G1–G13, do not pause development solely because a device-only check is MANUAL-PENDING. Record the exact check/evidence needed and continue once code is merged and automated CI/DoD is green. The project intentionally batches all remaining hardware/manual checks into one consolidated G14 certification campaign. Never invent PASS results, and never ship Stable while a release-blocking MANUAL-PENDING item remains.
+
 ## Quality gate
 Every code gate must satisfy `docs/DEFINITION_OF_DONE.md`.
 At minimum run the governance validator, the full unit suite with the no-new-regressions baseline guard, the relevant build, and gate-specific tests. Pre-existing failures are governed only by `docs/BASELINE_TEST_DEBT.md`; new failures must not be waived silently.
