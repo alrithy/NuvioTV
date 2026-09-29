@@ -14,8 +14,8 @@ This view's header is generated from state; use `state_view.py` after state chan
 
 ## Work boundary
 G0 DONE (PR #7). Official baseline `71632b9` accepted (PR #9). G1 IN_PROGRESS: G1a add-on
-health in review; G1b diagnostics HUD model and G1c device assessment follow on the same
-branch. Legacy PR #1/#2 stay reference-only.
+health merged (PR #10); G1b diagnostics HUD in review; G1c device assessment follows on the
+same branch. Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.

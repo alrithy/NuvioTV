@@ -98,8 +98,14 @@ class PlayerViewModel @Inject constructor(
     private val subtitleFileCache: com.nuvio.tv.core.player.SubtitleFileCache,
     private val tvRecommendationManager: com.nuvio.tv.core.recommendations.TvRecommendationManager,
     profileManager: com.nuvio.tv.core.profile.ProfileManager,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    featureRegistry: com.nuvio.tv.fork.foundation.FeatureRegistry
 ) : ViewModel() {
+
+    /** Superfork HUD rows (G1b) are shown only while unified diagnostics are not switched off. */
+    val forkDiagnosticsEnabled: Boolean =
+        featureRegistry.mode(com.nuvio.tv.fork.foundation.FeatureId.UNIFIED_DIAGNOSTICS) !=
+            com.nuvio.tv.fork.foundation.FeatureMode.OFF
 
     init {
         // Release trailer player codec resources so the full-screen player can
@@ -193,6 +199,11 @@ class PlayerViewModel @Inject constructor(
     fun getCurrentHeaders(): Map<String, String> = controller.getCurrentHeaders()
 
     fun getCurrentFileSizeBytes(): Long? = controller.currentVideoSize
+
+    internal fun getPlaybackHudSample(): PlayerPlaybackAnalyticsDiagnostics.HudSample =
+        controller.playbackAnalyticsDiagnostics.hudSample()
+
+    fun getRebufferCount(): Int = controller.rebufferCount
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     fun getPlayerNativeMemoryBytes(): Long? {

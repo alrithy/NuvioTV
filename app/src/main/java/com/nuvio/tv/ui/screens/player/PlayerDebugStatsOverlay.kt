@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -34,6 +35,9 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.tv.material3.Text
 import com.nuvio.tv.core.network.StreamSpeedTester
+import com.nuvio.tv.fork.diagnostics.ClockDriftMeter
+import com.nuvio.tv.fork.diagnostics.PlaybackHud
+import com.nuvio.tv.fork.diagnostics.PlaybackHudInput
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -77,7 +81,9 @@ internal fun PlayerDebugStatsOverlay(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val view = LocalView.current
     val sampler = remember { DebugStatsSampler(context) }
+    val driftMeter = remember { ClockDriftMeter() }
     var stats by remember { mutableStateOf(emptyList<DebugStat>()) }
     var probedFileSize by remember { mutableStateOf<Long?>(null) }
 
@@ -115,7 +121,12 @@ internal fun PlayerDebugStatsOverlay(
                     nativeMemoryBytes = viewModel.getPlayerNativeMemoryBytes()
                 )
             }
-            stats = withContext(Dispatchers.IO) { sampler.sample(snapshot) }
+            val forkRows = if (viewModel.forkDiagnosticsEnabled) {
+                forkHudRows(viewModel, player, snapshot, view.display?.refreshRate, driftMeter)
+            } else {
+                emptyList()
+            }
+            stats = withContext(Dispatchers.IO) { sampler.sample(snapshot) } + forkRows
             delay(1000L)
         }
     }
@@ -154,6 +165,55 @@ internal fun PlayerDebugStatsOverlay(
             }
         }
     }
+}
+
+// Superfork G1b rows. Player fields are read here, on the application thread, once per sample.
+@OptIn(UnstableApi::class)
+private fun forkHudRows(
+    viewModel: PlayerViewModel,
+    player: Player?,
+    snapshot: PlayerSnapshot?,
+    displayRefreshHz: Float?,
+    driftMeter: ClockDriftMeter
+): List<DebugStat> {
+    val exo = player as? androidx.media3.exoplayer.ExoPlayer
+    val video = runCatching { exo?.videoFormat }.getOrNull()
+    val audio = runCatching { exo?.audioFormat }.getOrNull()
+    val hud = viewModel.getPlaybackHudSample()
+    val fileBps = PlayerBitrateEstimator.fileBitrateBps(snapshot?.fileSizeBytes, snapshot?.durationMs ?: -1L)
+    val trackBps = ((snapshot?.videoBitrate ?: -1).coerceAtLeast(0) + (snapshot?.audioBitrate ?: -1).coerceAtLeast(0)).toLong()
+    val drift = player?.let {
+        driftMeter.update(
+            positionMs = it.currentPosition,
+            wallMs = android.os.SystemClock.elapsedRealtime(),
+            speed = it.playbackParameters.speed,
+            playing = it.isPlaying
+        )
+    }
+    val input = PlaybackHudInput(
+        videoMime = video?.sampleMimeType,
+        videoCodecs = video?.codecs,
+        width = video?.width,
+        height = video?.height,
+        frameRate = video?.frameRate,
+        colorTransfer = video?.colorInfo?.colorTransfer,
+        audioMime = audio?.sampleMimeType,
+        audioCodecs = audio?.codecs,
+        audioChannels = audio?.channelCount,
+        audioSampleRate = audio?.sampleRate,
+        audioOutputEncoding = hud.audioOutputEncoding,
+        displayRefreshHz = displayRefreshHz,
+        requiredBps = fileBps?.toLong() ?: trackBps.takeIf { it > 0L },
+        availableBps = hud.bandwidthEstimateBps,
+        parallelConnections = ParallelRangeDataSource.hudConnections,
+        chunkBytes = ParallelRangeDataSource.hudChunkBytes,
+        rebuffers = viewModel.getRebufferCount(),
+        audioUnderruns = hud.audioUnderrunCount,
+        loadErrors = hud.loadErrorCount,
+        clockDriftMsPerSecond = drift,
+        socModel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Build.SOC_MODEL else null
+    )
+    return PlaybackHud.rows(input).map { DebugStat(it.label, it.value, warn = it.warn) }
 }
 
 @OptIn(UnstableApi::class)

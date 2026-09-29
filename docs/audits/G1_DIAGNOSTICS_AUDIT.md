@@ -27,6 +27,29 @@ G1a add-on health, G1b diagnostics model in the official overlay, G1c device ass
 Not imported: persistence/DataStore, catalog/meta/subtitle/resolver recording, breaker cooldown,
 `addonHealthEnabled` layout setting.
 
+## Diagnostics HUD (G1b)
+Owner stays official `PlayerDebugStatsOverlay`; rows are appended after the official rows while
+UNIFIED_DIAGNOSTICS is not OFF. Formatting is pure (`fork/diagnostics/PlaybackHud.kt`).
+| ID | Behavior | Class | Result |
+|---|---|---|---|
+| 61 | Unified HUD | PARTIAL_OVERLAP | one HUD: official overlay + G1b rows; ysosrs second HUD not imported |
+| 62, 64 | video codec, source fps | ALREADY_OFFICIAL (StreamInfoData) | now also in HUD `video` row from `ExoPlayer.videoFormat` |
+| 63 | actual video bitrate | ALREADY_OFFICIAL | official `bitrate` row = file size / duration (real average), tracks fallback |
+| 65 | display refresh | missing delta | `display` row from `View.display.refreshRate`; warns when not a multiple of fps |
+| 66 | HDR / DV profile | missing delta | `hdr` row: DV profile from codecs (`dvhe.08`), else PQ/HLG/SDR from ColorInfo; HDR10+ not claimed |
+| 67, 68 | audio codec, Atmos / DTS:X | missing delta | `audio` row; Atmos only from E-AC3-JOC/`ec+3`, DTS:X from `vnd.dts.uhd;profile=p2`; TrueHD Atmos not signalled so not claimed |
+| 69 | real passthrough | missing delta | `output` row from `AnalyticsListener.onAudioTrackInitialized` AudioTrack encoding |
+| 70, 72, 75, 78, 80 | throughput, buffer, dropped, RAM/player buffer, thermal | ALREADY_OFFICIAL | official rows kept unchanged |
+| 71 | required vs available | missing delta | `need` row: file/track bitrate vs bandwidth estimate, warns under 1.2x headroom |
+| 73 | connections / chunk | PARTIAL_OVERLAP | official ParallelRangeDataSource HUD fields extended with connections + chunk size |
+| 74, 76 | rebuffers, underruns | PARTIAL_OVERLAP | official counters now displayed (`rebuffer`, `underrun`, `load err`) |
+| 77 | audio clock jitter | ALGORITHM_PORT (reduced) | `a-clock` drift ms/s at 1 Hz from player position vs wall clock; ysosrs 20 ms sink sampler not ported (G5 owns the sink) |
+| 79 | SoC / CPU | PARTIAL_OVERLAP | official `cpu` + `soc` row (`Build.SOC_MODEL`, API 31+) |
+| 81 | current strategy | missing (pre-G3) | `strategy` row = `official`, the only strategy until G3 |
+
+Not imported: ysosrs `PlaybackStatsOverlay`, logcat capture instrumentation, PlaybackByteCounter,
+mux-rate estimator, sink jitter sampler, rate-limit/hedge rows (G4 network owner).
+
 ## Remaining G1 scope (initial classification, refined in G1b/G1c)
 | IDs | Behavior | Initial class |
 |---|---|---|

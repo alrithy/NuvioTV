@@ -1818,6 +1818,13 @@ internal fun PlayerRuntimeController.initializePlayer(
                         )
                     }
 
+                    override fun onAudioTrackInitialized(
+                        eventTime: AnalyticsListener.EventTime,
+                        audioTrackConfig: AudioSink.AudioTrackConfig
+                    ) {
+                        playbackAnalyticsDiagnostics.onAudioTrackInitialized(audioTrackConfig.encoding)
+                    }
+
                     override fun onAudioUnderrun(
                         eventTime: AnalyticsListener.EventTime,
                         bufferSize: Int,
