@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G4 — REMUX / Network Performance
 - Active branch: `feat/remux-network`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G4_REMUX_NETWORK.md`
 - Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
@@ -24,18 +24,19 @@ Low memory / Auto as session-only overrides of official buffer/network settings,
 selection (default Official, D043), HUD `strategy` row. Audit:
 `docs/audits/G3_PLAYBACK_STRATEGY_AUDIT.md`. One strategy owner: `fork/playback`
 (`PlaybackStrategies`, `PlaybackStrategySession`). 280 stays deferred (MPV memory measurement).
-G4 REMUX / Network Performance is READY; no G4 code yet.
+G4 IN_PROGRESS: mandatory audit done (`docs/audits/G4_REMUX_NETWORK_AUDIT.md`); 4, 10, 12, 13 are
+verified_official. No G4 code yet. Slice plan: G4a failover + startup watchdog (19, 20, ysosrs),
+G4b ParallelRangeDataSource refinements (8, 9, 11, ysosrs, opt-in via G3 REMUX), G4c container
+recovery (21–24, fixtures), G4d Reshaped disk seek buffer (25, Seek optimized only).
 
 ## Exact next action
-1. Create `feat/remux-network` from integration HEAD; run
-   `python3 scripts/superfork/preflight.py --fetch`; read `tasks/G4_REMUX_NETWORK.md` and GATE_SPECS G4.
-2. Upstream first: official `7d3cea0` (#3740) edits `PlayerRuntimeControllerPlaybackEvents`. If G4
-   edits it, adopt #3740 through a separate reviewed sync PR before feature work.
-3. Audit official first (ParallelRangeDataSource, PlayerMediaSourceFactory, PlayerPlaybackNetworking,
-   VOD cache, StreamSpeedTester) against ysosrs @ 45e0984 and Reshaped @ 0ccf049; port only the
-   missing network delta. New REMUX/seek behavior plugs into the G3 strategies (REMUX / Throughput,
-   Seek optimized) instead of new global switches; do not stack the Reshaped disk seek buffer (ID 25)
-   with ysosrs parallel REMUX in one strategy (D006); Auto may gain a measured network signal.
+1. **Waiting on the user (hardware):** GATE_SPECS G4 exit needs same-file/source A/B on a real
+   device (startup, throughput, rebuffer, waste, RAM, seek). Ask whether they can run it and on which
+   device, or whether to build the slices with the A/B left MANUAL-PENDING.
+2. Then G4a on `feat/remux-network`: port ysosrs `attemptDeadSourceFailover`,
+   `advanceToNextLiveSource`, `attemptStartupExhaustedSourceFailover`, startup watchdog; keep the
+   decision logic pure and unit-tested. Check first whether it edits
+   `PlayerRuntimeControllerPlaybackEvents` (then sync official `7d3cea0` #3740 in a separate PR).
 
 ## Evidence / limits
 Local Android execution is unavailable (no Android SDK); use GitHub CI evidence. Actions artifacts
