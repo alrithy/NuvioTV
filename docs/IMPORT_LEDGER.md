@@ -234,3 +234,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: audible result MANUAL-PENDING (G14 campaign, HV-G5-1)
+
+### G5b — Default to the best lossless audio track (37)
+- Roadmap gate: G5
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/screens/player/LosslessAudioTrackDefault.kt (tiering, commentary filter, language preference, `applyLosslessAudioDefaultIfUnset`), PlayerRuntimeController / PlayerRuntimeControllerStreams (per-stream flags and resets), PlayerRuntimeControllerTracks / PlayerRuntimeControllerMpv (call sites)
+- Import mode: ALGORITHM_PORT (pick) + DELTA_PORT (hooks after the official restore pass)
+- Current official equivalent: audio picked by preferred language and container default/forced flags only
+- What already existed upstream: remembered / persisted track preference restore, engine-switch carry-over, `selectAudioTrack`
+- What was imported: lossless tiers TrueHD > DTS-HD MA > FLAC > PCM (ties by channel count), commentary-like names skipped, preferred languages first; applied at most once per stream and never over a user pick, a remembered or persisted preference, or an engine-switch carry-over
+- What was intentionally not imported: ysosrs's always-on default (here behind a setting, D048); track names in the trace log (codec/language/channels only)
+- Local adaptations: pure `fork/audio/LosslessAudioDefault.kt`; profile-scoped `fork/audio/AudioOutputPreferences` DataStore with a "Prefer lossless audio" toggle in Playback → Audio (EN/AR); selection is never written back as a preference
+- Feature flag / fallback: setting default off (D048: changes default track selection for every playback); hidden and inert when FeatureId.AUDIO_DV_AFR is OFF
+- Tests ported/added: LosslessAudioDefaultTest (6)
+- License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: a sink without TrueHD/DTS-HD passthrough decodes the lossless track in software (G5c adds capability awareness); device check MANUAL-PENDING (G14 campaign, HV-G5-2)

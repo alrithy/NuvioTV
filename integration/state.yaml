@@ -12,14 +12,14 @@ active_gate_name: Audio / DV / HDR / AFR
 active_branch: feat/audio-video
 active_task_packet: tasks/G5_AUDIO_VIDEO.md
 active_status: IN_PROGRESS
-active_pr: 32
+active_pr: 33
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 9da649709641b0154543e95c0e2d766b36b8c462
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36627925933 ; G5 audit
-  PR #31 exact head, squash-merged as 7ccb762.
-last_green_scope: Full suite guard (1864 tests, 15 known failures, 0 new failures), governance
+last_green_commit: 7de653ead25a1281759e8f9f3be008c533d4a324
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36629575219 ; G5a
+  PR #32 exact head, squash-merged as d55a866.
+last_green_scope: Full suite guard (1868 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
