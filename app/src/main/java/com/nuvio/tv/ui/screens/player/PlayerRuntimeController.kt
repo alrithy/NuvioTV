@@ -533,6 +533,14 @@ class PlayerRuntimeController(
     @Volatile internal var preferLosslessAudioDefault: Boolean = false
     internal var losslessAudioDefaultAppliedForStream: Boolean = false
     internal var persistedAudioPreferenceSeenForStream: Boolean = false
+    // G5e (features 58, 59): track-format AFR fallback state (see PlayerRuntimeControllerTrackAfr).
+    internal val trackAfrEnabled: Boolean = com.nuvio.tv.fork.foundation.FeatureRegistry()
+        .mode(com.nuvio.tv.fork.foundation.FeatureId.AUDIO_DV_AFR) != com.nuvio.tv.fork.foundation.FeatureMode.OFF
+    internal var trackAfrAttemptedForStream: Boolean = false
+    internal var pendingTrackAfr: Triple<Float, Int?, Int?>? = null
+    @Volatile internal var afrTrackSwitchInFlight: Boolean = false
+    internal var afrTrackGeneration: Int = 0
+    internal var startPausedForCurrentPlayback: Boolean = false
 
     init {
         // G5b: follow the per-profile "Prefer lossless audio" toggle (false = official selection).

@@ -259,6 +259,8 @@ internal suspend fun PlayerRuntimeController.runAfrPreflightIfEnabled(
     } finally {
         withContext(NonCancellable) {
             _uiState.update { it.copy(afrProbeRunning = false) }
+            // G5e: a track-AFR decision deferred while the probe ran.
+            withContext(Dispatchers.Main) { onAfrPreflightFinished() }
         }
     }
 }

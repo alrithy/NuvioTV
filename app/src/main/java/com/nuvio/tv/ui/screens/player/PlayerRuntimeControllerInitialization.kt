@@ -155,6 +155,7 @@ internal fun PlayerRuntimeController.initializePlayer(
     allowEngineFailover: Boolean = true,
     startPaused: Boolean = false
 ) {
+    startPausedForCurrentPlayback = startPaused
     if (url.isEmpty()) {
         _uiState.update { it.copy(error = context.getString(R.string.player_error_no_stream_url), showLoadingOverlay = false) }
         return
@@ -1313,11 +1314,14 @@ internal fun PlayerRuntimeController.initializePlayer(
                                     if (_uiState.value.postPlayDismissedForCurrentEpisode) {
                                         _uiState.update { it.copy(postPlayDismissedForCurrentEpisode = false) }
                                     }
-                                    if (action.setPlayWhenReady) {
-                                        playWhenReady = true
-                                    }
-                                    if (action.callPlay) {
-                                        play()
+                                    // G5e: a track-format AFR switch holds the start; it re-applies it when released.
+                                    if (!afrTrackSwitchInFlight) {
+                                        if (action.setPlayWhenReady) {
+                                            playWhenReady = true
+                                        }
+                                        if (action.callPlay) {
+                                            play()
+                                        }
                                     }
                                     finishLoadingDiagnostics("first_frame_ready")
                                     currentDiagnostics = recordFirstFrameDiagnostics(this@apply, currentDiagnostics, playerSettings)
@@ -1331,19 +1335,25 @@ internal fun PlayerRuntimeController.initializePlayer(
                                     }
                                 }
                                 is PlayerStartupPlaybackPolicy.ReadyAction.ColdStartPrime -> {
-                                    if (action.setPlayWhenReady) {
-                                        playWhenReady = true
-                                    }
-                                    if (action.callPlay) {
-                                        play()
+                                    // G5e: a track-format AFR switch holds the start; it re-applies it when released.
+                                    if (!afrTrackSwitchInFlight) {
+                                        if (action.setPlayWhenReady) {
+                                            playWhenReady = true
+                                        }
+                                        if (action.callPlay) {
+                                            play()
+                                        }
                                     }
                                 }
                                 is PlayerStartupPlaybackPolicy.ReadyAction.PreFirstFrameResume -> {
-                                    if (action.setPlayWhenReady) {
-                                        playWhenReady = true
-                                    }
-                                    if (action.callPlay) {
-                                        play()
+                                    // G5e: a track-format AFR switch holds the start; it re-applies it when released.
+                                    if (!afrTrackSwitchInFlight) {
+                                        if (action.setPlayWhenReady) {
+                                            playWhenReady = true
+                                        }
+                                        if (action.callPlay) {
+                                            play()
+                                        }
                                     }
                                 }
                                 is PlayerStartupPlaybackPolicy.ReadyAction.PostFirstFrameResume -> {
@@ -1466,7 +1476,7 @@ internal fun PlayerRuntimeController.initializePlayer(
                         updateAudioControlAvailability()
                         // Start playback now that the first video frame is
                         // visible: audio and video begin in sync.
-                        if (!startPaused && !userPausedManually) {
+                        if (!startPaused && !userPausedManually && !afrTrackSwitchInFlight) {
                             playWhenReady = true
                             play()
                         }

@@ -348,3 +348,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: n/a (local)
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: some TVs report HDR types for the panel rather than the HDMI source mode; device check MANUAL-PENDING (G14 campaign, HV-G5-8)
+
+### G5e — Track-format AFR fallback and settle hold (58, 59); 56 verified official
+- Roadmap gate: G5
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/screens/player/PlayerRuntimeControllerAfrTrack.kt (`maybeRunTrackFormatAfr`, `resumePlaybackAfterTrackAfrIfHeld`, deadline / settle constants), core/player/FrameRateUtils.kt (`MIN_AFR_SWITCH_FPS` floor)
+- Import mode: ALGORITHM_PORT (decision, hold/settle/release) + DELTA_PORT (start-site gates, tracks / preflight hooks, floor)
+- Current official equivalent: ExoPlayer AFR switches only from the probing preflight (async to prepare); a failed probe means no switch; MPV has a settle delay
+- What already existed upstream: preflight probe + in-memory cache, `refineFrameRateForDisplay`, frame-rate-first mode selection, track frame rate recorded in UI state
+- What was imported: fallback switch from the track's reported rate when the preflight found none, start held through the switch + 2 s settle with an 8 s absolute deadline, generation guard across stream changes, detection cached for the next play; < 20 fps never switches the panel
+- What was intentionally not imported: ysosrs cache-only ExoPlayer preflight (replaces official probing for every AFR user), C-2 prewarm-head seed (`MatroskaAfrProbe`), disk persistence of the fps cache, host-less cache key, audio quiesce during the switch (Shield-specific), ysosrs `selectModesForVideoResolution` rewrite (official has a newer selector)
+- Local adaptations: pure `fork/video/TrackAfrPolicy` decision; deferral to the end of a running preflight (`onAfrPreflightFinished`) instead of the ysosrs cache-only flow; the start sites in `initializePlayer` (READY actions and first frame) stand down while `afrTrackSwitchInFlight`, and the release re-applies the start unless paused or opened paused
+- Feature flag / fallback: FeatureId.AUDIO_DV_AFR OFF = official (no fallback switch, no floor); runs only with AFR on and the ExoPlayer engine, and only when the preflight had no detection (D048: a user-chosen path's failure case)
+- Tests ported/added: TrackAfrPolicyTest (3), FrameRateUtilsForkTest (3)
+- License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: startup hold timing is device-dependent (HDMI mode-switch latency); device checks MANUAL-PENDING (G14 campaign, HV-G5-9, HV-G5-10)
