@@ -153,6 +153,8 @@ class PlayerViewModel @Inject constructor(
         profileId = savedStateHandle.get<String>("profileId")?.toIntOrNull()
             ?: profileManager.activeProfileId.value,
         playbackStrategySession = playbackStrategySession,
+        playbackRecoveryEnabled = featureRegistry.mode(com.nuvio.tv.fork.foundation.FeatureId.REMUX_PERFORMANCE) !=
+            com.nuvio.tv.fork.foundation.FeatureMode.OFF,
         savedStateHandle = savedStateHandle,
         scope = viewModelScope
     )

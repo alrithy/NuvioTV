@@ -102,6 +102,8 @@ class PlayerRuntimeController(
     internal val tvRecommendationManager: com.nuvio.tv.core.recommendations.TvRecommendationManager,
     internal val profileId: Int,
     internal val playbackStrategySession: com.nuvio.tv.fork.playback.PlaybackStrategySession,
+    /** G4a dead-source failover + startup watchdog; false while REMUX_PERFORMANCE is OFF. */
+    internal val playbackRecoveryEnabled: Boolean,
     savedStateHandle: SavedStateHandle,
     internal val scope: CoroutineScope
 ) {
@@ -411,6 +413,10 @@ class PlayerRuntimeController(
     internal var progressJob: Job? = null
     internal var vodTelemetryJob: Job? = null
     internal var firstFrameWatchdogJob: Job? = null
+    internal var startupWatchdogJob: Job? = null
+    /** URLs that failed permanently in this player session (G4a); never retried by failover. */
+    internal val deadSourceStreamUrls: MutableSet<String> = mutableSetOf()
+    internal var deadSourceFailoverCount: Int = 0
     internal var stallWatchdogJob: Job? = null
     internal var seekSourceLogJob: Job? = null
     internal var hideControlsJob: Job? = null

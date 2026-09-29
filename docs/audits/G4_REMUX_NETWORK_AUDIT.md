@@ -53,3 +53,9 @@ device measurements in its comments, plus player-level dead-source failover and 
 GATE_SPECS G4 requires same-file/source A/B (startup, throughput, rebuffer, waste, RAM, seek) on
 real devices. This environment has no Android device or SDK, so every G4 slice can be built and
 unit-tested in CI but its exit evidence is MANUAL-PENDING until someone runs the A/B.
+
+## G4a result
+Ported (see IMPORT_LEDGER G4a): dead-source failover for 404/410 and non-media bodies, mid-play
+malformed/IO failover after official same-URL retries, startup-exhausted failover, 3-failover cap,
+startup watchdog. Not ported: ysosrs' removal of official VC-1 guards, total cross-ladder recovery
+budget, source-panel greying (UI), mime-override re-init.

@@ -269,3 +269,12 @@ playback is unchanged until a user picks another strategy. Strategies are sessio
 official buffer/network settings (never written back, never the MPV path or the global performance
 engine); unsupported combinations fall back to Official with a reason shown in the HUD. Auto uses
 device tier and file facts; a measured network signal is left to G4.
+
+## D044 — G4 playback recovery runs by default; network changes stay opt-in
+`REMUX_PERFORMANCE` defaults to `AUTO` in `FeatureRegistry.DECIDED_DEFAULTS` for the G4 recovery
+paths: dead-source failover (HTTP 404/410, non-media body, and mid-play malformed/IO errors after
+official same-URL retries) and the startup watchdog. Both replace a dead-end error screen or an
+endless spinner; failover keeps the user's source order, never revisits a dead URL and is capped at
+3 per chain. Deliberately not dead: HTTP 429 and timeouts. G4 changes to network transfer behavior
+(ParallelRangeDataSource refinements, disk seek buffer) apply only when a G3 strategy selects them.
+OFF restores official error handling. G4 is not DONE until the same-file A/B on the TCL C6K runs.

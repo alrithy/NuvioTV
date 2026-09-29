@@ -32,12 +32,14 @@ class FeatureRegistryTest {
                 FeatureId.UNIFIED_DIAGNOSTICS to FeatureMode.AUTO, // D041
                 FeatureId.ADAPTIVE_RESOURCE_MANAGER to FeatureMode.AUTO, // D042
                 FeatureId.PLAYBACK_STRATEGY_ENGINE to FeatureMode.AUTO, // D043
+                FeatureId.REMUX_PERFORMANCE to FeatureMode.AUTO, // D044
             ),
             FeatureRegistry.DECIDED_DEFAULTS,
         )
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.UNIFIED_DIAGNOSTICS))
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.ADAPTIVE_RESOURCE_MANAGER))
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.PLAYBACK_STRATEGY_ENGINE))
+        assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.REMUX_PERFORMANCE))
     }
 
     @Test
