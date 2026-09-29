@@ -24,11 +24,12 @@ local deltas; never choose an entire side blindly. Record each substantive resol
 If abandoning the attempt, use `git merge --abort` only after preserving any work made
 since the merge began. An interrupted agent never grants permission to discard work.
 
-## Writer stopped
-Inspect the remote lease, branch commits and HANDOFF. If work is saved and the owner
-explicitly released/stopped, reclaim using compare-and-delete of the exact lease SHA.
-Never steal an active lease or infer abandonment from elapsed time. If owner status is
-not knowable from repository evidence, this is a genuine blocker requiring clarification.
+## Optional writer lease
+Normal sequential work does not require a lease. If an optional overlap-protection lease
+exists, inspect the remote branch, HANDOFF and lease before starting another writer on the
+same branch. Do not steal an active lease. A stale/uncertain optional lease does not block
+read-only inspection or work on a separate recovery/task branch; resolve ownership before
+two writers touch the same task branch.
 
 ## CI / test failure
 Run the canonical full-suite runner. Compile/dependency/worker errors, missing reports,
