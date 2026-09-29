@@ -68,3 +68,12 @@ The original registration SHA/date are immutable across later accepted upstream 
 Independent official replay, attempt 2, job 109154439698: 1,611 tests, 18 failed,
 1 skipped, zero new failures. The extra HomeEnrichment test passed. This confirms varying
 outcomes; it does not establish a fix. Both attempt 1 failure and attempt 2 pass are retained.
+
+## G2b removals (PR #15)
+Removed 3 entries: `NuvioExoPlayerPerformanceHelperTest` "test default fallback values when RAM
+is zero or unknown", "test 1 GB RAM tier classification", "test 2 GB RAM tier classification".
+Cause: official `2a22a6f22` lowered the native safe limits on purpose (unknown 200, 1 GB 100,
+2 GB 200) without updating the test; G2b corrected the expectations, not the production values.
+Evidence: full-suite run 36564393631 (PR #15 head `9debaab`) executed and passed all three,
+reported as resolved candidates (1,816 tests, 15 failures, zero new). The confirming run is the
+exact-head run of the removal push. Registry: 19 → 16 entries (15 reproduced, 1 intermittent).

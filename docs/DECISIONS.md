@@ -259,4 +259,5 @@ are never capped; weak-device cuts are `min()` clamps that never raise an offici
 cuts (poster cache share, animated posters, revalidation, decode parallelism, post-play prefetch,
 catalog fan-out) key on low-RAM; allocation-safety limits key on constrained. `OFF` restores
 official values everywhere. Lite edition switches (`liteMode`) and Lite's cap of 8 fetches on
-strong devices are not imported. Playback budgets (buffer/parallel/chunk) change only in G2b.
+strong devices are not imported. Playback budgets change in G2b: constrained devices join official's low tier, with a 250 MB
+Java-heap buffer ceiling and at most 4 session connections; stored settings are not rewritten.

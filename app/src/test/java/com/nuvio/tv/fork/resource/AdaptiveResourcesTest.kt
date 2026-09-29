@@ -97,6 +97,25 @@ class AdaptiveResourcesTest {
     }
 
     @Test
+    fun constrainedDevicesGetAllocationSafetyLimits() {
+        // A 2 GB box with largeHeap: 512 MB heap, heap reserve leaves 302 MB; the ceiling wins.
+        assertEquals(250, constrained.heapBufferBudgetMb(302))
+        assertEquals(250, low.heapBufferBudgetMb(302))
+        // The heap reserve still wins when it is tighter.
+        assertEquals(190, constrained.heapBufferBudgetMb(190))
+        // Performance mode's 16 connections come back to the non-performance maximum.
+        assertEquals(4, constrained.parallelConnections(16))
+        assertEquals(4, low.parallelConnections(16))
+        assertEquals(2, constrained.parallelConnections(2))
+    }
+
+    @Test
+    fun standardDevicesKeepOfficialPlaybackBudgets() {
+        assertEquals(1740, standard.heapBufferBudgetMb(1740))
+        assertEquals(16, standard.parallelConnections(16))
+    }
+
+    @Test
     fun lowRamPostPlayResolvesOnlyTheCardOnScreen() {
         assertEquals(2..2, low.postPlayPrefetchIndices(5, 2))
         assertTrue(low.postPlayPrefetchIndices(5, 9).isEmpty())

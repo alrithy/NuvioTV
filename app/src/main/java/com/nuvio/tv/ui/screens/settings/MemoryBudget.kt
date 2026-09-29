@@ -3,6 +3,7 @@ package com.nuvio.tv.ui.screens.settings
 import androidx.media3.common.util.UnstableApi
 import com.nuvio.tv.data.local.BufferSettings
 import com.nuvio.tv.data.local.PlayerSettings
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 /**
  * Shared memory budget constants and helpers for buffer + parallel connection settings.
@@ -57,8 +58,12 @@ object MemoryBudget {
 
     private val maxHeapMb: Long = Runtime.getRuntime().maxMemory() / (1024L * 1024L)
 
-    /** True when the app heap is below the high-RAM threshold (Fire TV / TV-stick class). */
-    val isLowRamTier: Boolean = maxHeapMb < HIGH_HEAP_THRESHOLD_MB
+    /**
+     * True when the app heap is below the high-RAM threshold (Fire TV / TV-stick class), or the
+     * adaptive resource manager classifies the device as constrained by physical RAM (G2b).
+     */
+    val isLowRamTier: Boolean =
+        maxHeapMb < HIGH_HEAP_THRESHOLD_MB || AdaptiveResources.policy.isConstrained
 
     // Pre-cap ratio budget, before the low-RAM reserve trims it below.
     private val rawBudgetMb: Int =
@@ -71,7 +76,8 @@ object MemoryBudget {
 
     val budgetMb: Int =
         if (isLowRamTier)
-            rawBudgetMb.coerceAtMost((maxHeapMb - LOW_HEAP_RESERVE_MB).toInt()).coerceAtLeast(minPlaybackBudgetMb)
+            AdaptiveResources.policy.heapBufferBudgetMb(rawBudgetMb.coerceAtMost((maxHeapMb - LOW_HEAP_RESERVE_MB).toInt()))
+                .coerceAtLeast(minPlaybackBudgetMb)
         else rawBudgetMb
 
     val conversionBudgetMb: Int =
