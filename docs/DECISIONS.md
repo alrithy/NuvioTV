@@ -298,3 +298,13 @@ cluster data that official turns into a playback error, with official truncated-
 first. The network-transfer changes (G4b warm-up, G4d MP4 session and read-ahead) stay behind the
 strategy selection, whose default is Official (D043). If the A/B shows a regression in any
 default-on path, that path's default goes to OFF in a follow-up decision.
+
+## D047 — Hardware validation is batched into G14
+Record of the user decision of 2026-09-29, implemented by `9c627ca` (`validation_policy` in
+`integration/state.yaml`, AGENTS.md "Manual hardware validation", DEFINITION_OF_DONE, STATUS_MODEL,
+GATE_SPECS, G14 task packet). Development of G1-G13 no longer stops for device-only checks: a gate
+advances when its code is merged and automated CI/DoD is green, and each device check stays
+MANUAL-PENDING with its exact expected evidence in `docs/HARDWARE_VALIDATION_TCL_C6K.md`. All of
+them run once in the G14 hardware-certification campaign before any Stable release claim; a FAIL
+there reopens the owning gate's work, and default-on paths follow the D046 rollback rule. No PASS
+is ever recorded without a real run.
