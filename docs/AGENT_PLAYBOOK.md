@@ -4,12 +4,9 @@
 1. Read AGENTS, inspect status/branch/HEAD; preserve unknown work.
 2. Fetch origin and official refs. Read **remote integration** state before trusting local state:
    `git show origin/superfork/integration:integration/state.yaml`.
-3. Inspect all branches, open PRs and CI using GitHub tools (or `gh pr list`, `gh run list`).
-   Compare exact PR head and integration HEAD, not an old successful run.
-4. Read state -> generated PROJECT_STATUS/HANDOFF -> active task packet -> GATE_SPECS ->
-   DoD -> DECISIONS -> relevant SOURCE_MAP/FORK_RESEARCH/COMPONENT_MAP/PORTING_PROTOCOL.
-5. Switch/create the recorded task branch only with clean/preserved work. Follow
-   FAILURE_RECOVERY for behind-only, divergence, conflicts or unknown commits.
+3. Inspect the active task branch, its open PR if one exists, and exact-head CI. Inspect other branches/PRs only when state, preflight or recovery requires it.
+4. Read HANDOFF -> active task packet -> active GATE_SPECS section -> DoD. Load DECISIONS/source/porting/policy docs only when the task touches them.
+5. Switch/create the recorded task branch only with clean/preserved work. Follow FAILURE_RECOVERY for behind-only, divergence, conflicts or unknown commits.
 6. Run `python3 scripts/superfork/preflight.py --fetch` and the governance validator.
 7. Claim the single-writer lease using `claim_task.py claim --owner <unique-agent-session>`.
    Record the returned lease SHA and owner in HANDOFF/state, set IN_PROGRESS, commit and push.
