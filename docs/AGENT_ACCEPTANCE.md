@@ -11,9 +11,9 @@ G0 branch. Exact final GitHub heads/CI are read live rather than hardcoded as se
 | Source / upstream overlap? | SOURCE_MAP aliases/pins -> FORK_RESEARCH -> COMPONENT_MAP -> PORTING_PROTOCOL |
 | Forbidden actions? | AGENTS + DECISIONS + NON_GOALS; no feature imports in this governance task/G0 |
 | Tests / Done? | suite runner + TEST_STRATEGY/MATRIX + GATE_SPECS/DoD; no invented hardware PASS |
-| Handoff / agent change? | AGENT_PLAYBOOK, state view generator, HANDOFF and exact lease release |
+| Handoff / agent change? | AGENT_PLAYBOOK + HANDOFF + clean pushed branch; optional lease only for overlapping sessions |
 | Old state / stale branch / dirty tree? | preflight checks fetched integration; real local Git tests prove rejection without discarding work |
-| Writer contention? | two sibling lease commits race; second push rejected; wrong-SHA release rejected |
+| Writer contention? | normal sequential flow relies on fetched remote HEAD + non-fast-forward rejection; optional lease remains available for deliberate overlap |
 | New regression / missing test? | 31 governance/Git tests cover guard fail-closed cases; complete 1,611-case inventory retained |
 | All scope traceable? | validator checks exactly 1–320, gate/source/owner/status/evidence rules |
 | Conflicting canonical documents? | GOVERNANCE_OWNERS; redirects validated; PR #5 useful content retained |
