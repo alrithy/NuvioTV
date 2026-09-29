@@ -330,6 +330,13 @@ object FrameRateUtils {
         return chooseBestModeForFrameRate(activeMode, sameSizeModes, frameRate)
     }
 
+    /** G5e: true for a rate under 20 fps while the fork AUDIO_DV_AFR group is on. */
+    internal fun shouldRefuseImplausibleRate(
+        frameRate: Float,
+        forkEnabled: Boolean = com.nuvio.tv.fork.foundation.FeatureRegistry()
+            .mode(com.nuvio.tv.fork.foundation.FeatureId.AUDIO_DV_AFR) != com.nuvio.tv.fork.foundation.FeatureMode.OFF
+    ): Boolean = forkEnabled && frameRate > 0f && frameRate < 20f
+
     suspend fun matchFrameRateAndWait(
         activity: Activity,
         frameRate: Float,
@@ -339,6 +346,13 @@ object FrameRateUtils {
     ): DisplayModeSwitchResult? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return null
         if (frameRate <= 0f) return null
+        // G5e (ysosrs 45e0984): a broken source can report an absurd rate (a 1 fps error stub drove
+        // a panel 59.94 -> 50 Hz); nothing under 20 fps can be matched meaningfully, so leave the
+        // display alone. Only with the fork AUDIO_DV_AFR group on.
+        if (shouldRefuseImplausibleRate(frameRate)) {
+            Log.w(TAG, "Refusing display-mode switch for implausible frame rate ${frameRate}fps")
+            return null
+        }
 
         val switchPlan = withContext(Dispatchers.Main) {
             val window = activity.window ?: return@withContext null

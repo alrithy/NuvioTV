@@ -1448,6 +1448,7 @@ internal fun PlayerRuntimeController.switchToEpisodeStream(
     }
     persistedTrackPreference = null
     losslessAudioDefaultAppliedForStream = false
+    resetTrackAfrForNewStream()
     persistedAudioPreferenceSeenForStream = false
     subtitleDisabledByPersistedPreference = false
     subtitleAddonRestoredByPersistedPreference = false
@@ -1563,6 +1564,7 @@ private fun PlayerRuntimeController.switchToEpisodeStreamCommon(
 
     persistedTrackPreference = null
     losslessAudioDefaultAppliedForStream = false
+    resetTrackAfrForNewStream()
     persistedAudioPreferenceSeenForStream = false
     subtitleDisabledByPersistedPreference = false
     subtitleAddonRestoredByPersistedPreference = false
