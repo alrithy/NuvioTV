@@ -12,14 +12,14 @@ active_gate_name: REMUX / Network Performance
 active_branch: feat/remux-network
 active_task_packet: tasks/G4_REMUX_NETWORK.md
 active_status: IN_PROGRESS
-active_pr: 24
+active_pr: null
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 159a5a0ffc3d6a066af4aa0be4ad031a9e17ba70
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36590794935 ; G4b PR
-  #22 exact head, squash-merged as 8cb77f9.
-last_green_scope: Full suite guard (1854 tests, 15 known failures, 0 new failures), governance
+last_green_commit: f5f7d967eaf5b3a2d69357f07bbc4c31f256b243
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36594753006 ; G4c PR
+  #24 exact head, squash-merged as e052568.
+last_green_scope: Full suite guard (1859 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
