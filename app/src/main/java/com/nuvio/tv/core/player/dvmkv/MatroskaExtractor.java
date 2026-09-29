@@ -842,7 +842,10 @@ public class MatroskaExtractor implements Extractor {
     while (continueReading && !haveOutputSample) {
       try {
         continueReading = reader.read(input);
-      } catch (ParserException | IllegalStateException malformed) {
+      } catch (ParserException malformed) {
+        // Superfork AR-008: ParserException only. Official VarintReader and block parsing report
+        // malformed data as ParserException; an IllegalStateException here is an internal
+        // invariant (checkState, media3/DV helpers) and must surface, not be skipped over.
         if (!maybeResyncAfterMalformedData(input, malformed)) {
           throw malformed;
         }
