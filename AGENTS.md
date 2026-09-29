@@ -14,30 +14,31 @@ git rev-parse HEAD
 python3 scripts/superfork/validate_project_state.py
 ```
 
-Then fetch and read **remote integration state** before selecting a branch. On the task
-branch run `python3 scripts/superfork/preflight.py --fetch`. Read AGENT_PLAYBOOK for
-the atomic writer lease and recovery; do not edit until the branch is fresh and claimed.
-Install validator dependencies from `scripts/superfork/requirements.txt` if needed.
+Then:
+1. Fetch/read **remote** `superfork/integration:integration/state.yaml`; do not trust stale local state.
+2. Switch to the recorded `active_branch` only after preserving unknown work.
+3. On that branch run `python3 scripts/superfork/preflight.py --fetch`.
+4. Read only the minimum execution set:
+   - `integration/state.yaml`
+   - `docs/HANDOFF.md`
+   - the active task packet from `active_task_packet`
+   - the active gate section in `docs/GATE_SPECS.md`
+   - `docs/DEFINITION_OF_DONE.md`
+5. Before editing, acquire the single-writer lease described in `docs/AGENT_PLAYBOOK.md`.
 
-Then read, in this order:
-1. `integration/state.yaml` — machine-readable active gate/branch/status/task packet.
-2. `docs/PROJECT_STATUS.md` — one-page human status.
-3. `docs/HANDOFF.md` — exact continuation notes.
-4. `docs/AGENT_PLAYBOOK.md` — execution procedure.
-5. Read the active task packet declared in `integration/state.yaml`, then `docs/GATE_SPECS.md` for gate scope/exit criteria.
-6. `integration/feature_traceability.csv` — authoritative mapping of all 320 feature IDs.
-7. `docs/DEFINITION_OF_DONE.md`.
-8. `docs/DECISIONS.md`.
-9. Relevant sections of `docs/FORK_RESEARCH.md`, `docs/SOURCE_MAP.md`, `docs/COMPONENT_MAP.md`, `docs/PORTING_PROTOCOL.md`, and `docs/TEST_MATRIX.md`.
-10. `docs/PRODUCT_REQUIREMENTS.md` and `docs/NON_GOALS.md` before making a trade-off or changing scope.
-11. `docs/STATUS_MODEL.md`, `docs/TEST_STRATEGY.md`, and `docs/BASELINE_TEST_DEBT.md` before declaring work complete.
-12. `docs/SECURITY_POLICY.md`, `docs/DEPENDENCY_POLICY.md`, `docs/DATA_MIGRATION_POLICY.md`, `docs/UPSTREAM_SYNC.md`, and `docs/RELEASE_POLICY.md` when applicable.
+Read additional documents **only when the active task needs them**:
+- importing/porting code: `SOURCE_MAP`, `FORK_RESEARCH`, `PORTING_PROTOCOL`, `IMPORT_LEDGER`
+- architecture trade-off: `DECISIONS`, `COMPONENT_MAP`, `PRODUCT_REQUIREMENTS`, `NON_GOALS`
+- testing/completion: `TEST_STRATEGY`, `TEST_MATRIX`, `BASELINE_TEST_DEBT`
+- security/dependencies/data/upstream/release: the corresponding policy document
+- feature status: only the affected rows in `integration/feature_traceability.csv`
+
+Do **not** read the whole 320-feature inventory or every policy document on every session unless the task genuinely requires it. Prefer repository validators and task packets over manual ceremony.
 
 Only ask the user if a genuine blocker remains after repository inspection.
 
-See `docs/GOVERNANCE_OWNERS.md` for the complete one-owner map and supersession audit.
-Superfork contributions follow `CONTRIBUTING_SUPERFORK.md`; upstream CONTRIBUTING
-restrictions govern legacy dev, not the approved Superfork roadmap.
+See `docs/GOVERNANCE_OWNERS.md` when ownership/canonical-source ambiguity exists.
+Superfork contributions follow `CONTRIBUTING_SUPERFORK.md`.
 
 ## Canonical sources of truth
 - Current progress/branch/status/task packet: `integration/state.yaml`
