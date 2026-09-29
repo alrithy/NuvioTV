@@ -1,10 +1,10 @@
 # Project status
 
 <!-- canonical-state:start -->
-- Active gate: G3 — Playback Strategy Framework
-- Active branch: `feat/playback-strategies`
-- Status: IN_PROGRESS
-- Task: `tasks/G3_PLAYBACK_STRATEGIES.md`
+- Active gate: G4 — REMUX / Network Performance
+- Active branch: `feat/remux-network`
+- Status: READY
+- Task: `tasks/G4_REMUX_NETWORK.md`
 - Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -15,7 +15,7 @@ This view's header is generated from state; use `state_view.py` after state chan
 ## Work boundary
 G0 DONE (PR #7). G1 Unified Diagnostics & Add-on Health DONE (PRs #10, #11, #12; 289 deferred to
 G8). G2 Adaptive Resource Manager DONE (PRs #14, #15, #16; 276 deferred, 279 → G7, 280 → G3). G3 Playback
-Strategy Framework IN_PROGRESS (G3a strategies + Auto + selector). Legacy PR #1/#2 stay reference-only.
+Strategy Framework DONE (PR #18). G4 REMUX / Network Performance READY. Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
