@@ -15,7 +15,7 @@ This view's header is generated from state; use `state_view.py` after state chan
 ## Work boundary
 G0 DONE (PR #7). G1 Unified Diagnostics & Add-on Health DONE (PRs #10, #11, #12; 289 deferred to
 G8). G2 Adaptive Resource Manager DONE (PRs #14, #15, #16; 276 deferred, 279 → G7, 280 → G3). G3 Playback
-Strategy Framework DONE (PR #18). G4 REMUX / Network Performance IN_PROGRESS (audit, G4a recovery, G4b warm-up, G4c MKV resync merged; review follow-ups; A/B on TCL C6K pending). Legacy PR #1/#2 stay reference-only.
+Strategy Framework DONE (PR #18). G4 REMUX / Network Performance IN_PROGRESS (G4a–G4c and review follow-ups merged; G4d seek strategy; exit A/B on TCL C6K pending). Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
