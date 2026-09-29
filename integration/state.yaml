@@ -7,19 +7,19 @@ current_official_baseline_sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
 integration_upstream_sync_commit: 898bc83abfc8e59cf1664699980942d3bd6718f6
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G5
-active_gate_name: Audio / DV / HDR / AFR
-active_branch: feat/audio-video
-active_task_packet: tasks/G5_AUDIO_VIDEO.md
-active_status: IN_PROGRESS
-active_pr: 36
+active_gate: G6
+active_gate_name: Subtitle Intelligence
+active_branch: feat/subtitle-intelligence
+active_task_packet: tasks/G6_SUBTITLE_INTELLIGENCE.md
+active_status: READY
+active_pr: null
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 4939ff91fd572d2ef3dae390306bfa8690953779
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36634157579 ; G5d
-  PR #35 exact head, squash-merged as c87c259.
-last_green_scope: Full suite guard (1897 tests, 15 known failures, 0 new failures), governance
+last_green_commit: fb18072ccd521de5511365220e229a16ea15bcea
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36635649223 ; G5e
+  PR #36 exact head, squash-merged as b973384.
+last_green_scope: Full suite guard (1903 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
@@ -28,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G6
-next_gate_name: Subtitle Intelligence
-next_branch: feat/subtitle-intelligence
+next_gate: G7
+next_gate_name: Seek Intelligence
+next_branch: feat/seek-intelligence
 known_operational_risks:
 - id: R001
   severity: high
@@ -73,6 +73,8 @@ validation_pending_gates:
   evidence: 'Manual strategy focus/playback checks remain MANUAL-PENDING.'
 - gate: G4
   evidence: 'All code merged in PRs #21, #22, #24, #25, #26; TCL C6K functional checks and same-file A/B remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
+- gate: G5
+  evidence: 'All code merged in PRs #31-#36; DV output, passthrough, lossless default, soft clip, AFR/settle and HUD checks HV-G5-1..HV-G5-10 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 governance_status: READY
 upstream_observation:
   checked_at: '2026-09-29T20:10:00Z'
@@ -113,3 +115,14 @@ completed_gates:
   evidence: 'CI run 36572168784 (1840 tests, 15 known failures, 0 new, fullDebug APK built);
     audit docs/audits/G3_PLAYBACK_STRATEGY_AUDIT.md; D043'
   deferred_features: []
+- gate: G5
+  name: Audio / DV / HDR / AFR
+  pr: [31, 32, 33, 34, 35, 36]
+  merge_sha: b97338486da2521ff687c2812abea1e52613d294
+  slice_merges: [7ccb762b5f3083021cf5e9cbaf169fad4354d466, d55a86662e3e9a9b90b9bf090d3d5e5fcf21a856,
+    6c824f7165f340d5edaeec903399b756061361f6, 2cc2659f17a14eb1257c419e1afc08f940ee55be,
+    c87c259470e8f4fe68d62f089d38013e877ecad9, b97338486da2521ff687c2812abea1e52613d294]
+  evidence: 'CI runs 36627925933 (1864 tests), 36629575219 (1868), 36631155885 (1874), 36632590979
+    (1883), 36634157579 (1897), 36635649223 (1903): 15 known failures, 0 new, fullDebug APK built;
+    audit docs/audits/G5_AUDIO_VIDEO_AUDIT.md; D047, D048; device checks batched to G14 (validation_pending_gates)'
+  deferred_features: [46]
