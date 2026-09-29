@@ -11,9 +11,9 @@ active_gate: G6
 active_gate_name: Subtitle Intelligence
 active_branch: feat/subtitle-intelligence
 active_task_packet: tasks/G6_SUBTITLE_INTELLIGENCE.md
-active_status: READY
+active_status: IN_PROGRESS
 active_pr: null
-active_owner: claude-code (sequential; no lease)
+active_owner: codex (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
 last_green_commit: fb18072ccd521de5511365220e229a16ea15bcea
@@ -77,10 +77,10 @@ validation_pending_gates:
   evidence: 'All code merged in PRs #31-#36; DV output, passthrough, lossless default, soft clip, AFR/settle and HUD checks HV-G5-1..HV-G5-10 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-09-29T20:10:00Z'
-  sha: 8e728cae7c6d8f2a0a089d7a240675e25a33a883
+  checked_at: '2026-09-29T22:45:00Z'
+  sha: fa6614384e23ff5808bf39c53dd3fa602055c54e
   accepted: false
-  reason: 'Official dev advanced beyond accepted 71632b9 (MDBList ratings, home/hero, PostPlay*, AudioSelectionOverlay audio-delay UI, PlayerRuntimeControllerPlaybackEvents). G4 touched none of those player files (AR-006). G5 slices avoid AudioSelectionOverlay and PlaybackEvents (docs/audits/G5_AUDIO_VIDEO_AUDIT.md); a slice that needs them first adopts official through a reviewed upstream-sync PR.'
+  reason: 'Official dev advanced beyond accepted 71632b9. G6a rechecked fa66143: changed player files are AudioSelectionOverlay, PlaybackEvents, PlayerScreen and PostPlay*; there is no subtitle-aligner or fork/subtitles overlap. G6a is pure logic and adopts no upstream delta; a later slice touching those seams first uses a reviewed upstream-sync PR.'
 completed_gates:
 - gate: G0
   name: Fork Foundation

@@ -317,3 +317,14 @@ a failure/fallback path, or a per-format control whose default equals official b
 that changes output for every playback (for example claiming a new passthrough format) ships behind
 an explicit setting that defaults to official. OFF restores official G5 behavior; device evidence is
 batched into G14 (D047).
+
+## D049 — G6 has one subtitle sync engine, behind an AutoSync setting
+The only automatic subtitle timing engine is an ALGORITHM_PORT of VibeSubtitle `SubtitleCueAligner`
+(language-independent cue-rhythm anchors → offset, clock scale, piecewise segments, confidence;
+null = fail closed) in `fork/subtitles`, fed by one reference pipeline: embedded reference →
+hash / same-release add-on reference → alignment → original timing + manual offset. Reshaped
+`autosync/*` is harvested only as bounded pieces ported into that engine, never run beside it.
+Automatic retiming changes what every playback shows, so it runs only while a per-profile AutoSync
+setting is on (default off = official timing); FeatureId.SUBTITLE_INTELLIGENCE becomes AUTO with
+the first G6 code slice so the setting is visible, and OFF hides it. The official manual cue pick
+and delay always take priority. Audio/ASR sync (92, 93) is deferred (audit).

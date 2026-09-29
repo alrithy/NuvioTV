@@ -367,3 +367,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: startup hold timing is device-dependent (HDMI mode-switch latency); device checks MANUAL-PENDING (G14 campaign, HV-G5-9, HV-G5-10)
+
+### G6a — Cue-rhythm subtitle timing engine (86–91, 94, 95)
+- Roadmap gate: G6
+- Source repository: SPxMM3R1/NuvioTV-VibeSubtitle + DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: vibe-dev + subtitle-autosync
+- Pinned source SHA: 9520190184c7299c7ac34617856adde53c1ce7a2 + 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): trees at the pinned SHAs (file-level review)
+- Source file(s): `core/player/SubtitleCueAligner.kt` and its test; Reshaped `autosync/AutoSyncTimelineRetime.kt` (bounded local-retime principle only)
+- Import mode: ALGORITHM_PORT
+- Current official equivalent: manual cue-pick sync and manual delay only; accepted official and observed `fa66143` contain no automatic aligner
+- What already existed upstream: manual delay/cue-pick fallback; no G6a pure engine overlap
+- What was imported: cue-rhythm anchors, automatic offset, clock scale, confidence, conservative null result, and reference-window support from VibeSubtitle; bounded piecewise anchor mapping informed by Reshaped
+- What was intentionally not imported: either fork's player wiring, duplicate AutoSync owner, Reshaped DP/activity system, audio/ASR, settings, debug dumps, networking, UI, or source-specific models
+- Local adaptations: one pure `fork/subtitles/SubtitleSyncEngine`; piecewise local slopes stay within 0.90–1.10 of the supported global scale and within a 30 s affine correction corridor
+- Feature flag / fallback: pure engine has no side effects; G6b will call it only behind profile AutoSync (default off); null leaves original timing and official manual delay/cue-pick remains final priority
+- Tests ported/added: 7 fixture tests for aligned, fixed-offset, gradual drift, bounded piecewise drift, low-confidence/no-reference, insufficient evidence, and Arabic target with English reference
+- License / attribution notes: GPL-3.0, identical project/source licenses; source and adaptation attributed in KDoc and this ledger
+- Resulting local commit: recorded in HANDOFF after PR exact-head CI
+- Known risks / follow-up: G6a is pure logic only; reference collection, application, user setting and device checks belong to G6b
