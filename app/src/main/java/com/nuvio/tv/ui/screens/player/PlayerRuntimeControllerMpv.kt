@@ -87,6 +87,8 @@ internal fun PlayerRuntimeController.initializeMpvPlayer(
     mpvMediaLoadPrepared = true
     _exoPlayer?.release()
     _exoPlayer = null
+    // G4d: libmpv opens its own connection; a one-connection host must not see the read-ahead's too.
+    com.nuvio.tv.ui.screens.player.seekbuffer.SeekReadAhead.release()
     trackSelector = null
     try {
         currentMediaSession?.release()

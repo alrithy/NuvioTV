@@ -612,6 +612,8 @@ internal fun PlayerRuntimeController.initializePlayer(
                 // Reset each playback so the factory doesn't keep last stream's state.
                 mediaSourceFactory.useParallelConnections = false
             }
+            mediaSourceFactory.seekOptimized = playbackRecoveryEnabled && !isTorrentStream &&
+                currentStrategyDecision?.effective == com.nuvio.tv.fork.playback.PlaybackStrategy.SEEK_OPTIMIZED
 
             // Log the effective state (post-gating), not the raw settings.
             val engineNative = androidx.media3.common.NuvioEngineConfig.get().isNativeAllocationEnabled()
