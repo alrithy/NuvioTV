@@ -288,3 +288,13 @@ scatter reads) and never with parallel REMUX. Ring size comes from the G2 tier: 
 writes are heavy on weak TVs); it also keeps half of free storage and a 1 GiB reserve. The
 official VOD disk cache stays as the strategy already sets it (it keeps what was played; the ring
 holds what comes next). No separate settings screen: the strategy selector is the only switch.
+
+## D046 — REMUX_PERFORMANCE stays AUTO before the hardware A/B (AR-003)
+Reviewed against the stability-first alternative (OFF until the TCL C6K A/B passes). Kept `AUTO`:
+every default-on G4 path engages only where official already failed or hung. Dead-source failover
+runs after official retries and shows the error when it cannot help; the startup watchdog never
+stops the player and retracts its error on a late first frame; MKV resync runs only on malformed
+cluster data that official turns into a playback error, with official truncated-tail handling
+first. The network-transfer changes (G4b warm-up, G4d MP4 session and read-ahead) stay behind the
+strategy selection, whose default is Official (D043). If the A/B shows a regression in any
+default-on path, that path's default goes to OFF in a follow-up decision.

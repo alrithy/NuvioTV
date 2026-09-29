@@ -1318,7 +1318,11 @@ class StreamScreenViewModel @Inject constructor(
                     exoPlayerEngine = engine != com.nuvio.tv.data.local.InternalPlayerEngine.MVP_PLAYER,
                     progressiveHttp = com.nuvio.tv.fork.playback.PlaybackStrategies.isProgressiveHttp(
                         url = url,
-                        mimeType = null,
+                        // AR-007: the player's own URL/filename inference, so HLS/DASH are not warmed.
+                        mimeType = com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory.inferMimeType(
+                            url = url,
+                            filename = playbackInfo.filename
+                        ),
                         isTorrent = false,
                         isLoopback = com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory.isLoopbackUrl(url)
                     ),

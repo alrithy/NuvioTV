@@ -1648,7 +1648,7 @@ internal fun PlayerRuntimeController.initializePlayer(
 
                         // G4a: HTTP 404/410 is permanent for this URL; advance to the next source
                         // before the probe and the engine failover (dead on either engine).
-                        if (isDeadSourceHttpError(error) && advanceToNextLiveSource(detailedError)) {
+                        if (isDeadSourceHttpError(error) && advanceToNextLiveSource(error.failoverReason())) {
                             return
                         }
 
@@ -1676,11 +1676,11 @@ internal fun PlayerRuntimeController.initializePlayer(
                         if (hasRenderedFirstFrame &&
                             (error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
                                 error.errorCode == PlaybackException.ERROR_CODE_IO_UNSPECIFIED) &&
-                            advanceToNextLiveSource(detailedError)
+                            advanceToNextLiveSource(error.failoverReason())
                         ) {
                             return
                         }
-                        if (attemptStartupExhaustedSourceFailover(detailedError)) {
+                        if (attemptStartupExhaustedSourceFailover(error.failoverReason())) {
                             return
                         }
 
@@ -1956,10 +1956,7 @@ internal fun PlayerRuntimeController.initializePlayer(
             ) {
                 return@launch
             }
-            if (attemptStartupExhaustedSourceFailover(
-                    detailedError = e.message ?: context.getString(com.nuvio.tv.R.string.player_error_initialize_failed)
-                )
-            ) {
+            if (attemptStartupExhaustedSourceFailover(reason = e.javaClass.simpleName)) {
                 return@launch
             }
             val displayError = e.toDisplayMessage(context, context.getString(com.nuvio.tv.R.string.player_error_initialize_failed))

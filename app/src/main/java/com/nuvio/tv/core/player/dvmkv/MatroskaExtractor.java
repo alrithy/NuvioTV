@@ -842,7 +842,10 @@ public class MatroskaExtractor implements Extractor {
     while (continueReading && !haveOutputSample) {
       try {
         continueReading = reader.read(input);
-      } catch (ParserException | IllegalStateException malformed) {
+      } catch (ParserException malformed) {
+        // Superfork AR-008: ParserException only. Official VarintReader and block parsing report
+        // malformed data as ParserException; an IllegalStateException here is an internal
+        // invariant (checkState, media3/DV helpers) and must surface, not be skipped over.
         if (!maybeResyncAfterMalformedData(input, malformed)) {
           throw malformed;
         }
@@ -874,16 +877,17 @@ public class MatroskaExtractor implements Extractor {
    */
   private boolean maybeResyncAfterMalformedData(ExtractorInput input, Exception malformed)
       throws IOException {
-    if (!MkvResync.enabled
-        || !sentSeekMap
-        || resyncBudget <= 0
-        || shouldTreatEbmlErrorAsEndOfInput(input, malformed)) {
+    if (!shouldResyncAfterMalformedData(
+        MkvResync.enabled,
+        sentSeekMap,
+        resyncBudget,
+        shouldTreatEbmlErrorAsEndOfInput(input, malformed))) {
       return false;
     }
     long failPosition = input.getPosition();
     resyncBudget--;
     resetParsingState();
-    if (!resyncToNextCluster(input)) {
+    if (!resyncToNextCluster(input, resyncBlock)) {
       return false;
     }
     Log.w(
@@ -898,15 +902,24 @@ public class MatroskaExtractor implements Extractor {
     return true;
   }
 
-  /** Leaves the input at the next Cluster ID, scanning at most {@link MkvResync#MAX_SCAN_BYTES}. */
-  private boolean resyncToNextCluster(ExtractorInput input) throws IOException {
+  /** Past the seek map, within budget, and not a truncated tail (official handling wins). */
+  static boolean shouldResyncAfterMalformedData(
+      boolean enabled, boolean sentSeekMap, int budget, boolean truncatedTail) {
+    return enabled && sentSeekMap && budget > 0 && !truncatedTail;
+  }
+
+  /**
+   * Leaves the input at the next Cluster ID, peeking {@code block.length} bytes at a time and
+   * scanning at most {@link MkvResync#MAX_SCAN_BYTES}. False at the end of the input.
+   */
+  static boolean resyncToNextCluster(ExtractorInput input, byte[] block) throws IOException {
     long scanned = 0;
     while (scanned < MkvResync.MAX_SCAN_BYTES) {
       input.resetPeekPosition();
-      int want = (int) Math.min((long) MkvResync.BLOCK_BYTES, MkvResync.MAX_SCAN_BYTES - scanned);
+      int want = (int) Math.min((long) block.length, MkvResync.MAX_SCAN_BYTES - scanned);
       int got = 0;
       while (got < want) {
-        int read = input.peek(resyncBlock, got, want - got);
+        int read = input.peek(block, got, want - got);
         if (read == C.RESULT_END_OF_INPUT) {
           break;
         }
@@ -915,7 +928,7 @@ public class MatroskaExtractor implements Extractor {
       if (got < MkvResync.CLUSTER_ID_BYTES) {
         return false;
       }
-      int index = MkvResync.indexOfClusterId(resyncBlock, got);
+      int index = MkvResync.indexOfClusterId(block, got);
       if (index >= 0) {
         input.skipFully(index);
         return true;
