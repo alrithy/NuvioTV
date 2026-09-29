@@ -1,10 +1,10 @@
 # Project status
 
 <!-- canonical-state:start -->
-- Active gate: G1 — Unified Diagnostics & Add-on Health
-- Active branch: `feat/unified-diagnostics`
-- Status: REVIEW
-- Task: `tasks/G1_UNIFIED_DIAGNOSTICS.md`
+- Active gate: G2 — Adaptive Resource Manager
+- Active branch: `feat/adaptive-resource-manager`
+- Status: READY
+- Task: `tasks/G2_ADAPTIVE_RESOURCE_MANAGER.md`
 - Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -13,9 +13,8 @@
 This view's header is generated from state; use `state_view.py` after state changes.
 
 ## Work boundary
-G0 DONE (PR #7). Official baseline `71632b9` accepted (PR #9). G1 REVIEW: G1a add-on
-health (PR #10) and G1b diagnostics HUD (PR #11) merged; G1c device assessment in review; closeout
-PR follows. Legacy PR #1/#2 stay reference-only.
+G0 DONE (PR #7). G1 Unified Diagnostics & Add-on Health DONE (PRs #10, #11, #12; 289 deferred to
+G8). G2 Adaptive Resource Manager READY. Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
@@ -24,7 +23,8 @@ A no-new-regressions PASS is not an all-tests-pass claim. Reviewed inventory: cl
 
 ## Upstream
 Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c` (UPSTREAM_SYNC_LOG
-2026-09-29). Future movement uses dedicated reviewed sync PRs; never silently update pins.
+2026-09-29). Observed, not accepted: `7d3cea0` (#3740 audio delay UI). Future movement uses
+dedicated reviewed sync PRs; never silently update pins.
 
 ## Administration
 GitHub connector branch-protection read returned 403; admin writes are not exposed.

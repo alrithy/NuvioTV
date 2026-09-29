@@ -7,20 +7,20 @@ current_official_baseline_sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
 integration_upstream_sync_commit: 898bc83abfc8e59cf1664699980942d3bd6718f6
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G1
-active_gate_name: Unified Diagnostics & Add-on Health
-active_branch: feat/unified-diagnostics
-active_task_packet: tasks/G1_UNIFIED_DIAGNOSTICS.md
-active_status: REVIEW
+active_gate: G2
+active_gate_name: Adaptive Resource Manager
+active_branch: feat/adaptive-resource-manager
+active_task_packet: tasks/G2_ADAPTIVE_RESOURCE_MANAGER.md
+active_status: READY
 active_pr: null
-active_owner: claude-code (sequential; no lease)
+active_owner: unclaimed
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 74ff659d3b93a25a0f5ff71279c003b4f5b2795c
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36545736693 ; G0 PR
-  exact head (merge-ref 33de60d), squash-merged as 791716a.
-last_green_scope: Full suite guard (0 new failures), governance validator, fullDebug
-  APK
+last_green_commit: e07e7e8eff3b9a7cf88934734a80dc75c0c1e083
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36558548508 ; G1c PR
+  #12 exact head, squash-merged as 27c921c.
+last_green_scope: Full suite guard (1801 tests, 0 new failures), governance validator,
+  fullDebug APK
 bootstrap:
   initial_governance_pr: 3
   initial_governance_merge_commit: 1edb0190c87f0932c7547c74de4265206e3a93a5
@@ -28,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G2
-next_gate_name: Adaptive Resource Manager
-next_branch: feat/adaptive-resource-manager
+next_gate: G3
+next_gate_name: Playback Strategy Framework
+next_branch: feat/playback-strategies
 known_operational_risks:
 - id: R001
   severity: high
@@ -62,10 +62,10 @@ last_review:
   reviewer_role: architecture_audit
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-09-29T09:10:00Z'
-  sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
-  accepted: true
-  reason: 'Accepted through reviewed upstream-sync PR #9 (merge 898bc83); see UPSTREAM_SYNC_LOG 2026-09-29 and D040.'
+  checked_at: '2026-09-29T11:10:00Z'
+  sha: 7d3cea09e07a62ce1bc149f537367108a7885977
+  accepted: false
+  reason: 'Official PR #3740 (audio delay step/range + press-and-hold in AudioSelectionOverlay, PlayerRuntimeControllerPlaybackEvents). Does not touch G2 resource/buffer owners; adopt through a reviewed sync at a later gate boundary.'
 completed_gates:
 - gate: G0
   name: Fork Foundation
@@ -75,3 +75,12 @@ completed_gates:
   evidence: https://github.com/alrithy/NuvioTV/actions/runs/36545736693 (Governance
     CI, full-suite guard new_failures=[], assembleFullDebug PASS)
   deferred_features: [318]
+- gate: G1
+  name: Unified Diagnostics & Add-on Health
+  pr: [10, 11, 12]
+  merge_sha: 27c921c060ddbfedbc30a340832053d96d93d1de
+  slice_merges: [d8511d88a72467fb208ce4a9ab823f7298f1b032, 70c99a25d351a10271eeb0a09c691867b0a96736,
+    27c921c060ddbfedbc30a340832053d96d93d1de]
+  evidence: 'CI runs 36553508801 (1777 tests), 36556405877 (1788), 36558548508 (1801): 0 new
+    failures, fullDebug APK built; audit docs/audits/G1_DIAGNOSTICS_AUDIT.md'
+  deferred_features: [289]
