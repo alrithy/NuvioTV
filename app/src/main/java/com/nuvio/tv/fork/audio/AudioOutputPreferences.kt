@@ -15,8 +15,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Fork audio output preferences, per profile (`fork_audio_output`). Every value defaults to
- * official behavior (D048); nothing here is written into the official PlayerSettings store.
+ * Fork audio / DV output preferences of the G5 group, per profile (`fork_audio_output`). Every
+ * value defaults to official behavior (D048); nothing here is written into the official
+ * PlayerSettings store.
  */
 @Singleton
 class AudioOutputPreferences @Inject constructor(
@@ -28,6 +29,7 @@ class AudioOutputPreferences @Inject constructor(
 
     private val preferLosslessKey = booleanPreferencesKey("prefer_lossless_audio")
     private val passthroughKeys = PassthroughFormat.entries.associateWith { booleanPreferencesKey(it.key) }
+    private val hdr10SeiOnDvStripKey = booleanPreferencesKey("hdr10_sei_on_dv_strip")
 
     private fun store(profileId: Int = profileManager.activeProfileId.value) = factory.get(profileId, FEATURE)
 
@@ -70,6 +72,19 @@ class AudioOutputPreferences @Inject constructor(
             softwareDecodersAvailable = softwareDecodersAvailable,
         )
     }
+
+    /** G5d (feature 54): add HDR10 metadata when the DV layer is stripped. Off = official. */
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    val hdr10SeiOnDvStrip: Flow<Boolean> = profileManager.activeProfileId.flatMapLatest { profileId ->
+        store(profileId).data.map { enabled && (it[hdr10SeiOnDvStripKey] ?: false) }
+    }
+
+    suspend fun setHdr10SeiOnDvStrip(value: Boolean) {
+        store().edit { it[hdr10SeiOnDvStripKey] = value }
+    }
+
+    suspend fun hdr10SeiOnDvStripNow(): Boolean =
+        enabled && runCatching { hdr10SeiOnDvStrip.first() }.getOrDefault(false)
 
     private companion object {
         const val FEATURE = "fork_audio_output"

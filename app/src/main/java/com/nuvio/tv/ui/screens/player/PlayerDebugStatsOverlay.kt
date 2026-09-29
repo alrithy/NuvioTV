@@ -206,6 +206,7 @@ private fun forkHudRows(
         audioBitrateBps = audio?.bitrate,
         audioPassthroughDenied = audio?.let(viewModel::isAudioPassthroughDeniedByUser) == true,
         audioChain = com.nuvio.tv.fork.diagnostics.AudioChainProbe.latest,
+        dvStreamInfo = com.nuvio.tv.fork.video.DvStreamInfo.hudLine(),
         displayRefreshHz = displayRefreshHz,
         requiredBps = fileBps?.toLong() ?: trackBps.takeIf { it > 0L },
         availableBps = hud.bandwidthEstimateBps,

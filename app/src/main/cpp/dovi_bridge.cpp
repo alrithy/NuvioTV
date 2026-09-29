@@ -16,21 +16,10 @@
 #endif
 
 #if DOVI_REAL_LINKED
-extern "C" {
-typedef struct DoviRpuOpaque DoviRpuOpaque;
-typedef struct DoviData {
-    const uint8_t* data;
-    size_t len;
-} DoviData;
-
-DoviRpuOpaque* dovi_parse_unspec62_nalu(const uint8_t* buf, size_t len);
-DoviRpuOpaque* dovi_parse_rpu(const uint8_t* buf, size_t len);
-const char* dovi_rpu_get_error(const DoviRpuOpaque* ptr);
-void dovi_rpu_free(DoviRpuOpaque* ptr);
-int32_t dovi_convert_rpu_with_mode(DoviRpuOpaque* ptr, uint8_t mode);
-const DoviData* dovi_write_unspec62_nalu(DoviRpuOpaque* ptr);
-void dovi_data_free(const DoviData* data);
-}
+// G5d (ysosrs 45e0984): the bundled libdovi header replaces the hand-declared prototypes; its
+// declarations of the previously used functions are identical, and the EL-type / static-metadata
+// readers below need its DoviRpuDataHeader and DoviVdrDmData structs.
+#include <libdovi/rpu_parser.h>
 
 static inline bool dovi_has_error(const DoviRpuOpaque* rpu, std::string* out_error) {
     if (rpu == nullptr) {
@@ -111,6 +100,92 @@ static inline void noteRpuDropOnFailure() {
     }
 }
 #endif
+
+// G5d (ysosrs 45e0984 DV7 F3): profile-7 enhancement-layer type from an RPU NAL.
+// 2 = FEL, 1 = MEL, 0 = parsed without EL type, -1 = parse failure, -2 = stub build / bad args.
+extern "C" JNIEXPORT jint JNICALL
+Java_com_nuvio_tv_core_player_DoviBridge_nativeDetectRpuElType(
+        JNIEnv* env,
+        jclass /* clazz */,
+        jbyteArray sample,
+        jint offset,
+        jint length) {
+#if DOVI_REAL_LINKED
+    if (sample == nullptr || offset < 0 || length <= 0) return -2;
+    const jsize arrLen = env->GetArrayLength(sample);
+    if (offset > arrLen - length) return -2;
+    std::vector<uint8_t> input(static_cast<size_t>(length));
+    env->GetByteArrayRegion(sample, offset, length, reinterpret_cast<jbyte*>(input.data()));
+    std::string parse_error;
+    DoviRpuOpaque* rpu = dovi_parse_any_rpu(input, &parse_error);
+    if (rpu == nullptr) return -1;
+    jint result = 0;
+    const DoviRpuDataHeader* header = dovi_rpu_get_header(rpu);
+    if (header != nullptr) {
+        if (header->el_type != nullptr) {
+            if (std::strcmp(header->el_type, "FEL") == 0) {
+                result = 2;
+            } else if (std::strcmp(header->el_type, "MEL") == 0) {
+                result = 1;
+            }
+        }
+        dovi_rpu_free_header(header);
+    }
+    dovi_rpu_free(rpu);
+    return result;
+#else
+    (void) env; (void) sample; (void) offset; (void) length;
+    return -2;
+#endif
+}
+
+// G5d (ysosrs 45e0984 item 2): RPU static HDR metadata as int[6] = { source_min_pq,
+// source_max_pq, L6 min / max mastering luminance, L6 MaxCLL, L6 MaxFALL }; absent L6 fields are
+// -1. Null without DM metadata, on parse failure, or in a stub build.
+extern "C" JNIEXPORT jintArray JNICALL
+Java_com_nuvio_tv_core_player_DoviBridge_nativeGetRpuStaticMetadata(
+        JNIEnv* env,
+        jclass /* clazz */,
+        jbyteArray sample,
+        jint offset,
+        jint length) {
+#if DOVI_REAL_LINKED
+    if (sample == nullptr || offset < 0 || length <= 0) return nullptr;
+    const jsize arrLen = env->GetArrayLength(sample);
+    if (offset > arrLen - length) return nullptr;
+    std::vector<uint8_t> input(static_cast<size_t>(length));
+    env->GetByteArrayRegion(sample, offset, length, reinterpret_cast<jbyte*>(input.data()));
+    std::string parse_error;
+    DoviRpuOpaque* rpu = dovi_parse_any_rpu(input, &parse_error);
+    if (rpu == nullptr) return nullptr;
+    const DoviVdrDmData* dm = dovi_rpu_get_vdr_dm_data(rpu);
+    if (dm == nullptr) {
+        dovi_rpu_free(rpu);
+        return nullptr;
+    }
+    jint values[6];
+    values[0] = static_cast<jint>(dm->source_min_pq);
+    values[1] = static_cast<jint>(dm->source_max_pq);
+    const DoviExtMetadataBlockLevel6* l6 = dm->dm_data.level6;
+    if (l6 != nullptr) {
+        values[2] = static_cast<jint>(l6->min_display_mastering_luminance);
+        values[3] = static_cast<jint>(l6->max_display_mastering_luminance);
+        values[4] = static_cast<jint>(l6->max_content_light_level);
+        values[5] = static_cast<jint>(l6->max_frame_average_light_level);
+    } else {
+        values[2] = values[3] = values[4] = values[5] = -1;
+    }
+    dovi_rpu_free_vdr_dm_data(dm);
+    dovi_rpu_free(rpu);
+    jintArray out = env->NewIntArray(6);
+    if (out == nullptr) return nullptr;
+    env->SetIntArrayRegion(out, 0, 6, values);
+    return out;
+#else
+    (void) env; (void) sample; (void) offset; (void) length;
+    return nullptr;
+#endif
+}
 
 extern "C" JNIEXPORT void JNICALL
 Java_com_nuvio_tv_core_player_DoviBridge_nativeSetDropRpuOnConversionFailure(

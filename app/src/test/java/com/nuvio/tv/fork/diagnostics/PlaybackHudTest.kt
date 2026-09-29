@@ -84,6 +84,13 @@ class PlaybackHudTest {
     }
 
     @Test
+    fun dvRowOnlyWhenTheStreamRevealedSomething() {
+        // G5d (53)
+        assertNull(PlaybackHud.rows(PlaybackHudInput()).firstOrNull { it.label == "dv" })
+        assertEquals("FEL · MDL ~1000 nits", PlaybackHud.rows(PlaybackHudInput(dvStreamInfo = "FEL · MDL ~1000 nits")).first { it.label == "dv" }.value)
+    }
+
+    @Test
     fun chainRowReportsWhatThePlatformClaimed() {
         // G5c (39)
         assertNull(PlaybackHud.chain(null))

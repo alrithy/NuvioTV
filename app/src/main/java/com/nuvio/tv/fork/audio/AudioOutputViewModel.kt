@@ -33,4 +33,11 @@ class AudioOutputViewModel @Inject constructor(
     fun setPassthroughAllowed(format: PassthroughFormat, value: Boolean) {
         viewModelScope.launch { preferences.setPassthroughAllowed(format, value) }
     }
+
+    val hdr10SeiOnDvStrip: StateFlow<Boolean> =
+        preferences.hdr10SeiOnDvStrip.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    fun setHdr10SeiOnDvStrip(value: Boolean) {
+        viewModelScope.launch { preferences.setHdr10SeiOnDvStrip(value) }
+    }
 }

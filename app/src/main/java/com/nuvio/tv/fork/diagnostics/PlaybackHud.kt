@@ -42,6 +42,8 @@ data class PlaybackHudInput(
     val audioPassthroughDenied: Boolean = false,
     /** G5c (39): what the platform claimed at sink build. */
     val audioChain: AudioChainSnapshot? = null,
+    /** G5d (53): EL type / RPU mastering metadata / SEI outcome of the current DV stream. */
+    val dvStreamInfo: String? = null,
     val displayRefreshHz: Float? = null,
     val requiredBps: Long? = null,
     val availableBps: Long? = null,
@@ -64,6 +66,7 @@ object PlaybackHud {
     fun rows(input: PlaybackHudInput): List<HudRow> = listOfNotNull(
         video(input),
         hdr(input),
+        input.dvStreamInfo?.takeIf { it.isNotBlank() }?.let { HudRow("dv", it) },
         display(input),
         audio(input),
         output(input.audioOutputEncoding, input.audioOutputChannels, input.audioPassthroughDenied),

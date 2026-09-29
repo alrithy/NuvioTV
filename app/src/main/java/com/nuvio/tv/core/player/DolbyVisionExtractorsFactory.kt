@@ -47,7 +47,9 @@ internal class DolbyVisionExtractorsFactory(
     private val delegate: ExtractorsFactory,
     private val config: DolbyVisionConversionConfig,
     private val stripDvRpu: Boolean = false,
-    private val stripHdr10PlusSei: Boolean = false
+    private val stripHdr10PlusSei: Boolean = false,
+    /** G5d (feature 54): add HDR10 MDCV/CLLI SEI from the RPU on the MKV strip path; off = official. */
+    private val injectHdr10Sei: Boolean = false
 ) : ExtractorsFactory {
 
     override fun createExtractors(): Array<Extractor> =
@@ -70,9 +72,13 @@ internal class DolbyVisionExtractorsFactory(
                 DefaultSubtitleParserFactory(),
                 /* flags= */ 0,
                 DolbyVisionMatroskaTransformer(
-                    config = if (config.active) config else DolbyVisionConversionConfig(active = false),
+                    config = if (config.active) config else DolbyVisionConversionConfig(
+                        active = false,
+                        forkDvFixes = config.forkDvFixes
+                    ),
                     stripRpuOnly = stripDvRpu && !config.active,
                     stripHdr10PlusSei = stripHdr10PlusSei,
+                    injectHdr10Sei = injectHdr10Sei,
                 )
             )
         }

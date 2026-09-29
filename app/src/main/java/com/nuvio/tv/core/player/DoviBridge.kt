@@ -43,6 +43,24 @@ object DoviBridge {
      * G5d (feature 52): native sample path drops an RPU whose conversion failed instead of
      * forwarding it raw (see [DolbyVisionConversionConfig.forkDvFixes]). False = official.
      */
+    /** G5d (feature 52/53): profile-7 EL type of an RPU NAL; null when unknown or unavailable. */
+    fun detectRpuElType(sample: ByteArray, offset: Int, len: Int): com.nuvio.tv.fork.video.DvElType? {
+        if (!isAvailable() || len <= 0) return null
+        val code = runCatching { nativeDetectRpuElType(sample, offset, len) }
+            .onFailure { Log.w(TAG, "EL-type detection unavailable: ${it.javaClass.simpleName}") }
+            .getOrDefault(-2)
+        return com.nuvio.tv.fork.video.DvElType.fromNative(code)
+    }
+
+    /** G5d (feature 53/54): RPU static HDR metadata; null when absent or unavailable. */
+    fun getRpuStaticMetadata(sample: ByteArray, offset: Int, len: Int): com.nuvio.tv.fork.video.RpuStaticMetadata? {
+        if (!isAvailable() || len <= 0) return null
+        val values = runCatching { nativeGetRpuStaticMetadata(sample, offset, len) }
+            .onFailure { Log.w(TAG, "RPU metadata read unavailable: ${it.javaClass.simpleName}") }
+            .getOrNull()
+        return com.nuvio.tv.fork.video.RpuStaticMetadata.fromNative(values)
+    }
+
     fun setDropRpuOnConversionFailure(enabled: Boolean) {
         if (!isAvailable()) return
         runCatching { nativeSetDropRpuOnConversionFailure(enabled) }
@@ -330,6 +348,12 @@ object DoviBridge {
 
     @JvmStatic
     private external fun nativeSetDropRpuOnConversionFailure(enabled: Boolean)
+
+    @JvmStatic
+    private external fun nativeDetectRpuElType(sample: ByteArray, offset: Int, length: Int): Int
+
+    @JvmStatic
+    private external fun nativeGetRpuStaticMetadata(sample: ByteArray, offset: Int, length: Int): IntArray?
 
     @JvmStatic
     private external fun nativeIsConversionPathReady(): Boolean

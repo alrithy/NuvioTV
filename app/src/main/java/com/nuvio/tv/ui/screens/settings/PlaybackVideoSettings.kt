@@ -122,6 +122,8 @@ internal fun PlaybackVideoSection(
             onToggle = { onUpdate { setDv5ToDv81Enabled(!settings.dv5ToDv81Enabled) } },
             enabled = enabled && dv81Conversion
         )
+        // G5d (feature 54): HDR10 metadata for the stripped DV base layer (default off).
+        com.nuvio.tv.fork.audio.DvHdr10SeiRow(enabled = enabled)
         SettingsToggleRow(
             title = stringResource(R.string.audio_strip_hdr10plus_title),
             subtitle = stringResource(R.string.audio_strip_hdr10plus_sub),

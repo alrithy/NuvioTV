@@ -983,6 +983,12 @@ internal fun PlayerRuntimeController.initializePlayer(
                 .mode(com.nuvio.tv.fork.foundation.FeatureId.AUDIO_DV_AFR) !=
                 com.nuvio.tv.fork.foundation.FeatureMode.OFF
             com.nuvio.tv.core.player.DoviBridge.setDropRpuOnConversionFailure(forkDvFixesEnabled)
+            com.nuvio.tv.fork.video.DvStreamInfo.reset()
+            // G5d (feature 54): per-profile switch, default off.
+            val injectHdr10SeiOnStrip = forkDvFixesEnabled && audioOutputPreferences.hdr10SeiOnDvStripNow()
+            if (injectHdr10SeiOnStrip && stripDvRpuEnabled) {
+                Log.i(PlayerRuntimeController.TAG, "DV_HDR10_SEI: enabled on the strip path")
+            }
             if (forkDvFixesEnabled && playerSettings.dv7ToDv81PreserveMappingEnabled) {
                 Log.i(
                     PlayerRuntimeController.TAG,
@@ -1011,7 +1017,8 @@ internal fun PlayerRuntimeController.initializePlayer(
                             forkDvFixes = forkDvFixesEnabled
                         ),
                         stripDvRpu = stripDvRpuEnabled,
-                        stripHdr10PlusSei = stripHdr10PlusSei
+                        stripHdr10PlusSei = stripHdr10PlusSei,
+                        injectHdr10Sei = injectHdr10SeiOnStrip
                     )
 
             setLoadingStatus(

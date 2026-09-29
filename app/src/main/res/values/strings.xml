@@ -1728,6 +1728,8 @@
     <string name="audio_passthrough_dts">Receiver decodes DTS</string>
     <string name="audio_passthrough_dtshd">Receiver decodes DTS-HD / DTS:X</string>
     <string name="audio_passthrough_format_sub">Off: the app decodes this format to PCM instead of sending the bitstream. Turn off only if this format plays silent or fails. Applies from the next playback.</string>
+    <string name="dv_hdr10_sei_on_strip">Add HDR10 metadata when removing Dolby Vision</string>
+    <string name="dv_hdr10_sei_on_strip_sub">When the Dolby Vision layer is removed for an HDR10 display (DV 8.1 titles), add the mastering metadata from the DV data so the TV tone-maps correctly. Only if the video has none.</string>
     <string name="player_dead_source_failover">Source unavailable \u2014 trying next source (%1$d/%2$d)</string>
     <string name="player_error_startup_timeout">Playback did not start \u2014 the video decoder may not be responding. A device restart usually clears this. Press back to return and try again, or pick a different stream.</string>
     <string name="player_error_startup_video_track_unsupported">Playback did not start \u2014 this device cannot play the video format of this stream. Press back and pick a different stream.</string>

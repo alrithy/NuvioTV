@@ -310,3 +310,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; libdovi (MIT) unchanged; attributed in comments
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: with preserve mapping on, output now equals standard 8.1 (the preserve-mapping curve is unreachable through the bundled C API); device check MANUAL-PENDING (G14 campaign, HV-G5-5)
+
+### G5d2 — DV stream metadata, EL type and HDR10 SEI on the strip path (52, 53 part, 54)
+- Roadmap gate: G5
+- Source repository: ysosrs123/NuvioTV-Fork
+- Source branch: nuvio-test
+- Pinned source SHA: 45e0984c18460d2a65c5d745999011b4314328eb
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): app/src/main/cpp/dovi_bridge.cpp (`nativeDetectRpuElType`, `nativeGetRpuStaticMetadata`, libdovi header include), core/player/DoviBridge.kt (`RpuStaticMetadata`, readers), core/player/Hdr10SeiInjector.kt (whole file), core/player/DolbyVisionMatroskaTransformer.kt (EL probe, metadata probe, `injectHdr10SeiIfEnabled`)
+- Import mode: FILE_PORT (injector, native readers) + DELTA_PORT (transformer / factory hooks) + ADAPTER (HUD `dv` row, fork setting)
+- Current official equivalent: none (no RPU metadata read, no SEI authoring); official `hdr` HUD row shows the stream format
+- What already existed upstream: libdovi bridge, RPU strip, HDR10+ SEI strip, single-track EL strip
+- What was imported: EL type and static-metadata readers; MDCV + CLLI authoring with emulation prevention; injection before the first slice for DV8 on the MKV strip path when absent
+- What was intentionally not imported: Annex-B injection and the MP4/TS metadata probe (no strip-path injection there in ysosrs either), `DolbyVisionConversionStats` diagnostics page, startup self-test (became unit tests), the bridge startup exercise call
+- Local adaptations: pure injector and metadata types in `fork/video` (length-delimited only); HUD `dv` row fed by `fork/video/DvStreamInfo` (reset per playback); switch in the G5 profile store (`hdr10_sei_on_dv_strip`) with a row in the official Dolby Vision / HDR section (EN/AR)
+- Feature flag / fallback: injection needs the switch (default off, D048) and FeatureId.AUDIO_DV_AFR not OFF; probes run only with the group on and the native bridge available; any read failure leaves the row empty
+- Tests ported/added: Hdr10SeiInjectorTest (6, from ysosrs selfTest), PlaybackHudTest +1
+- License / attribution notes: GPL-3.0, identical LICENSE; libdovi (MIT) credited in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: primaries assumed BT.2020/D65 (RPU does not carry them); device checks MANUAL-PENDING (G14 campaign, HV-G5-6, HV-G5-7)
