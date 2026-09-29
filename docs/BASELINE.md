@@ -4,14 +4,15 @@
 - Initial bootstrap anchor: `c257a2365ee3386b582dc2974ec235cfe0381f33`
 - Pre-G0 refresh: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
 - Superfork integration sync commit: `3cf04ccdcc20515acb093c28ad9b7c3943a39057`
-- The pre-G0 refresh happened before feature implementation; `fd7973d91dd75d790c5f9b3d68dae652655e92c4` is the current implementation baseline.
+- The pre-G0 refresh happened before feature implementation.
+- Post-G0 sync (PR #9, D040): `71632b9271e8bce6783e415d64f34cfa4e8b894c`; integration merge `898bc83abfc8e59cf1664699980942d3bd6718f6`. This is the current implementation baseline.
 
 ## Official upstream
 - Repository: NuvioMedia/NuvioTV
 - Branch: dev
-- Pinned baseline: fd7973d91dd75d790c5f9b3d68dae652655e92c4
-- Verified: 2026-09-28
-- Commit: Merge pull request #3720 — fix(home): keep a row's window on its focused card after a refresh
+- Pinned baseline: 71632b9271e8bce6783e415d64f34cfa4e8b894c
+- Verified: 2026-09-29
+- Commit: fix(debrid): select requested episode files
 
 ## Fork branches
 - superfork/integration: canonical reviewed integration branch.
@@ -37,7 +38,7 @@
 
 ## Rules
 Baseline history entries are immutable: never rewrite old sync history. Future official movement must append to docs/UPSTREAM_SYNC_LOG.md and update the current baseline fields through a dedicated upstream-sync PR. Never merge a feature fork wholesale. Diff before import and keep official behavior as fallback where practical.
-## Audit observation (not an accepted sync)
+## Audit observation (historical; superseded by the 2026-09-29 sync)
 2026-09-28: official dev = e78de241acb8a6128c29076422377de1206ee8cd, settings PR #3746.
 Current accepted pin remains fd7973d; see D037 and state.upstream_observation.
 The 3cf04cc integration production diff against fd7973d is only a missing final newline

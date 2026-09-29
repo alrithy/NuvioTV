@@ -14,3 +14,16 @@ This file records every official Nuvio upstream movement after the Superfork pro
 - Conflicts: none.
 - Feature-port code present before sync: none.
 - Decision: adopt the newer official state before G0 implementation so fork feature work does not start two commits behind upstream.
+
+## 2026-09-29 — Post-G0 sync before G1
+- Purpose: G1 touches settings (device assessment apply/revert, Add-on Health screen) and player diagnostics; official changed both subsystems (D036/D037 trigger).
+- Previous official anchor: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
+- New official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
+- Upstream distance: 7 first-parent merges — #3746 settings reorganization, #3749, #3745, #3693 YouTube stream playback, #3752, #3466 random episode/shuffle, `71632b9` debrid episode file selection.
+- Superfork integration merge commit: `898bc83abfc8e59cf1664699980942d3bd6718f6` (PR #9). Conflicts: none.
+- Feature-port code present before sync: G0 foundation only (new package, no official files touched).
+- Tree vs official after merge: G0 foundation files plus the pre-existing missing final newline in ModernHomeContent.kt.
+- Re-audit (UPSTREAM_SYNC step 6): changed PlayerRuntimeController{,Metadata,Observers,Streams}, PlayerViewModel, ExternalPlaybackTracker and settings screens; untouched PlayerMediaSourceFactory, ParallelRangeDataSource, StreamSpeedTester, PlayerDebugStatsOverlay, PlayerSettingsDataStore, SkipIntroRepository.
+- Clean replays (run 36547502209): official `71632b9` and integration `898bc83` both 1,752+ tests, 18 known failures, 1 skipped, zero new failures, gradle exit 0; HomeEnrichment intermittent case passed.
+- Inventory change: `com.nuvio.tv.core.debrid.TorboxFileSelectorTest#selects file by torbox file id first` intentionally renamed/inverted upstream in `71632b9` to `does not treat torrent index as torbox file id`; replacement coverage in the same class (plus two new selector tests). Reviewed under D040.
+- Decision: adopt official before G1 coding; baseline debt registry re-anchored with unchanged 19 entries.

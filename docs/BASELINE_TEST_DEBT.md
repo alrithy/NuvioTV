@@ -1,10 +1,13 @@
 # Baseline test debt — policy and evidence
 
-The accepted baseline is `fd7973d91dd75d790c5f9b3d68dae652655e92c4`; integration snapshot
-`3cf04ccdcc20515acb093c28ad9b7c3943a39057` contains no Superfork feature code. A tree diff
-found only a missing final newline in ModernHomeContent.kt among production files; all
-unit tests/build inputs are unchanged. Do not describe that as byte-identical application code.
-Official PR #3720's green job ran updater tests plus assemble, not the full suite.
+The accepted baseline is `71632b9271e8bce6783e415d64f34cfa4e8b894c` (D040; previously `fd7973d91dd75d790c5f9b3d68dae652655e92c4`).
+Integration sync merge `898bc83abfc8e59cf1664699980942d3bd6718f6` differs from it only by G0 foundation files and the
+pre-existing missing final newline in ModernHomeContent.kt. Do not describe that as
+byte-identical application code. The reviewed inventory in `integration/evidence/baseline-suite.json`
+is the clean official `71632b9` replay (1,752 tests, 18 failed, 1 skipped, zero new failures).
+
+History: at `fd7973d` / integration `3cf04cc` the inventory was 1,611 tests. D040 reviewed the
+single case removed upstream (`com.nuvio.tv.core.debrid.TorboxFileSelectorTest#selects file by torbox file id first`, replaced in the same class).
 
 Original observation: [run 36479376404](https://github.com/alrithy/NuvioTV/actions/runs/36479376404),
 job 109121079197: 1,611 tests, 18 failed, 1 skipped. Independent clean replays are recorded

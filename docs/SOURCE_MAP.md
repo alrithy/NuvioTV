@@ -1,8 +1,8 @@
-# Source Map — pinned 2026-09-28
+# Source Map — pinned 2026-09-28 (official re-pinned 2026-09-29, D040)
 
 | Source | Branch | Pinned SHA | Harvest | Import mode |
 |---|---|---|---|---|
-| NuvioMedia/NuvioTV | dev | fd7973d91dd75d790c5f9b3d68dae652655e92c4 | official base | BASELINE |
+| NuvioMedia/NuvioTV | dev | 71632b9271e8bce6783e415d64f34cfa4e8b894c | official base | BASELINE |
 | DavidVamaiotu/NuvioTV-Reshaped | subtitle-autosync | 0ccf049d2789600835f3f7a75423e9149ea416ba | AutoSync, fonts, seek previews/buffer, volume boost, pill nav, connection-fit, Live TV | CHERRY_PICK / FILE_PORT |
 | ysosrs123/NuvioTV-Fork | nuvio-test | 45e0984c18460d2a65c5d745999011b4314328eb | REMUX/network, assessment, lossless audio, DV, failover, diagnostics, health | DELTA_PORT |
 | Cxsmo-ai/NuvioTV-Custom | main | 3e0d0fad60a2721adec133b88640b49c0183883f | Random/Mystery, Calendar, skip providers, progressive AIOStreams, recommendations, dimmer, Seekr calibration | CHERRY_PICK / FILE_PORT |

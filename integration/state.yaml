@@ -3,8 +3,8 @@ project: Nuvio Superfork
 repository: alrithy/NuvioTV
 official_upstream: NuvioMedia/NuvioTV
 initial_bootstrap_baseline_sha: c257a2365ee3386b582dc2974ec235cfe0381f33
-current_official_baseline_sha: fd7973d91dd75d790c5f9b3d68dae652655e92c4
-integration_upstream_sync_commit: 3cf04ccdcc20515acb093c28ad9b7c3943a39057
+current_official_baseline_sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
+integration_upstream_sync_commit: 898bc83abfc8e59cf1664699980942d3bd6718f6
 integration_branch: superfork/integration
 legacy_default_branch: dev
 active_gate: G1
@@ -62,10 +62,10 @@ last_review:
   reviewer_role: architecture_audit
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-09-29T02:33:56Z'
+  checked_at: '2026-09-29T09:10:00Z'
   sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
-  accepted: false
-  reason: 'Observed current official dev after governance baseline. Not accepted or silently merged; use a dedicated upstream-sync review before adoption.'
+  accepted: true
+  reason: 'Accepted through reviewed upstream-sync PR #9 (merge 898bc83); see UPSTREAM_SYNC_LOG 2026-09-29 and D040.'
 completed_gates:
 - gate: G0
   name: Fork Foundation
