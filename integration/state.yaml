@@ -12,7 +12,7 @@ active_gate_name: Audio / DV / HDR / AFR
 active_branch: feat/audio-video
 active_task_packet: tasks/G5_AUDIO_VIDEO.md
 active_status: IN_PROGRESS
-active_pr: 31
+active_pr: 32
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
