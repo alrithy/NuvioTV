@@ -298,3 +298,13 @@ cluster data that official turns into a playback error, with official truncated-
 first. The network-transfer changes (G4b warm-up, G4d MP4 session and read-ahead) stay behind the
 strategy selection, whose default is Official (D043). If the A/B shows a regression in any
 default-on path, that path's default goes to OFF in a follow-up decision.
+
+## D047 — Hardware validation runs once, in a final validation stage
+User decision, 2026-09-29: development no longer stops for device testing. Every gate from G4 on
+closes when its code, tests, CI (full suite guard, fullDebug), governance and traceability exit
+checks pass; its device and hardware exit checks (A/B runs, real-device playback, TV focus/feel,
+DV/HDR/passthrough/AFR output) stay MANUAL-PENDING and are appended to one checklist,
+`docs/HARDWARE_VALIDATION_TCL_C6K.md`. That checklist runs once, as the final validation stage
+before release (G14 exit), on the user's TCL C6K. A FAIL there reopens the owning gate's work
+through a normal PR, and a regression in a default-on path follows the D046 rollback rule. No
+hardware result may be recorded without a real run; closing a gate under D047 never claims one.

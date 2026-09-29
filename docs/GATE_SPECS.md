@@ -5,6 +5,8 @@ Global completion rules: docs/DEFINITION_OF_DONE.md.
 
 A gate may not be declared complete merely because code compiles. All applicable deliverables and exit checks below must be satisfied, and feature statuses must be updated in traceability.
 
+Device and hardware exit checks (A/B runs, real-device playback, TV focus/feel, DV/HDR/passthrough/AFR output) run once in the final validation stage (G14 exit) per D047. A gate closes on its code, test, CI and traceability checks; each device check it leaves stays MANUAL-PENDING in `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
+
 ## G0 — Fork Foundation
 IDs: 1, 2, 311, 313–315, 317–319
 Primary source: project/official baseline
@@ -87,8 +89,8 @@ Required:
 - disk seek-buffer and parallel REMUX paths remain coordinated strategies, not blindly stacked.
 
 Exit:
-- mandatory same-file/source A/B;
-- no unexplained regression in startup, rebuffer, waste, RAM or seek;
+- mandatory same-file/source A/B (final validation stage, D047);
+- no unexplained regression in startup, rebuffer, waste, RAM or seek (final validation stage, D047);
 - malformed/non-faststart fixtures where applicable;
 - fullDebug green.
 
@@ -246,7 +248,8 @@ Required:
 - fresh-install + upgrade path;
 - upstream-sync automation/process;
 - license/import-ledger audit;
-- all 320 feature rows accounted for as implemented, verified_official, blocked, deferred or explicitly experimental.
+- all 320 feature rows accounted for as implemented, verified_official, blocked, deferred or explicitly experimental;
+- final validation stage (D047): every row of `docs/HARDWARE_VALIDATION_TCL_C6K.md` run on the TCL C6K and recorded PASS/FAIL in `docs/MANUAL_TEST_LOG.md`; FAILs fixed or decided before release.
 
 Exit:
 - release policy satisfied, including Stable/Beta updater, ABI APKs, checksums, provenance/license, automated upstream checks and final regression certification;

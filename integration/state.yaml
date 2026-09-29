@@ -7,14 +7,13 @@ current_official_baseline_sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
 integration_upstream_sync_commit: 898bc83abfc8e59cf1664699980942d3bd6718f6
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G4
-active_gate_name: REMUX / Network Performance
-active_branch: feat/remux-network
-active_task_packet: tasks/G4_REMUX_NETWORK.md
-active_status: BLOCKED
-blocker: 'G4 exit criterion is the mandatory same-file A/B (startup, throughput, rebuffer, waste, RAM, seek) on a real device. Every G4 slice is merged (PRs #21, #22, #24, #25, #26); the A/B needs the user''s TCL C6K. Next step: the user runs docs/HARDWARE_VALIDATION_TCL_C6K.md (sections 1-5) and shares the logs and the A/B table; record them in docs/MANUAL_TEST_LOG.md and close G4 only if section 5 passes.'
+active_gate: G5
+active_gate_name: Audio / DV / HDR / AFR
+active_branch: feat/audio-video
+active_task_packet: tasks/G5_AUDIO_VIDEO.md
+active_status: READY
 active_pr: null
-active_owner: claude-code (sequential; no lease)
+active_owner: unclaimed
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
 last_green_commit: 3589d0dc32a269dcffdf9e85aa20a69cd636cb01
@@ -29,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G5
-next_gate_name: Audio / DV / HDR / AFR
-next_branch: feat/audio-video
+next_gate: G6
+next_gate_name: Subtitle Intelligence
+next_branch: feat/subtitle-intelligence
 known_operational_risks:
 - id: R001
   severity: high
@@ -63,10 +62,10 @@ last_review:
   reviewer_role: architecture_audit
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-09-29T13:20:00Z'
-  sha: 7d3cea09e07a62ce1bc149f537367108a7885977
+  checked_at: '2026-09-29T19:40:00Z'
+  sha: 8e728cae7c6d8f2a0a089d7a240675e25a33a883
   accepted: false
-  reason: 'Official head unchanged: PR #3740 (audio delay UI in AudioSelectionOverlay, PlayerRuntimeControllerPlaybackEvents). G3 did not touch either file. G4 edits player/media-source/network owners: adopt it first through a separate reviewed sync PR if G4 edits PlayerRuntimeControllerPlaybackEvents.'
+  reason: 'Official dev advanced beyond accepted 71632b9 (MDBList ratings, home/hero, PostPlay*, AudioSelectionOverlay, PlayerRuntimeControllerPlaybackEvents). G4 touched none of those player files (AR-006). G5 is audio/DV owner work: before a G5 slice edits AudioSelectionOverlay or PlayerRuntimeControllerPlaybackEvents, adopt the official change through a separate reviewed upstream-sync PR.'
 completed_gates:
 - gate: G0
   name: Fork Foundation
@@ -101,3 +100,15 @@ completed_gates:
   evidence: 'CI run 36572168784 (1840 tests, 15 known failures, 0 new, fullDebug APK built);
     audit docs/audits/G3_PLAYBACK_STRATEGY_AUDIT.md; D043'
   deferred_features: []
+- gate: G4
+  name: REMUX / Network Performance
+  pr: [20, 21, 22, 24, 25, 26, 27]
+  merge_sha: dbda899aeaa2d61d5a0a0a14a3529f644b4b42aa
+  slice_merges: [5a6a3082beeac9fb577abec0df1e1fe0421e5fab, 12ca7ba3ecdc5269ee0c71a44e2570ac57d4a606,
+    8cb77f904aa5e559a4571b5ceb15a188b4f4216e, e05256884204409e795d93cf5ea4414bc45c1853, e56bb376bc9429c6530325ffa3172b3572811c69,
+    feb0f8f2e07ee2d4b50a01e7f63b7db4e9a009b5, dbda899aeaa2d61d5a0a0a14a3529f644b4b42aa]
+  evidence: 'CI runs 36589154766 (1847 tests), 36590794935 (1854), 36594753006 (1859), 36596142283
+    (1859), 36598311389 (1864), 36600374498 (1864): 0 new failures, fullDebug APK built; audit
+    docs/audits/G4_REMUX_NETWORK_AUDIT.md; D044, D045, D046; architect review AR-001..AR-008'
+  deferred_features: [5, 6, 17, 26]
+  hardware_validation: 'MANUAL-PENDING, final validation stage per D047 (docs/HARDWARE_VALIDATION_TCL_C6K.md sections 1-5, incl. the same-file A/B)'

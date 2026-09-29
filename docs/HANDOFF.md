@@ -1,10 +1,10 @@
 # Nuvio Superfork handoff
 
 <!-- canonical-state:start -->
-- Active gate: G4 — REMUX / Network Performance
-- Active branch: `feat/remux-network`
-- Status: BLOCKED
-- Task: `tasks/G4_REMUX_NETWORK.md`
+- Active gate: G5 — Audio / DV / HDR / AFR
+- Active branch: `feat/audio-video`
+- Status: READY
+- Task: `tasks/G5_AUDIO_VIDEO.md`
 - Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -24,24 +24,21 @@ Low memory / Auto as session-only overrides of official buffer/network settings,
 selection (default Official, D043), HUD `strategy` row. Audit:
 `docs/audits/G3_PLAYBACK_STRATEGY_AUDIT.md`. One strategy owner: `fork/playback`
 (`PlaybackStrategies`, `PlaybackStrategySession`). 280 stays deferred (MPV memory measurement).
-G4 BLOCKED on hardware only (user chose option 2, 2026-09-29: build every slice, keep hardware A/B
-MANUAL-PENDING, G4 not DONE until the same-file A/B runs on the user's TCL C6K). All G4 code is merged:
-audit (PR #20, `5a6a308`), G4a failover + watchdog (PR #21, `12ca7ba`; 19, 20, D044), G4b press-time
-warm-up (PR #22, `8cb77f9`; 18), G4c Matroska resync (PR #24, `e052568`; 21, AR-008), review
-follow-ups (PR #25, `e56bb37`; AR-001..AR-007, D046), G4d Seek optimized MP4 session + read-ahead
-ring (PR #26, `feb0f8f`; 24, 25, D045). verified_official: 4, 7, 8, 9, 10, 11, 12, 13, 22, 23.
-Deferred with reasons: 5, 6, 17, 26. Every G4 row has an honest terminal status; the only open
-item is the exit A/B.
+G4 DONE under D047 (PRs #20-#27, final `dbda899`): dead-source failover + startup watchdog (19, 20),
+press-time warm-up (18), Matroska resync (21), Seek optimized MP4 session + read-ahead ring (24, 25),
+architect review AR-001..AR-008 (PR #28 queue); verified_official 4, 7-13, 22, 23; deferred 5, 6,
+17, 26. Its device checks (incl. the same-file A/B) are MANUAL-PENDING in the final validation stage.
+D047 (user, 2026-09-29): development no longer stops for device tests. Gates close on code, tests,
+CI and traceability; every device check goes into `docs/HARDWARE_VALIDATION_TCL_C6K.md`, which
+runs once before release (G14 exit). G5 Audio / DV / HDR / AFR is READY on `feat/audio-video`.
 
 ## Exact next action
-1. The user runs `docs/HARDWARE_VALIDATION_TCL_C6K.md` on the TCL C6K (sections 1-5) and shares the
-   logs and the A/B table. Record each result as PASS / FAIL / MANUAL-PENDING in
-   `docs/MANUAL_TEST_LOG.md`; close G4 (DONE) only if section 5 passes, otherwise fix or record a
-   decision per the checklist's exit criterion.
-2. When PR #23 (owner's review queue) lands, copy the AR-001..AR-008 responses into
-   `docs/ARCHITECT_REVIEW_QUEUE.md`.
-3. G5 depends on G4 in `integration/task_queue.csv`; do not start G5 before G4 is DONE unless the
-   user explicitly decides to.
+1. Start G5 per `tasks/G5_AUDIO_VIDEO.md`: mandatory audit first (official vs ysosrs vs Reshaped
+   for audio passthrough, DV, HDR, AFR). Official `8e728ca` changes AudioSelectionOverlay and
+   PlayerRuntimeControllerPlaybackEvents: adopt it through a separate reviewed upstream-sync PR
+   before any G5 slice edits those files.
+2. Append every G5 device check (DV output, TrueHD/DTS-HD passthrough, AFR/eARC) as a new section
+   of `docs/HARDWARE_VALIDATION_TCL_C6K.md`; keep them MANUAL-PENDING (D047).
 
 ## Evidence / limits
 Local Android execution is unavailable (no Android SDK); use GitHub CI evidence. Actions artifacts
