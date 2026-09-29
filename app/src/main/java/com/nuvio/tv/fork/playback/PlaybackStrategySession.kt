@@ -46,14 +46,19 @@ class PlaybackStrategySession @Inject constructor(
         store().edit { it[selectedKey] = strategy.key }
     }
 
+    /** The decision for [facts] under the stored selection; Official while the engine is OFF. */
+    suspend fun decide(facts: PlaybackFacts): StrategyDecision {
+        val selection = if (enabled) runCatching { selected.first() }.getOrDefault(PlaybackStrategy.OFFICIAL)
+        else PlaybackStrategy.OFFICIAL
+        return PlaybackStrategies.resolve(selection, facts, mode)
+    }
+
     suspend fun plan(
         stored: PlayerSettings,
         facts: PlaybackFacts,
         storedEffectiveBufferMb: Int,
     ): PlaybackStrategyPlan {
-        val selection = if (enabled) runCatching { selected.first() }.getOrDefault(PlaybackStrategy.OFFICIAL)
-        else PlaybackStrategy.OFFICIAL
-        val decision = PlaybackStrategies.resolve(selection, facts, mode)
+        val decision = decide(facts)
         val knobs = PlaybackStrategies.knobs(
             effective = decision.effective,
             storedConnections = stored.parallelConnectionCount,
