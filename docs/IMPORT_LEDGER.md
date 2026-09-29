@@ -329,3 +329,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; libdovi (MIT) credited in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: primaries assumed BT.2020/D65 (RPU does not carry them); device checks MANUAL-PENDING (G14 campaign, HV-G5-6, HV-G5-7)
+
+### G5d3 — Display output state in the HUD (53 part, 60); 55 verified official
+- Roadmap gate: G5
+- Source repository: none (local ADAPTER over the Android Display API; the ysosrs and Reshaped deltas for these IDs are not imported)
+- Source branch: n/a
+- Pinned source SHA: n/a
+- Source commit(s): n/a
+- Source file(s): n/a
+- Import mode: ADAPTER (G1 HUD rows)
+- Current official equivalent: HUD `display` row shows the refresh rate only; official True-black letterbox toggle (55)
+- What already existed upstream: `LetterboxRenderPolicy` / `PlayerWindowBackdrop`, `transparentLetterbox` setting (default off)
+- What was imported: nothing; added the display mode size to the `display` row and a `tv hdr` row (Display HDR types)
+- What was intentionally not imported: Reshaped `LetterboxRenderPolicy.defaultTransparentLetterbox` (turns true-black on for every non-Amazon device, D048), ysosrs deletion of `LetterboxRenderPolicy` (removal not inherited)
+- Local adaptations: `supportedHdrTypesOf` reads `Display.Mode.supportedHdrTypes` on API 34+, `Display.getHdrCapabilities` before; the current panel HDR mode is not exposed by Android and is not claimed
+- Feature flag / fallback: HUD rows appear only in the official stats overlay; unreadable values leave the row out
+- Tests ported/added: PlaybackHudTest +1
+- License / attribution notes: n/a (local)
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: some TVs report HDR types for the panel rather than the HDMI source mode; device check MANUAL-PENDING (G14 campaign, HV-G5-8)
