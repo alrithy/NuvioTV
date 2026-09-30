@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Subtitle style preset (Superfork G6b, feature 105). -->
+<resources>
+    <string name="subtitle_preset_arabic_cinema">Arabic cinema preset</string>
+    <string name="subtitle_preset_arabic_cinema_desc">Larger bold subtitles with a heavier outline, raised slightly, for Arabic script. Applies once; every value stays adjustable.</string>
+    <string name="subtitle_preset_applied">Applied</string>
+</resources>

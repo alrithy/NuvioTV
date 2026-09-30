@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Subtitle style preset, Arabic (Superfork G6b). Mirrors values/subtitle_preset_strings.xml. -->
+<resources>
+    <string name="subtitle_preset_arabic_cinema">نمط السينما العربية</string>
+    <string name="subtitle_preset_arabic_cinema_desc">ترجمة أكبر وبخط عريض مع حدود أثقل ومرفوعة قليلًا، مناسبة للخط العربي. يُطبَّق مرة واحدة، وتبقى كل القيم قابلة للتعديل.</string>
+    <string name="subtitle_preset_applied">مُطبَّق</string>
+</resources>

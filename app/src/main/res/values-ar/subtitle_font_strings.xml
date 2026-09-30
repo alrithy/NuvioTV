@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Subtitle fonts, Arabic (Superfork G6b). Mirrors values/subtitle_font_strings.xml. -->
+<resources>
+    <string name="subtitle_font_title">خط الترجمة</string>
+    <string name="subtitle_font_default">الافتراضي</string>
+    <string name="subtitle_font_dialog_description">استخدم خط ‎.ttf أو ‎.otf خاصًا بك للترجمة في المشغّلين (حتى 20 ميغابايت). ترجمات ASS المنسّقة تحتفظ بخطوطها.</string>
+    <string name="subtitle_font_current">الخط الحالي: %1$s</string>
+    <string name="subtitle_font_phone_instruction">امسح الرمز بهاتفك، أو افتح هذا العنوان على حاسوب في الشبكة نفسها، لإرسال ملف خط إلى التلفاز.</string>
+    <string name="subtitle_font_choose_file">اختيار ملف</string>
+    <string name="subtitle_font_from_url">من رابط</string>
+    <string name="subtitle_font_reset">العودة إلى الافتراضي</string>
+    <string name="subtitle_font_done">تم</string>
+    <string name="subtitle_font_importing">جارٍ استيراد الخط…</string>
+    <string name="subtitle_font_imported">تم استيراد الخط: %1$s</string>
+    <string name="subtitle_font_invalid">هذا الملف ليس خط TTF أو OTF صالحًا.</string>
+    <string name="subtitle_font_too_large">حجم هذا الخط أكبر من 20 ميغابايت.</string>
+    <string name="subtitle_font_download_failed">تعذّر تنزيل الخط.</string>
+    <string name="subtitle_font_no_picker">لا يوجد منتقي ملفات في هذا التلفاز. أرسل الخط من هاتفك بدلًا من ذلك.</string>
+    <string name="subtitle_font_url_title">استيراد خط من رابط</string>
+    <string name="subtitle_font_url_description">رابط HTTPS مباشر لملف ‎.ttf أو ‎.otf، حتى 20 ميغابايت.</string>
+    <string name="subtitle_font_url_import">استيراد</string>
+    <string name="subtitle_font_web_title">إرسال خط ترجمة</string>
+    <string name="subtitle_font_web_subtitle">اختر ملف ‎.ttf أو ‎.otf (حتى 20 ميغابايت). سيستخدمه التلفاز للترجمة في المشغّلين.</string>
+    <string name="subtitle_font_web_choose">اختر ملف خط أولًا</string>
+    <string name="subtitle_font_web_upload">إرسال إلى التلفاز</string>
+    <string name="subtitle_font_web_uploading">جارٍ الإرسال…</string>
+    <string name="subtitle_font_web_current">الخط الحالي:</string>
+    <string name="subtitle_font_web_imported">تم استيراد الخط</string>
+    <string name="subtitle_font_web_connection_error">خطأ في الاتصال</string>
+</resources>

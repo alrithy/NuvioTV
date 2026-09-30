@@ -49,10 +49,14 @@ G6a (84, 94) on this branch: when the file has no embedded subtitle reference, o
 the stream's own subtitles as the reference (`fork/subtitles/StreamSubtitleReference`, one input to
 `findTimelineRetime`); Arabic AutoSync strings (`values-ar/autosync_strings.xml`). SUBTITLE_INTELLIGENCE
 is AUTO (D051). Device checks HV-G6-1, HV-G6-2 MANUAL-PENDING (G14).
+G6b (100–105) on this branch: custom subtitle fonts (Reshaped `SubtitleFontStore` / upload server,
+FILE_PORT into `fork/subtitles`: validated .ttf/.otf, QR/LAN upload behind a per-session token, HTTPS-only
+URL import, Exo typeface + libass `sub-font`, fallback to the official font) and the Arabic cinema preset
+(`ArabicCinemaPreset`, applied once through official setters). Device checks HV-G6-3..5 MANUAL-PENDING (G14).
 
 ## Exact next action
-1. Merge G6a (84, 94), then G6b (custom fonts + Arabic cinema preset, 100–105; security review for
-   the LAN font upload).
+1. Merge G6b (100–105), then close G6 (CODE-COMPLETE, device checks VALIDATION-PENDING, batched to
+   G14) and start G7 with its mandatory audit.
 2. Continue G6→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.
