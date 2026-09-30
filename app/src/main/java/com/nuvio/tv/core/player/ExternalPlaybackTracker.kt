@@ -46,9 +46,10 @@ internal fun PlayerSettings.shouldSendSkipSegments(): Boolean = externalPlayerSe
 
 internal fun externalSkipIntervals(
     intervals: List<SkipInterval>
-): List<SkipInterval> = intervals.map {
-    if (it.type == "movie-credits") it.copy(type = "end-credits") else it
-}
+): List<SkipInterval> = intervals
+    // Superfork G9b: an external player would skip mute / content-warning segments outright.
+    .filter { com.nuvio.tv.fork.skip.SkipCategories.forwardableToExternalPlayer(it.type, it.action) }
+    .map { if (it.type == "movie-credits") it.copy(type = "end-credits") else it }
 
 /**
  * Metadata about the content being played in an external player.

@@ -6,13 +6,6 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import kotlin.math.ln
 
-/** Skip providers the fork adds beside official IntroDB / AniSkip / Anime-Skip (G9a, D054). */
-enum class ForkSkipProvider(val key: String, val requiresKey: Boolean) {
-    SKIP_ME("skipme", requiresKey = false),
-    THE_INTRO_DB("theintrodb", requiresKey = false),
-    PUBLIC_META_DB("publicmetadb", requiresKey = true),
-}
-
 @JsonClass(generateAdapter = true)
 data class SkipMeTimeDto(
     @Json(name = "start_ms") val startMs: Long? = null,
@@ -84,6 +77,9 @@ class SkipProviderParsers(moshi: Moshi) {
     private val theIntroDbAdapter = moshi.adapter(TheIntroDbMediaDto::class.java)
     private val mappingAdapter = moshi.adapter(PublicMetaDbMappingDto::class.java)
     private val publicMetaDbAdapter = moshi.adapter(PublicMetaDbSkipsDto::class.java)
+    private val mapAdapter = moshi.adapter<Map<String, Any?>>(
+        Types.newParameterizedType(Map::class.java, String::class.java, Any::class.java),
+    )
 
     fun parseSkipMe(raw: String, isMovie: Boolean, season: Int?, episode: Int?): List<SkipReport> {
         val item = runCatching { skipMeAdapter.fromJson(raw) }.getOrNull()?.firstOrNull() ?: return emptyList()
@@ -128,6 +124,33 @@ class SkipProviderParsers(moshi: Moshi) {
         }
     }
 
+    /**
+     * G9b (127): MovieHavenDB stores a document directly or keyed by IMDb id, with `scenes` (or
+     * `segments`) of `start` / `end` seconds, a reason and skip / mute / blur flags (Cxsmo
+     * `parseMovieHaven`). Blur and unflagged scenes only warn. Scenes naming none of our categories
+     * are dropped.
+     */
+    fun parseMovieHaven(raw: String, isMovie: Boolean = true): List<SkipReport> {
+        val root = runCatching { mapAdapter.fromJson(raw) }.getOrNull() ?: return emptyList()
+        val document = if (root["scenes"] is List<*> || root["segments"] is List<*>) root else {
+            root.values.filterIsInstance<Map<*, *>>().firstOrNull { it["scenes"] is List<*> || it["segments"] is List<*> } ?: return emptyList()
+        }
+        val scenes = (document["scenes"] as? List<*>) ?: (document["segments"] as? List<*>) ?: return emptyList()
+        return scenes.filterIsInstance<Map<*, *>>().mapNotNull { scene ->
+            val start = (scene["start"] as? Number)?.toDouble() ?: return@mapNotNull null
+            val end = (scene["end"] as? Number)?.toDouble() ?: return@mapNotNull null
+            val reason = (scene["reason"] as? String) ?: (scene["type"] as? String) ?: return@mapNotNull null
+            val category = SkipCategories.categoryOfLabel(reason, isMovie) ?: return@mapNotNull null
+            val action = when {
+                scene["skip"] == true -> SkipReport.ACTION_SKIP
+                scene["mute"] == true -> SkipReport.ACTION_MUTE
+                else -> SkipReport.ACTION_WARN
+            }
+            if (!start.isFinite() || !end.isFinite() || start < 0 || end <= start) return@mapNotNull null
+            SkipReport(start, end, category, SkipCategories.officialType(category), ForkSkipProvider.MOVIE_HAVEN_DB.key, MOVIE_HAVEN_CONFIDENCE, action)
+        }
+    }
+
     private fun report(startMs: Long?, endMs: Long?, type: String, provider: String, confidence: Double, isMovie: Boolean): SkipReport? {
         if (startMs == null || endMs == null || startMs < 0 || endMs <= startMs) return null
         return reportSeconds(startMs / 1000.0, endMs / 1000.0, type, provider, confidence, isMovie)
@@ -142,6 +165,7 @@ class SkipProviderParsers(moshi: Moshi) {
     companion object {
         const val THE_INTRO_DB_CONFIDENCE = 0.86
         const val PUBLIC_META_DB_CONFIDENCE = 0.82
+        const val MOVIE_HAVEN_CONFIDENCE = 0.76
 
         /** Cxsmo: more community submissions, more confidence (0.72 for one, capped at 0.99). */
         fun skipMeConfidence(submissions: Int?): Double =

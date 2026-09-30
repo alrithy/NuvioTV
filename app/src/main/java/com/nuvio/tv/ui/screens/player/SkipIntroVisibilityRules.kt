@@ -12,6 +12,7 @@ internal fun findActiveSkipInterval(
     val positionSec = positionMs / 1000.0
     return intervals.find { interval ->
         interval.type != "post-credits" &&
+            interval.action != "mute" && // Superfork G9b: mute segments never show the skip button
             positionSec >= interval.startTime && positionSec < interval.endTime
     }
 }

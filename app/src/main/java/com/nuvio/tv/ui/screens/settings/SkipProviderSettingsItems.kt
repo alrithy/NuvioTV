@@ -37,7 +37,7 @@ internal fun skipProviderSettingsItems(enabled: Boolean, viewModel: SkipProvider
             onToggle = { viewModel.setEnabled(provider, !on) },
             enabled = enabled,
         )
-        if (provider.takesKey()) {
+        if (provider.takesKey) {
             val hasKey = !config.keys[provider].isNullOrBlank()
             SettingsActionRow(
                 title = stringResource(R.string.skip_provider_api_key, stringResource(provider.titleRes())),
@@ -49,6 +49,23 @@ internal fun skipProviderSettingsItems(enabled: Boolean, viewModel: SkipProvider
                 onClick = { keyDialogFor = provider },
             )
         }
+    }
+
+    // G9b: preview and content-warning segments, each off until switched on. Content warnings only
+    // offer the skip button (or mute, where the source says so); they never skip on their own.
+    SettingsSectionLabel(
+        text = stringResource(R.string.skip_categories_label),
+        description = stringResource(R.string.skip_categories_description),
+    )
+    com.nuvio.tv.fork.skip.SkipCategories.OPTIONAL.forEach { category ->
+        val on = category in config.categories
+        SettingsToggleRow(
+            title = stringResource(categoryTitleRes(category)),
+            subtitle = null,
+            checked = on,
+            onToggle = { viewModel.setCategoryEnabled(category, !on) },
+            enabled = enabled,
+        )
     }
 
     keyDialogFor?.let { provider ->
@@ -67,18 +84,32 @@ internal fun skipProviderSettingsItems(enabled: Boolean, viewModel: SkipProvider
     }
 }
 
-private fun ForkSkipProvider.takesKey(): Boolean = this != ForkSkipProvider.SKIP_ME
-
 private fun ForkSkipProvider.titleRes(): Int = when (this) {
     ForkSkipProvider.SKIP_ME -> R.string.skip_provider_skipme
     ForkSkipProvider.THE_INTRO_DB -> R.string.skip_provider_theintrodb
     ForkSkipProvider.PUBLIC_META_DB -> R.string.skip_provider_publicmetadb
+    ForkSkipProvider.MOVIE_HAVEN_DB -> R.string.skip_provider_moviehavendb
+    ForkSkipProvider.VIDEO_SKIP -> R.string.skip_provider_videoskip
+    ForkSkipProvider.NOT_SCARE -> R.string.skip_provider_notscare
 }
 
 private fun ForkSkipProvider.subtitleRes(): Int = when (this) {
     ForkSkipProvider.SKIP_ME -> R.string.skip_provider_skipme_sub
     ForkSkipProvider.THE_INTRO_DB -> R.string.skip_provider_theintrodb_sub
     ForkSkipProvider.PUBLIC_META_DB -> R.string.skip_provider_publicmetadb_sub
+    ForkSkipProvider.MOVIE_HAVEN_DB -> R.string.skip_provider_moviehavendb_sub
+    ForkSkipProvider.VIDEO_SKIP -> R.string.skip_provider_videoskip_sub
+    ForkSkipProvider.NOT_SCARE -> R.string.skip_provider_notscare_sub
+}
+
+private fun categoryTitleRes(category: String): Int = when (category) {
+    com.nuvio.tv.fork.skip.SkipCategories.PREVIEW -> R.string.skip_category_preview
+    com.nuvio.tv.fork.skip.SkipCategories.JUMPSCARE -> R.string.skip_category_jumpscare
+    com.nuvio.tv.fork.skip.SkipCategories.NUDITY -> R.string.skip_category_nudity
+    com.nuvio.tv.fork.skip.SkipCategories.SEX -> R.string.skip_category_sex
+    com.nuvio.tv.fork.skip.SkipCategories.GORE -> R.string.skip_category_gore
+    com.nuvio.tv.fork.skip.SkipCategories.VIOLENCE -> R.string.skip_category_violence
+    else -> R.string.skip_category_profanity
 }
 
 /** Typed instead of a key to remove the stored one (as for the Seekr key). */

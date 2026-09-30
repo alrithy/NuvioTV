@@ -539,3 +539,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: provider response formats are ported from Cxsmo, not from provider docs; SkipMe answers only when the runtime is known at lookup time; device checks MANUAL-PENDING (G14 campaign, HV-G9-1, HV-G9-2)
 
+### G9b — Previews, content warnings and mute segments (120–122, 127–129)
+- Roadmap gate: G9
+- Source repository: Cxsmo-ai/NuvioTV-Custom
+- Source branch: main
+- Pinned source SHA: 3e0d0fad60a2721adec133b88640b49c0183883f
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): data/repository/SkipIntroRepository.kt (`fetchFromMovieHavenDb`, `fetchFromVideoSkip`, `fetchFromNotScare`, `slugifyNotScareTitle`, `SkipMetadataParser.parseMovieHaven` / `parseVideoSkip` / `parseNotScarePage` / `parseTimestamp` / `visibleHtmlText` / `decodeHtmlEntities` / `mapCategory`), data/local/PlayerSettingsDataStore.kt (`AutoSkipSegmentType` preview and content categories, as data only)
+- Import mode: FILE_PORT (fetchers, parsers; MovieHavenDB moved from org.json to Moshi)
+- Current official equivalent: none (official skip knows intro, recap, outro, movie credits, post-credits)
+- What already existed upstream: official skip button, its labels and auto-skip categories; G9a aggregator
+- What was imported: MovieHavenDB / VideoSkip / NotScare fetchers and parsers with Cxsmo confidences and caps, preview and content-warning categories, skip / mute / warn actions
+- What was intentionally not imported: Cxsmo's `custom` category, auto-skip for the new categories, changes to official `AutoSkipSegmentType`, Cxsmo's severity field; Cxsmo never applied `mute` in its player
+- Local adaptations: every new provider and category is off by default; content segments all stay (not one per category) and only offer the skip button; a mute segment is applied locally (ExoPlayer volume / mpv `mute`, separate from mpv volume used by amplification), never seeks and never shows the button; external players only receive plain official skip segments; official `SkipInterval` gains a defaulted `action`
+- Feature flag / fallback: FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS OFF = official skip exactly; no category on = no new segments
+- Tests ported/added: SkipTextParsersTest (4), SkipEvidenceMergeTest (+3), SkipIntroForkProvidersTest (+2, 1 updated), SkipMuteRulesTest (3)
+- License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: videoskip.herokuapp.com and notscare.me are blocked by this environment's proxy and the MovieHavenDB path returned 404 for a sampled id, so none of the three endpoints is verified here; they fail closed (no segments); device check MANUAL-PENDING (G14 campaign, HV-G9-3)
+

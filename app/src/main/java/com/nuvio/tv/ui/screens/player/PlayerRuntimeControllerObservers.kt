@@ -617,7 +617,9 @@ internal fun PlayerRuntimeController.fetchSkipIntervals(id: String?, season: Int
                 skipIntroRepository.getMovieSkipIntervals(
                     id,
                     effectiveId,
-                    durationMs = lastKnownDuration.takeIf { it > 0L } // Superfork G9a: SkipMe needs the runtime
+                    durationMs = lastKnownDuration.takeIf { it > 0L }, // Superfork G9a: SkipMe needs the runtime
+                    title = title, // Superfork G9b: VideoSkip / NotScare look movies up by title and year
+                    releaseYear = year
                 )
             } ?: emptyList()
         }
@@ -679,7 +681,8 @@ internal fun PlayerRuntimeController.fetchSkipIntervals(id: String?, season: Int
                 imdbId,
                 season,
                 episode,
-                durationMs = lastKnownDuration.takeIf { it > 0L } // Superfork G9a: SkipMe needs the runtime
+                durationMs = lastKnownDuration.takeIf { it > 0L }, // Superfork G9a: SkipMe needs the runtime
+                title = contentName ?: title // Superfork G9b: VideoSkip searches by show name
             )
         } ?: emptyList()
     }

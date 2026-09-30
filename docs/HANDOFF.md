@@ -78,16 +78,19 @@ one aggregator (IntroDB, AniSkip, Anime-Skip kept; Cxsmo's removal not inherited
 it, per-provider timeouts, evidence merge, opt-in providers / categories, skip vs mute distinct, encrypted
 keys; post-play sources / paging / trailer fallback; random on official shuffle (season scope, fallback,
 Mystery); Calendar and Dimmer FILE_PORT. Official `dev` observed at `7f32b3c` (no G9 seam; not accepted).
-G9a (117, 124–126, 131–135) on this branch: SkipMe.db / TheIntroDB / PublicMetaDB (Cxsmo FILE_PORT, Moshi
+G9a (117, 124–126, 131–135) (#54, `1dc2760`): SkipMe.db / TheIntroDB / PublicMetaDB (Cxsmo FILE_PORT, Moshi
 parsers) beside the unchanged official providers inside official `SkipIntroRepository`, off until the user
 switches one on; 6 s per-provider timeouts; confidence-weighted evidence merge, one segment per category,
 post-credits guard; series ids normalized to IMDb via cached meta; provider keys Keystore-encrypted per
 profile (shared `KeystoreCipher`, also used by the Seekr key). DISCOVERY_SKIP_RECOMMENDATIONS AUTO (D054).
 Device checks HV-G9-1, HV-G9-2 MANUAL-PENDING (G14).
+G9b (120–122, 127–129) on this branch: MovieHavenDB / VideoSkip / NotScare (Cxsmo FILE_PORT) and opt-in preview
+and content-warning categories (skip button only, never auto-skipped, every segment kept); mute segments turn
+the audio off for their span (ExoPlayer volume / mpv mute), never seek, never forwarded to external players.
+Endpoints unverified from this environment (fail closed). Device check HV-G9-3 MANUAL-PENDING (G14).
 
 ## Exact next action
-1. Merge G9a, then slices G9b (preview / content warnings / mute;
-   120–122, 127–129), G9c (post-play; 136, 140–144, 146), G9d (random / Mystery; 171, 173–177), G9e
+1. Merge G9b, then slices G9c (post-play; 136, 140–144, 146), G9d (random / Mystery; 171, 173–177), G9e
    (Calendar; 178–187), G9f (App Dimmer; 206, 207).
 2. Continue G9→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
