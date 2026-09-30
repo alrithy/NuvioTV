@@ -62,7 +62,8 @@ class EpisodeShufflePlayback @Inject constructor(
         return shuffle.select(
             profileId, contentId, videos, state.settings.includeWatched,
             state.watched + remoteWatched, state.progress, ShuffleSurface.PLAYBACK,
-            current = season?.let { it to episode }, preferredVideoId = preferredVideoId
+            current = season?.let { it to episode }, preferredVideoId = preferredVideoId,
+            season = state.settings.season, fallbackToWatched = state.settings.fallbackToWatched
         )
     }
 

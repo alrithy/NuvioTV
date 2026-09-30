@@ -97,6 +97,8 @@ class StreamScreenViewModel @Inject constructor(
     private val streamRanking: com.nuvio.tv.fork.streams.StreamRankingPreferences,
     featureRegistry: com.nuvio.tv.fork.foundation.FeatureRegistry,
     profileManager: com.nuvio.tv.core.profile.ProfileManager,
+    private val episodeShuffleStore: com.nuvio.tv.data.local.EpisodeShuffleStore,
+    episodeShuffle: com.nuvio.tv.domain.model.EpisodeShuffle,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val remuxPerformanceMode = featureRegistry.mode(com.nuvio.tv.fork.foundation.FeatureId.REMUX_PERFORMANCE)
@@ -154,6 +156,12 @@ class StreamScreenViewModel @Inject constructor(
         ?: false
     private val streamCacheKey: String = "${contentType.lowercase()}|$videoId"
 
+    // Superfork G9d (174–177): the episode a shuffle surface picked stays hidden until the store says
+    // its show is not in Mystery mode.
+    private val shufflePick: Boolean = com.nuvio.tv.fork.discovery.ShuffleRules.enabled &&
+        contentId != null && episodeShuffle.isSelected(playbackProfileId, contentId, videoId)
+    private var mysteryPick: Boolean = shufflePick
+
     private val _uiState = MutableStateFlow(
         StreamScreenUiState(
             videoId = videoId,
@@ -167,7 +175,8 @@ class StreamScreenViewModel @Inject constructor(
             episodeName = episodeName,
             runtime = runtime,
             genres = genres,
-            year = year
+            year = year,
+            mystery = shufflePick
         )
     )
     val uiState: StateFlow<StreamScreenUiState> = _uiState.asStateFlow()
@@ -367,7 +376,23 @@ class StreamScreenViewModel @Inject constructor(
         streamLoadScope = newScope
         streamLoadJob = newScope.launch {
             streamLoadCompleted = false
-            val playerSettings = playerSettingsDataStore.playerSettings.first()
+            val storedPlayerSettings = playerSettingsDataStore.playerSettings.first()
+            if (shufflePick) {
+                mysteryPick = runCatching {
+                    episodeShuffleStore.observeProfile(playbackProfileId).first()
+                        .settings(contentId.orEmpty(), contentType).let { it.enabled && it.mystery }
+                }.getOrDefault(true)
+                updateUiStateIfChanged { it.copy(mystery = mysteryPick) }
+            }
+            // Superfork G9d: a Mystery pick skips the stream list (whose names give the episode away)
+            // unless the user asked to choose by hand; the Manual mode takes the best-quality stream (G8b).
+            val playerSettings = if (mysteryPick && !manualSelection &&
+                storedPlayerSettings.streamAutoPlayMode == StreamAutoPlayMode.MANUAL
+            ) {
+                storedPlayerSettings.copy(streamAutoPlayMode = StreamAutoPlayMode.BEST_QUALITY)
+            } else {
+                storedPlayerSettings
+            }
             if (manualSelection) {
                 directAutoPlayModeInitializedForSession = true
                 directAutoPlayFlowEnabledForSession = false

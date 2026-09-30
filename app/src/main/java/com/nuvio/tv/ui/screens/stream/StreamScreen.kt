@@ -429,6 +429,7 @@ fun StreamScreen(
                     season = uiState.season,
                     episode = uiState.episode,
                     episodeName = uiState.episodeName,
+                    mystery = uiState.mystery,
                     runtime = uiState.runtime,
                     genres = uiState.genres,
                     year = uiState.year,
@@ -615,6 +616,7 @@ private fun LeftContentSection(
     season: Int?,
     episode: Int?,
     episodeName: String?,
+    mystery: Boolean = false,
     runtime: Int?,
     genres: String?,
     year: String?,
@@ -666,7 +668,16 @@ private fun LeftContentSection(
             }
 
             // Show episode info or movie info
-            if (isEpisode && season != null && episode != null) {
+            if (isEpisode && mystery) {
+                // Superfork G9d: Mystery mode keeps the pick's number and title hidden.
+                Spacer(modifier = Modifier.height(NuvioTheme.spacing.sm))
+                Text(
+                    text = stringResource(R.string.shuffle_mystery_episode),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = NuvioTheme.extendedColors.textSecondary,
+                    textAlign = TextAlign.Center
+                )
+            } else if (isEpisode && season != null && episode != null) {
                 // Episode info
                 Spacer(modifier = Modifier.height(NuvioTheme.spacing.sm))
                 Text(

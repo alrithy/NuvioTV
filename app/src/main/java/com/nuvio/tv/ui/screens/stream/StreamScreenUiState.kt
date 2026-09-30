@@ -7,6 +7,8 @@ import com.nuvio.tv.ui.components.SourceChipStatus
 
 data class StreamScreenUiState(
     val isLoading: Boolean = true,
+    /** Superfork G9d: a Mystery shuffle pick; the header shows no number or title. */
+    val mystery: Boolean = false,
     val isDirectAutoPlayFlow: Boolean = false,
     val showDirectAutoPlayOverlay: Boolean = false,
     val autoPlayDecided: Boolean = false,

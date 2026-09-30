@@ -263,7 +263,9 @@ data class NextEpisodeInfo(
     val hasAired: Boolean,
     val available: Boolean? = null,
     val unairedMessage: String?,
-    val isOtherType: Boolean = false
+    val isOtherType: Boolean = false,
+    /** Superfork G9d: a Mystery shuffle pick; only its title (the Mystery label) is shown. */
+    val mystery: Boolean = false
 )
 
 data class SubtitleSyncCue(

@@ -107,12 +107,16 @@ internal fun applyHomeShuffle(
                     val catalogue = videos(info.contentId, info.contentType) ?: return@mapNotNull null
                     val selected = shuffle.select(
                         profile.profileId, info.contentId, catalogue, settings.includeWatched,
-                        watched[info.contentId].orEmpty(), surface = ShuffleSurface.HOME, visit = visit
+                        watched[info.contentId].orEmpty(), surface = ShuffleSurface.HOME, visit = visit,
+                        season = settings.season, fallbackToWatched = settings.fallbackToWatched
                     ) ?: return@mapNotNull null
-                    item.copy(shufflePlayback = true, info = info.copy(
+                    // Superfork G9d: a Mystery pick keeps its title, overview and still off the card.
+                    val mystery = settings.mystery
+                    item.copy(shufflePlayback = true, mystery = mystery, info = info.copy(
                         videoId = selected.id, season = selected.season!!, episode = selected.episode!!,
-                        episodeTitle = selected.title, episodeDescription = selected.overview,
-                        thumbnail = selected.thumbnail, released = selected.released,
+                        episodeTitle = selected.title.takeUnless { mystery },
+                        episodeDescription = selected.overview.takeUnless { mystery },
+                        thumbnail = selected.thumbnail.takeUnless { mystery }, released = selected.released,
                         hasAired = true, airDateLabel = null, releaseTimestamp = null,
                         isReleaseAlert = false, isNewSeasonRelease = false
                     ))
