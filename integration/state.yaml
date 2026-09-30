@@ -12,14 +12,14 @@ active_gate_name: Stream Intelligence
 active_branch: feat/stream-intelligence
 active_task_packet: tasks/G8_STREAM_INTELLIGENCE.md
 active_status: IN_PROGRESS
-active_pr: 50
+active_pr: 51
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 5c645c56cff9d47ebd54894ebebbb592ccbe2a1a
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36702510415 ; G8a
-  PR #49 exact head, squash-merged as 9f45f39.
-last_green_scope: Full suite guard (2022 tests, 15 known failures, 0 new failures), governance
+last_green_commit: 593ee6b02196848435046cb33fe0db8b9070ae6a
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36704722483 ; G8b
+  PR #50 exact head, squash-merged as 13dd221.
+last_green_scope: Full suite guard (2036 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3

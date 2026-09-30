@@ -479,7 +479,7 @@ class StreamScreenViewModel @Inject constructor(
 
             val installedAddons = addonRepository.getInstalledAddons().first().enabledAddons()
             val installedAddonOrder = installedAddons.map { it.displayName }
-            streamRankContext = streamRanking.contextFor(installedAddons)
+            streamRankContext = streamRanking.contextFor(installedAddons, _uiState.value.runtime ?: runtime)
             streamRankSession = if (streamRanking.bestQualityListOrderNow()) {
                 com.nuvio.tv.fork.streams.StreamRanker.Session(streamRankContext)
             } else {

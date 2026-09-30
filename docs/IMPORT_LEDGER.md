@@ -501,3 +501,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: ranking depends on official's text-based facts (unparsed names rank as unknown, never dropped); device checks MANUAL-PENDING (G14 campaign, HV-G8-4..HV-G8-6)
 
+### G8c — Connection fit (165)
+- Roadmap gate: G8
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: subtitle-autosync
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): core/connection/StreamConnectionFit.kt, core/connection/ConnectionSpeed.kt (`ConnectionSpeedEstimator`, `DefaultNetworkObserver`, `PlaybackThroughputSampler`, `isInternetPlaybackSource`), core/connection/PlaybackThroughput.kt; the mpv `sampleThroughput` and Exo tick call sites
+- Import mode: FILE_PORT
+- Current official equivalent: none (official `StreamSpeedTester` is a manual diagnostic in network settings)
+- What already existed upstream: official progress loop, HTTP data source factories, mpv property access
+- What was imported: passive throughput learning per network kind (warm-up skip, 3–10 s windows, network-change drop, internet sources only), best of the last 3 samples with at least 2 and at most 14 days old, average bitrate from size ÷ runtime with plausibility bounds, demotion above connection ÷ 1.5, unknown bitrate kept in place, captured once per load
+- What was intentionally not imported: Reshaped's separate "match streams to connection" setting (default on) and its per-group list partition, its settings status rows, `PlaybackConnectionEvents` network logging, the kotlinx-serialization sample format, Live TV hooks, its `StreamSpeedTester` rewrite
+- Local adaptations: connection fit is a ranker key right after the cache tier (a heavy stream drops within its tier; an uncached stream never outranks a cached one), so it applies only with Best-quality autoplay or the opt-in ranked list order; pure `ConnectionFitRules` + Android `ConnectionSpeed.kt`; samples stored device-wide as `KIND:mbps:time` in `fork_connection_speed` (no URLs or hosts); byte counting wraps the progressive upstream and HLS/DASH factories once; next-episode autoplay uses the current episode's duration as runtime
+- Feature flag / fallback: FeatureId.STREAM_INTELLIGENCE OFF = no byte counting, no sampling, no fit; no estimate yet or unknown runtime/size = order unchanged
+- Tests ported/added: ConnectionFitRulesTest (9, new, over the ported rules and sampler), StreamConnectionFitRankingTest (2)
+- License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: the estimate needs two qualifying playbacks per network before it acts; device check MANUAL-PENDING (G14 campaign, HV-G8-7)
+

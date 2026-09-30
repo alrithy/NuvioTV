@@ -19,7 +19,8 @@ import javax.inject.Singleton
 
 /**
  * G8b stream-ranking inputs: the per-profile "Best quality" list order (`fork_streams`, default
- * off = official add-on order, feature 167) and the per-load [StreamRankContext]. Nothing is written
+ * off = official add-on order, feature 167) and the per-load [StreamRankContext] (display, add-on
+ * health, and the G8c connection estimate). Nothing is written
  * into the official PlayerSettings store; the Best-quality autoplay mode lives there as an official
  * mode value (D053).
  */
@@ -50,7 +51,7 @@ class StreamRankingPreferences @Inject constructor(
         enabled && runCatching { bestQualityListOrder.first() }.getOrDefault(false)
 
     /** Taken once per load so the order does not change while the list is on screen. */
-    fun contextFor(installedAddons: List<Addon>): StreamRankContext {
+    fun contextFor(installedAddons: List<Addon>, runtimeMinutes: Int? = null): StreamRankContext {
         if (!enabled) return StreamRankContext.NONE
         val health = healthTracker.health.value
         return StreamRankContext(
@@ -58,6 +59,8 @@ class StreamRankingPreferences @Inject constructor(
             addonHealth = installedAddons.mapNotNull { addon ->
                 health[addon.baseUrl]?.let { addon.displayName to it.state }
             }.toMap(),
+            connectionMbps = runCatching { ConnectionSpeedEstimator.estimateMbps(context) }.getOrNull(),
+            runtimeMinutes = runtimeMinutes,
         )
     }
 

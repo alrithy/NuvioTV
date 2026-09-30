@@ -178,6 +178,19 @@ class NuvioMpvSurfaceView @JvmOverloads constructor(
         return mpv.getPropertyDouble("demuxer-cache-duration") ?: 0.0
     }
 
+    /** Superfork G8c: feeds mpv's download rate to connection learning (Reshaped @ 0ccf049). */
+    fun sampleThroughput(context: Context, streamUrl: String?) {
+        if (!initialized) return
+        com.nuvio.tv.fork.streams.PlaybackThroughput.onMpvTick(
+            context = context,
+            streamUrl = streamUrl,
+            bytesPerSecond = mpv.getPropertyDouble("cache-speed")?.toLong() ?: 0L,
+            // A live stream (no duration) only arrives at its own bitrate: it says nothing about the network.
+            isFetching = mpv.getPropertyBoolean("demuxer-cache-idle") == false &&
+                (mpv.getPropertyDouble("duration") ?: 0.0) > 0.0
+        )
+    }
+
     fun isCoreIdleNow(): Boolean {
         if (!initialized) return false
         return mpv.getPropertyBoolean("core-idle") == true
