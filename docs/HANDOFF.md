@@ -1,10 +1,10 @@
 # Nuvio Superfork handoff
 
 <!-- canonical-state:start -->
-- Active gate: G8 — Stream Intelligence
-- Active branch: `feat/stream-intelligence`
-- Status: IN_PROGRESS
-- Task: `tasks/G8_STREAM_INTELLIGENCE.md`
+- Active gate: G9 — Skip Recommendations Discovery
+- Active branch: `feat/discovery-skip-recommendations`
+- Status: READY
+- Task: `tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -59,30 +59,25 @@ Keystore-encrypted key, Preview Sync, limits from `AdaptiveResources.seekPreview
 live-player seeking; 111, 113, 114) (#46). Device checks HV-G7-1..HV-G7-5 are MANUAL-PENDING (G14;
 `validation_pending_gates`).
 
-G8 Stream Intelligence IN_PROGRESS on `feat/stream-intelligence` (task `tasks/G8_STREAM_INTELLIGENCE.md`,
-IDs 147–168, plus 289 from G1). Audit `docs/audits/G8_STREAM_INTELLIGENCE_AUDIT.md`: official already emits
-results per add-on (148), has instant/bounded/unlimited scrape timeouts (152–154), keeps uncached results
-(157) and add-on order (167); its ranking engine covers the Direct Debrid list only. D053: one ranker in
-`fork/streams` on official facts (Cxsmo ranking chain), "Best quality" list order and autoplay mode (opt-in),
-Reshaped connection fit, progressive AIOStreams with fallback, bounded add-on retry. Official `dev` observed
-at `9bf4ed1` (version bump only; not accepted).
-G8a (147, 149–151, 289) (#49, `9f45f39`): AIOStreams' opt-in progressive NDJSON endpoint (Cxsmo FILE_PORT)
-for add-on URLs with `client=nuvio-progressive`, cumulative snapshots replacing the add-on's group through
-official dedup, fallback to the official request on any failure; one bounded retry (5xx/408/timeout, first
-attempt <= 8 s, never 4xx). STREAM_INTELLIGENCE AUTO (D053). Device checks HV-G8-1..HV-G8-3 MANUAL-PENDING (G14).
-G8b (155, 156, 158–164, 166, 168) (#50, `13dd221`): one ranker in `fork/streams` over official facts (Cxsmo
-chain + TRaSH tiers): cache tier → resolution → quality → release group → HDR/DV (by display) → lossless
-audio → channels → codec → size → add-on health, stable; official autoplay gains BEST_QUALITY (same
-candidates; stream screen and next episode); opt-in "Sort streams by quality" list order (default off, 167).
-Device checks HV-G8-4..HV-G8-6 MANUAL-PENDING (G14).
-G8c (165) on this branch: connection fit (Reshaped FILE_PORT): throughput learned passively from playback
-(ExoPlayer byte counter, mpv cache-speed) per network kind; in the ranker a stream above connection ÷ 1.5
-average bitrate drops within its cache tier; unknown bitrate stays; captured once per load. Device check
-HV-G8-7 MANUAL-PENDING (G14).
+G8 CODE-COMPLETE (PRs #48, #49, #50, #51, final `3c881e6`; 2047 tests, 15 known failures, 0 new, fullDebug
+APK). Audit `docs/audits/G8_STREAM_INTELLIGENCE_AUDIT.md`; D053 (one ranking engine, STREAM_INTELLIGENCE AUTO).
+Verified official: 148, 152–154, 157, 167. Slices: G8a progressive AIOStreams (Cxsmo FILE_PORT; snapshots
+replace the add-on's group through official dedup; official request on any failure) and one bounded add-on
+retry (G1's 289) (#49); G8b one ranker over official facts (Cxsmo chain + TRaSH tiers, HDR/DV by display,
+lossless audio, add-on health), BEST_QUALITY autoplay mode (stream screen and next episode) and opt-in
+"Sort streams by quality" list order (#50); G8c connection fit (Reshaped FILE_PORT: passive throughput per
+network kind, heavy streams drop within their cache tier) (#51). Device checks HV-G8-1..HV-G8-7 are
+MANUAL-PENDING (G14; `validation_pending_gates`).
+
+G9 Skip / Recommendations / Discovery READY on `feat/discovery-skip-recommendations` (task
+`tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md`, IDs 117–146, 169–187, 206–207). Official `dev` observed at
+`7f32b3c` (Greek strings, Grid Home hero ratings, Exo libass fix; no G9 seam; not accepted).
 
 ## Exact next action
-1. Merge G8c (connection fit; 165), then close G8 and start G9 with its mandatory audit.
-2. Continue G8→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
+1. Start G9 with its mandatory audit (official skip-intro repository, post-play recommendations, episode
+   shuffle vs Cxsmo skip aggregator, credentials store, calendar, random/mystery episode, dimmer per SOURCE_MAP),
+   one owner per concern.
+2. Continue G9→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.
 5. Upstream: official `56aaba2` accepted (PR #40, D050). Before each gate, check official `dev`; sync through a reviewed `chore/upstream-sync-*` PR when the gate touches changed seams.
