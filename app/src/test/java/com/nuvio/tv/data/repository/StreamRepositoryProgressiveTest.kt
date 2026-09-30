@@ -29,7 +29,6 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import retrofit2.Response
 
@@ -57,10 +56,11 @@ class StreamRepositoryProgressiveTest {
             .toList()
             .filterIsInstance<NetworkResult.Success<List<AddonStreams>>>()
 
+        // Official StreamSearchSessionCache delivers through a StateFlow (conflated), so only the
+        // final emission is deterministic. It proves replacement: appending snapshot 2 to snapshot 1
+        // would have kept "a" first and ended as a, b, c.
         val last = emissions.last().data.single()
         assertEquals(listOf("b", "a", "c"), last.streams.map { it.name })
-        // The second snapshot replaced the first rather than being appended to it.
-        assertTrue(emissions.any { success -> success.data.single().streams.map { it.name } == listOf("b", "a") })
         coVerify(exactly = 0) { api.getStreams(any()) }
     }
 
