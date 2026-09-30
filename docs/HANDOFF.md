@@ -5,7 +5,7 @@
 - Active branch: `feat/subtitle-intelligence`
 - Status: IN_PROGRESS
 - Task: `tasks/G6_SUBTITLE_INTELLIGENCE.md`
-- Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
+- Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
 <!-- canonical-state:end -->
@@ -39,16 +39,17 @@ Deferred: 46 (TrueHD/DTS-HD cold start, device data needed, G14). Device checks 
 are MANUAL-PENDING (G14; `validation_pending_gates`).
 
 G6 IN_PROGRESS on `feat/subtitle-intelligence` (task `tasks/G6_SUBTITLE_INTELLIGENCE.md`, IDs 82–106).
-Audit `docs/audits/G6_SUBTITLE_INTELLIGENCE_AUDIT.md`: official has the manual cue-pick sync, delay,
-header-scoped subtitle downloads, secondary preferred language (96, 97 verified official), the
-buffer-preserving sidecar path (106 verified official) and OpenSubtitles hash fetching; missing are
-automatic timing correction, custom fonts and presets. D049: one engine (VibeSubtitle cue-rhythm
-aligner, ALGORITHM_PORT, `fork/subtitles`) behind a per-profile AutoSync setting (default off).
-92, 93 (audio / ASR sync) deferred to G13 candidates.
+Pre-G6 upstream sync PR #40 (D050) adopted official `56aaba2` with official Subtitle AutoSync (#3703):
+it is the single G6 engine (REUSE; no fork engine, D049 superseded). Audit
+`docs/audits/G6_SUBTITLE_INTELLIGENCE_AUDIT.md` (re-audited on `56aaba2`): 82, 83, 86–91, 95–99, 106
+verified official; gaps are 84/85 (no reference when the file has no embedded subtitles), 94 (no Arabic
+AutoSync strings) and 100–105 (fonts, Arabic cinema preset). 92, 93 (audio / ASR sync) deferred to G13
+candidates.
 
 ## Exact next action
-1. Merge the G6 audit PR, then slices G6a (pure sync engine, 86–91, 94, 95), G6b (AutoSync wiring,
-   references, indicator, 82–85, 98, 99), G6c (custom fonts + Arabic cinema preset, 100–105).
+1. Merge the G6 audit PR #39, then slices G6a (extend official AutoSync: release-matched add-on
+   reference when the file has no embedded subtitles, Arabic AutoSync strings; 84, 85, 94) and G6b
+   (custom fonts + Arabic cinema preset, 100–105).
 2. Continue G6→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.

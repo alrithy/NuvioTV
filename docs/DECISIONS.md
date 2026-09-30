@@ -318,7 +318,7 @@ that changes output for every playback (for example claiming a new passthrough f
 an explicit setting that defaults to official. OFF restores official G5 behavior; device evidence is
 batched into G14 (D047).
 
-## D049 — G6 has one subtitle sync engine, behind an AutoSync setting
+## D049 — G6 has one subtitle sync engine, behind an AutoSync setting (superseded by D050)
 The only automatic subtitle timing engine is an ALGORITHM_PORT of VibeSubtitle `SubtitleCueAligner`
 (language-independent cue-rhythm anchors → offset, clock scale, piecewise segments, confidence;
 null = fail closed) in `fork/subtitles`, fed by one reference pipeline: embedded reference →
@@ -328,3 +328,15 @@ Automatic retiming changes what every playback shows, so it runs only while a pe
 setting is on (default off = official timing); FeatureId.SUBTITLE_INTELLIGENCE becomes AUTO with
 the first G6 code slice so the setting is visible, and OFF hides it. The official manual cue pick
 and delay always take priority. Audio/ASR sync (92, 93) is deferred (audit).
+Superseded by D050 before any engine code: official AutoSync is the engine; the reference
+pipeline order above survives only as G6a's no-embedded-reference fallback inside official AutoSync.
+
+## D050 — Adopt official 56aaba2 before G6: official Subtitle AutoSync becomes the G6 engine
+Official `dev` moved `71632b9..56aaba2` and merged Subtitle AutoSync (PR #3703, the Reshaped
+AutoSync by its author) — the subsystem G6 was about to build. UPSTREAM_SYNC's gate-start rule and
+feature-convergence rule (prefer official ownership, migrate only our unique delta) require a
+reviewed sync first. Merged with one resolved conflict (extractor factory: fork DV factory wrapped
+by the official AutoSync factory). Official AutoSync defaults off. This revises D049: the single
+G6 sync engine is **official AutoSync** (REUSE); no fork `fork/subtitles` engine is built and the
+VibeSubtitle aligner / PR #38 engine are not imported, so there is never a second engine. G6
+continues with only the gaps official still lacks (re-audited on this baseline).
