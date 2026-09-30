@@ -125,6 +125,7 @@ fun NuvioDialog(
 
                 content()
             }
+            AppDimmerOverlay(dimPercent = LocalAppDimPercent.current) // Superfork G9f: dialogs are separate windows
         }
     }
 }

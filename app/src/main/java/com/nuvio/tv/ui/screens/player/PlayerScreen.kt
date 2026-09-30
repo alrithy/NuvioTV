@@ -67,6 +67,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AspectRatio
+import androidx.compose.material.icons.filled.BrightnessMedium
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ClosedCaption
@@ -1469,6 +1470,16 @@ fun PlayerScreen(
 
         SeekPreviewSyncLayer(viewModel, uiState, onDismissed = { runCatching { containerFocusRequester.requestFocus() } }) // Superfork G7a
 
+        // Superfork G9f (207): App dimmer picker; the level applies app-wide, the player included.
+        if (viewModel.appDimmerPickerOpen.collectAsState().value) {
+            com.nuvio.tv.ui.screens.settings.AppDimmerPickerDialog(
+                onDismiss = {
+                    viewModel.appDimmerPickerOpen.value = false
+                    runCatching { containerFocusRequester.requestFocus() }
+                }
+            )
+        }
+
         AnimatedVisibility(
             visible = uiState.showSeekOverlay && !uiState.showControls && uiState.error == null &&
                 !uiState.showLoadingOverlay && !uiState.showPauseOverlay &&
@@ -2480,6 +2491,17 @@ private fun PlayerControlsOverlay(
                                 onDownKey = onHideControls,
                                 onFocused = onResetHideTimer
                             )
+                            // Superfork G9f (207): App dimmer, while the fork flag is on.
+                            if (com.nuvio.tv.fork.dimmer.AppDimmerRules.enabled) {
+                                ControlButton(
+                                    icon = Icons.Default.BrightnessMedium,
+                                    contentDescription = stringResource(R.string.cd_app_dimmer),
+                                    onClick = { viewModel.appDimmerPickerOpen.value = true },
+                                    upFocusRequester = progressUpTarget,
+                                    onDownKey = onHideControls,
+                                    onFocused = onResetHideTimer
+                                )
+                            }
                             // Superfork G7a (112): Preview Sync, only while a Seekr track is loaded.
                             seekPreviewSyncAction(viewModel)?.let { openSync ->
                                 ControlButton(

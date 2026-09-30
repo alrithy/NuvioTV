@@ -320,6 +320,8 @@ fun ThemeSettingsContent(
                     onClick = { showLanguageDialog = true }
                 )
             }
+
+            AppDimmerSettingsCard() // Superfork G9f
         }
         SettingsVerticalScrollIndicators(state = themeScrollState)
     }

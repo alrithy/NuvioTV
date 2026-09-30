@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- معتّم التطبيق (Superfork G9f). -->
+<resources>
+    <string name="app_dimmer_title">تعتيم التطبيق</string>
+    <string name="app_dimmer_subtitle">يعتّم كل ما على الشاشة، بما في ذلك المشغل، للغرف المظلمة. تبقى الأزرار تعمل.</string>
+    <string name="app_dimmer_player_subtitle">يعتّم الشاشة كلها ويستمر العرض.</string>
+    <string name="app_dimmer_off">إيقاف</string>
+    <string name="cd_app_dimmer">تعتيم التطبيق</string>
+</resources>

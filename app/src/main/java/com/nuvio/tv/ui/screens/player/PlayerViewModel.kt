@@ -166,6 +166,8 @@ class PlayerViewModel @Inject constructor(
 
     /** Superfork G7a: seek-preview thumbnails (see fork/seek, D052). */
     val seekPreview = com.nuvio.tv.fork.seek.SeekPreviewState(viewModelScope, controller)
+    /** Superfork G9f (207): the App dimmer picker opened from the player controls. */
+    val appDimmerPickerOpen = kotlinx.coroutines.flow.MutableStateFlow(false)
 
     private val postPlayRecommendationController = PostPlayRecommendationController(
         playbackController = controller,
