@@ -7,19 +7,19 @@ current_official_baseline_sha: 56aaba20b7d01746d616a2c8517adcf442950b90
 integration_upstream_sync_commit: 5c24805f82b2bb7092b9acafc00903a32fe5045c
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G8
-active_gate_name: Stream Intelligence
-active_branch: feat/stream-intelligence
-active_task_packet: tasks/G8_STREAM_INTELLIGENCE.md
-active_status: IN_PROGRESS
-active_pr: 51
+active_gate: G9
+active_gate_name: Skip Recommendations Discovery
+active_branch: feat/discovery-skip-recommendations
+active_task_packet: tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md
+active_status: READY
+active_pr: null
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 593ee6b02196848435046cb33fe0db8b9070ae6a
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36704722483 ; G8b
-  PR #50 exact head, squash-merged as 13dd221.
-last_green_scope: Full suite guard (2036 tests, 15 known failures, 0 new failures), governance
+last_green_commit: 77cb071ea01baeda48fbb8d07fd71586ccf01264
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36706132405 ; G8c
+  PR #51 exact head, squash-merged as 3c881e6.
+last_green_scope: Full suite guard (2047 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
@@ -28,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G9
-next_gate_name: Skip Recommendations Discovery
-next_branch: feat/discovery-skip-recommendations
+next_gate: G10
+next_gate_name: Live TV
+next_branch: feat/live-tv
 known_operational_risks:
 - id: R001
   severity: high
@@ -79,12 +79,14 @@ validation_pending_gates:
   evidence: 'All code merged in PRs #39, #41, #42 (after upstream sync #40); AutoSync stream reference, Arabic AutoSync, custom fonts, QR upload and Arabic preset checks HV-G6-1..HV-G6-5 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 - gate: G7
   evidence: 'All code merged in PRs #44, #45, #46; on-device previews, keyframe-exact seek, Seekr fallback / Preview Sync, memory-disk bounds and automatic calibration checks HV-G7-1..HV-G7-5 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
+- gate: G8
+  evidence: 'All code merged in PRs #48, #49, #50, #51; progressive AIOStreams and fallback, bounded add-on retry, Best-quality autoplay and list order, DV ranking by display, next-episode ranking and connection fit checks HV-G8-1..HV-G8-7 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-09-30T10:15:00Z'
-  sha: 9bf4ed1e34ca5912c4d09bf02aa125f7d5e467a9
+  checked_at: '2026-09-30T11:30:00Z'
+  sha: 7f32b3c548a5d7e7771f654ac963bc530497708f
   accepted: false
-  reason: 'Observed at G8 start: one commit after accepted 56aaba2 ("bump version", app/build.gradle.kts version fields only); touches no G8 seam, so no sync PR.'
+  reason: 'Observed at G9 start: 6 commits after accepted 56aaba2 (version bump, Greek strings, MDBList ratings in the Grid Home hero, Exo libass subtitle fix in PlayerLibassCompat). None touches a G9 seam (skip intro, post-play, calendar, random episode, dimmer), so no sync PR now; the libass fix touches the G6 subtitle seam and rides the next upstream sync.'
 completed_gates:
 - gate: G0
   name: Fork Foundation
@@ -149,4 +151,14 @@ completed_gates:
   evidence: 'CI runs 36677245378 (1967 tests), 36679052995 (2001), 36698354964 (2011): 15 known
     failures, 0 new, fullDebug APK built; audit docs/audits/G7_SEEK_INTELLIGENCE_AUDIT.md; D052;
     G2 deferred 279 closed in G7a; device checks batched to G14 (validation_pending_gates)'
+  deferred_features: []
+- gate: G8
+  name: Stream Intelligence
+  pr: [48, 49, 50, 51]
+  merge_sha: 3c881e621d6670518cc1503329601c8c783477f6
+  slice_merges: [559a1f3e9ab76ab61e306440c10cbc4ea0cb303e, 9f45f39662700146667494a821512f95f0355aa2,
+    13dd221b095e5b2af8abe30dbe6ff7c5f51f0b0d, 3c881e621d6670518cc1503329601c8c783477f6]
+  evidence: 'CI runs 36701072362 (2011 tests), 36702510415 (2022), 36704722483 (2036), 36706132405
+    (2047): 15 known failures, 0 new, fullDebug APK built; audit docs/audits/G8_STREAM_INTELLIGENCE_AUDIT.md;
+    D053; G1 deferred 289 closed in G8a; device checks batched to G14 (validation_pending_gates)'
   deferred_features: []
