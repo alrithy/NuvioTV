@@ -1160,6 +1160,23 @@ private fun PlaybackNavHost(
             )
         }
 
+        // Superfork G9e: Calendar (178–187); only reachable from the drawer while the fork flag is on.
+        composable(Screen.Calendar.route) {
+            com.nuvio.tv.ui.screens.calendar.CalendarScreen(
+                showBuiltInHeader = !hideBuiltInHeaders,
+                onNavigateToDetail = { itemId, itemType, season, episode ->
+                    navController.navigate(
+                        Screen.Detail.createRoute(
+                            itemId = itemId,
+                            itemType = itemType,
+                            returnFocusSeason = season,
+                            returnFocusEpisode = episode
+                        )
+                    )
+                }
+            )
+        }
+
         composable(Screen.Library.route) {
             LibraryScreen(
                 showBuiltInHeader = !hideBuiltInHeaders,

@@ -49,6 +49,7 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
@@ -1007,9 +1008,11 @@ open class MainActivity : ComponentActivity() {
                         }
                     }
 
+                    val calendarEnabled = com.nuvio.tv.fork.discovery.CalendarRules.enabled // Superfork G9e
                     val rootRoutes = remember(discoverLocation) {
                         buildSet {
                             add(Screen.Home.route)
+                            if (calendarEnabled) add(Screen.Calendar.route)
                             add(Screen.Search.route)
                             add(Screen.Library.route)
                             add(Screen.Settings.route)
@@ -1024,9 +1027,11 @@ open class MainActivity : ComponentActivity() {
                     val strNavSearch = stringResource(R.string.nav_search)
                     val strNavLibrary = stringResource(R.string.nav_library)
                     val strNavSettings = stringResource(R.string.nav_settings)
+                    val strNavCalendar = stringResource(R.string.nav_calendar)
                     val drawerItems = remember(
                         strNavHome,
                         strNavDiscover,
+                        strNavCalendar,
                         strNavSearch,
                         strNavLibrary,
                         strNavSettings,
@@ -1046,6 +1051,15 @@ open class MainActivity : ComponentActivity() {
                                         route = Screen.Discover.route,
                                         label = strNavDiscover,
                                         icon = Icons.Default.Explore
+                                    )
+                                )
+                            }
+                            if (calendarEnabled) {
+                                add(
+                                    DrawerItem(
+                                        route = Screen.Calendar.route,
+                                        label = strNavCalendar,
+                                        icon = Icons.Default.DateRange
                                     )
                                 )
                             }

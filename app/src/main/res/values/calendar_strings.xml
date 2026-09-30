@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Calendar (Superfork G9e, D054). -->
+<resources>
+    <string name="nav_calendar">Calendar</string>
+    <string name="calendar_title">Calendar</string>
+    <string name="calendar_empty_title">No scheduled episodes</string>
+    <string name="calendar_empty_desc">Episodes of shows you watch, track or saved appear here once their air dates are known.</string>
+    <string name="calendar_filter_all">All</string>
+    <string name="calendar_filter_upcoming">Upcoming</string>
+    <string name="calendar_filter_past">Recent</string>
+    <string name="calendar_refresh">Refresh</string>
+    <string name="calendar_spoiler_hidden">Hidden until you watch the previous episode</string>
+    <string name="calendar_episode_fallback">Episode %1$d</string>
+    <string name="calendar_today">Today, %1$s</string>
+    <string name="calendar_tomorrow">Tomorrow, %1$s</string>
+    <string name="calendar_yesterday">Yesterday, %1$s</string>
+    <string name="calendar_tag_past">aired · %1$s</string>
+    <string name="calendar_tag_in_days">in %1$d days · %2$s</string>
+    <plurals name="calendar_episode_count">
+        <item quantity="one">%1$d episode</item>
+        <item quantity="other">%1$d episodes</item>
+    </plurals>
+</resources>
