@@ -43,7 +43,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -412,7 +411,7 @@ private fun calendarDateHeader(date: LocalDate): String {
 
 @Composable
 private fun calendarRelativeTag(date: LocalDate, count: Int): String {
-    val episodes = pluralStringResource(R.plurals.calendar_episode_count, count, count)
+    val episodes = LocalContext.current.resources.getQuantityString(R.plurals.calendar_episode_count, count, count)
     val days = CalendarRules.daysFrom(LocalDate.now(), date)
     return when {
         days < 0 -> stringResource(R.string.calendar_tag_past, episodes)
