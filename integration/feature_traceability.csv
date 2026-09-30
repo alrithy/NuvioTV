@@ -206,11 +206,11 @@ feature_id,gate,source_group,owner,status,feature,evidence,reason,next_action
 205,G12,official+nuvio-glass+reshaped+cxsmo,ui,planned,Profile access in top navigation.,,,
 206,G9,official+cxsmo,discovery,implemented,App Dimmer.,"G9f: Cxsmo AppDimmerOverlay (FILE_PORT): one black draw pass above every screen and inside dialog windows (NuvioDialog), no input handling; level per profile, off by default, 10 % steps up to 90 %, under Appearance; AppDimmerRulesTest; device check MANUAL-PENDING (G14, HV-G9-7). Closeout correction (#61, 7552ef8): the same input-transparent layer is drawn in raw Compose dialog and popup windows through AppDimmedDialog.",,
 207,G9,official+cxsmo,discovery,implemented,Player-accessible dimmer control.,"G9f: player control button opens the dimmer picker (presets 0-90 %), applied app-wide while playback continues; device check MANUAL-PENDING (G14, HV-G9-7). Closeout correction (#61, 7552ef8): the player's raw dialogs dim with the rest of the app.",,
-208,G10,reshaped,live-tv,planned,Live TV module.,,,
-209,G10,reshaped,live-tv,planned,M3U playlists.,,,
-210,G10,reshaped,live-tv,planned,Xtream Codes.,,,
-211,G10,reshaped,live-tv,planned,Stalker Portal.,,,
-212,G10,reshaped,live-tv,planned,Multiple IPTV sources.,,,
+208,G10,reshaped,live-tv,in_progress,Live TV module.,"G10a: fork/livetv owner (Reshaped 0ccf049 FILE_PORT, D055): profile-bound Hilt repository, per-source jobs, idle release; LiveTvRepositoryTest. Screen and menu entry in G10b.",,"G10b screen, menu entry and playback"
+209,G10,reshaped,live-tv,in_progress,M3U playlists.,"G10a: line-streamed M3U parser (EXTINF attributes, EXTVLCOPT / EXTHTTP / Kodi headers, duplicates and category rows dropped, HLS or direct link as one channel, 100 000-channel cap), link or imported file; LiveTvPlaylistParserTest. Source dialog in G10b.",,G10b source dialog
+210,G10,reshaped,live-tv,in_progress,Xtream Codes.,"G10a: Xtream categories and live streams on Moshi's streaming reader, panel links only, account credentials encrypted per profile; LiveTvProvidersTest. Source dialog in G10b.",,G10b source dialog
+211,G10,reshaped,live-tv,in_progress,Stalker Portal.,"G10a: Stalker handshake / profile, per-portal session renewed once, all-channels or ordered pages with one retry and an incomplete notice, per-play links, session headers only to the portal host; LiveTvProvidersTest. Source dialog in G10b.",,G10b source dialog
+212,G10,reshaped,live-tv,in_progress,Multiple IPTV sources.,"G10a: several sources as one list, per-source load jobs (two at once), same-identity replace, a failing source keeps its channels, sources Keystore-encrypted per profile; LiveTvRepositoryTest. Source dialog in G10b.",,G10b source dialog
 213,G10,reshaped,live-tv,planned,Add Live TV source from phone via QR.,,,
 214,G10,reshaped,live-tv,planned,EPG.,,,
 215,G10,reshaped,live-tv,planned,Now Playing information.,,,
@@ -231,7 +231,7 @@ feature_id,gate,source_group,owner,status,feature,evidence,reason,next_action
 230,G10,reshaped,live-tv,planned,Channel list inside player.,,,
 231,G10,reshaped,live-tv,planned,Category panel inside player.,,,
 232,G10,reshaped,live-tv,planned,Now/Next card on OK.,,,
-233,G10,reshaped,live-tv,planned,Improved Xtream TS/HLS handling.,,,
+233,G10,reshaped,live-tv,in_progress,Improved Xtream TS/HLS handling.,"G10a: Xtream uses the panel's own /live link, TS unless the account allows only HLS; LiveTvProvidersTest. Live playback rules in G10d.",,G10d live playback rules
 234,G10,reshaped,live-tv,planned,Channel-start retry.,,,
 235,G10,reshaped,live-tv,planned,Faster MPEG-TS startup from first useful I-frame.,,,
 236,G10,reshaped,live-tv,planned,Live-TV-aware AFR behavior.,,,
