@@ -81,6 +81,7 @@ class PlayerViewModel @Inject constructor(
     private val trailerPlayerPool: com.nuvio.tv.core.player.TrailerPlayerPool,
     private val trailerService: TrailerService,
     private val trailerSettingsDataStore: TrailerSettingsDataStore,
+    private val postPlayForkSources: PostPlayForkSources, // Superfork G9c
     private val traktRelatedService: TraktRelatedService,
     private val traktAuthDataStore: TraktAuthDataStore,
     private val traktSettingsDataStore: TraktSettingsDataStore,
@@ -186,7 +187,8 @@ class PlayerViewModel @Inject constructor(
         trailerService = trailerService,
         trailerSettingsDataStore = trailerSettingsDataStore,
         trailerPlayerPool = trailerPlayerPool,
-        scope = viewModelScope
+        scope = viewModelScope,
+        forkSources = postPlayForkSources
     )
 
     val uiState: StateFlow<PlayerUiState>

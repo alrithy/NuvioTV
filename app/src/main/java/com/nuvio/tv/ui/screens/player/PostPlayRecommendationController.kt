@@ -19,11 +19,17 @@ import com.nuvio.tv.data.repository.MDBListRepository
 import com.nuvio.tv.data.repository.TraktRelatedService
 import com.nuvio.tv.data.simkl.SimklAuthRepository
 import com.nuvio.tv.data.simkl.SimklRelatedService
+import com.nuvio.tv.data.trailer.TrailerPlaybackSource
 import com.nuvio.tv.data.trailer.TrailerService
+import com.nuvio.tv.domain.model.ContentType
 import com.nuvio.tv.domain.model.Meta
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.repository.MetaRepository
 import com.nuvio.tv.domain.repository.WatchProgressRepository
+import com.nuvio.tv.fork.postplay.ForkPostPlaySource
+import com.nuvio.tv.fork.postplay.PostPlaySources
+import com.nuvio.tv.fork.postplay.PostPlayStep
+import com.nuvio.tv.fork.resource.AdaptiveResourcePolicy
 import com.nuvio.tv.fork.resource.AdaptiveResources
 import java.time.LocalDate
 import kotlinx.coroutines.CancellationException
@@ -62,7 +68,9 @@ internal class PostPlayRecommendationController(
     private val trailerService: TrailerService,
     private val trailerSettingsDataStore: TrailerSettingsDataStore,
     private val trailerPlayerPool: TrailerPlayerPool,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    /** Superfork G9c: extra sources, longer lists and the trailer fallback (null = official only). */
+    private val forkSources: PostPlayForkSources? = null
 ) {
     private data class PlaybackIdentity(
         val contentType: String?,
@@ -493,6 +501,10 @@ internal class PostPlayRecommendationController(
                     )
                 }
                 loadRecommendationDetails(targetIndex, resolvedCandidate, preferences)
+                // Superfork G9c (144): lists longer than official's resolve a window that follows the card.
+                if (recommendationCandidates.size > AdaptiveResourcePolicy.POST_PLAY_FULL_PREFETCH) {
+                    prefetchRecommendationDetails(preferences)
+                }
             } finally {
                 recommendationSelectionJob = null
             }
@@ -536,7 +548,7 @@ internal class PostPlayRecommendationController(
                             tmdbId = recommendation.tmdbId,
                             type = recommendation.contentType,
                             ignoreUseTrailersGate = true
-                        )
+                        ) ?: addonTrailerSource(candidate, resolvedCandidate.meta, recommendation)
                     }
                 } catch (cancelled: CancellationException) {
                     throw cancelled
@@ -630,6 +642,39 @@ internal class PostPlayRecommendationController(
             apiType = playbackController.contentType,
             fallback = meta.type
         ) ?: return emptyList()
+        // Superfork G9c (140–144): a fork source runs its chain (official's own chain included) and
+        // may show more than official's 4 cards; the default source is official's chain alone.
+        val forkSource = forkSources?.takeIf { it.featureEnabled }?.source() ?: ForkPostPlaySource.OFFICIAL
+        val filtered = if (forkSource == ForkPostPlaySource.OFFICIAL) {
+            filterCandidates(meta, loadOfficialCandidates(meta, tmdbContentType))
+        } else {
+            PostPlaySources.firstNonEmpty(
+                steps = PostPlaySources.chain(forkSource),
+                load = { step ->
+                    if (step == PostPlayStep.OFFICIAL) {
+                        loadOfficialCandidates(meta, tmdbContentType)
+                    } else {
+                        forkSources?.load(step, meta, tmdbContentType)
+                    }
+                },
+                usable = { filterCandidates(meta, it) }
+            )
+        }
+        val limit = PostPlaySources.cardLimit(forkSource, MAX_POST_PLAY_RECOMMENDATIONS)
+        val first = filtered.firstOrNull { !it.backdropUrl.isNullOrBlank() }
+            ?: filtered.firstOrNull()
+            ?: return emptyList()
+        return buildList {
+            add(first)
+            filtered.asSequence()
+                .filterNot { it === first }
+                .take(limit - 1)
+                .forEach(::add)
+        }
+    }
+
+    /** Official's candidate chain (the "More like this" source), unchanged. */
+    private suspend fun loadOfficialCandidates(meta: Meta, tmdbContentType: ContentType): List<MetaPreview> {
         val candidates = withTimeoutOrNull(10_000L) {
             val sourcePreference = traktSettingsDataStore.moreLikeThisSource.first()
             val traktAuthenticated = traktAuthDataStore.isAuthenticated.first()
@@ -665,7 +710,11 @@ internal class PostPlayRecommendationController(
                 }.getOrDefault(emptyList())
             }
         }.orEmpty()
+        return candidates
+    }
 
+    /** Official's filters: not the current title, not watched, not unreleased when hidden, distinct. */
+    private suspend fun filterCandidates(meta: Meta, candidates: List<MetaPreview>): List<MetaPreview> {
         val hideUnreleased = layoutPreferenceDataStore.hideUnreleasedContent.first()
         val watchedIds = combine(
             watchProgressRepository.observeWatchedMovieIds(),
@@ -685,16 +734,35 @@ internal class PostPlayRecommendationController(
             .filterNot { hideUnreleased && it.isUnreleased(LocalDate.now()) }
             .distinctBy { it.apiType.normalizedId() to it.id.normalizedId() }
             .toList()
-        val first = filtered.firstOrNull { !it.backdropUrl.isNullOrBlank() }
-            ?: filtered.firstOrNull()
-            ?: return emptyList()
-        return buildList {
-            add(first)
-            filtered.asSequence()
-                .filterNot { it === first }
-                .take(MAX_POST_PLAY_RECOMMENDATIONS - 1)
-                .forEach(::add)
+        return filtered
+    }
+
+    /**
+     * Superfork G9c (146): when official's trailer lookup finds nothing, the trailers the add-ons
+     * already listed for the title (Cxsmo `resolveAddonTrailerSource` @ 3e0d0fa, after official here).
+     */
+    private suspend fun addonTrailerSource(
+        candidate: MetaPreview,
+        meta: Meta?,
+        recommendation: PostPlayRecommendation
+    ): TrailerPlaybackSource? {
+        if (forkSources?.featureEnabled != true) return null
+        val urls = PostPlaySources.addonTrailerUrls(
+            sequenceOf(
+                meta?.trailerYtIds.orEmpty().asSequence(),
+                meta?.trailers.orEmpty().asSequence().map { it.ytId },
+                candidate.trailerYtIds.asSequence(),
+                candidate.trailers.asSequence().map { it.ytId }
+            ).flatten()
+        )
+        for (url in urls) {
+            trailerService.getTrailerPlaybackSourceFromYouTubeUrl(
+                youtubeUrl = url,
+                title = recommendation.title,
+                year = recommendation.releaseInfo
+            )?.let { return it }
         }
+        return null
     }
 
     private suspend fun resolveCandidate(candidate: MetaPreview): ResolvedCandidate {
