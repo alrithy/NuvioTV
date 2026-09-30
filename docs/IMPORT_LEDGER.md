@@ -596,3 +596,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: after process death the stream screen no longer knows the episode was a shuffle pick and shows it; a Mystery pick with no auto-selectable stream falls back to the official stream list, whose names can give it away; device check MANUAL-PENDING (G14 campaign, HV-G9-5)
 
+### G9e — Calendar (178–187)
+- Roadmap gate: G9
+- Source repository: Cxsmo-ai/NuvioTV-Custom
+- Source branch: main
+- Pinned source SHA: 3e0d0fad60a2721adec133b88640b49c0183883f
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): data/repository/CalendarRepositoryImpl.kt, domain/model/CalendarModels.kt, domain/repository/CalendarRepository.kt, ui/screens/calendar/CalendarViewModel.kt, ui/screens/calendar/CalendarScreen.kt, the `Screen.Calendar` route, NavHost entry and drawer item
+- Import mode: FILE_PORT (repository, models, view model, screen) on official repositories (REUSE: WatchProgressRepository, LibraryRepository, TrackingProgressProviderRegistry, MetaRepository, parseEpisodeReleaseLocalDate)
+- Current official equivalent: none (official has no calendar)
+- What already existed upstream: every data source (progress, watched items, library, trackers, metadata add-ons) and the release-date parser
+- What was imported: series discovery from progress / watched / library / trackers, the 30-day-back / 90-day-ahead window, day grouping, filters, Cxsmo's spoiler rule, watched-state-only refresh, the screen and its drawer entry
+- What was intentionally not imported: Cxsmo's top-navigation insets (official has no top bar), its hard-coded English date labels (string resources, English and Arabic), start-up loading at app launch
+- Local adaptations: pure rules in `fork/discovery/CalendarModels.kt`; at most the 80 most recently active series; add-on concurrency from `AdaptiveResources` (6 on standard devices); 15 s per series; loading starts on the first Calendar visit; logs carry counts and exception class names only; a spoiler's still is never requested
+- Feature flag / fallback: FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS OFF = no drawer entry, nothing loads
+- Tests ported/added: CalendarRulesTest (5)
+- License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: users with more than 80 active series see the 80 most recent; air dates are only as good as the metadata add-ons; device check MANUAL-PENDING (G14 campaign, HV-G9-6)
+

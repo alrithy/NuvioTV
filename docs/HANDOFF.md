@@ -93,14 +93,17 @@ More like this" = official chain and 4 cards); Auto = Kurato AI → BingeCat AI 
 MDBList = the watchlist official already syncs; every fork source falls back to official's chain; up to 20 cards
 with a prefetch window (1 behind, 4 ahead) in `AdaptiveResources`; add-on YouTube trailers after official's lookup.
 Device check HV-G9-4 MANUAL-PENDING (G14).
-G9d (171, 173–177) on this branch: on official's per-show shuffle, a season scope (Only season N), an opt-in
+G9d (171, 173–177) (#57, `317afca`): on official's per-show shuffle, a season scope (Only season N), an opt-in
 all-watched fallback (official empty pool stays default) and Mystery mode (number, title, still and overview hidden on
 the preview, hero, home cards, stream screen and up-next card until playback; a Mystery pick skips the stream list).
 Device check HV-G9-5 MANUAL-PENDING (G14).
+G9e (178–187) on this branch: Calendar (Cxsmo FILE_PORT on official repositories) in the drawer: series from progress,
+watched items, the library and signed-in trackers, air dates from the metadata add-ons, 30 days back to 90 ahead,
+spoiler rule, watched-state-only refresh; 80 most recent series, add-on concurrency from `AdaptiveResources`, loads on
+first visit. Device check HV-G9-6 MANUAL-PENDING (G14).
 
 ## Exact next action
-1. Merge G9d, then slices G9e
-   (Calendar; 178–187), G9f (App Dimmer; 206, 207).
+1. Merge G9d and G9e, then slice G9f (App Dimmer; 206, 207) and the G9 closeout.
 2. Continue G9→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.
