@@ -97,13 +97,16 @@ G9d (171, 173–177) (#57, `317afca`): on official's per-show shuffle, a season 
 all-watched fallback (official empty pool stays default) and Mystery mode (number, title, still and overview hidden on
 the preview, hero, home cards, stream screen and up-next card until playback; a Mystery pick skips the stream list).
 Device check HV-G9-5 MANUAL-PENDING (G14).
-G9e (178–187) on this branch: Calendar (Cxsmo FILE_PORT on official repositories) in the drawer: series from progress,
+G9e (178–187) (#58, `14f49be`): Calendar (Cxsmo FILE_PORT on official repositories) in the drawer: series from progress,
 watched items, the library and signed-in trackers, air dates from the metadata add-ons, 30 days back to 90 ahead,
 spoiler rule, watched-state-only refresh; 80 most recent series, add-on concurrency from `AdaptiveResources`, loads on
 first visit. Device check HV-G9-6 MANUAL-PENDING (G14).
+G9f (206, 207) on this branch: App dimmer (Cxsmo FILE_PORT): one black layer above every screen, the player included,
+and inside `NuvioDialog` windows; per-profile level (off by default, up to 90 %) under Appearance and from a player
+control. Device check HV-G9-7 MANUAL-PENDING (G14).
 
 ## Exact next action
-1. Merge G9d and G9e, then slice G9f (App Dimmer; 206, 207) and the G9 closeout.
+1. Merge G9f, then the G9 closeout (next gate G10 Live TV).
 2. Continue G9→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.

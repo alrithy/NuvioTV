@@ -258,6 +258,10 @@ open class MainActivity : ComponentActivity() {
     @Inject
     lateinit var themeDataStore: ThemeDataStore
 
+    /** Superfork G9f: app dimmer level. */
+    @Inject
+    lateinit var appDimmerSettings: com.nuvio.tv.fork.dimmer.AppDimmerSettings
+
     @Inject
     lateinit var layoutPreferenceDataStore: LayoutPreferenceDataStore
 
@@ -676,7 +680,9 @@ open class MainActivity : ComponentActivity() {
                         brandWordmarkRes = resolvedTheme.brandWordmarkResource
                     )
                 }
+                val appDimPercent by appDimmerSettings.percent.collectAsState(initial = 0) // Superfork G9f
                 CompositionLocalProvider(
+                    com.nuvio.tv.ui.components.LocalAppDimPercent provides appDimPercent,
                     LocalDensity provides clampedFontScaleDensity,
                     LocalBringIntoViewSpec provides bringIntoViewSpec,
                     LocalFastHorizontalNavigationEnabled provides mainUiPrefs.fastHorizontalNavigationEnabled,
@@ -704,6 +710,8 @@ open class MainActivity : ComponentActivity() {
                     // Wrap everything in a Box. This prevents any black flash between
                     // profile selection and the home content
                     Box(modifier = Modifier.fillMaxSize()) {
+                    // Superfork G9f (206): above every screen, the player included; takes no input.
+                    com.nuvio.tv.ui.components.AppDimmerOverlay(dimPercent = appDimPercent)
 
                     var startupDestination = StartupDestination.Loading
                     val surfaceContentReady = hasSeenAuthQrOnFirstLaunch != null &&

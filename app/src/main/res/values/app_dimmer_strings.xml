@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App Dimmer (Superfork G9f, D054). -->
+<resources>
+    <string name="app_dimmer_title">App dimmer</string>
+    <string name="app_dimmer_subtitle">Darkens everything on screen, the player included, for dark rooms. Buttons keep working.</string>
+    <string name="app_dimmer_player_subtitle">Darkens the whole screen; the picture keeps playing.</string>
+    <string name="app_dimmer_off">Off</string>
+    <string name="cd_app_dimmer">App dimmer</string>
+</resources>
