@@ -36,6 +36,7 @@ class FeatureRegistryTest {
                 FeatureId.AUDIO_DV_AFR to FeatureMode.AUTO, // D048
                 FeatureId.SUBTITLE_INTELLIGENCE to FeatureMode.AUTO, // D051
                 FeatureId.SEEK_INTELLIGENCE to FeatureMode.AUTO, // D052
+                FeatureId.STREAM_INTELLIGENCE to FeatureMode.AUTO, // D053
             ),
             FeatureRegistry.DECIDED_DEFAULTS,
         )
@@ -46,6 +47,7 @@ class FeatureRegistryTest {
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.AUDIO_DV_AFR))
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.SUBTITLE_INTELLIGENCE))
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.SEEK_INTELLIGENCE))
+        assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.STREAM_INTELLIGENCE))
     }
 
     @Test

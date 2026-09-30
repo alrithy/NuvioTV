@@ -463,3 +463,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: titles whose watched part is mostly dark or static give weak matches and stay uncalibrated (by design); device check MANUAL-PENDING (G14 campaign, HV-G7-5)
 
+### G8a — Progressive AIOStreams with fallback; bounded add-on retry (147, 149, 150, 151, 289)
+- Roadmap gate: G8
+- Source repository: Cxsmo-ai/NuvioTV-Custom
+- Source branch: main
+- Pinned source SHA: 3e0d0fad60a2721adec133b88640b49c0183883f
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): data/repository/StreamRepositoryImpl.kt (`fetchProgressiveStreams`, `isProgressiveAioStreamsUrl`, the snapshot-replace emission), data/remote/dto `ProgressiveStreamEnvelopeDto`
+- Import mode: FILE_PORT (progressive endpoint, URL rules, DTO); retry policy local (no source has one: ysosrs breaker is display-only, official `safeApiCall` has none)
+- Current official equivalent: per-add-on accumulated emission (148); no progressive endpoint, no retry
+- What already existed upstream: official `getStreamsFromAllAddons` loop, `mergeStreams` dedup, Direct Debrid presentation, add-on health (G1)
+- What was imported: `client=nuvio-progressive` opt-in detection, `stream-progressive/<type>/<id>.ndjson` URL keeping the add-on's query, line-by-line NDJSON read with keep-alive/comment lines skipped, cumulative snapshots that replace the add-on's group, 180 s call budget, fallback to the ordinary JSON endpoint
+- What was intentionally not imported: Cxsmo's rewrite of the add-on loop and stream screen, `R1_SPLIT` timing logs, prefetch/sweep engines, logging of full add-on URLs
+- Local adaptations: runs inside official's add-on loop (`forkAwareStreamsFromAddon`), so health, inline-meta fallback and presentation stay official; snapshots pass official dedup and presentation before replacing the group; reads through official's `addonPermissive` client; leaving the screen cancels the blocking read; logs carry the host only; one retry after 750 ms for a 5xx/408/timeout whose first attempt took <= 8 s, never another 4xx, never twice
+- Feature flag / fallback: FeatureId.STREAM_INTELLIGENCE (AUTO, D053) OFF = official request only, no progressive endpoint, no retry; any progressive failure = official request unchanged
+- Tests ported/added: ProgressiveAioStreamsRulesTest (4), AddonStreamRetryTest (3), StreamRepositoryProgressiveTest (4)
+- License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: needs an AIOStreams build that serves the Nuvio progressive endpoint; device checks MANUAL-PENDING (G14 campaign, HV-G8-1..HV-G8-3)
+

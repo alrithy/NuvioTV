@@ -25,6 +25,8 @@ class FeatureRegistry(overrides: Map<FeatureId, FeatureMode> = emptyMap()) {
          * D048: G5 slices keep official output unless the user or a failure path asks otherwise.
          * D051: G6 only adds to official AutoSync (itself off by default) on its failure paths.
          * D052: seek previews only appear while the user scrubs; OFF keeps the official scrubber.
+         * D053: stream ranking and the Best-quality autoplay mode are opt-in; requests only gain an
+         *       opt-in progressive endpoint and one bounded retry.
          */
         internal val DECIDED_DEFAULTS: Map<FeatureId, FeatureMode> = mapOf(
             FeatureId.UNIFIED_DIAGNOSTICS to FeatureMode.AUTO,
@@ -34,6 +36,7 @@ class FeatureRegistry(overrides: Map<FeatureId, FeatureMode> = emptyMap()) {
             FeatureId.AUDIO_DV_AFR to FeatureMode.AUTO,
             FeatureId.SUBTITLE_INTELLIGENCE to FeatureMode.AUTO,
             FeatureId.SEEK_INTELLIGENCE to FeatureMode.AUTO,
+            FeatureId.STREAM_INTELLIGENCE to FeatureMode.AUTO,
         )
 
         val DEFAULTS: Map<FeatureId, FeatureMode> = immutableModes(
