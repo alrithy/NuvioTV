@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Post-play sources (Superfork G9c, D054). -->
+<resources>
+    <string name="post_play_source">Recommendation source</string>
+    <string name="post_play_source_sub">Where the titles shown after playback come from. Any source other than the first shows up to 20 titles.</string>
+    <string name="post_play_source_official">Same as More like this</string>
+    <string name="post_play_source_official_desc">Trakt, TMDB or Simkl, as chosen for More like this. Up to 4 titles.</string>
+    <string name="post_play_source_auto">Auto</string>
+    <string name="post_play_source_auto_desc">Kurato AI, then BingeCat AI, then More like this: the first that has titles.</string>
+    <string name="post_play_source_kurato">Kurato AI</string>
+    <string name="post_play_source_kurato_desc">Asks your installed Kurato AI add-on. More like this when it is not installed.</string>
+    <string name="post_play_source_bingecat">BingeCat AI</string>
+    <string name="post_play_source_bingecat_desc">Asks your installed BingeCat AI add-on. More like this when it is not installed.</string>
+    <string name="post_play_source_mdblist">MDBList watchlist</string>
+    <string name="post_play_source_mdblist_desc">Unwatched titles from your MDBList watchlist. More like this when MDBList is not connected.</string>
+</resources>

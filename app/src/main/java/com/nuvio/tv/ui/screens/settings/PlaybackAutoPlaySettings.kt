@@ -289,6 +289,7 @@ internal fun PlaybackUpNextSection(
             step = 1,
             onValueChange = { percent -> onUpdate { setPostPlayMovieThresholdPercent(percent) } }
         )
+        postPlaySourceSettingsItem() // Superfork G9c
     }
 }
 

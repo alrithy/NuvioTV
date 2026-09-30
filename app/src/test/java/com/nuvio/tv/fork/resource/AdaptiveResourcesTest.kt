@@ -62,7 +62,7 @@ class AdaptiveResourcesTest {
         assertTrue(standard.animatedPosters)
         assertTrue(standard.posterRevalidation)
         assertEquals(4, standard.imageDecodeParallelism(4))
-        assertEquals(0 until 7, standard.postPlayPrefetchIndices(7, 3))
+        assertEquals(0 until 4, standard.postPlayPrefetchIndices(4, 3))
         assertFalse(standard.isConstrained)
     }
 
@@ -75,7 +75,7 @@ class AdaptiveResourcesTest {
         assertTrue(constrained.animatedPosters)
         assertTrue(constrained.posterRevalidation)
         assertEquals(4, constrained.imageDecodeParallelism(4))
-        assertEquals(0 until 7, constrained.postPlayPrefetchIndices(7, 3))
+        assertEquals(0 until 4, constrained.postPlayPrefetchIndices(4, 0))
     }
 
     @Test
@@ -140,6 +140,14 @@ class AdaptiveResourcesTest {
         assertTrue(low.postPlayPrefetchIndices(5, -1).isEmpty())
         assertTrue(low.postPlayPrefetchIndices(0, 0).isEmpty())
         assertTrue(standard.postPlayPrefetchIndices(0, 0).isEmpty())
+    }
+
+    @Test
+    fun longPostPlayListsResolveAWindowAroundTheCardOnScreen() {
+        assertEquals(0..4, standard.postPlayPrefetchIndices(20, 0))
+        assertEquals(2..7, standard.postPlayPrefetchIndices(20, 3))
+        assertEquals(18..19, constrained.postPlayPrefetchIndices(20, 19))
+        assertEquals(3..3, low.postPlayPrefetchIndices(20, 3))
     }
 
     @Test

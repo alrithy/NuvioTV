@@ -111,11 +111,15 @@ class AdaptiveResourcePolicy(
     /**
      * Post-play candidates resolved up front. Each costs an addon meta fetch, a TMDB lookup,
      * ratings and a trailer lookup while the video pipeline is still up, so low-RAM devices
-     * resolve only the card on screen and page the rest in on demand.
+     * resolve only the card on screen and page the rest in on demand. Official's up to
+     * [POST_PLAY_FULL_PREFETCH] cards all resolve at once; G9c's longer lists (144) resolve a
+     * window around the card on screen (Cxsmo `RECOMMENDATION_PREFETCH_BEHIND/AHEAD` @ 3e0d0fa).
      */
     fun postPlayPrefetchIndices(count: Int, currentIndex: Int): IntRange = when {
         count <= 0 -> IntRange.EMPTY
-        !isLowRam -> 0 until count
+        !isLowRam && count <= POST_PLAY_FULL_PREFETCH -> 0 until count
+        !isLowRam -> (currentIndex - POST_PLAY_PREFETCH_BEHIND).coerceIn(0, count - 1)..
+            (currentIndex + POST_PLAY_PREFETCH_AHEAD).coerceIn(0, count - 1)
         currentIndex in 0 until count -> currentIndex..currentIndex
         else -> IntRange.EMPTY
     }
@@ -155,6 +159,11 @@ class AdaptiveResourcePolicy(
         const val CONSTRAINED_MAX_PARALLEL_CONNECTIONS = 4
         const val LOW_RAM_IMAGE_CACHE_PERCENT = 0.08
         const val LOW_RAM_DECODE_PARALLELISM = 2
+
+        /** Official's post-play list length (`MAX_POST_PLAY_RECOMMENDATIONS`): resolved in full. */
+        const val POST_PLAY_FULL_PREFETCH = 4
+        const val POST_PLAY_PREFETCH_BEHIND = 1
+        const val POST_PLAY_PREFETCH_AHEAD = 4
 
         /** Official behavior everywhere: used when the manager is OFF or not yet installed. */
         val OFFICIAL = AdaptiveResourcePolicy(MemoryTier.STANDARD)
