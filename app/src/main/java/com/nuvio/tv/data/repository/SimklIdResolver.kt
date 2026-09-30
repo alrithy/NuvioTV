@@ -11,6 +11,8 @@ import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
 import com.nuvio.tv.fork.resource.AdaptiveResources
+import com.nuvio.tv.fork.skip.readHeaderCancellable
+import com.nuvio.tv.fork.skip.readSkipBody
 
 private data class RedirectResult(val type: String, val simklId: Long)
 
@@ -201,20 +203,16 @@ class SimklIdResolver @Inject constructor(
                 .followSslRedirects(false)
                 .build()
             val request = Request.Builder().url(url).get().build()
-            val response = noRedirectClient.newCall(request).execute()
-            val location = response.header("Location")
-            response.close()
+            // Superfork G9 closeout: cancellable, so the skip-provider deadline also stops this call.
+            val location = noRedirectClient.newCall(request).readHeaderCancellable("Location")
             location?.let { parseRedirectLocation(it) }
         }
     }
 
-    @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun httpGet(url: String): String? {
-        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
-            val request = Request.Builder().url(url).get().build()
-            val response = okHttpClient.newCall(request).execute()
-            if (response.isSuccessful) response.body?.string() else null
-        }
+        val request = Request.Builder().url(url).get().build()
+        // Superfork G9 closeout: cancellable (the skip-provider deadline stops it), same null on error status.
+        return okHttpClient.newCall(request).readSkipBody(MAX_RESPONSE_BYTES)
     }
 
     private fun commonParams() = "client_id=$clientId&app-name=$appName&app-version=$appVersion"
@@ -222,6 +220,7 @@ class SimklIdResolver @Inject constructor(
 
     companion object {
         private const val TAG = "SimklIdResolver"
+        private const val MAX_RESPONSE_BYTES = 8L * 1024 * 1024
     }
 }
 

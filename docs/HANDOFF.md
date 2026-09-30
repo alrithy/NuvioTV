@@ -69,11 +69,11 @@ lossless audio, add-on health), BEST_QUALITY autoplay mode (stream screen and ne
 network kind, heavy streams drop within their cache tier) (#51). Device checks HV-G8-1..HV-G8-7 are
 MANUAL-PENDING (G14; `validation_pending_gates`).
 
-G9 CODE-COMPLETE (audit #53; G9a #54; G9b #55; G9c #56; G9d #57; G9e #58; G9f #59).
-Final squash `9e1cd8002085c6b228206f0035a0c8f4d5dabc1b`; G9f exact PR head
-`5dcde97b2349dd92bc403abbdca2ae06d406337b`, CI run
-https://github.com/alrithy/NuvioTV/actions/runs/36749475045: 2098 tests, 15 known failures,
-0 new, 1 skipped, fullDebug APK artifact 11114123283. All 51 IDs (117–146, 169–187, 206–207)
+G9 CODE-COMPLETE (audit #53; G9a #54; G9b #55; G9c #56; G9d #57; G9e #58; G9f #59; closeout
+corrections #61). Final squash `7552ef8853d3aca69ffb82f07dc3057f56246d13`; #61 exact PR head
+`058d99135ee8d0164db76981b82354c81b1433df`, CI run
+https://github.com/alrithy/NuvioTV/actions/runs/36777344928: 2111 tests, 15 known failures,
+0 new, 1 skipped, fullDebug APK. All 51 IDs (117–146, 169–187, 206–207)
 are terminal: 40 implemented, 11 verified_official, none deferred. Closeout evidence and slices:
 `docs/audits/G9_CLOSEOUT.md`; audit/architecture remain D054 and the existing G9 audit.
 One official skip aggregator, opt-in providers/categories, post-play on official controller,
@@ -82,8 +82,15 @@ DISCOVERY_SKIP_RECOMMENDATIONS OFF restores official; ThemeDataStore remains unc
 HV-G9-1, HV-G9-2, HV-G9-3, HV-G9-4, HV-G9-5, HV-G9-6, HV-G9-7 are all MANUAL-PENDING
 for G14 in the hardware checklist, manual log and validation_pending_gates. No device run claimed.
 
+Closeout review corrections (#61, from the four findings on draft #60 and one on #61): raw dialogs and
+popups draw the same dimmer layer; Mystery route context survives process recreation and manual /
+failed-autoplay source lists show neutral cards; skip HTTP (and the Simkl lookups behind AniSkip /
+Anime-Skip) is cancellation-aware inside the six-second provider deadline; encrypted credential
+writes change a non-secret cache revision with profile identity, so corrected keys are retried.
+
 G10 Live TV READY on `feat/live-tv`, task `tasks/G10_LIVE_TV.md`, IDs 208–236.
-Owner: Codex, sequential writer, no lease. Next gate: G11 Watch Party.
+Owner: claude-code (took over from Codex at the user's request), sequential writer, no lease.
+Next gate: G11 Watch Party.
 
 ## Exact next action
 1. After this governance transition merges, create/fast-forward `feat/live-tv` from remote

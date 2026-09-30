@@ -13,6 +13,7 @@ verified_official rows, with evidence for every row; no planned, in_progress, bl
 | G9d shuffle / Mystery | #57 | 317afca6a05fc89a605c01cdd476f0fa6565b3b5 |
 | G9e Calendar | #58 | 14f49be97cdb8ca3c7b72ef3a3da179f5968dc15 |
 | G9f App Dimmer | #59 | 9e1cd8002085c6b228206f0035a0c8f4d5dabc1b |
+| Closeout review corrections | #61 | 7552ef8853d3aca69ffb82f07dc3057f56246d13 |
 
 G9f PR head verified directly on GitHub before merge:
 `5dcde97b2349dd92bc403abbdca2ae06d406337b`. No reviews or unresolved review threads.
@@ -31,9 +32,17 @@ G9f review confirmed per-profile fork_app_dimmer storage, 0% default, clamp/pres
 no pointer/key handling on the overlay, app and NuvioDialog draw layers, player picker, flag OFF
 returning official behavior and unchanged official ThemeDataStore. IMPORT_LEDGER records GPL-3.0
 source/attribution and adaptations. No out-of-scope runtime changes or new network behavior.
-Known limitations remain in the slice ledgers: raw Compose Dialog windows remain undimmed;
-some external skip endpoints and recommendation add-ons are unverified; Mystery process-death/
-manual-stream fallback limits remain recorded. Hardware certification must evaluate them honestly.
+Closeout review corrections (#61, exact head `058d99135ee8d0164db76981b82354c81b1433df`, run
+https://github.com/alrithy/NuvioTV/actions/runs/36777344928: 2111 tests, 15 registered failures, 0 new,
+1 skipped, fullDebug APK) close the four findings raised on this PR and one raised on #61:
+raw Compose dialog and popup windows draw the same input-transparent dimmer layer (206, 207);
+the Mystery route context is saved across process recreation and manual / failed-autoplay source lists
+show neutral numbered cards (174–177); skip HTTP is cancellation-aware and bounded inside the
+six-second provider deadline, official provider deadlines start independently and the Simkl lookups
+behind AniSkip / Anime-Skip share it (131); encrypted credential writes change a non-secret cache
+revision with profile identity, so corrected or rotated keys are retried (125, 126, 135).
+Remaining recorded limits: some external skip endpoints and recommendation add-ons are unverified
+from CI; hardware certification must evaluate every HV-G9 row honestly.
 
 Local closeout checks: project validator, governance regression suite and git diff --check.
 Android tests/build evidence comes from GitHub CI; no manual/device testing is claimed.
@@ -43,5 +52,5 @@ They are carried into validation_pending_gates, the hardware checklist and MANUA
 under D047. G9 is CODE-COMPLETE, with hardware validation pending; this is no Stable-release claim.
 
 The separate governance transition activates G10 Live TV / feat/live-tv / tasks/G10_LIVE_TV.md,
-owner Codex (sequential; no lease), next G11 Watch Party. G10 begins only after that PR merges,
+owner claude-code (sequential; no lease; taken over from Codex at the user's request), next G11 Watch Party. G10 begins only after that PR merges,
 with an official-first audit against current dev and the unchanged Reshaped source pin.

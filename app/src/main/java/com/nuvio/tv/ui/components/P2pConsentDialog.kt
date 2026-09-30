@@ -66,7 +66,7 @@ fun P2pConsentDialog(
         focusRequester.requestFocus()
     }
 
-    androidx.compose.ui.window.Dialog(
+    com.nuvio.tv.ui.components.AppDimmedDialog(
         onDismissRequest = onDismiss,
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
     ) {
