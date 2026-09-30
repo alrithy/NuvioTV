@@ -45,11 +45,14 @@ it is the single G6 engine (REUSE; no fork engine, D049 superseded). Audit
 verified official; gaps are 84 (no reference when the file has no embedded subtitles), 94 (no Arabic
 AutoSync strings) and 100–105 (fonts, Arabic cinema preset). 85 deferred (the subtitle protocol has no
 per-subtitle hash-match flag); 92, 93 (audio / ASR sync) deferred to G13 candidates.
+G6a (84, 94) on this branch: when the file has no embedded subtitle reference, official AutoSync uses
+the stream's own subtitles as the reference (`fork/subtitles/StreamSubtitleReference`, one input to
+`findTimelineRetime`); Arabic AutoSync strings (`values-ar/autosync_strings.xml`). SUBTITLE_INTELLIGENCE
+is AUTO (D051). Device checks HV-G6-1, HV-G6-2 MANUAL-PENDING (G14).
 
 ## Exact next action
-1. Merge the G6 audit PR #39, then slices G6a (extend official AutoSync: stream-provided subtitle as
-   the reference when the file has no embedded subtitles, Arabic AutoSync strings; 84, 94) and G6b
-   (custom fonts + Arabic cinema preset, 100–105).
+1. Merge G6a (84, 94), then G6b (custom fonts + Arabic cinema preset, 100–105; security review for
+   the LAN font upload).
 2. Continue G6→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.

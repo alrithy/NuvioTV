@@ -34,6 +34,7 @@ class FeatureRegistryTest {
                 FeatureId.PLAYBACK_STRATEGY_ENGINE to FeatureMode.AUTO, // D043
                 FeatureId.REMUX_PERFORMANCE to FeatureMode.AUTO, // D044
                 FeatureId.AUDIO_DV_AFR to FeatureMode.AUTO, // D048
+                FeatureId.SUBTITLE_INTELLIGENCE to FeatureMode.AUTO, // D051
             ),
             FeatureRegistry.DECIDED_DEFAULTS,
         )
@@ -42,6 +43,7 @@ class FeatureRegistryTest {
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.PLAYBACK_STRATEGY_ENGINE))
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.REMUX_PERFORMANCE))
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.AUDIO_DV_AFR))
+        assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.SUBTITLE_INTELLIGENCE))
     }
 
     @Test

@@ -191,6 +191,7 @@ internal fun PlayerRuntimeController.maybeRunAutomaticSubtitleSync(
                 },
                 onReferenceReady = {},
                 onAnalysisOutcome = { outcome -> analysisOutcome = outcome },
+                fallbackReferences = autoSyncStreamSubtitleReferences(selectedUrl),
             )
 
             if (resolved == null) {

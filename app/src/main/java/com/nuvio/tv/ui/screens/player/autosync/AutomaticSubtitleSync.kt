@@ -1,7 +1,10 @@
 package com.nuvio.tv.ui.screens.player.autosync
 
 import android.os.SystemClock
+import android.util.Log
 import androidx.media3.common.C
+import com.nuvio.tv.fork.subtitles.StreamSubtitleReference
+import com.nuvio.tv.ui.screens.player.PlayerRuntimeController
 import com.nuvio.tv.ui.screens.player.SubtitleSyncCue
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
@@ -105,6 +108,8 @@ internal object AutomaticSubtitleSync {
         onNoSubtitleTracks: () -> Unit = {},
         onAnalysisOutcome: ((AutoSyncAnalysisOutcome) -> Unit)? = null,
         sourceHeaders: Map<String, String> = emptyMap(),
+        // Superfork G6a (84): same-release reference used only when the file has no embedded one.
+        fallbackReferences: List<StreamSubtitleReference.Candidate> = emptyList(),
     ): AutoSyncResolvedTimeline? {
         Unit
         val aggressiveMode = AutoSyncPreferences.aggressiveMode.value
@@ -435,6 +440,14 @@ internal object AutomaticSubtitleSync {
                 )
                 referenceTracks = liveSelection.primary
                 forcedFallbackTracks = liveSelection.forcedFallback
+            }
+
+            if (referenceTracks.isEmpty() && fallbackReferences.isNotEmpty()) {
+                referenceTracks = loadFallbackReferenceTracks(fallbackReferences)
+                Log.d(
+                    PlayerRuntimeController.TAG,
+                    "AUTO_SYNC_V2 stream subtitle reference usable=${referenceTracks.size}/${fallbackReferences.size}",
+                )
             }
 
             if (referenceTracks.isEmpty()) {
@@ -1422,6 +1435,27 @@ internal object AutomaticSubtitleSync {
             rawBody = text,
         )
     }
+
+    /**
+     * Superfork G6a (84): stream-provided subtitles of the same release as reference tracks, held
+     * to the same size and span floor as embedded references. Unusable ones are dropped.
+     */
+    private suspend fun loadFallbackReferenceTracks(
+        references: List<StreamSubtitleReference.Candidate>,
+    ): List<ReferenceTrack> =
+        references.mapIndexedNotNull { index, reference ->
+            val cues = loadSelectedSubtitle(reference.url, reference.headers)?.cues
+                ?: return@mapIndexedNotNull null
+            if (cues.size < MIN_FULL_DIALOGUE_CUES || referenceSpanMs(cues) < MIN_INDEXED_REFERENCE_SPAN_MS) {
+                return@mapIndexedNotNull null
+            }
+            ReferenceTrack(
+                key = "stream-subtitle:$index",
+                language = reference.language,
+                cues = cues,
+                label = reference.label,
+            )
+        }
 
     internal suspend fun downloadSubtitleBody(
         url: String,
