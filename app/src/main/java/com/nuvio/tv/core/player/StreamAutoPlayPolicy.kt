@@ -12,6 +12,7 @@ object StreamAutoPlayPolicy {
         return when (playerSettings.streamAutoPlayMode) {
             StreamAutoPlayMode.MANUAL -> false
             StreamAutoPlayMode.FIRST_STREAM -> true
+            StreamAutoPlayMode.BEST_QUALITY -> true // Superfork G8b
             StreamAutoPlayMode.REGEX_MATCH -> isRegexSelectionConfigured(playerSettings.streamAutoPlayRegex)
         }
     }

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stream ranking (Superfork G8b, D053). -->
+<resources>
+    <string name="autoplay_mode_best_quality">Best quality</string>
+    <string name="autoplay_mode_best_quality_desc">Plays the best available stream: cached first, then resolution, source quality (REMUX first), release group, Dolby Vision / HDR your TV shows, lossless audio, channels, codec and bitrate.</string>
+    <string name="stream_list_order_best_quality">Sort streams by quality</string>
+    <string name="stream_list_order_best_quality_sub">Lists streams in the same order Best quality autoplay uses. Off keeps the add-on order.</string>
+</resources>

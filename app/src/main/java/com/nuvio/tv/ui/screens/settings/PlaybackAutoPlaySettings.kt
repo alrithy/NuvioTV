@@ -87,9 +87,11 @@ internal fun PlaybackStreamSelectionSection(
             StreamAutoPlayMode.MANUAL -> stringResource(R.string.autoplay_mode_manual)
             StreamAutoPlayMode.FIRST_STREAM -> stringResource(R.string.autoplay_mode_first)
             StreamAutoPlayMode.REGEX_MATCH -> stringResource(R.string.autoplay_mode_regex)
+            StreamAutoPlayMode.BEST_QUALITY -> stringResource(R.string.autoplay_mode_best_quality) // Superfork G8b
         },
         onClick = { onOpenDialog(PlaybackDialog.STREAM_AUTO_PLAY_MODE) }
     )
+    com.nuvio.tv.fork.streams.StreamRankingSection() // Superfork G8b: "Best quality" list order
 
     if (settings.streamAutoPlayMode == StreamAutoPlayMode.REGEX_MATCH) {
         SettingsActionRow(
@@ -434,6 +436,13 @@ private fun StreamAutoPlayModeDialog(
         SettingsPickerOption(StreamAutoPlayMode.MANUAL, stringResource(R.string.autoplay_mode_manual), stringResource(R.string.autoplay_mode_manual_desc)),
         SettingsPickerOption(StreamAutoPlayMode.FIRST_STREAM, stringResource(R.string.autoplay_mode_first), stringResource(R.string.autoplay_mode_first_desc)),
         SettingsPickerOption(StreamAutoPlayMode.REGEX_MATCH, stringResource(R.string.autoplay_mode_regex), stringResource(R.string.autoplay_mode_regex_desc))
+    ) + listOfNotNull(
+        // Superfork G8b (168): the G8 ranker's pick; offered only while STREAM_INTELLIGENCE is on.
+        SettingsPickerOption(
+            StreamAutoPlayMode.BEST_QUALITY,
+            stringResource(R.string.autoplay_mode_best_quality),
+            stringResource(R.string.autoplay_mode_best_quality_desc)
+        ).takeIf { com.nuvio.tv.fork.streams.StreamIntelligence.enabled }
     )
 
     SettingsSingleChoiceDialog(

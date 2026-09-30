@@ -1762,6 +1762,7 @@ internal fun PlayerRuntimeController.playNextEpisode(userInitiated: Boolean = fa
 
             val installedAddons = addonRepository.getInstalledAddons().first().enabledAddons()
             val installedAddonOrder = installedAddons.map { it.displayName }
+            val rankContext = streamRanking.contextFor(installedAddons) // Superfork G8b
             val effectiveMode = if (shouldAutoSelectInManualMode) {
                 StreamAutoPlayMode.FIRST_STREAM
             } else {
@@ -1813,7 +1814,8 @@ internal fun PlayerRuntimeController.playNextEpisode(userInitiated: Boolean = fa
                         null
                     },
                     preferBingeGroupInSelection = playerSettings.streamAutoPlayPreferBingeGroupForNextEpisode,
-                    bingeGroupOnly = bingeGroupOnlyManualMode
+                    bingeGroupOnly = bingeGroupOnlyManualMode,
+                    rankContext = rankContext
                 )
             }
 

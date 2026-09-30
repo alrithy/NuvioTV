@@ -66,14 +66,18 @@ results per add-on (148), has instant/bounded/unlimited scrape timeouts (152–1
 `fork/streams` on official facts (Cxsmo ranking chain), "Best quality" list order and autoplay mode (opt-in),
 Reshaped connection fit, progressive AIOStreams with fallback, bounded add-on retry. Official `dev` observed
 at `9bf4ed1` (version bump only; not accepted).
-G8a (147, 149–151, 289) on this branch: AIOStreams' opt-in progressive NDJSON endpoint (Cxsmo FILE_PORT)
+G8a (147, 149–151, 289) (#49, `9f45f39`): AIOStreams' opt-in progressive NDJSON endpoint (Cxsmo FILE_PORT)
 for add-on URLs with `client=nuvio-progressive`, cumulative snapshots replacing the add-on's group through
 official dedup, fallback to the official request on any failure; one bounded retry (5xx/408/timeout, first
 attempt <= 8 s, never 4xx). STREAM_INTELLIGENCE AUTO (D053). Device checks HV-G8-1..HV-G8-3 MANUAL-PENDING (G14).
+G8b (155, 156, 158–164, 166, 168) on this branch: one ranker in `fork/streams` over official facts (Cxsmo
+chain + TRaSH tiers): cache tier → resolution → quality → release group → HDR/DV (by display) → lossless
+audio → channels → codec → size → add-on health, stable; official autoplay gains BEST_QUALITY (same
+candidates; stream screen and next episode); opt-in "Sort streams by quality" list order (default off, 167).
+Device checks HV-G8-4..HV-G8-6 MANUAL-PENDING (G14).
 
 ## Exact next action
-1. Merge G8a, then G8b (one ranker, "Best quality" list order and autoplay; 155, 156, 158–164, 166, 168)
-   and G8c (connection fit; 165).
+1. Merge G8b, then G8c (connection fit; 165), then close G8 and start G9 with its mandatory audit.
 2. Continue G8→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.

@@ -106,6 +106,8 @@ class PlayerRuntimeController(
     internal val playbackRecoveryEnabled: Boolean,
     /** G5 fork audio output preferences (lossless default); official behavior by default. */
     internal val audioOutputPreferences: com.nuvio.tv.fork.audio.AudioOutputPreferences,
+    /** G8 stream ranking inputs for the Best-quality autoplay mode (next episode). */
+    internal val streamRanking: com.nuvio.tv.fork.streams.StreamRankingPreferences,
     savedStateHandle: SavedStateHandle,
     internal val scope: CoroutineScope
 ) {

@@ -101,7 +101,8 @@ class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     featureRegistry: com.nuvio.tv.fork.foundation.FeatureRegistry,
     playbackStrategySession: com.nuvio.tv.fork.playback.PlaybackStrategySession,
-    audioOutputPreferences: com.nuvio.tv.fork.audio.AudioOutputPreferences
+    audioOutputPreferences: com.nuvio.tv.fork.audio.AudioOutputPreferences,
+    streamRanking: com.nuvio.tv.fork.streams.StreamRankingPreferences
 ) : ViewModel() {
 
     /** Superfork HUD rows (G1b) are shown only while unified diagnostics are not switched off. */
@@ -157,6 +158,7 @@ class PlayerViewModel @Inject constructor(
         playbackRecoveryEnabled = featureRegistry.mode(com.nuvio.tv.fork.foundation.FeatureId.REMUX_PERFORMANCE) !=
             com.nuvio.tv.fork.foundation.FeatureMode.OFF,
         audioOutputPreferences = audioOutputPreferences,
+        streamRanking = streamRanking,
         savedStateHandle = savedStateHandle,
         scope = viewModelScope
     )
