@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Seek previews (Superfork G7a; player strings from Reshaped @ 0ccf049). -->
+<resources>
+    <string name="cd_seek_preview_sync">Preview sync</string>
+    <string name="player_seek_preview_sync">Preview Sync</string>
+    <string name="player_seek_preview_sync_hint">Nudge until the thumbnail matches the frame playing behind this panel.</string>
+    <string name="player_seek_preview_sync_keys">Left/Right adjust · OK resets · Down uses the suggested value · Up or Back closes</string>
+    <string name="player_seek_preview_sync_suggested">Suggested: %1$s (duration gap vs. the preview source)</string>
+    <string name="settings_seek_preview_label">Seek previews</string>
+    <string name="settings_seek_preview_local">Generate previews on device</string>
+    <string name="settings_seek_preview_local_description">Makes seek thumbnails from what playback already downloaded, so they always line up and cost no extra data. Seekr fills in the parts you have not watched yet.</string>
+    <string name="settings_seekr_api_key">Seekr API key</string>
+    <string name="settings_seekr_api_key_description">Thumbnails for parts you have not watched come from seekr.tv and need your own free key from seekr.tv. Without a key, previews come only from the device.</string>
+    <string name="settings_seekr_api_key_none">Not set</string>
+    <string name="settings_seekr_api_key_custom">Your own key</string>
+    <string name="settings_seekr_api_key_entry">Paste your seekr.tv key. It is checked with Seekr, then stored encrypted on this TV for this profile. Type clear to remove it.</string>
+    <string name="settings_seekr_api_key_placeholder">Seekr key</string>
+    <string name="settings_seekr_api_key_checking">Checking the key with Seekr…</string>
+    <string name="settings_seekr_api_key_saved">Key saved.</string>
+    <string name="settings_seekr_api_key_invalid">Seekr didn\'t accept this key.</string>
+    <string name="settings_seekr_api_key_cleared">Key removed.</string>
+</resources>

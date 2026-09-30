@@ -1020,7 +1020,8 @@ internal fun PlayerRuntimeController.initializePlayer(
                         stripDvRpu = stripDvRpuEnabled,
                         stripHdr10PlusSei = stripHdr10PlusSei,
                         injectHdr10Sei = injectHdr10SeiOnStrip
-                    ).let { autoSyncExtractorsFactory(it, url, headers) } // AutoSync hook
+                    ).let { seekPreviewExtractorsFactory(it, url) } // Superfork G7a: keyframe tap
+                        .let { autoSyncExtractorsFactory(it, url, headers) } // AutoSync hook
 
             setLoadingStatus(
                 phase = "building_player",

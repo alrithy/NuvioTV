@@ -287,9 +287,14 @@ private fun SubtitleFontDialog(onDismiss: () -> Unit) {
     }
 
     if (showUrlDialog) {
-        SubtitleFontUrlDialog(
+        ForkTextEntryDialog(
+            title = stringResource(R.string.subtitle_font_url_title),
+            description = stringResource(R.string.subtitle_font_url_description),
+            placeholder = "https://",
+            confirmText = stringResource(R.string.subtitle_font_url_import),
+            keyboardType = KeyboardType.Uri,
             onDismiss = { showUrlDialog = false },
-            onImport = { url ->
+            onConfirm = { url ->
                 showUrlDialog = false
                 runImport { SubtitleFontStore.importFromUrl(context, url) }
             },
@@ -298,7 +303,7 @@ private fun SubtitleFontDialog(onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun SubtitleFontDialogButton(
+internal fun SubtitleFontDialogButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -315,9 +320,19 @@ private fun SubtitleFontDialogButton(
     }
 }
 
+/** One-line text entry for a Superfork setting (font URL in G6b, Seekr key in G7a). */
 @Composable
-private fun SubtitleFontUrlDialog(onDismiss: () -> Unit, onImport: (String) -> Unit) {
-    var value by remember { mutableStateOf("") }
+internal fun ForkTextEntryDialog(
+    title: String,
+    description: String,
+    placeholder: String,
+    confirmText: String,
+    keyboardType: KeyboardType,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit,
+    initialValue: String = "",
+) {
+    var value by remember { mutableStateOf(initialValue) }
     var isInputFocused by remember { mutableStateOf(false) }
     val inputFocusRequester = remember { FocusRequester() }
     val cardFocusRequester = remember { FocusRequester() }
@@ -326,8 +341,8 @@ private fun SubtitleFontUrlDialog(onDismiss: () -> Unit, onImport: (String) -> U
 
     NuvioDialog(
         onDismiss = onDismiss,
-        title = stringResource(R.string.subtitle_font_url_title),
-        subtitle = stringResource(R.string.subtitle_font_url_description),
+        title = title,
+        subtitle = description,
         width = 700.dp,
     ) {
         Card(
@@ -369,14 +384,14 @@ private fun SubtitleFontUrlDialog(onDismiss: () -> Unit, onImport: (String) -> U
                             isCenterDown
                         },
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
+                    keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(onDone = { keyboardController?.hide() }),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(color = NuvioTheme.colors.TextPrimary),
                     cursorBrush = SolidColor(if (isInputFocused) NuvioTheme.colors.Primary else Color.Transparent),
                     decorationBox = { innerTextField ->
                         if (value.isBlank()) {
                             Text(
-                                text = "https://",
+                                text = placeholder,
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = NuvioTheme.colors.TextTertiary,
                             )
@@ -396,8 +411,8 @@ private fun SubtitleFontUrlDialog(onDismiss: () -> Unit, onImport: (String) -> U
                 onClick = onDismiss,
             )
             SubtitleFontDialogButton(
-                text = stringResource(R.string.subtitle_font_url_import),
-                onClick = { if (value.isNotBlank()) onImport(value.trim()) },
+                text = confirmText,
+                onClick = { if (value.isNotBlank()) onConfirm(value.trim()) },
             )
         }
     }

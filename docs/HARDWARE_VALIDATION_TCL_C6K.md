@@ -104,6 +104,15 @@ for. Never mark a row PASS from memory or expectation. Copy finished rows into
 | HV-G6-4 phone upload via QR (101) | Open *Subtitle font*, scan the QR code with a phone on the same Wi-Fi, send a .otf. Then close the dialog and reload the page on the phone. | The TV shows "Font imported: <name>" and uses it. After the dialog closes the page no longer loads (server stopped); a request without the token path gets 403. | MANUAL-PENDING | photo + phone screenshot |
 | HV-G6-5 Arabic cinema preset (105) | Settings → Subtitles → *Arabic cinema preset*. Play an Arabic subtitle over a bright and a dark scene. | Size, bold, outline and offset change once and show "Applied"; Arabic text with diacritics is readable on both scenes and no line is clipped at the bottom. Changing any value removes "Applied". | MANUAL-PENDING | photo |
 
+## 4d. G7 — Seek Intelligence
+
+| Test | Steps | Expected | Result | Evidence |
+|---|---|---|---|---|
+| HV-G7-1 on-device previews (107, 108) | ExoPlayer, *Generate previews on device* on, no Seekr key. Play F1 for 10 minutes, pause, then scrub back over the watched part and forward past it. | Over the watched part the thumbnail shows real frames; past it the nearest one appears blurred. Playback shows no judder while previews are collected; the log has no `NuvioLocalPreviews` errors. | MANUAL-PENDING | photo + log |
+| HV-G7-2 keyframe-exact seek (109) | Scrub to a thumbnail over the watched part and press OK. | Playback resumes on the frame the thumbnail showed (within one keyframe), without a visible jump after the seek. | MANUAL-PENDING | video |
+| HV-G7-3 Seekr fallback and Preview Sync (110, 112) | Settings → Playback → *Seekr API key*: enter an invalid key, then a valid one. Play a popular film not watched before, scrub ahead, open the Preview Sync button and nudge. | The invalid key is refused; the valid one is saved (row shows "Your own key"). Unwatched parts show Seekr thumbnails; Preview Sync moves them. | MANUAL-PENDING | photo |
+| HV-G7-4 memory and disk bounds (115, 116) | With the HUD open, scrub through a 2-hour 4K remux, then play three more titles. Check Settings → Apps → Nuvio storage. | No playback stall or app restart; on a device under 3 GB the 4K stream gets no local previews (log `no software decoder` or size skip); cache stays under the tier cap. | MANUAL-PENDING | log + storage screenshot |
+
 ## 5. G4 final validation — same-file A/B (required before Stable release)
 
 Use **F1** for arms A and B, and **F2 and F3** for the seek arm. Same TV, same network, same time

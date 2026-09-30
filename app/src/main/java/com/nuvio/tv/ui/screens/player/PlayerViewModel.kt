@@ -161,6 +161,9 @@ class PlayerViewModel @Inject constructor(
         scope = viewModelScope
     )
 
+    /** Superfork G7a: seek-preview thumbnails (see fork/seek, D052). */
+    val seekPreview = com.nuvio.tv.fork.seek.SeekPreviewState(viewModelScope, controller)
+
     private val postPlayRecommendationController = PostPlayRecommendationController(
         playbackController = controller,
         playerSettingsDataStore = playerSettingsDataStore,
@@ -283,7 +286,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun onEvent(event: PlayerEvent) {
-        controller.onEvent(event)
+        controller.onEvent(seekPreview.intercept(event)) // Superfork G7a: grid-locked scrubbing
     }
 
     fun bindExoSubtitleView(subtitleView: androidx.media3.ui.SubtitleView?) {

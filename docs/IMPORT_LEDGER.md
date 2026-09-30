@@ -425,3 +425,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: preset values are a design choice pending the G14 viewing check (HV-G6-5)
 
+### G7a — Hybrid seek preview engine: local keyframes, bounded Seekr fallback, Preview Sync (107–110, 112, 115, 116, 279)
+- Roadmap gate: G7
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped (engine); Cxsmo-ai/NuvioTV-Custom (key store)
+- Source branch: subtitle-autosync; main
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba; 3e0d0fad60a2721adec133b88640b49c0183883f
+- Source commit(s): trees at the pinned SHAs (file-level diff)
+- Source file(s): Reshaped `ui/screens/player/seekpreview/*` (SeekPreviewTrack, SeekPreviewState, SeekPreviewThumbnailHost, SeekPreviewSyncOverlay, SeekPreviewSyncConfig, SeekPreviewCueGrid, SeekPreviewPlayerHooks, BoundedSeekrTrack, SeekrContentMapping, local/VideoKeyframeTap, local/KeyframeThumbnailDecoder, local/LocalPreviewTrack, local/LocalPreviewSources, local/LocalSeekPreviewSettings) + tests SeekPreviewCueStepperTest, SeekrContentMappingTest + PlayerScreen/ViewModel/PlaybackEvents/Lifecycle hook hunks; Cxsmo `data/local/SeekrCredentialsStore.kt`
+- Import mode: FILE_PORT (engine, UI, tests, key store) + DELTA_PORT (player hooks)
+- Current official equivalent: none (scrubber without previews)
+- What already existed upstream: extractor-factory seam, scrubber composables (`ProgressBar`, `SeekOverlay`), grid-less D-pad scrubbing, NanoHTTPD-free settings rows
+- What was imported: thumbnails from the keyframes playback already downloads (extractor tap, one software decoder, decoded only while paused/scrubbing, spool while playing, per-title disk cache), keyframe-exact commit, memory-bounded Seekr sprites for slots without a local frame, hybrid track, cue ticks and grid-locked scrubbing, manual Preview Sync; Seekr key encrypted per profile with an Android Keystore key
+- What was intentionally not imported: Reshaped plaintext `SeekrKeyPreferences` and the built-in `BuildConfig.SEEKR_API_KEY`; Reshaped phone key-send page; Cxsmo live-player surface capture and unbounded SDK host (calibration comes in G7b on local frames); Reshaped audio-sync tap chained in the same factory
+- Local adaptations: package `fork/seek`; limits from `AdaptiveResources.seekPreviewBudget` (48/32/16 decoded, 200/100/50 MB cache, 96/48/24 MB spool by tier; no decode above 1080p under 3 GB; low-RAM opt-in) instead of fixed constants; keyframe tap chained after the DV factory and before AutoSync's; logs carry exception class only; key checked with Seekr (`X-API-Key`, no redirects) before saving; Seekr SDK `tv.seekr:seekr-android:0.2.0` (Apache-2.0)
+- Feature flag / fallback: FeatureId.SEEK_INTELLIGENCE (AUTO, D052) OFF = no tap, no tracks, rows hidden, official scrubber; no key = local previews only; unsupported codec/size = no local frames; MPV = official scrubber
+- Tests ported/added: SeekPreviewCueStepperTest (22, ported), SeekrContentMappingTest (ported), SeekPreviewBudgetTest (5), SeekrKeyValidatorTest (2), FeatureRegistryTest updated
+- License / attribution notes: GPL-3.0 forks of official; Seekr SDK Apache-2.0 (compatible); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: software decoders vary by device (a codec without one gets no local frames); Dolby Vision streams may expose a DV mime with no software decoder; device checks MANUAL-PENDING (G14 campaign, HV-G7-1..HV-G7-4)
+

@@ -5,6 +5,14 @@
 
 package com.nuvio.tv.ui.screens.player
 
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.material.icons.filled.Tune
+import com.nuvio.tv.fork.seek.SeekPreviewAboveProgressBar
+import com.nuvio.tv.fork.seek.SeekPreviewCueTicks
+import com.nuvio.tv.fork.seek.SeekPreviewSyncLayer
+import com.nuvio.tv.fork.seek.SeekPreviewThumbnailHost
+import com.nuvio.tv.fork.seek.handleBack
+import com.nuvio.tv.fork.seek.seekPreviewSyncAction
 import com.nuvio.tv.ui.theme.NuvioMotion
 
 import com.nuvio.tv.ui.theme.NuvioTheme
@@ -286,6 +294,7 @@ fun PlayerScreen(
 
     val handleBackPress = handleBackPress@{
         if (externalHandoffInProgress) return@handleBackPress
+        if (viewModel.seekPreview.handleBack(uiState)) return@handleBackPress // Superfork G7a
         if (postPlayRecommendationState.canReturnToPlayer && !uiState.playbackEnded) {
             returnToPlayerFromPostPlay()
             viewModel.hideControls()
@@ -486,6 +495,7 @@ fun PlayerScreen(
     ) {
         if (shouldConfirmNextEpisodeOnEnd || postPlayRecommendationState.isVisible) return@LaunchedEffect
         if (uiState.error != null) return@LaunchedEffect
+        if (viewModel.seekPreview.isSyncOverlayOpen) return@LaunchedEffect // Superfork G7a
         if (uiState.showControls && !uiState.showEpisodesPanel && !uiState.showSourcesPanel &&
             !uiState.showAudioOverlay && !uiState.showSubtitleOverlay &&
             !uiState.showSubtitleStylePanel && !uiState.showSubtitleDelayOverlay &&
@@ -1457,6 +1467,8 @@ fun PlayerScreen(
             )
         }
 
+        SeekPreviewSyncLayer(viewModel, uiState, onDismissed = { runCatching { containerFocusRequester.requestFocus() } }) // Superfork G7a
+
         AnimatedVisibility(
             visible = uiState.showSeekOverlay && !uiState.showControls && uiState.error == null &&
                 !uiState.showLoadingOverlay && !uiState.showPauseOverlay &&
@@ -2299,6 +2311,7 @@ private fun PlayerControlsOverlay(
             if (!isLivePlayback) {
                 // Progress bar — always LTR regardless of locale
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    SeekPreviewAboveProgressBar(viewModel) // Superfork G7a
                     PlayerControlsProgressBarHost(
                         viewModel = viewModel,
                         focusRequester = progressBarFocusRequester,
@@ -2467,6 +2480,17 @@ private fun PlayerControlsOverlay(
                                 onDownKey = onHideControls,
                                 onFocused = onResetHideTimer
                             )
+                            // Superfork G7a (112): Preview Sync, only while a Seekr track is loaded.
+                            seekPreviewSyncAction(viewModel)?.let { openSync ->
+                                ControlButton(
+                                    icon = Icons.Default.Tune,
+                                    contentDescription = stringResource(R.string.cd_seek_preview_sync),
+                                    onClick = openSync,
+                                    upFocusRequester = progressUpTarget,
+                                    onDownKey = onHideControls,
+                                    onFocused = onResetHideTimer
+                                )
+                            }
                             if (uiState.playbackIssueReportsEnabled) {
                                 ReportControlButton(
                                     reportId = uiState.playbackIssueReportId,
@@ -2529,7 +2553,8 @@ private fun PlayerControlsProgressBarHost(
         downFocusRequester = downFocusRequester,
         onUpKey = onUpKey,
         onFocused = onFocused,
-        bufferedPosition = playbackTimeline.bufferedPosition
+        bufferedPosition = playbackTimeline.bufferedPosition,
+        overlay = { SeekPreviewCueTicks(viewModel, playbackTimeline.duration, Modifier.matchParentSize()) } // Superfork G7a
     )
 }
 
@@ -2681,7 +2706,9 @@ private fun ProgressBar(
     onUpKey: (() -> Unit)? = null,
     onFocused: (() -> Unit)? = null,
     /** Position (ms) up to which content is buffered. Pass 0 to skip the overlay. */
-    bufferedPosition: Long = 0L
+    bufferedPosition: Long = 0L,
+    /** Drawn over the track, e.g. seek-preview cue ticks (Superfork G7a). */
+    overlay: @Composable BoxScope.() -> Unit = {}
 ) {
     val accentBrush = NuvioTheme.palette.accentBrush()
     val progress = if (duration > 0) {
@@ -2818,6 +2845,7 @@ private fun ProgressBar(
                 .clip(RoundedCornerShape(3.dp))
                 .background(accentBrush)
         )
+        overlay()
     }
 }
 
@@ -2825,7 +2853,9 @@ private fun ProgressBar(
 private fun SeekOverlay(
     currentPosition: Long,
     duration: Long,
-    bufferedPosition: Long = 0L
+    bufferedPosition: Long = 0L,
+    preview: @Composable () -> Unit = {},
+    progressOverlay: @Composable BoxScope.() -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -2833,12 +2863,14 @@ private fun SeekOverlay(
             .padding(horizontal = NuvioTheme.spacing.xxl, vertical = NuvioTheme.spacing.xl)
     ) {
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            preview()
             ProgressBar(
                 currentPosition = currentPosition,
                 duration = duration,
                 onSeekPreview = {},
                 onSeekCommit = {},
-                bufferedPosition = bufferedPosition
+                bufferedPosition = bufferedPosition,
+                overlay = progressOverlay
             )
 
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.md))
@@ -2865,7 +2897,9 @@ private fun SeekOverlayHost(viewModel: PlayerViewModel) {
     SeekOverlay(
         currentPosition = playbackTimeline.currentPosition,
         duration = playbackTimeline.duration,
-        bufferedPosition = playbackTimeline.bufferedPosition
+        bufferedPosition = playbackTimeline.bufferedPosition,
+        preview = { SeekPreviewThumbnailHost(viewModel = viewModel) }, // Superfork G7a
+        progressOverlay = { SeekPreviewCueTicks(viewModel, playbackTimeline.duration, Modifier.matchParentSize()) }
     )
 }
 

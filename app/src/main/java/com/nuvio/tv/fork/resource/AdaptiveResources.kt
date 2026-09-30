@@ -43,7 +43,11 @@ enum class MemoryTier {
  * [isConstrained]. On [MemoryTier.STANDARD] every value is the official one, so strong devices
  * are never capped by this policy.
  */
-class AdaptiveResourcePolicy(val tier: MemoryTier) {
+class AdaptiveResourcePolicy(
+    val tier: MemoryTier,
+    /** Physical RAM when [AdaptiveResources.install] read it; null for [OFFICIAL] and tests. */
+    val totalRamMb: Long? = null,
+) {
 
     val isLowRam: Boolean get() = tier == MemoryTier.LOW_RAM
 
@@ -116,7 +120,34 @@ class AdaptiveResourcePolicy(val tier: MemoryTier) {
         else -> IntRange.EMPTY
     }
 
+    /**
+     * G7a (115, 116): budget for seek previews made on the device. Official has no previews, so
+     * the source values (Reshaped `LocalPreviewTrack` @ 0ccf049) apply to standard devices of
+     * 3 GB and more; less RAM keeps fewer decoded thumbnails, smaller caches and no software
+     * decode above 1080p (a 4K software decoder next to 4K playback risks the low-memory killer).
+     * Low-RAM devices do not generate previews unless the user turns them on.
+     */
+    val seekPreviewBudget: SeekPreviewBudget
+        get() = when {
+            tier == MemoryTier.LOW_RAM -> SeekPreviewBudget(
+                maxDecoded = 16, maxPixels = SeekPreviewBudget.FULL_HD_PIXELS,
+                diskCacheBytes = 50L * MB, spoolBytes = 24L * MB, localPreviewsByDefault = false,
+            )
+            tier == MemoryTier.CONSTRAINED || (totalRamMb ?: 0L) < SEEK_PREVIEW_FULL_RAM_MB -> SeekPreviewBudget(
+                maxDecoded = 32, maxPixels = SeekPreviewBudget.FULL_HD_PIXELS,
+                diskCacheBytes = 100L * MB, spoolBytes = 48L * MB, localPreviewsByDefault = true,
+            )
+            else -> SeekPreviewBudget(
+                maxDecoded = 48, maxPixels = Long.MAX_VALUE,
+                diskCacheBytes = 200L * MB, spoolBytes = 96L * MB, localPreviewsByDefault = true,
+            )
+        }
+
     companion object {
+        private const val MB = 1_000_000L
+
+        /** Reshaped's low-memory line for 4K preview decoding (3 GB). */
+        const val SEEK_PREVIEW_FULL_RAM_MB = 3L * 1024L
         const val LOW_RAM_CATALOG_CONCURRENCY = 2
         const val CONSTRAINED_BUFFER_BUDGET_CEILING_MB = 250
 
@@ -151,11 +182,11 @@ object AdaptiveResources {
     fun install(totalRamBytes: Long, isLowRamDevice: Boolean, mode: FeatureMode) {
         val tier = MemoryTier.classify(totalRamBytes / BYTES_PER_MB, isLowRamDevice)
         detectedTier = tier
-        policy = policyFor(tier, mode)
+        policy = policyFor(tier, mode, totalRamBytes / BYTES_PER_MB)
     }
 
-    internal fun policyFor(tier: MemoryTier, mode: FeatureMode): AdaptiveResourcePolicy =
-        if (mode == FeatureMode.OFF) AdaptiveResourcePolicy.OFFICIAL else AdaptiveResourcePolicy(tier)
+    internal fun policyFor(tier: MemoryTier, mode: FeatureMode, totalRamMb: Long? = null): AdaptiveResourcePolicy =
+        if (mode == FeatureMode.OFF) AdaptiveResourcePolicy.OFFICIAL else AdaptiveResourcePolicy(tier, totalRamMb)
 
     internal fun resetForTest() {
         policy = AdaptiveResourcePolicy.OFFICIAL
@@ -169,3 +200,22 @@ suspend inline fun <T> Semaphore?.withOptionalPermit(block: () -> T): T =
 
 /** A fetch limiter for [AdaptiveResourcePolicy.addonFetchConcurrency]; `null` means unbounded. */
 fun AdaptiveResourcePolicy.addonFetchLimiter(): Semaphore? = addonFetchConcurrency?.let { Semaphore(it) }
+
+/** On-device seek preview limits from [AdaptiveResourcePolicy.seekPreviewBudget]. */
+data class SeekPreviewBudget(
+    /** Decoded thumbnail bitmaps kept in memory (full and stand-in each). */
+    val maxDecoded: Int,
+    /** Largest video picture decoded for a thumbnail; larger streams get no local previews. */
+    val maxPixels: Long,
+    /** Per-device cap for the thumbnail disk cache (all titles). */
+    val diskCacheBytes: Long,
+    /** Cap for keyframes spooled while playing, before they are decoded. */
+    val spoolBytes: Long,
+    /** Default of "Generate previews on device" until the user changes it. */
+    val localPreviewsByDefault: Boolean,
+) {
+    companion object {
+        const val FULL_HD_PIXELS = 1920L * 1088L
+    }
+}
+
