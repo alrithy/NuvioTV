@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Extra skip providers (Superfork G9a, D054). -->
+<resources>
+    <string name="skip_providers_label">More skip sources</string>
+    <string name="skip_providers_description">Asked alongside IntroDB, AniSkip and Anime-Skip. Each source gets a few seconds; one that is slow or down never delays the others. Matching segments from several sources are combined.</string>
+    <string name="skip_provider_skipme">SkipMe.db</string>
+    <string name="skip_provider_skipme_sub">Community intro, recap, credits and preview times. Needs the video length, so it answers once playback knows it.</string>
+    <string name="skip_provider_theintrodb">TheIntroDB</string>
+    <string name="skip_provider_theintrodb_sub">Intro, recap and credits times for movies and series. A key is optional.</string>
+    <string name="skip_provider_publicmetadb">PublicMetaDB</string>
+    <string name="skip_provider_publicmetadb_sub">Intro and credits times. Works only with your own key.</string>
+    <string name="skip_provider_api_key">%1$s key</string>
+    <string name="skip_provider_api_key_required">Required. Stored encrypted on this TV for this profile.</string>
+    <string name="skip_provider_api_key_optional">Optional. Stored encrypted on this TV for this profile.</string>
+    <string name="skip_provider_api_key_set">Your own key</string>
+    <string name="skip_provider_api_key_none">Not set</string>
+    <string name="skip_provider_api_key_entry">Paste the key from the provider\'s website. It is stored encrypted on this TV for this profile and only sent to that provider. Type clear to remove it.</string>
+    <string name="skip_provider_api_key_placeholder">API key</string>
+</resources>
