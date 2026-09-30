@@ -93,6 +93,8 @@ internal fun PlaybackSubtitlesSection(
     )
 
     SettingsSectionLabel(text = stringResource(R.string.sub_style_label))
+    subtitleFontSettingsItems(enabled = enabled) // Superfork G6b hook
+    subtitlePresetSettingsItems(style = style, enabled = enabled, onUpdate = onUpdate) // Superfork G6b hook
     SliderSettingsItem(
         title = stringResource(R.string.sub_size),
         value = style.size,

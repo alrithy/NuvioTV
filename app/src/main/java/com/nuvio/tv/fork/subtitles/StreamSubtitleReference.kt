@@ -1,9 +1,5 @@
 package com.nuvio.tv.fork.subtitles
 
-import com.nuvio.tv.fork.foundation.FeatureId
-import com.nuvio.tv.fork.foundation.FeatureMode
-import com.nuvio.tv.fork.foundation.FeatureRegistry
-
 /**
  * Same-release timing reference for official AutoSync (G6a, feature 84).
  *
@@ -17,9 +13,7 @@ object StreamSubtitleReference {
     /** Enough to cover a second language when the first one is sparse, without a download burst. */
     const val MAX_REFERENCES = 2
 
-    /** Process-wide: registry defaults are fixed per process (as `AdaptiveResources.install`). */
-    @JvmField
-    val enabled: Boolean = FeatureRegistry().mode(FeatureId.SUBTITLE_INTELLIGENCE) != FeatureMode.OFF
+    val enabled: Boolean get() = SubtitleIntelligence.enabled
 
     data class Candidate(
         val url: String,

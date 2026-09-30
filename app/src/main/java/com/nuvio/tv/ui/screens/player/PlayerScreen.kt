@@ -1923,6 +1923,13 @@ private fun ExoPlayerSurface(
     LaunchedEffect(playerView, subtitleStyle) {
         playerView.applySubtitleStyleIfNeeded(subtitleStyle)
     }
+
+    // Superfork G6b (100): re-apply the style when the imported subtitle font loads or changes.
+    LaunchedEffect(playerView) {
+        com.nuvio.tv.fork.subtitles.SubtitleFontStore.font.collect {
+            playerView.applySubtitleStyleIfNeeded(latestSubtitleStyle, force = true)
+        }
+    }
 }
 
 private fun PlayerView.enableComposeSurfaceSyncWorkaroundIfAvailable() {
@@ -2010,11 +2017,13 @@ private fun PlayerView.applySubtitleStyleIfNeeded(
         setFixedTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, scaledFontSize)
         setApplyEmbeddedFontSizes(false)
 
-        val typeface = if (subtitleStyle.bold) {
-            android.graphics.Typeface.DEFAULT_BOLD
-        } else {
-            android.graphics.Typeface.DEFAULT
-        }
+        // Superfork G6b (100): the imported subtitle font, else the official default.
+        val typeface = com.nuvio.tv.fork.subtitles.SubtitleFontStore.exoTypeface(context, subtitleStyle.bold)
+            ?: if (subtitleStyle.bold) {
+                android.graphics.Typeface.DEFAULT_BOLD
+            } else {
+                android.graphics.Typeface.DEFAULT
+            }
 
         val edgeType = if (subtitleStyle.outlineEnabled) {
             androidx.media3.ui.CaptionStyleCompat.EDGE_TYPE_OUTLINE

@@ -387,3 +387,41 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: a stream that ships subtitles from another release would give a wrong reference (official confidence gates still apply); if upstream later adds Arabic AutoSync strings, the duplicate resource is resolved in that sync PR; device check MANUAL-PENDING (G14 campaign, HV-G6-1, HV-G6-2)
 
+### G6b1 — Custom subtitle fonts: store, QR/LAN upload, HTTPS download, validation, fallback (100–104)
+- Roadmap gate: G6
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: subtitle-autosync
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): reshaped/subtitlefont/SubtitleFontStore.kt, reshaped/subtitlefont/SubtitleFontUploadServer.kt, ui/screens/settings/SubtitleFontSettingsItems.kt, res/values/subtitle_font_strings.xml; hooks in NuvioApplication, PlayerScreen, NuvioMpvSurfaceView
+- Import mode: FILE_PORT (store, upload server, dialog, strings) + DELTA_PORT (four one-line hooks)
+- Current official equivalent: none; ExoPlayer uses Typeface.DEFAULT(_BOLD), mpv `sub-font=Roboto`; official already ships NanoHTTPD, ZXing (`QrCodeGenerator`) and `DeviceIpAddress`
+- What already existed upstream: QR config-server pattern (`core/server/*ConfigServer`), `NuvioDialog`, `SettingsActionRow`, subtitle style settings
+- What was imported: one validated .ttf/.otf in app storage (20 MB cap, sfnt signature, Android load, family name), phone/computer upload page behind a 128-bit per-session path token and an Origin check, running only while the dialog is open and the app is in the foreground; file picker; URL import; reset; Exo typeface and libass `sub-fonts-dir`/`sub-font`; a font that stops loading is deleted so playback falls back to the official font
+- What was intentionally not imported: Reshaped `LanAddress` (official `DeviceIpAddress` reused), the LazyList settings screen (`NuvioReshapedSettingsContent`), Reshaped bundled UI fonts (`res/font/*.ttf`, app fonts, not subtitle fonts), cleartext `http://` downloads
+- Local adaptations: HTTPS-only URL import with `followSslRedirects(false)` and a final-URL HTTPS check; logs carry host and status only, never exception text or the path/query; pure `SubtitleFontFile` (signature, name table with a record bounds check) and `SubtitleFontImportPolicy` (token, origin, length, URL rules); upload page follows the app language and direction (Arabic RTL); row placed in the official subtitle style section
+- Feature flag / fallback: FeatureId.SUBTITLE_INTELLIGENCE (AUTO, D051) OFF hides the row and the store returns no font (official font); no imported font = official font
+- Tests ported/added: SubtitleFontFileTest (6), SubtitleFontImportPolicyTest (5)
+- License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: libass matches by family name, so a font whose name table disagrees with its internal family may fall back in mpv; LAN upload is plain HTTP on the local network, protected by the token shown only on the TV; device checks MANUAL-PENDING (G14 campaign, HV-G6-3, HV-G6-4)
+
+### G6b2 — Arabic cinema subtitle preset (105)
+- Roadmap gate: G6
+- Source repository: local (REWRITE; no pinned source has a preset)
+- Source branch: n/a
+- Pinned source SHA: n/a
+- Source commit(s): n/a
+- Source file(s): n/a
+- Import mode: REWRITE
+- Current official equivalent: individual subtitle style settings (size, offset, bold, colors, outline); no presets
+- What already existed upstream: every setter the preset writes
+- What was imported: nothing; `fork/subtitles/ArabicCinemaPreset` (130 %, bold, white text, no box, black outline 3, offset 8) and a settings row that applies it once through the official setters and shows "Applied" while the values match
+- What was intentionally not imported: an automatic preset for Arabic subtitles (would change official output without a user choice, D048/D051)
+- Local adaptations: n/a
+- Feature flag / fallback: FeatureId.SUBTITLE_INTELLIGENCE OFF hides the row; applying is a user action and every value stays editable
+- Tests ported/added: ArabicCinemaPresetTest (3)
+- License / attribution notes: n/a (local)
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: preset values are a design choice pending the G14 viewing check (HV-G6-5)
+
