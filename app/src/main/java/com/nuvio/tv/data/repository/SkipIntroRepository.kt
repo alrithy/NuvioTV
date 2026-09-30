@@ -22,7 +22,9 @@ data class SkipInterval(
     val startTime: Double, // seconds
     val endTime: Double,   // seconds
     val type: String,      // intro/op, recap, outro/ed, movie-credits, post-credits
-    val provider: String   // "introdb", "aniskip", "animeskip"
+    val provider: String,  // "introdb", "aniskip", "animeskip"
+    // Superfork G9b: "skip" (official), "mute" (volume only, never seeks) or "warn" (button only).
+    val action: String = "skip"
 )
 
 internal fun IntroDbSegmentsResponse.toSkipIntervals(movie: Boolean): List<SkipInterval> {
@@ -68,7 +70,9 @@ class SkipIntroRepository @Inject constructor(
     suspend fun getMovieSkipIntervals(
         contentId: String?,
         videoId: String? = null,
-        durationMs: Long? = null
+        durationMs: Long? = null,
+        title: String? = null,
+        releaseYear: String? = null
     ): List<SkipInterval> {
         val forkConfig = forkSkip.activeConfig()
         if (!introDbConfigured && forkConfig.active.isEmpty()) return emptyList()
@@ -84,7 +88,9 @@ class SkipIntroRepository @Inject constructor(
                 else -> null
             }
         } ?: return emptyList()
-        if (forkConfig.active.isNotEmpty()) return forkMovieSkipIntervals(imdbId, durationMs, forkConfig)
+        if (forkConfig.active.isNotEmpty()) {
+            return forkMovieSkipIntervals(imdbId, durationMs, forkConfig, title, releaseYear)
+        }
         val key = "movie:$imdbId"
         cache[key]?.let { return it }
         return fetchFromIntroDb(imdbId, isMovie = true).also { cache[key] = it }
@@ -94,12 +100,16 @@ class SkipIntroRepository @Inject constructor(
     private suspend fun forkMovieSkipIntervals(
         imdbId: String,
         durationMs: Long?,
-        forkConfig: com.nuvio.tv.fork.skip.SkipProviderConfig
+        forkConfig: com.nuvio.tv.fork.skip.SkipProviderConfig,
+        title: String?,
+        releaseYear: String?
     ): List<SkipInterval> = coroutineScope {
-        val key = "movie:$imdbId:fork:${forkConfig.active.joinToString(",") { it.key }}:${durationMs ?: 0}"
+        val key = "movie:$imdbId:fork:${forkConfig.cacheKey()}:${durationMs ?: 0}"
         cache[key]?.let { return@coroutineScope it }
         val introDb = async { if (introDbConfigured) fetchFromIntroDb(imdbId, isMovie = true) else emptyList() }
-        val fork = async { forkSkip.fetch(forkConfig, imdbId, null, null, isMovie = true, durationMs = durationMs) }
+        val fork = async {
+            forkSkip.fetch(forkConfig, imdbId, null, null, isMovie = true, durationMs = durationMs, title = title, releaseYear = releaseYear)
+        }
         val official = com.nuvio.tv.fork.skip.awaitWithin(introDb, com.nuvio.tv.fork.skip.FORK_SKIP_PROVIDER_TIMEOUT_MS)
         forkSkip.combine(official, fork.await(), isMovie = true).also { cache[key] = it }
     }
@@ -111,19 +121,21 @@ class SkipIntroRepository @Inject constructor(
         imdbId: String?,
         season: Int,
         episode: Int,
-        durationMs: Long? = null
+        durationMs: Long? = null,
+        title: String? = null
     ): List<SkipInterval> = coroutineScope {
         if (imdbId == null) return@coroutineScope emptyList()
         // Superfork G9a (D054): with fork providers active every provider gets its own timeout.
         val forkConfig = forkSkip.activeConfig()
         val forkActive = forkConfig.active.isNotEmpty()
         val cacheKey = if (forkActive) {
-            "$imdbId:$season:$episode:fork:${forkConfig.active.joinToString(",") { it.key }}:${durationMs ?: 0}"
+            "$imdbId:$season:$episode:fork:${forkConfig.cacheKey()}:${durationMs ?: 0}"
         } else "$imdbId:$season:$episode"
         cache[cacheKey]?.let { return@coroutineScope it }
         val forkDeferred = async {
-            if (forkActive) forkSkip.fetch(forkConfig, imdbId, season, episode, isMovie = false, durationMs = durationMs)
-            else emptyList()
+            if (forkActive) {
+                forkSkip.fetch(forkConfig, imdbId, season, episode, isMovie = false, durationMs = durationMs, title = title)
+            } else emptyList()
         }
 
         val introDbDeferred = async {

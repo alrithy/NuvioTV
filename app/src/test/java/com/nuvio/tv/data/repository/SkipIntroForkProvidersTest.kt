@@ -30,10 +30,31 @@ class SkipIntroForkProvidersTest {
     }
 
     @Test
-    fun `SkipMe movie lists become movie credits and drop preview until G9b`() {
+    fun `SkipMe movie lists become movie credits and preview (kept only when the user switches it on)`() {
         val raw = """[{"intro":[{"start_ms":0,"end_ms":60000}],"credits":[{"start_ms":6000000,"end_ms":6300000}],"preview":[{"start_ms":10,"end_ms":20}]}]"""
         val reports = parsers.parseSkipMe(raw, isMovie = true, season = null, episode = null)
-        assertEquals(listOf("intro", "movie-credits"), reports.map { it.type })
+        assertEquals(listOf("intro", "movie-credits", "preview"), reports.map { it.type })
+        val shown = reports.filter { com.nuvio.tv.fork.skip.SkipCategories.allowed(it.category, emptySet()) }
+        assertEquals(listOf("intro", "movie-credits"), shown.map { it.type })
+    }
+
+    @Test
+    fun `MovieHavenDB documents, direct or keyed by IMDb id, keep skip mute and warn actions`() {
+        val keyed = """{"tt0133093":{"title":"x","scenes":[
+            {"start":100.0,"end":130.0,"reason":"Violence","skip":true},
+            {"start":200,"end":204,"reason":"strong language","mute":true},
+            {"start":300,"end":320,"reason":"Nudity","blur":true},
+            {"start":400,"end":390,"reason":"Gore"},
+            {"start":500,"end":510,"reason":"something else"}
+        ]}}"""
+        val reports = parsers.parseMovieHaven(keyed)
+        assertEquals(
+            listOf("violence" to "skip", "profanity" to "mute", "nudity" to "warn"),
+            reports.map { it.category to it.action },
+        )
+        val direct = parsers.parseMovieHaven("""{"segments":[{"start":1,"end":2,"type":"jump scare"}]}""")
+        assertEquals(listOf("jumpscare" to "warn"), direct.map { it.category to it.action })
+        assertTrue(parsers.parseMovieHaven("[]").isEmpty())
     }
 
     @Test
@@ -73,6 +94,18 @@ class SkipIntroForkProvidersTest {
         val intro = merged.first { it.type == "intro" }
         assertEquals("introdb", intro.provider)
         assertTrue(intro.startTime in 60.0..61.0)
+    }
+
+    @Test
+    fun `the segment action reaches the interval the player gets`() {
+        val providers = ForkSkipProviders(mockk<OkHttpClient>(relaxed = true), moshi, mockk(relaxed = true))
+        val fork = listOf(
+            SkipReport(200.0, 204.0, "profanity", "profanity", "videoskip", 0.72, SkipReport.ACTION_MUTE),
+            SkipReport(600.0, 606.0, "jumpscare", "jumpscare", "notscare", 0.76, SkipReport.ACTION_WARN),
+        )
+        val merged = providers.combine(emptyList(), fork, isMovie = true)
+        assertEquals(listOf("mute", "warn"), merged.map { it.action })
+        assertEquals("official intervals default to skip", "skip", SkipInterval(0.0, 1.0, "intro", "introdb").action)
     }
 
     @Test

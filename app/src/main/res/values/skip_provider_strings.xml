@@ -16,4 +16,22 @@
     <string name="skip_provider_api_key_none">Not set</string>
     <string name="skip_provider_api_key_entry">Paste the key from the provider\'s website. It is stored encrypted on this TV for this profile and only sent to that provider. Type clear to remove it.</string>
     <string name="skip_provider_api_key_placeholder">API key</string>
+    <string name="skip_provider_moviehavendb">MovieHavenDB</string>
+    <string name="skip_provider_moviehavendb_sub">Movie scene lists for content warnings, some marked to mute instead of skip.</string>
+    <string name="skip_provider_videoskip">VideoSkip</string>
+    <string name="skip_provider_videoskip_sub">Community skip files, found by title. Can mark scenes to skip, mute or warn about.</string>
+    <string name="skip_provider_notscare">NotScare</string>
+    <string name="skip_provider_notscare_sub">Jump-scare times for movies, from notscare.me.</string>
+    <string name="skip_categories_label">Previews and content warnings</string>
+    <string name="skip_categories_description">Off until you switch a category on. These segments show the skip button, or mute the sound where the source says so; they are never skipped automatically.</string>
+    <string name="skip_category_preview">Previews</string>
+    <string name="skip_category_jumpscare">Jump scares</string>
+    <string name="skip_category_nudity">Nudity</string>
+    <string name="skip_category_sex">Sex scenes</string>
+    <string name="skip_category_gore">Gore</string>
+    <string name="skip_category_violence">Violence</string>
+    <string name="skip_category_profanity">Profanity</string>
+    <string name="skip_preview">Skip preview</string>
+    <string name="skip_jumpscare">Skip jump scare</string>
+    <string name="skip_scene">Skip scene</string>
 </resources>

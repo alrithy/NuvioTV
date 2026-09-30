@@ -254,6 +254,12 @@ class NuvioMpvSurfaceView @JvmOverloads constructor(
         mpv.setPropertyDouble("speed", speed.toDouble())
     }
 
+    /** Superfork G9b: mute segments; separate from `volume`, which audio amplification owns. */
+    fun setMuted(muted: Boolean) {
+        if (!initialized) return
+        runCatching { mpv.setPropertyBoolean("mute", muted) }
+    }
+
     fun applyAudioAmplificationDb(db: Int) {
         if (!initialized) return
         val clampedDb = db.coerceIn(AUDIO_AMPLIFICATION_MIN_DB, AUDIO_AMPLIFICATION_MAX_DB)

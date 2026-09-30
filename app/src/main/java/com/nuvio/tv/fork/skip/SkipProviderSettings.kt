@@ -23,10 +23,16 @@ data class SkipProviderConfig(
     val enabled: Set<ForkSkipProvider> = emptySet(),
     /** Decrypted in memory only; never logged or synced. */
     val keys: Map<ForkSkipProvider, String> = emptyMap(),
+    /** G9b: optional categories (preview, content warnings) the user switched on; none by default. */
+    val categories: Set<String> = emptySet(),
 ) {
     /** A provider runs only when switched on and, where required, given a key. */
     val active: Set<ForkSkipProvider>
         get() = enabled.filterTo(LinkedHashSet()) { !it.requiresKey || !keys[it].isNullOrBlank() }
+
+    /** Cache key part: results differ with the active providers and enabled categories. */
+    fun cacheKey(): String =
+        active.joinToString(",") { it.key } + "|" + categories.sorted().joinToString(",")
 
     companion object {
         val NONE = SkipProviderConfig()
@@ -50,6 +56,7 @@ class SkipProviderSettings @Inject constructor(
     private val cipher = KeystoreCipher(KEY_ALIAS)
     private val enabledKeys = ForkSkipProvider.entries.associateWith { booleanPreferencesKey("enabled_${it.key}") }
     private val apiKeys = ForkSkipProvider.entries.associateWith { stringPreferencesKey("api_key_${it.key}") }
+    private val categoryKeys = SkipCategories.OPTIONAL.associateWith { booleanPreferencesKey("category_$it") }
 
     private fun store(profileId: Int = profileManager.activeProfileId.value) = factory.get(profileId, FEATURE)
 
@@ -62,6 +69,11 @@ class SkipProviderSettings @Inject constructor(
 
     suspend fun setEnabled(provider: ForkSkipProvider, value: Boolean) {
         store().edit { it[enabledKeys.getValue(provider)] = value }
+    }
+
+    suspend fun setCategoryEnabled(category: String, value: Boolean) {
+        val key = categoryKeys[category] ?: return
+        store().edit { it[key] = value }
     }
 
     suspend fun setApiKey(provider: ForkSkipProvider, value: String) {
@@ -77,6 +89,7 @@ class SkipProviderSettings @Inject constructor(
         keys = ForkSkipProvider.entries.mapNotNull { provider ->
             cipher.decryptOrEmpty(this[apiKeys.getValue(provider)]).takeIf { it.isNotEmpty() }?.let { provider to it }
         }.toMap(),
+        categories = SkipCategories.OPTIONAL.filterTo(LinkedHashSet()) { this[categoryKeys.getValue(it)] == true },
     )
 
     private companion object {
