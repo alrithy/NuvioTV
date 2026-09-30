@@ -317,3 +317,13 @@ a failure/fallback path, or a per-format control whose default equals official b
 that changes output for every playback (for example claiming a new passthrough format) ships behind
 an explicit setting that defaults to official. OFF restores official G5 behavior; device evidence is
 batched into G14 (D047).
+
+## D050 — Adopt official 56aaba2 before G6: official Subtitle AutoSync becomes the G6 engine
+Official `dev` moved `71632b9..56aaba2` and merged Subtitle AutoSync (PR #3703, the Reshaped
+AutoSync by its author) — the subsystem G6 was about to build. UPSTREAM_SYNC's gate-start rule and
+feature-convergence rule (prefer official ownership, migrate only our unique delta) require a
+reviewed sync first. Merged with one resolved conflict (extractor factory: fork DV factory wrapped
+by the official AutoSync factory). Official AutoSync defaults off. This revises D049: the single
+G6 sync engine is **official AutoSync** (REUSE); no fork `fork/subtitles` engine is built and the
+VibeSubtitle aligner / PR #38 engine are not imported, so there is never a second engine. G6
+continues with only the gaps official still lacks (re-audited on this baseline).

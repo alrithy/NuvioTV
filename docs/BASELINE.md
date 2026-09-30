@@ -5,12 +5,13 @@
 - Pre-G0 refresh: `fd7973d91dd75d790c5f9b3d68dae652655e92c4`
 - Superfork integration sync commit: `3cf04ccdcc20515acb093c28ad9b7c3943a39057`
 - The pre-G0 refresh happened before feature implementation.
-- Post-G0 sync (PR #9, D040): `71632b9271e8bce6783e415d64f34cfa4e8b894c`; integration merge `898bc83abfc8e59cf1664699980942d3bd6718f6`. This is the current implementation baseline.
+- Post-G0 sync (PR #9, D040): `71632b9271e8bce6783e415d64f34cfa4e8b894c`; integration merge `898bc83abfc8e59cf1664699980942d3bd6718f6`.
+- Pre-G6 sync (D050): `56aaba20b7d01746d616a2c8517adcf442950b90`; integration merge `5c24805f82b2bb7092b9acafc00903a32fe5045c`. This is the current implementation baseline.
 
 ## Official upstream
 - Repository: NuvioMedia/NuvioTV
 - Branch: dev
-- Pinned baseline: 71632b9271e8bce6783e415d64f34cfa4e8b894c
+- Pinned baseline: 56aaba20b7d01746d616a2c8517adcf442950b90
 - Verified: 2026-09-29
 - Commit: fix(debrid): select requested episode files
 
