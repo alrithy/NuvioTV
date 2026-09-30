@@ -114,6 +114,14 @@ for. Never mark a row PASS from memory or expectation. Copy finished rows into
 | HV-G7-4 memory and disk bounds (115, 116) | With the HUD open, scrub through a 2-hour 4K remux, then play three more titles. Check Settings → Apps → Nuvio storage. | No playback stall or app restart; on a device under 3 GB the 4K stream gets no local previews (log `no software decoder` or size skip); cache stays under the tier cap. | MANUAL-PENDING | log + storage screenshot |
 | HV-G7-5 automatic Seekr calibration (111, 113, 114) | Seekr key set. Play a release whose Seekr thumbnails are visibly early or late (e.g. an extended cut). Watch 15 minutes, then pause and scrub. Repeat with a dark, static title. | The log has `SeekrCalibration: ... accepted=true` and the Seekr thumbnails now match the frames; Preview Sync shows the applied offset. On the dark title the log shows `accepted=false` and the offset stays 0. A value set by hand in Preview Sync is never changed. | MANUAL-PENDING | log + photo |
 
+## 4e. G8 — Stream Intelligence
+
+| Test | Steps | Expected | Result | Evidence |
+|---|---|---|---|---|
+| HV-G8-1 progressive AIOStreams (147, 149, 150) | Install an AIOStreams add-on whose manifest URL has `client=nuvio-progressive` (an AIOStreams build with the Nuvio progressive endpoint). Open the streams of a popular film. | Streams appear in the AIOStreams group within seconds and the group grows in place as slower sources finish (no duplicate rows, no second AIOStreams group); the log has no `ProgressiveAioStreams` fallback line. | MANUAL-PENDING | video + log |
+| HV-G8-2 progressive fallback (151) | Same add-on URL against an AIOStreams build without the endpoint (or with the network cut mid-load, then restored). | The log shows `progressive unavailable` or `progressive failed host=<host>` (host only, no path or query) and the ordinary AIOStreams list appears as in official. | MANUAL-PENDING | log |
+| HV-G8-3 bounded add-on retry (289) | An add-on that answers 503 or times out once (e.g. a self-hosted add-on restarted during the request). | The log shows `Retrying stream request once host=<host>` at most once per add-on per load and never for a 4xx; a second failure shows the add-on error as in official. | MANUAL-PENDING | log |
+
 ## 5. G4 final validation — same-file A/B (required before Stable release)
 
 Use **F1** for arms A and B, and **F2 and F3** for the seek arm. Same TV, same network, same time
