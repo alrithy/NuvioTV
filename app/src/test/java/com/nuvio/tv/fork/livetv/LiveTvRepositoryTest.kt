@@ -12,9 +12,25 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-private class MemoryLiveTvStore(initial: Map<Int, List<LiveTvSource>> = emptyMap()) : LiveTvSourceStore {
+internal class MemoryLiveTvStore(initial: Map<Int, List<LiveTvSource>> = emptyMap()) : LiveTvSourceStore, LiveTvLibraryStore {
     val saved = HashMap(initial)
+    val libraries = HashMap<Int, LiveTvLibrary>()
+    val menus = HashMap<Int, MutableStateFlow<Boolean>>()
     private var next = 0
+
+    override suspend fun library(profileId: Int) = synchronized(libraries) { libraries[profileId] } ?: LiveTvLibrary()
+
+    override suspend fun saveLibrary(profileId: Int, library: LiveTvLibrary) {
+        synchronized(libraries) { libraries[profileId] = library }
+    }
+
+    private fun menu(profileId: Int) = synchronized(menus) { menus.getOrPut(profileId) { MutableStateFlow(false) } }
+
+    override fun menuEnabled(profileId: Int) = menu(profileId)
+
+    override suspend fun setMenuEnabled(profileId: Int, enabled: Boolean) {
+        menu(profileId).value = enabled
+    }
 
     override suspend fun sources(profileId: Int) = saved[profileId].orEmpty()
 
@@ -46,8 +62,8 @@ class LiveTvRepositoryTest {
         }
     }
 
-    private fun repository(store: LiveTvSourceStore, profile: MutableStateFlow<Int> = MutableStateFlow(1), enabled: Boolean = true) =
-        LiveTvRepository(store, http, profile, enabled)
+    private fun repository(store: MemoryLiveTvStore, profile: MutableStateFlow<Int> = MutableStateFlow(1), enabled: Boolean = true) =
+        LiveTvRepository(store, store, http, profile, enabled)
 
     private suspend fun LiveTvRepository.settled(predicate: (LiveTvState) -> Boolean = { true }) =
         withTimeout(5_000) { state.first { it.isLoaded && !it.isLoading && predicate(it) } }

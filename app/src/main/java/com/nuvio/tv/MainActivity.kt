@@ -52,6 +52,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -315,6 +316,9 @@ open class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var deepLinkHandler: DeepLinkHandler
+
+    @Inject
+    lateinit var liveTvRepository: com.nuvio.tv.fork.livetv.LiveTvRepository // Superfork G10b
 
     private val pendingDeepLinkUrl = MutableStateFlow<String?>(null)
     private val pendingLaunchIntent = MutableStateFlow<Intent?>(null)
@@ -1017,10 +1021,22 @@ open class MainActivity : ComponentActivity() {
                     }
 
                     val calendarEnabled = com.nuvio.tv.fork.discovery.CalendarRules.enabled // Superfork G9e
-                    val rootRoutes = remember(discoverLocation) {
+                    // Superfork G10b: Live TV shows only after the user turned it on (D055); turning it
+                    // off while on the screen goes back to Home.
+                    val liveTvEnabled by liveTvRepository.menuEnabled.collectAsState(initial = false)
+                    LaunchedEffect(liveTvEnabled, currentRoute) {
+                        if (!liveTvEnabled && currentRoute == Screen.LiveTv.route) {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(navController.graph.startDestinationId) { saveState = false }
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                    val rootRoutes = remember(discoverLocation, liveTvEnabled) {
                         buildSet {
                             add(Screen.Home.route)
                             if (calendarEnabled) add(Screen.Calendar.route)
+                            if (liveTvEnabled) add(Screen.LiveTv.route)
                             add(Screen.Search.route)
                             add(Screen.Library.route)
                             add(Screen.Settings.route)
@@ -1036,10 +1052,13 @@ open class MainActivity : ComponentActivity() {
                     val strNavLibrary = stringResource(R.string.nav_library)
                     val strNavSettings = stringResource(R.string.nav_settings)
                     val strNavCalendar = stringResource(R.string.nav_calendar)
+                    val strNavLiveTv = stringResource(R.string.live_tv_title)
                     val drawerItems = remember(
                         strNavHome,
                         strNavDiscover,
                         strNavCalendar,
+                        strNavLiveTv,
+                        liveTvEnabled,
                         strNavSearch,
                         strNavLibrary,
                         strNavSettings,
@@ -1068,6 +1087,15 @@ open class MainActivity : ComponentActivity() {
                                         route = Screen.Calendar.route,
                                         label = strNavCalendar,
                                         icon = Icons.Default.DateRange
+                                    )
+                                )
+                            }
+                            if (liveTvEnabled) {
+                                add(
+                                    DrawerItem(
+                                        route = Screen.LiveTv.route,
+                                        label = strNavLiveTv,
+                                        icon = Icons.Default.LiveTv
                                     )
                                 )
                             }

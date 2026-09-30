@@ -1177,6 +1177,14 @@ private fun PlaybackNavHost(
             )
         }
 
+        // Superfork G10b: Live TV (208, 219–225); only reachable from the drawer once the user turned it on.
+        composable(Screen.LiveTv.route) {
+            com.nuvio.tv.ui.screens.livetv.LiveTvScreen(
+                onPlay = { route -> navController.navigate(route) },
+                showBuiltInHeader = !hideBuiltInHeaders,
+            )
+        }
+
         composable(Screen.Library.route) {
             LibraryScreen(
                 showBuiltInHeader = !hideBuiltInHeaders,
