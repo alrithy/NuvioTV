@@ -7,19 +7,19 @@ current_official_baseline_sha: 56aaba20b7d01746d616a2c8517adcf442950b90
 integration_upstream_sync_commit: 5c24805f82b2bb7092b9acafc00903a32fe5045c
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G7
-active_gate_name: Seek Intelligence
-active_branch: feat/seek-intelligence
-active_task_packet: tasks/G7_SEEK_INTELLIGENCE.md
-active_status: IN_PROGRESS
-active_pr: 46
+active_gate: G8
+active_gate_name: Stream Intelligence
+active_branch: feat/stream-intelligence
+active_task_packet: tasks/G8_STREAM_INTELLIGENCE.md
+active_status: READY
+active_pr: null
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: c987f5ffd99aa9035b71b7bd967be419f8d5ece2
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36679052995 ; G7a
-  PR #45 exact head, squash-merged as fe22d4b.
-last_green_scope: Full suite guard (2001 tests, 15 known failures, 0 new failures), governance
+last_green_commit: 7334bf24b146685b64171ed0d0413f21cad4c0ab
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36698354964 ; G7b
+  PR #46 exact head, squash-merged as 33a4f19.
+last_green_scope: Full suite guard (2011 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
@@ -28,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G8
-next_gate_name: Stream Intelligence
-next_branch: feat/stream-intelligence
+next_gate: G9
+next_gate_name: Skip Recommendations Discovery
+next_branch: feat/discovery-skip-recommendations
 known_operational_risks:
 - id: R001
   severity: high
@@ -77,6 +77,8 @@ validation_pending_gates:
   evidence: 'All code merged in PRs #31-#36; DV output, passthrough, lossless default, soft clip, AFR/settle and HUD checks HV-G5-1..HV-G5-10 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 - gate: G6
   evidence: 'All code merged in PRs #39, #41, #42 (after upstream sync #40); AutoSync stream reference, Arabic AutoSync, custom fonts, QR upload and Arabic preset checks HV-G6-1..HV-G6-5 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
+- gate: G7
+  evidence: 'All code merged in PRs #44, #45, #46; on-device previews, keyframe-exact seek, Seekr fallback / Preview Sync, memory-disk bounds and automatic calibration checks HV-G7-1..HV-G7-5 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 governance_status: READY
 upstream_observation:
   checked_at: '2026-09-30T08:00:00Z'
@@ -138,3 +140,13 @@ completed_gates:
     tests), 36674079296 (1953), 36674965163 (1967): 15 known failures, 0 new, fullDebug APK built;
     audit docs/audits/G6_SUBTITLE_INTELLIGENCE_AUDIT.md; D050, D051; device checks batched to G14 (validation_pending_gates)'
   deferred_features: [85, 92, 93]
+- gate: G7
+  name: Seek Intelligence
+  pr: [44, 45, 46]
+  merge_sha: 33a4f19b85b21ae16d15335a0b292c9861ae6693
+  slice_merges: [dc6371fc7ea770b929745c02736e96bad30efc72, fe22d4bd42cd7156b4501bb7c9a76d4673526588,
+    33a4f19b85b21ae16d15335a0b292c9861ae6693]
+  evidence: 'CI runs 36677245378 (1967 tests), 36679052995 (2001), 36698354964 (2011): 15 known
+    failures, 0 new, fullDebug APK built; audit docs/audits/G7_SEEK_INTELLIGENCE_AUDIT.md; D052;
+    G2 deferred 279 closed in G7a; device checks batched to G14 (validation_pending_gates)'
+  deferred_features: []
