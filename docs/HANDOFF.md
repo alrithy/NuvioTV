@@ -58,9 +58,10 @@ per profile as Cxsmo) → official scrubber; Seekr calibration = Cxsmo estimator
 (no live-player seeking).
 
 ## Exact next action
-1. Merge the G7 audit PR, then slices G7a (local keyframe previews, keyframe snap, memory/disk bounds;
-   107–109, 115, 116), G7b (Seekr fallback, encrypted key, bounded sheets, manual Preview Sync; 110,
-   112, 279), G7c (automatic calibration with confidence and weak-match rejection; 111, 113, 114).
+1. Merge the G7 audit PR, then slices G7a (hybrid engine: local keyframe previews, keyframe snap,
+   bounded Seekr fallback with the encrypted user key, manual Preview Sync, memory/disk bounds; 107–110,
+   112, 115, 116, 279) and G7b (automatic calibration with confidence and weak-match rejection; 111,
+   113, 114).
 2. Continue G7→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.

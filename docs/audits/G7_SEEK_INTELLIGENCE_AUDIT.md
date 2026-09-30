@@ -54,24 +54,26 @@ One `SeekPreviewTrack` pipeline in `fork/seek`, in the task-packet order:
 ## Features
 | ID | Behavior | Class | Result / plan |
 |---|---|---|---|
-| 107 | Hybrid Seek Preview engine | missing delta | one `SeekPreviewTrack` pipeline (local → Seekr → normal seek) → G7a/G7b |
+| 107 | Hybrid Seek Preview engine | missing delta | one `SeekPreviewTrack` pipeline (local → Seekr → normal seek) → G7a |
 | 108 | Local preview frames from the current video | missing delta | Reshaped keyframe tap + software decoder + local track → G7a |
 | 109 | Use real keyframes where available | missing delta | thumbnails are real keyframes; commit snaps to a nearby keyframe from the file index → G7a |
-| 110 | Seekr thumbnail fallback | missing delta | bounded Seekr track fills slots without a local frame, user key only → G7b |
-| 111 | Seekr auto-calibration against real frames | missing delta | Cxsmo estimator on local keyframe thumbnails → G7c |
-| 112 | Manual preview-sync adjustment | missing delta | Preview Sync overlay (Reshaped/Cxsmo share the design) → G7b |
-| 113 | Confidence-based Seekr calibration | missing delta | estimator confidence + anchor count gate → G7c |
-| 114 | Reject weak calibration | missing delta | weak / ambiguous / high-MAD results keep offset 0 (or the manual value) → G7c |
-| 115 | Bound Seek Preview RAM usage | missing delta | JPEG slots (Reshaped keeps 48 decoded) + bounded Seekr sheets; the decoded count comes from the AdaptiveResources tier instead of Reshaped's fixed 3 GB threshold → G7a/G7b |
+| 110 | Seekr thumbnail fallback | missing delta | bounded Seekr track fills slots without a local frame, user key only → G7a |
+| 111 | Seekr auto-calibration against real frames | missing delta | Cxsmo estimator on local keyframe thumbnails → G7b |
+| 112 | Manual preview-sync adjustment | missing delta | Preview Sync overlay (Reshaped/Cxsmo share the design) → G7a |
+| 113 | Confidence-based Seekr calibration | missing delta | estimator confidence + anchor count gate → G7b |
+| 114 | Reject weak calibration | missing delta | weak / ambiguous / high-MAD results keep offset 0 (or the manual value) → G7b |
+| 115 | Bound Seek Preview RAM usage | missing delta | JPEG slots (Reshaped keeps 48 decoded) + bounded Seekr sheets; the decoded count comes from the AdaptiveResources tier instead of Reshaped's fixed 3 GB threshold → G7a |
 | 116 | Bounded disk cache for seek previews | missing delta | Reshaped per-title cache (200 MB) and spool (96 MB, 12 h stale cleanup) with caps scaled down by tier for TV storage, oldest title evicted first → G7a |
-| 279 | Memory-safe Seekr handling (G2) | missing delta | Reshaped `BoundedSeekrTrack` → G7b |
+| 279 | Memory-safe Seekr handling (G2) | missing delta | Reshaped `BoundedSeekrTrack` → G7a |
 
 ## Slice plan
-- G7a (107, 108, 109, 115, 116): local keyframe previews + scrubber thumbnail + keyframe snap,
-  ExoPlayer only (MPV keeps the official scrubber), memory/disk bounds from AdaptiveResources.
-- G7b (110, 112, 279): Seekr fallback with the encrypted per-profile key and bounded sheets,
-  manual Preview Sync; Seekr requests carry the user key only to `api.seekr.tv`, never logged.
-- G7c (111, 113, 114): automatic Seekr calibration against local keyframe frames with
-  confidence gating and weak-match rejection.
+Reshaped's preview state, host and hybrid track reference Seekr throughout, so the hybrid engine
+ports as one slice rather than being cut apart and re-joined.
+- G7a (107, 108, 109, 110, 112, 115, 116, 279): the hybrid engine — local keyframe previews,
+  keyframe snap, bounded Seekr fallback with the encrypted per-profile user key, manual Preview Sync,
+  memory/disk bounds from AdaptiveResources; ExoPlayer only (MPV keeps the official scrubber);
+  Seekr requests carry the user key only to `api.seekr.tv`, never logged.
+- G7b (111, 113, 114): automatic Seekr calibration against local keyframe frames with confidence
+  gating and weak-match rejection.
 
 Every slice keeps device checks MANUAL-PENDING in `docs/HARDWARE_VALIDATION_TCL_C6K.md` (G14, D047).
