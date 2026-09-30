@@ -28,6 +28,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +64,7 @@ import com.nuvio.tv.R
 import com.nuvio.tv.fork.livetv.LiveTvChannel
 import com.nuvio.tv.fork.livetv.LiveTvFilterKeys
 import com.nuvio.tv.fork.livetv.LiveTvOrganisation
+import com.nuvio.tv.fork.livetv.LiveTvProgramme
 import com.nuvio.tv.fork.livetv.LiveTvSource
 import com.nuvio.tv.ui.theme.NuvioTheme
 import kotlinx.coroutines.CancellationException
@@ -74,7 +76,8 @@ import kotlinx.coroutines.withContext
 /**
  * Live TV (G10b, features 208, 219–225): categories on the left, channels in the middle, the last
  * channel on top. FILE_PORT of Reshaped `ui/reshaped/livetv/LiveTvScreen.kt` @ 0ccf049, keyed by
- * channel key; the programme lines (G10c), the preview (G10f) and the guide join it in their slices.
+ * channel key; what is on now, its progress and time left come from the guide (G10c); the preview
+ * (G10f) joins it in its slice.
  * Rows are plain and fixed height (no blur, no images larger than drawn) so thousands of channels
  * scroll smoothly on low-end TVs.
  */
@@ -157,6 +160,7 @@ fun LiveTvScreen(
         withFrameNanos { }
         runCatching { channelFocus.requestFocus() }
     }
+    val minuteClock = rememberLiveTvMinuteClock()
     // Stays set until the player has taken over the screen.
     LaunchedEffect(started) { if (!started) launching = false }
 
@@ -262,6 +266,7 @@ fun LiveTvScreen(
                             state.sourceErrors[failedSource.id]?.message(context).orEmpty(),
                         )
                         state.error != null -> state.error?.message(context)
+                        state.isEpgLoading -> stringResource(R.string.live_tv_guide_loading)
                         else -> null
                     }
                     if (status != null) {
@@ -288,6 +293,9 @@ fun LiveTvScreen(
                             item(key = "recent", contentType = "recent") {
                                 LiveTvRecentRow(
                                     channel = recentChannel,
+                                    logo = state.logoFor(recentChannel),
+                                    programme = state.currentProgrammes[recentChannel.guideKey],
+                                    clock = minuteClock,
                                     groupName = liveTvGroupName(recentChannel.group, library.groupNames),
                                     onClick = { play(recentChannel) },
                                 )
@@ -296,6 +304,9 @@ fun LiveTvScreen(
                         items(visibleChannels, key = { it.id }, contentType = { "channel" }) { channel ->
                             LiveTvChannelRow(
                                 channel = channel,
+                                logo = state.logoFor(channel),
+                                programme = state.currentProgrammes[channel.guideKey],
+                                clock = minuteClock,
                                 isFavorite = channel.key in library.favorites,
                                 groupName = liveTvGroupName(channel.group, library.groupNames),
                                 onClick = { play(channel) },
@@ -430,9 +441,16 @@ private fun LiveTvCategoryItem(label: String, selected: Boolean, selectedModifie
 }
 
 @Composable
-private fun LiveTvRecentRow(channel: LiveTvChannel, groupName: String?, onClick: () -> Unit) {
+private fun LiveTvRecentRow(
+    channel: LiveTvChannel,
+    logo: String?,
+    programme: LiveTvProgramme?,
+    clock: State<Long>,
+    groupName: String?,
+    onClick: () -> Unit,
+) {
     LiveTvRowCard(onClick = onClick, onLongClick = null, tall = true) { focused ->
-        LiveTvLogo(url = channel.logoUrl, name = channel.name, width = 88.dp, height = 54.dp)
+        LiveTvLogo(url = logo, name = channel.name, width = 88.dp, height = 54.dp)
         Column(modifier = Modifier.weight(1f).padding(start = NuvioTheme.spacing.md)) {
             Text(
                 text = stringResource(R.string.live_tv_continue).uppercase(),
@@ -448,7 +466,7 @@ private fun LiveTvRecentRow(channel: LiveTvChannel, groupName: String?, onClick:
                 overflow = TextOverflow.Ellipsis,
                 color = if (focused) Color.Black else NuvioTheme.colors.TextPrimary,
             )
-            CategoryLine(groupName ?: channel.group, focused)
+            ProgrammeLine(programme, clock, focused, fallback = groupName ?: channel.group)
         }
     }
 }
@@ -456,6 +474,9 @@ private fun LiveTvRecentRow(channel: LiveTvChannel, groupName: String?, onClick:
 @Composable
 private fun LiveTvChannelRow(
     channel: LiveTvChannel,
+    logo: String?,
+    programme: LiveTvProgramme?,
+    clock: State<Long>,
     isFavorite: Boolean,
     groupName: String?,
     onClick: () -> Unit,
@@ -463,7 +484,7 @@ private fun LiveTvChannelRow(
     modifier: Modifier = Modifier,
 ) {
     LiveTvRowCard(onClick = onClick, onLongClick = onLongClick, tall = false, modifier = modifier) { focused ->
-        LiveTvLogo(url = channel.logoUrl, name = channel.name, width = 66.dp, height = 40.dp)
+        LiveTvLogo(url = logo, name = channel.name, width = 66.dp, height = 40.dp)
         Column(modifier = Modifier.weight(1f).padding(start = NuvioTheme.spacing.md)) {
             Text(
                 text = channel.name,
@@ -473,7 +494,7 @@ private fun LiveTvChannelRow(
                 overflow = TextOverflow.Ellipsis,
                 color = if (focused) Color.Black else NuvioTheme.colors.TextPrimary,
             )
-            CategoryLine(groupName ?: channel.group, focused)
+            ProgrammeLine(programme, clock, focused, fallback = groupName ?: channel.group)
         }
         if (isFavorite) {
             Icon(
@@ -486,17 +507,39 @@ private fun LiveTvChannelRow(
     }
 }
 
-/** The channel's category under its name (the guide's programme line replaces it in G10c). */
+/** What is on now, a thin progress bar and the time left, or the category when there is no guide. */
 @Composable
-private fun CategoryLine(group: String, focused: Boolean) {
-    if (group.isBlank()) return
+private fun ProgrammeLine(programme: LiveTvProgramme?, clock: State<Long>, focused: Boolean, fallback: String = "") {
+    val secondary = if (focused) Color.Black.copy(alpha = 0.65f) else NuvioTheme.colors.TextSecondary
+    if (programme == null) {
+        if (fallback.isNotBlank()) {
+            Text(text = fallback, style = MaterialTheme.typography.bodySmall, color = secondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        return
+    }
     Text(
-        text = group,
+        text = programme.title,
         style = MaterialTheme.typography.bodySmall,
-        color = if (focused) Color.Black.copy(alpha = 0.65f) else NuvioTheme.colors.TextSecondary,
+        color = secondary,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
     )
+    Row(modifier = Modifier.padding(top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        LiveTvProgressBar(
+            programme = programme,
+            clock = clock,
+            fill = if (focused) Color.Black else NuvioTheme.colors.TextPrimary,
+            track = if (focused) Color.Black.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.12f),
+            modifier = Modifier.weight(1f, fill = false).widthIn(max = 160.dp).fillMaxWidth(),
+        )
+        Text(
+            text = liveTvTimeLeft(programme, clock),
+            style = MaterialTheme.typography.labelSmall,
+            color = if (focused) Color.Black.copy(alpha = 0.55f) else NuvioTheme.colors.TextTertiary,
+            maxLines = 1,
+            modifier = Modifier.padding(start = 8.dp),
+        )
+    }
 }
 
 @Composable
