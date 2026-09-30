@@ -45,6 +45,7 @@ internal fun PlayerRuntimeController.releasePlayer(flushPlaybackState: Boolean) 
     hideSubtitleDelayOverlayJob?.cancel()
     subtitleAutoSyncLoadJob?.cancel()
     cancelAutomaticSubtitleSync() // AutoSync hook
+    com.nuvio.tv.fork.seek.local.LocalPreviewSources.unregister(this) // Superfork G7a: on-device seek previews
     stopSidecarAddonSubtitle(clearView = true)
     subtitleTimingRefreshJob?.cancel()
     subtitleTimingRefreshJob = null

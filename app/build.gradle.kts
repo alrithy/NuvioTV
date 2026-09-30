@@ -532,6 +532,8 @@ dependencies {
     // QR code + local server for addon management
     implementation(libs.nanohttpd)
     implementation(libs.zxing.core)
+    // Superfork G7a: Seekr sprite thumbnails for seek previews (user key only, D052).
+    implementation(libs.seekr.android)
 
 
     // Supabase

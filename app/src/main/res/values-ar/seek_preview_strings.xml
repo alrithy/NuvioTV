@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Seek previews, Arabic (Superfork G7a). Mirrors values/seek_preview_strings.xml. -->
+<resources>
+    <string name="cd_seek_preview_sync">مزامنة المعاينة</string>
+    <string name="player_seek_preview_sync">مزامنة المعاينة</string>
+    <string name="player_seek_preview_sync_hint">حرّك القيمة حتى تطابق الصورة المصغّرة اللقطة المعروضة خلف هذه اللوحة.</string>
+    <string name="player_seek_preview_sync_keys">يمين/يسار للضبط · موافق لإعادة الضبط · أسفل لاستخدام القيمة المقترحة · أعلى أو رجوع للإغلاق</string>
+    <string name="player_seek_preview_sync_suggested">المقترح: %1$s (فرق المدة عن مصدر المعاينة)</string>
+    <string name="settings_seek_preview_label">معاينات التقديم</string>
+    <string name="settings_seek_preview_local">إنشاء المعاينات على الجهاز</string>
+    <string name="settings_seek_preview_local_description">ينشئ صورًا مصغّرة للتقديم مما نزّله التشغيل أصلًا، فتتطابق دائمًا ولا تستهلك بيانات إضافية. يكمل Seekr الأجزاء التي لم تشاهدها بعد.</string>
+    <string name="settings_seekr_api_key">مفتاح Seekr API</string>
+    <string name="settings_seekr_api_key_description">صور الأجزاء التي لم تشاهدها تأتي من seekr.tv وتحتاج مفتاحك المجاني من seekr.tv. بدون مفتاح تأتي المعاينات من الجهاز فقط.</string>
+    <string name="settings_seekr_api_key_none">غير مضبوط</string>
+    <string name="settings_seekr_api_key_custom">مفتاحك الخاص</string>
+    <string name="settings_seekr_api_key_entry">الصق مفتاح seekr.tv. سيتم التحقق منه لدى Seekr ثم حفظه مشفّرًا على هذا التلفاز لهذا الملف الشخصي. اكتب clear لحذفه.</string>
+    <string name="settings_seekr_api_key_placeholder">مفتاح Seekr</string>
+    <string name="settings_seekr_api_key_checking">جارٍ التحقق من المفتاح لدى Seekr…</string>
+    <string name="settings_seekr_api_key_saved">تم حفظ المفتاح.</string>
+    <string name="settings_seekr_api_key_invalid">لم يقبل Seekr هذا المفتاح.</string>
+    <string name="settings_seekr_api_key_cleared">تم حذف المفتاح.</string>
+</resources>

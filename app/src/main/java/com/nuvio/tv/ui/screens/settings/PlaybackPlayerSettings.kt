@@ -37,6 +37,7 @@ internal fun PlaybackPlayerSection(
         onToggle = { onUpdate { setAutoSwitchInternalPlayerOnError(!settings.autoSwitchInternalPlayerOnError) } },
         enabled = !usesExternalPlayer
     )
+    seekPreviewSettingsItems(enabled = !usesExternalPlayer) // Superfork G7a hook
 
     if (settings.playerPreference != PlayerPreference.INTERNAL) {
         SettingsSectionLabel(text = stringResource(R.string.playback_external_player_label))

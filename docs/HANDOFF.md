@@ -56,12 +56,15 @@ preview. D052: one engine — local keyframe thumbnails (Reshaped `seekpreview/l
 Seekr only for missing slots (Reshaped bounded track; Apache-2.0 SDK; user key only, Keystore-encrypted
 per profile as Cxsmo) → official scrubber; Seekr calibration = Cxsmo estimator on local keyframe frames
 (no live-player seeking).
+G7a (107–110, 112, 115, 116, 279) on this branch: hybrid seek preview engine in `fork/seek` (Reshaped
+FILE_PORT): keyframe tap after the DV factory, software thumbnail decoder, keyframe-exact commit,
+bounded Seekr fallback with the user's key (Cxsmo `SeekrKeyStore`, Keystore-encrypted per profile),
+Preview Sync; limits from `AdaptiveResources.seekPreviewBudget`; SEEK_INTELLIGENCE AUTO (D052). Device
+checks HV-G7-1..HV-G7-4 MANUAL-PENDING (G14).
 
 ## Exact next action
-1. Merge the G7 audit PR, then slices G7a (hybrid engine: local keyframe previews, keyframe snap,
-   bounded Seekr fallback with the encrypted user key, manual Preview Sync, memory/disk bounds; 107–110,
-   112, 115, 116, 279) and G7b (automatic calibration with confidence and weak-match rejection; 111,
-   113, 114).
+1. Merge G7a, then G7b (automatic Seekr calibration on local keyframe frames with confidence gating and
+   weak-match rejection; 111, 113, 114).
 2. Continue G7→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.
