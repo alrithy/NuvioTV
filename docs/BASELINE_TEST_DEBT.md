@@ -1,10 +1,15 @@
 # Baseline test debt — policy and evidence
 
-The accepted baseline is `71632b9271e8bce6783e415d64f34cfa4e8b894c` (D040; previously `fd7973d91dd75d790c5f9b3d68dae652655e92c4`).
-Integration sync merge `898bc83abfc8e59cf1664699980942d3bd6718f6` differs from it only by G0 foundation files and the
-pre-existing missing final newline in ModernHomeContent.kt. Do not describe that as
+The accepted baseline is `56aaba20b7d01746d616a2c8517adcf442950b90` (D050; previously `71632b9271e8bce6783e415d64f34cfa4e8b894c`
+(D040) and `fd7973d91dd75d790c5f9b3d68dae652655e92c4`). Integration sync merge
+`5c24805f82b2bb7092b9acafc00903a32fe5045c` carries Superfork features G0–G5 on top of it, so it is not
 byte-identical application code. The reviewed inventory in `integration/evidence/baseline-suite.json`
-is the clean official `71632b9` replay (1,752 tests, 18 failed, 1 skipped, zero new failures).
+is the clean official `56aaba2` replay (run 36670841979: 1,796 tests, 18 failed, 1 skipped). No 71632b9
+test is missing or newly skipped. Its 3 `new_failures` are official's stale
+`NuvioExoPlayerPerformanceHelperTest` expectations that G2b (#15) corrected on integration; they are
+not debt.
+
+At `71632b9` the inventory was 1,752 tests (18 failed, 1 skipped).
 
 History: at `fd7973d` / integration `3cf04cc` the inventory was 1,611 tests. D040 reviewed the
 single case removed upstream (`com.nuvio.tv.core.debrid.TorboxFileSelectorTest#selects file by torbox file id first`, replaced in the same class).

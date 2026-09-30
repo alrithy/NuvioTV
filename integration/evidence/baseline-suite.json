@@ -1,10 +1,12 @@
 {
   "ci_reported_errors": [
-    "1 baseline tests missing; explicit inventory review required"
+    "3 new unit-test failures"
   ],
-  "ci_run": "36548608899",
-  "errors": [],
-  "evaluation_note": "Raw results from Superfork Baseline Audit run 36548608899 job 109340959950 (log SUPERFORK_RESULT lines); errors re-evaluated by check_baseline_test_failures.evaluate against this reviewed inventory (D040). ci_reported_errors is the CI evaluation against the previous fd7973d inventory.",
+  "ci_run": "36670841979",
+  "errors": [
+    "3 new unit-test failures"
+  ],
+  "evaluation_note": "Raw results from Superfork Baseline Audit run 36670841979 job 109745295876 (log SUPERFORK_RESULT lines); errors re-evaluated by check_baseline_test_failures.evaluate against this reviewed inventory (D050). ci_reported_errors is the CI evaluation against the previous 71632b9 inventory. The 3 new_failures are official's stale NuvioExoPlayerPerformanceHelperTest expectations, already corrected on integration by G2b (#15); they are not debt.",
   "failures": 18,
   "gradle_exit": 0,
   "known_remaining": [
@@ -20,14 +22,15 @@
     "com.nuvio.tv.data.local.CollectionsDataStoreSourceMigrationTest#validation rejects trakt sources without list id",
     "com.nuvio.tv.data.repository.CatalogRepositoryTypeTest#initial and paginated requests retain advertised Series type",
     "com.nuvio.tv.data.repository.TraktAuthServiceTest#refresh token 400 clears credentials and prevents another refresh",
-    "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test 1 GB RAM tier classification",
-    "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test 2 GB RAM tier classification",
-    "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test default fallback values when RAM is zero or unknown",
     "com.nuvio.tv.ui.screens.player.PostPlayRecommendationStateTest#loaded recommendation holds natural completion until overlay evaluation",
     "com.nuvio.tv.ui.screens.player.PostPlayRecommendationStateTest#post play returns to player only while its window is available",
     "com.nuvio.tv.ui.screens.player.TrackSelectionInvestigationTest#testBuildStreamInfoDataWithActiveVideoFormat"
   ],
-  "new_failures": [],
+  "new_failures": [
+    "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test 1 GB RAM tier classification",
+    "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test 2 GB RAM tier classification",
+    "com.nuvio.tv.ui.screens.player.NuvioExoPlayerPerformanceHelperTest#test default fallback values when RAM is zero or unknown"
+  ],
   "resolved_candidates": [
     "com.nuvio.tv.ui.screens.home.HomeEnrichmentRepositoryBoundaryTest#a real repository transport failure is retried and then resolves"
   ],
@@ -1685,6 +1688,50 @@
     "com.nuvio.tv.ui.screens.player.VodCacheAutoSizeTest#ample storage keeps the existing one fifth sizing": "passed",
     "com.nuvio.tv.ui.screens.player.VodCacheAutoSizeTest#low storage takes the floor rather than a fifth of free space": "passed",
     "com.nuvio.tv.ui.screens.player.VodCacheAutoSizeTest#the free space ceiling still wins over the floor": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncActivityPlateauTest#delayOnlyPicksLineStartsInsideOverlapPlateau": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncActivityPlateauTest#retimeLandsOnLineStartsInsideOverlapPlateau": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncNoFitTrackerTest#abandonsOnlyAfterThreeIndependentSourcesFoundNoFit": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncNoFitTrackerTest#onlyAmbiguousRejectionsCountAsNoFit": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncReferenceConsistencyTest#agreeingTracksAreAllKept": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncReferenceConsistencyTest#correlatedCopiesCannotOutvoteAnIndependentTrack": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncReferenceConsistencyTest#mistimedTrackIsDroppedWhenIndependentSourcesAgree": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncSubtitleCueParserTest#ttmlUsesDeclaredFrameRate": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncSubtitleCueParserTest#ttmlUsesFrameRateMultiplier": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#activityAlignmentFindsCommonFpsDrift": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#activityAlignmentFindsConstantOffsetWithoutProvidedSeed": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#activityAlignmentRejectsAmbiguousRepeatedCadence": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#activityAlignmentRejectsMidFilmDiscontinuity": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#activityAlignmentRejectsUnrelatedTimeline": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#activityAlignmentToleratesExtraReferenceSdhActivity": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#activityAlignmentToleratesMissingIntroAndOutro": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#cancellationCheckpointInterruptsDpWithoutChangingMatcherApi": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#delayOnlyFastPathRejectsRealProgressiveDrift": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#delayOnlyFastPathWorksWithTooFewCuesForDp": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#estimatedReferenceEndsAreDownweightedWithoutChangingNormalScoring": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#externalTimelineNormalizationSortsAndDeduplicatesOnlyExactDuplicates": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#fullV2StillRunsWithSixCues": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#groupedReplyRepairAbstainsFromLargeInternalStartMoves": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#groupedReplyRepairAbstainsWithoutTwoSidedSimpleContext": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#groupedReplyRepairNeverUsesEstimatedReferenceEnds": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#heavilyMergedTranslationAcceptsExpectedThreeToOneGrouping": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#localizedSkipRunIsAcceptedWhenEveryOtherConfidenceGatePasses": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#matchedGroupsPreserveExternalCueDurations": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#maxAlignmentShiftCoversTheWholeSubtitleSpan": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#mismatchedGroupTakesLocalMedianShiftButSmallCorrectionsSurvive": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#partialSubtitleIsFoundBeyondDefaultOffsetRange": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#precomputedDelayEvidencePreservesConstantOffsetAuthoritativeResult": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#precomputedDelayEvidencePreservesFpsDriftAuthoritativeResult": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#precomputedDelayFastPathOutputsOnlyTheValidatedUniformOffset": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#providedConstantOffsetBecomesEmbeddedTimeline": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#rejectedResultReportsFailedGates": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#relaxedDelayOnlyAcceptsDenseSdhLikeReferenceAtOneGlobalOffset": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#retimingDoesNotCreateNewSequentialCueOverlaps": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#splitCuesAreStillHandledByExistingDp": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#supportedTwoToTwoReplyGapMovesOnlyTheEarlySecondStart": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#tighterFitWinsOnlyWhenReferenceTransformsDisagree": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.AutoSyncTimelineRetimeTest#validatedDelayOnlyKeepsOneUniformOffsetDespiteLocalReferenceTimingDifferences": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.EmbeddedSubtitleTimelineLoaderTest#concurrentIndexLoadsShareOneDownload": "passed",
+    "com.nuvio.tv.ui.screens.player.autosync.EmbeddedSubtitleTimelineLoaderTest#joinedIndexLoadRestartsWhenOwningLoadIsCancelled": "passed",
     "com.nuvio.tv.ui.screens.search.SearchPresentationRulesTest#current discover catalog is retained when stored catalog is unavailable": "passed",
     "com.nuvio.tv.ui.screens.search.SearchPresentationRulesTest#discover location off never enters discover mode": "passed",
     "com.nuvio.tv.ui.screens.search.SearchPresentationRulesTest#minimum query leaves discover while live search is pending": "passed",
@@ -1786,6 +1833,6 @@
     "com.nuvio.tv.updater.VersionUtilsTest#version prefix and build metadata do not affect precedence": "passed"
   },
   "skipped": 1,
-  "tested_sha": "71632b9271e8bce6783e415d64f34cfa4e8b894c",
-  "tests": 1752
+  "tested_sha": "56aaba20b7d01746d616a2c8517adcf442950b90",
+  "tests": 1796
 }
