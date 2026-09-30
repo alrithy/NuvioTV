@@ -558,3 +558,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: videoskip.herokuapp.com and notscare.me are blocked by this environment's proxy and the MovieHavenDB path returned 404 for a sampled id, so none of the three endpoints is verified here; they fail closed (no segments); device check MANUAL-PENDING (G14 campaign, HV-G9-3)
 
+### G9c — Post-play sources, AUTO chain, paging and trailer fallback (136, 140–144, 146)
+- Roadmap gate: G9
+- Source repository: Cxsmo-ai/NuvioTV-Custom
+- Source branch: main
+- Pinned source SHA: 3e0d0fad60a2721adec133b88640b49c0183883f
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/screens/player/PostPlayRecommendationController.kt (`loadCandidates` source chain, `loadKuratoCandidates` / `loadBingeCatCandidates` / `fetch*CatalogPage`, `findKuratoAiCatalog` / `findBingeCatAiCatalog`, `buildKuratoRecommendationQuery` / `buildBingeCatRecommendationQuery`, `loadMdbListCandidates`, `resolveAddonTrailerSource` / `normalizeAddonTrailerUrl`, `RECOMMENDATION_PREFETCH_BEHIND/AHEAD`), data/local/PlayerSettingsDataStore.kt (`PostPlayRecommendationSource`)
+- Import mode: FILE_PORT (catalog matching, prompts, trailer URL rules) + DELTA_PORT (source chain on the official controller) + REUSE (official MDBList watchlist sync, `CatalogRepository`, `TrailerService.getTrailerPlaybackSourceFromYouTubeUrl`)
+- Current official equivalent: `PostPlayRecommendationController` with one More like this source (Trakt / TMDB / Simkl, TMDB fallback), 4 cards, one trailer lookup
+- What already existed upstream: controller, timing, lazy per-card resolution, watched / unreleased filters, MDBList watchlist sync (`MdbListTrackingLibraryProvider`)
+- What was imported: Kurato AI / BingeCat AI add-on catalog sources with Cxsmo prompts and catalog matching, MDBList watchlist as a source, AUTO chain order, longer lists with a prefetch window, add-on YouTube trailers
+- What was intentionally not imported: Cxsmo's removal of official timing (`PostPlayRecommendationTiming` kept), Cxsmo's Simkl library-as-source (official `SimklRelatedService` kept), Cxsmo's own MDBList watchlist client (official sync reused), unbounded catalog paging, Cxsmo's extra meta fetch for trailers
+- Local adaptations: source setting is per profile and defaults to official's chain (4 cards, identical behaviour); every fork source falls back to official's chain; catalogs stop after 3 pages or 60 items; fork sources show up to 20 cards; official lists (≤ 4) still resolve in full; add-on trailers are tried only after official's lookup finds none
+- Feature flag / fallback: FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS OFF = official post-play exactly (setting hidden, source official)
+- Tests ported/added: PostPlaySourcesTest (6), PostPlayForkCatalogTest (3), AdaptiveResourcesTest (+1, 2 updated)
+- License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: Kurato AI / BingeCat AI catalog ids and prompts are Cxsmo's, not verified against the add-ons from this environment; device check MANUAL-PENDING (G14 campaign, HV-G9-4)
+
