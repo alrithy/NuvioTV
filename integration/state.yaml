@@ -11,8 +11,8 @@ active_gate: G10
 active_gate_name: Live TV
 active_branch: feat/live-tv
 active_task_packet: tasks/G10_LIVE_TV.md
-active_status: READY
-active_pr: null
+active_status: IN_PROGRESS
+active_pr: 62
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
