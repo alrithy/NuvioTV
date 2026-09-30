@@ -371,3 +371,17 @@ demotes unsustainable files in stable order; progressive AIOStreams is capabilit
 clean fallback; add-on retry (289) is one bounded retry inside the scrape timeout.
 STREAM_INTELLIGENCE becomes AUTO with the first code slice; OFF restores official behavior.
 
+## D054 — G9 has one skip aggregator: official `SkipIntroRepository`, extended
+Official `SkipIntroRepository` stays the only skip entry point and keeps IntroDB, AniSkip and
+Anime-Skip (Cxsmo's rewrite removes the anime providers; not inherited). Cxsmo's extra providers
+(SkipMe.db, TheIntroDB, PublicMetaDB, MovieHavenDB, VideoSkip, NotScare) run beside them in
+`fork/skip`, each with its own timeout, and results merge by Cxsmo's confidence-weighted evidence
+merge, so one slow or failing provider never blocks the rest. New providers and the preview /
+content-warning categories are opt-in; the defaults are official's providers and categories. Skip and
+mute stay distinct: a mute segment lowers the volume for its span and never seeks. Provider keys use
+Cxsmo's Keystore-encrypted per-profile store. Post-play keeps official's controller and timing and
+gains sources (MDBList, Kurato AI and BingeCat AI add-on catalogs, an AUTO chain), paging and a
+trailer fallback; random episodes build on official `EpisodeShuffle` (season scope, all-watched
+fallback, Mystery mode that never reveals hidden metadata); Calendar and App Dimmer are Cxsmo
+FILE_PORTs. DISCOVERY_SKIP_RECOMMENDATIONS becomes AUTO with the first code slice; OFF restores
+official behavior.

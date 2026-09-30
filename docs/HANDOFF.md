@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G9 — Skip Recommendations Discovery
 - Active branch: `feat/discovery-skip-recommendations`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
@@ -69,14 +69,21 @@ lossless audio, add-on health), BEST_QUALITY autoplay mode (stream screen and ne
 network kind, heavy streams drop within their cache tier) (#51). Device checks HV-G8-1..HV-G8-7 are
 MANUAL-PENDING (G14; `validation_pending_gates`).
 
-G9 Skip / Recommendations / Discovery READY on `feat/discovery-skip-recommendations` (task
-`tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md`, IDs 117–146, 169–187, 206–207). Official `dev` observed at
-`7f32b3c` (Greek strings, Grid Home hero ratings, Exo libass fix; no G9 seam; not accepted).
+G9 Skip / Recommendations / Discovery IN_PROGRESS on `feat/discovery-skip-recommendations` (task
+`tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md`, IDs 117–146, 169–187, 206–207). Audit
+`docs/audits/G9_DISCOVERY_SKIP_RECOMMENDATIONS_AUDIT.md`: official already has recap / credits skip, IntroDB,
+parallel providers (118, 119, 123, 130), TMDB / Trakt / Simkl post-play with lazy cards (137–139, 145) and
+random episodes across seasons, unwatched-only (169, 170, 172). D054: official `SkipIntroRepository` stays the
+one aggregator (IntroDB, AniSkip, Anime-Skip kept; Cxsmo's removal not inherited) with Cxsmo providers beside
+it, per-provider timeouts, evidence merge, opt-in providers / categories, skip vs mute distinct, encrypted
+keys; post-play sources / paging / trailer fallback; random on official shuffle (season scope, fallback,
+Mystery); Calendar and Dimmer FILE_PORT. Official `dev` observed at `7f32b3c` (no G9 seam; not accepted).
 
 ## Exact next action
-1. Start G9 with its mandatory audit (official skip-intro repository, post-play recommendations, episode
-   shuffle vs Cxsmo skip aggregator, credentials store, calendar, random/mystery episode, dimmer per SOURCE_MAP),
-   one owner per concern.
+1. Merge the G9 audit PR, then slices G9a (skip aggregator core, SkipMe / TheIntroDB / PublicMetaDB,
+   timeouts, evidence merge, encrypted keys; 117, 124–126, 131–135), G9b (preview / content warnings / mute;
+   120–122, 127–129), G9c (post-play; 136, 140–144, 146), G9d (random / Mystery; 171, 173–177), G9e
+   (Calendar; 178–187), G9f (App Dimmer; 206, 207).
 2. Continue G9→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.
