@@ -23,6 +23,7 @@ import com.nuvio.tv.domain.model.Meta
 import com.nuvio.tv.domain.model.RandomEpisodePicker
 import com.nuvio.tv.domain.model.Video
 import com.nuvio.tv.domain.model.WatchProgress
+import com.nuvio.tv.fork.discovery.ShuffleRules
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.theme.NuvioTheme
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,8 @@ internal fun EpisodeShuffleDialog(
     meta: Meta,
     shuffleSettings: EpisodeShuffleSettings,
     onSaveSettings: suspend (EpisodeShuffleSettings) -> Boolean,
+    onPicked: (Video) -> Unit = {},
+    currentSeason: Int? = null,
     watchedEpisodes: Set<Pair<Int, Int>>,
     episodeProgress: Map<Pair<Int, Int>, WatchProgress>,
     onDismiss: () -> Unit,
@@ -43,8 +46,17 @@ internal fun EpisodeShuffleDialog(
     onPlayManually: (Video) -> Unit = onPlay,
     onStartFromBeginning: (Video) -> Unit = onPlay
 ) {
-    val picker by produceState<RandomEpisodePicker?>(null, meta.videos, watchedEpisodes, episodeProgress) {
-        val updated = withContext(Dispatchers.Default) { RandomEpisodePicker(meta, watchedEpisodes, episodeProgress) }
+    // Superfork G9d (171, 173–177): season scope, all-watched fallback and Mystery mode.
+    val forkOptions = ShuffleRules.enabled
+    val scopeSeason = currentSeason?.takeIf { season -> forkOptions && meta.videos.any { it.season == season } }
+    var seasonOnly by remember { mutableStateOf(scopeSeason != null && shuffleSettings.season == scopeSeason) }
+    var mystery by remember { mutableStateOf(forkOptions && shuffleSettings.mystery) }
+    var fallbackToWatched by remember { mutableStateOf(forkOptions && shuffleSettings.fallbackToWatched) }
+    val season = scopeSeason?.takeIf { seasonOnly }
+    val picker by produceState<RandomEpisodePicker?>(null, meta.videos, watchedEpisodes, episodeProgress, season) {
+        val updated = withContext(Dispatchers.Default) {
+            RandomEpisodePicker(meta.id, ShuffleRules.scope(meta.videos, season) { it.season }, watchedEpisodes, episodeProgress)
+        }
         updated.inheritHistoryFrom(value)
         value = updated
     }
@@ -66,7 +78,14 @@ internal fun EpisodeShuffleDialog(
         starting = true
         scope.launch {
             try {
-                if (onSaveSettings(EpisodeShuffleSettings(enabled = true, includeWatched = includeWatched))) play(episode)
+                val settings = EpisodeShuffleSettings(
+                    enabled = true, includeWatched = includeWatched,
+                    season = season, mystery = mystery, fallbackToWatched = fallbackToWatched
+                )
+                if (onSaveSettings(settings)) {
+                    onPicked(episode)
+                    play(episode)
+                }
             } finally {
                 starting = false
             }
@@ -82,6 +101,7 @@ internal fun EpisodeShuffleDialog(
             isResume = episodeProgress[previewEpisode.season to previewEpisode.episode]?.isInProgress() == true,
             showManualPlayOption = showManualPlayOption,
             blurUnwatchedEpisodes = blurUnwatchedEpisodes,
+            mystery = mystery,
             canShuffleAgain = (readyPicker?.count(includeWatched) ?: 0) > 1,
             starting = starting,
             onBack = { if (!starting) selectedEpisode = null },
@@ -129,7 +149,35 @@ internal fun EpisodeShuffleDialog(
                     }
                 }
                 if (unwatchedCount == 0) Text(stringResource(R.string.random_episode_caught_up))
+                if (forkOptions) {
+                    scopeSeason?.let { current ->
+                        ShuffleOptionButton(
+                            label = stringResource(R.string.shuffle_season_only, current),
+                            on = seasonOnly,
+                            onToggle = { seasonOnly = !seasonOnly; selectedEpisode = null }
+                        )
+                    }
+                    ShuffleOptionButton(stringResource(R.string.shuffle_mystery_mode), mystery) { mystery = !mystery }
+                    ShuffleOptionButton(stringResource(R.string.shuffle_fallback_watched), fallbackToWatched) {
+                        fallbackToWatched = !fallbackToWatched
+                    }
+                }
             }
         }
+    }
+}
+
+/** Superfork G9d: an on/off option in the shuffle dialog. */
+@Composable
+private fun ShuffleOptionButton(label: String, on: Boolean, onToggle: () -> Unit) {
+    Button(
+        onClick = onToggle,
+        modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.colors(
+            containerColor = NuvioTheme.colors.BackgroundCard,
+            contentColor = NuvioTheme.colors.TextPrimary
+        )
+    ) {
+        Text(stringResource(if (on) R.string.shuffle_option_on else R.string.shuffle_option_off, label))
     }
 }

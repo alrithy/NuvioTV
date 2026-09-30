@@ -856,6 +856,7 @@ fun MetaDetailsScreen(
                     episodeShuffle = uiState.episodeShuffle,
                     shufflePoolEmpty = uiState.shufflePoolEmpty,
                     onEpisodeShuffleChange = viewModel::setEpisodeShuffle,
+                    onShufflePick = viewModel::markShufflePick,
                     episodeOptionsOverlayStyle = uiState.episodeOptionsOverlayStyle,
                     showFullReleaseDate = uiState.showFullReleaseDate,
                     overallRatingsVisibility = uiState.overallRatingsVisibility,
@@ -1180,6 +1181,7 @@ private fun MetaDetailsContent(
     episodeShuffle: com.nuvio.tv.domain.model.EpisodeShuffleSettings,
     shufflePoolEmpty: Boolean,
     onEpisodeShuffleChange: suspend (com.nuvio.tv.domain.model.EpisodeShuffleSettings) -> Boolean,
+    onShufflePick: (Video) -> Unit = {}, // Superfork G9d
     episodeOptionsOverlayStyle: EpisodeOptionsOverlayStyle,
     showFullReleaseDate: Boolean,
     overallRatingsVisibility: HomeImdbRatingsVisibility,
@@ -1683,13 +1685,15 @@ private fun MetaDetailsContent(
         }
     }
 
+    // Superfork G9d: a Mystery pick never pulls the season row or episode focus to itself.
+    val focusNextToWatch = if (episodeShuffle.enabled && episodeShuffle.mystery) null else nextToWatch
     LaunchedEffect(
         meta.id,
         detailReturnEpisodeFocusRequest?.season,
         detailReturnEpisodeFocusRequest?.episode,
         selectedSeason,
-        nextToWatch?.nextSeason,
-        nextToWatch?.nextVideoId,
+        focusNextToWatch?.nextSeason,
+        focusNextToWatch?.nextVideoId,
         episodesForSeason.size,
         episodesForSeason.firstOrNull()?.id,
         meta.videos.size
@@ -1725,12 +1729,12 @@ private fun MetaDetailsContent(
                             playedSeason = targetEpisode.season,
                             playedEpisode = targetEpisode.episode,
                             selectedSeason = selectedSeason,
-                            nextSeason = nextToWatch?.nextSeason,
+                            nextSeason = focusNextToWatch?.nextSeason,
                             availableSeasons = seasons,
                             allVideos = meta.videos,
                             requestedEpisodeId = targetEpisode.id,
                             episodesForSeason = episodesForSeason,
-                            nextVideoId = nextToWatch?.nextVideoId,
+                            nextVideoId = focusNextToWatch?.nextVideoId,
                             alreadyRestoredId = lastReturnFocusRestoreId,
                             hasWaitedForSeasonAdvance = true
                         )
@@ -1760,12 +1764,12 @@ private fun MetaDetailsContent(
                 playedSeason = targetEpisode.season,
                 playedEpisode = targetEpisode.episode,
                 selectedSeason = selectedSeason,
-                nextSeason = nextToWatch?.nextSeason,
+                nextSeason = focusNextToWatch?.nextSeason,
                 availableSeasons = seasons,
                 allVideos = meta.videos,
                 requestedEpisodeId = targetEpisode.id,
                 episodesForSeason = episodesForSeason,
-                nextVideoId = nextToWatch?.nextVideoId,
+                nextVideoId = focusNextToWatch?.nextVideoId,
                 alreadyRestoredId = lastReturnFocusRestoreId,
                 hasWaitedForSeasonAdvance = false
             )
@@ -1962,12 +1966,12 @@ private fun MetaDetailsContent(
         byEpisodeId.keys.retainAll(episodesForSeason.map { it.id }.toSet())
         byEpisodeId
     }
-    val seasonDownFocusRequester = remember(selectedSeason, episodesForSeason, seasonEpisodeFocusRequesters, lastFocusedEpisodeIdBySeason[selectedSeason], nextToWatch, defaultSeriesVideo, pendingRestoreType, pendingRestoreEpisodeId) {
+    val seasonDownFocusRequester = remember(selectedSeason, episodesForSeason, seasonEpisodeFocusRequesters, lastFocusedEpisodeIdBySeason[selectedSeason], focusNextToWatch, defaultSeriesVideo, pendingRestoreType, pendingRestoreEpisodeId) {
         val nextEpisodeId = if (pendingRestoreType == RestoreTarget.EPISODE) {
             null
         } else {
-            nextToWatch?.nextVideoId
-                ?: nextToWatch?.let { ntw -> episodesForSeason.firstOrNull { it.season == ntw.nextSeason && it.episode == ntw.nextEpisode }?.id }
+            focusNextToWatch?.nextVideoId
+                ?: focusNextToWatch?.let { ntw -> episodesForSeason.firstOrNull { it.season == ntw.nextSeason && it.episode == ntw.nextEpisode }?.id }
                 ?: defaultSeriesVideo?.id?.takeIf { defaultId -> episodesForSeason.any { it.id == defaultId } }
         }
         val preferredEpisodeId = lastFocusedEpisodeIdBySeason[selectedSeason]
@@ -3045,6 +3049,8 @@ private fun MetaDetailsContent(
                 meta = meta,
                 shuffleSettings = episodeShuffle,
                 onSaveSettings = onEpisodeShuffleChange,
+                onPicked = onShufflePick,
+                currentSeason = selectedSeason,
                 watchedEpisodes = watchedEpisodes,
                 episodeProgress = episodeProgressMap,
                 blurUnwatchedEpisodes = blurUnwatchedEpisodes,

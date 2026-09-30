@@ -271,13 +271,16 @@ internal fun PlayerRuntimeController.recomputeNextEpisode(resetVisibility: Boole
     }
 
     val hasAired = PlayerNextEpisodeRules.hasEpisodeAired(resolvedNext.released)
+    // Superfork G9d: the next Mystery pick shows neither its number, title, still nor overview.
+    val mystery = shuffleState.settings.enabled && shuffleState.settings.mystery
     val nextInfo = NextEpisodeInfo(
         videoId = resolvedNext.id,
         season = resolvedNext.season ?: return,
         episode = resolvedNext.episode ?: return,
-        title = resolvedNext.title,
-        thumbnail = resolvedNext.thumbnail,
-        overview = resolvedNext.overview,
+        title = if (mystery) context.getString(com.nuvio.tv.R.string.shuffle_mystery_episode) else resolvedNext.title,
+        thumbnail = resolvedNext.thumbnail.takeUnless { mystery },
+        overview = resolvedNext.overview.takeUnless { mystery },
+        mystery = mystery,
         released = resolvedNext.released,
         hasAired = hasAired,
         available = resolvedNext.available,

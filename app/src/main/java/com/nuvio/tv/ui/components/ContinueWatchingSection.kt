@@ -473,10 +473,13 @@ fun ContinueWatchingCard(
     val progress = remember(item) { (item as? ContinueWatchingItem.InProgress)?.progress }
     val nextUp = remember(item) { (item as? ContinueWatchingItem.NextUp)?.info }
     val cardContext = LocalContext.current
-    val episodeStr = remember(progress, nextUp, cardContext) {
+    val mysteryPick = (item as? ContinueWatchingItem.NextUp)?.mystery == true // Superfork G9d
+    val episodeStr = remember(progress, nextUp, cardContext, mysteryPick) {
         val season = progress?.season ?: nextUp?.season
         val episode = progress?.episode ?: nextUp?.episode
-        if (season != null && episode != null) {
+        if (mysteryPick) {
+            cardContext.getString(R.string.shuffle_mystery_episode)
+        } else if (season != null && episode != null) {
             cardContext.getString(R.string.season_episode_format, season, episode)
         } else {
             null

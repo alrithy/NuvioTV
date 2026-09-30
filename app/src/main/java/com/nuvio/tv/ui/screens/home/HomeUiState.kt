@@ -99,7 +99,9 @@ sealed class ContinueWatchingItem {
         val info: NextUpInfo,
         override val shufflePlayback: Boolean = false,
         val originalPoster: String? = null,
-        val customLandscapePoster: String? = null
+        val customLandscapePoster: String? = null,
+        /** Superfork G9d: a Mystery shuffle pick; its number and title stay hidden. */
+        val mystery: Boolean = false
     ) : ContinueWatchingItem()
 }
 

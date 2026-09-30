@@ -357,11 +357,15 @@ internal fun buildContinueWatchingItem(
             )
         }
         is ContinueWatchingItem.NextUp -> {
-            val episodeCode = context.getString(
-                R.string.season_episode_format,
-                item.info.season,
-                item.info.episode
-            )
+            val episodeCode = if (item.mystery) {
+                context.getString(R.string.shuffle_mystery_episode) // Superfork G9d
+            } else {
+                context.getString(
+                    R.string.season_episode_format,
+                    item.info.season,
+                    item.info.episode
+                )
+            }
             val episodeTitle = item.info.episodeTitle?.takeIf { it.isNotBlank() }?.localizeEpisodeTitle(context)
             val episodeLabel = if (episodeTitle != null) "$episodeCode · $episodeTitle" else episodeCode
             HeroPreview(
@@ -431,11 +435,15 @@ internal fun buildContinueWatchingItem(
                 }
             }
             is ContinueWatchingItem.NextUp -> {
-                val code = context.getString(
-                    R.string.season_episode_format,
-                    item.info.season,
-                    item.info.episode
-                )
+                val code = if (item.mystery) {
+                    context.getString(R.string.shuffle_mystery_episode) // Superfork G9d
+                } else {
+                    context.getString(
+                        R.string.season_episode_format,
+                        item.info.season,
+                        item.info.episode
+                    )
+                }
                 if (item.info.hasAired) {
                     code
                 } else {

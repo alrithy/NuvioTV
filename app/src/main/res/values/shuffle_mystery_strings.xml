@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Episode shuffle season scope, all-watched fallback and Mystery mode (Superfork G9d, D054). -->
+<resources>
+    <string name="shuffle_mystery_episode">Mystery episode</string>
+    <string name="shuffle_play_mystery">Play mystery episode</string>
+    <string name="shuffle_mystery_mode">Mystery mode: hide which episode until it plays</string>
+    <string name="shuffle_season_only">Only season %1$d</string>
+    <string name="shuffle_fallback_watched">Keep shuffling every episode once all are watched</string>
+    <string name="shuffle_option_on">✓ %1$s</string>
+    <string name="shuffle_option_off">%1$s</string>
+</resources>

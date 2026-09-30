@@ -3,8 +3,10 @@ package com.nuvio.tv.data.local
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.domain.model.EpisodeShuffleSettings
+import com.nuvio.tv.fork.discovery.ShuffleRules
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import javax.inject.Inject
@@ -19,6 +21,7 @@ data class EpisodeShuffleProfile(
         val saved = shows[contentId] ?: EpisodeShuffleSettings()
         return saved.copy(enabled = saved.enabled && available &&
             (contentType.equals("series", true) || contentType.equals("tv", true)))
+            .let { if (ShuffleRules.enabled) it else it.copy(season = null, mystery = false, fallbackToWatched = false) } // Superfork G9d
     }
 }
 
@@ -42,6 +45,11 @@ class EpisodeShuffleStore @Inject constructor(
         factory.get(profileId, "episode_shuffle").edit {
             it[booleanPreferencesKey("enabled:$contentId")] = settings.enabled
             it[booleanPreferencesKey("watched:$contentId")] = settings.includeWatched
+            // Superfork G9d: season scope and Mystery mode.
+            val seasonKey = intPreferencesKey("season:$contentId")
+            if (settings.season == null) it.remove(seasonKey) else it[seasonKey] = settings.season
+            it[booleanPreferencesKey("mystery:$contentId")] = settings.mystery
+            it[booleanPreferencesKey("fallback:$contentId")] = settings.fallbackToWatched
         }
     }
 }
@@ -53,6 +61,9 @@ internal fun readShuffleSettings(preferences: Preferences): Map<String, EpisodeS
     }.distinct().associateWith { id ->
         EpisodeShuffleSettings(
             enabled = preferences[booleanPreferencesKey("enabled:$id")] ?: false,
-            includeWatched = preferences[booleanPreferencesKey("watched:$id")] ?: false
+            includeWatched = preferences[booleanPreferencesKey("watched:$id")] ?: false,
+            season = preferences[intPreferencesKey("season:$id")],
+            mystery = preferences[booleanPreferencesKey("mystery:$id")] ?: false,
+            fallbackToWatched = preferences[booleanPreferencesKey("fallback:$id")] ?: false
         )
     }

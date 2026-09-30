@@ -577,3 +577,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: Kurato AI / BingeCat AI catalog ids and prompts are Cxsmo's, not verified against the add-ons from this environment; device check MANUAL-PENDING (G14 campaign, HV-G9-4)
 
+### G9d — Shuffle season scope, all-watched fallback and Mystery mode (171, 173–177)
+- Roadmap gate: G9
+- Source repository: Cxsmo-ai/NuvioTV-Custom
+- Source branch: main
+- Pinned source SHA: 3e0d0fad60a2721adec133b88640b49c0183883f
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/screens/detail/RandomEpisodeDialog.kt (season pool, unwatched-only falling back to the whole pool, `mysteryMode`), ui/screens/stream/StreamScreenViewModel.kt / StreamScreen.kt (`mysteryMode` forcing the direct auto-play flow, header label), ui/screens/player/PlayerScreen.kt (`mysteryMode` labels)
+- Import mode: DELTA_PORT onto official `EpisodeShuffle` / `EpisodeShuffleStore` / `EpisodeShuffleDialog` (behaviour from Cxsmo, structure official's)
+- Current official equivalent: per-show episode shuffle (unwatched-only or all episodes) across detail, home and next episode, with an artwork-hidden preview option; an exhausted unwatched pool is empty by design
+- What already existed upstream: shuffle picking, history, surfaces, "caught up" message and the manual include-watched path
+- What was imported: season scope, all-watched fallback, Mystery mode (hide number, title, still, overview until playback), no stream list for a Mystery pick
+- What was intentionally not imported: Cxsmo's separate one-shot `RandomEpisodeDialog` (official's persistent shuffle kept), the `mysteryMode` navigation arguments (the pick is recognised through official `EpisodeShuffle`), Cxsmo's automatic fallback (opt-in here: official's empty pool is its tested default), hiding metadata after playback starts
+- Local adaptations: settings stored per show in official's `episode_shuffle` store (`season:`, `mystery:`, `fallback:` keys); the stream screen treats an episode as a Mystery pick only when a shuffle surface or the shuffle dialog picked it and the show's Mystery mode is on; Manual auto-play mode uses the G8b best-quality pick for it unless the user chose to pick by hand; the detail screen no longer pulls season or episode focus to a Mystery pick
+- Feature flag / fallback: FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS OFF = official shuffle exactly (stored fork keys ignored, options hidden)
+- Tests ported/added: ShuffleRulesTest (3), EpisodeShuffleForkTest (5), EpisodeShuffleStoreTest (+1)
+- License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: after process death the stream screen no longer knows the episode was a shuffle pick and shows it; a Mystery pick with no auto-selectable stream falls back to the official stream list, whose names can give it away; device check MANUAL-PENDING (G14 campaign, HV-G9-5)
+

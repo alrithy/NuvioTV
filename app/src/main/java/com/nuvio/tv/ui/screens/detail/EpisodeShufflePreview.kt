@@ -64,6 +64,7 @@ internal fun EpisodeShufflePreview(
     isResume: Boolean,
     showManualPlayOption: Boolean,
     blurUnwatchedEpisodes: Boolean,
+    mystery: Boolean = false,
     canShuffleAgain: Boolean,
     starting: Boolean,
     onBack: () -> Unit,
@@ -125,7 +126,7 @@ internal fun EpisodeShufflePreview(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                    ShuffleEpisodeArtwork(episode, isWatched, blurUnwatchedEpisodes && !isWatched)
+                    ShuffleEpisodeArtwork(episode, isWatched, mystery || (blurUnwatchedEpisodes && !isWatched))
                     Text(
                         stringResource(if (includeWatched) R.string.random_episode_include_watched else R.string.random_episode_unwatched),
                         style = MaterialTheme.typography.bodyMedium, color = NuvioTheme.colors.TextSecondary
@@ -134,12 +135,15 @@ internal fun EpisodeShufflePreview(
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(if (compact) 12.dp else 20.dp)) {
                     Text(stringResource(R.string.shuffle_preview_title), style = MaterialTheme.typography.labelLarge,
                         color = NuvioTheme.colors.Primary)
-                    Text(stringResource(R.string.season_episode_format, episode.season ?: 0, episode.episode ?: 0),
-                        style = MaterialTheme.typography.titleMedium, color = NuvioTheme.colors.TextSecondary)
-                    Text(episode.title.localizeEpisodeTitle(LocalContext.current),
+                    // Superfork G9d: Mystery mode shows neither number, title nor overview.
+                    if (!mystery) {
+                        Text(stringResource(R.string.season_episode_format, episode.season ?: 0, episode.episode ?: 0),
+                            style = MaterialTheme.typography.titleMedium, color = NuvioTheme.colors.TextSecondary)
+                    }
+                    Text(if (mystery) stringResource(R.string.shuffle_mystery_episode) else episode.title.localizeEpisodeTitle(LocalContext.current),
                         style = if (compact) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.headlineLarge,
                         color = NuvioTheme.colors.TextPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    episode.overview?.takeIf { it.isNotBlank() }?.let {
+                    episode.overview?.takeIf { it.isNotBlank() && !mystery }?.let {
                         Text(it, style = MaterialTheme.typography.bodyMedium, color = NuvioTheme.colors.TextSecondary,
                             maxLines = if (compact) 3 else 4, overflow = TextOverflow.Ellipsis)
                     }
@@ -178,8 +182,8 @@ internal fun EpisodeShufflePreview(
     }
     if (showPlayOptions && !starting && (showManualPlayOption || isResume)) {
         PlayManualOverrideDialog(
-            title = episode.title.localizeEpisodeTitle(LocalContext.current),
-            subtitle = stringResource(R.string.season_episode_format, episode.season ?: 0, episode.episode ?: 0),
+            title = if (mystery) stringResource(R.string.shuffle_mystery_episode) else episode.title.localizeEpisodeTitle(LocalContext.current),
+            subtitle = if (mystery) meta.name else stringResource(R.string.season_episode_format, episode.season ?: 0, episode.episode ?: 0),
             onDismiss = {
                 showPlayOptions = false
                 restorePlayFocusToken++
