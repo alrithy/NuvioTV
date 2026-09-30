@@ -367,7 +367,9 @@ data class PlayerSettings(
 }
 
 enum class StreamAutoPlayMode {
-    MANUAL, FIRST_STREAM, REGEX_MATCH
+    MANUAL, FIRST_STREAM, REGEX_MATCH,
+    /** Superfork G8b (168): the G8 ranker's first stream; FIRST_STREAM while STREAM_INTELLIGENCE is OFF. */
+    BEST_QUALITY
 }
 
 enum class StreamAutoPlaySource {

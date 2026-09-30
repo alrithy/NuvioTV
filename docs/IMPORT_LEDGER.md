@@ -482,3 +482,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: needs an AIOStreams build that serves the Nuvio progressive endpoint; device checks MANUAL-PENDING (G14 campaign, HV-G8-1..HV-G8-3)
 
+### G8b — One stream ranker, Best-quality autoplay mode and list order (155, 156, 158–164, 166, 168)
+- Roadmap gate: G8
+- Source repository: Cxsmo-ai/NuvioTV-Custom
+- Source branch: main
+- Pinned source SHA: 3e0d0fad60a2721adec133b88640b49c0183883f
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): core/player/StreamQualityRank.kt (ranking chain, stable sort, "user list sort ignored" rule), core/debrid/TrashReleaseGroups.kt (TRaSH tier data)
+- Import mode: ALGORITHM_PORT (ranking chain); FILE_PORT of the TRaSH data, regrouped by tier
+- Current official equivalent: `DirectDebridStreamFilter` facts and sort criteria for the cached Direct Debrid list only; autoplay MANUAL / FIRST_STREAM / REGEX_MATCH
+- What already existed upstream: official facts extraction (resolution, quality, HDR/DV, audio, channels, codec, release group, size), official autoplay candidate scoping and playability rules
+- What was imported: fixed best-first chain over official facts, release-group quality tiers (TRaSH Remux / UHD / HD BluRay / WEB tiers; LQ, Bad Dual and Generated Dynamic HDR groups last), stable ties, fixed orders instead of the user's list sort criteria
+- What was intentionally not imported: Cxsmo's changes to official defaults (maxResults 8, required resolutions, excluded AV1 / CAM / 3D, reordered audio and codec defaults, TRaSH exclusions in DebridStreamPreferences), its `factsFor` / exclusion-filter rewrite of `DirectDebridStreamFilter`, dropping excluded streams, `R1_SPLIT` timing logs, container score
+- Local adaptations: cache tier first (156/157), DV ranked by the display's HDR capabilities (162), lossless-first audio (163), size as bitrate within one title (164), G1 add-on health as the last tiebreak (166); pure `StreamRankRules` with a per-load cached `StreamRanker.Session`; `StreamAutoPlayMode.BEST_QUALITY` in the official selector (same candidates and playability as the official modes; stream screen and next episode); per-profile "Sort streams by quality" list order in `fork_streams`, default off (167)
+- Feature flag / fallback: FeatureId.STREAM_INTELLIGENCE OFF = no Best-quality option or list toggle, a stored BEST_QUALITY behaves as FIRST_STREAM, lists keep official order
+- Tests ported/added: StreamRankRulesTest (8), StreamAutoPlayBestQualityTest (6)
+- License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); TRaSH Guides data MIT (Copyright (c) 2021 TRaSH); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: ranking depends on official's text-based facts (unparsed names rank as unknown, never dropped); device checks MANUAL-PENDING (G14 campaign, HV-G8-4..HV-G8-6)
+

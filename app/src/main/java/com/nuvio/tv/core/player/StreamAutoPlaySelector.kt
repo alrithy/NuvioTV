@@ -6,6 +6,9 @@ import com.nuvio.tv.data.local.StreamAutoPlaySource
 import com.nuvio.tv.domain.model.AddonStreams
 import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.domain.model.StreamDebridCacheState
+import com.nuvio.tv.fork.streams.StreamIntelligence
+import com.nuvio.tv.fork.streams.StreamRankContext
+import com.nuvio.tv.fork.streams.StreamRanker
 
 object StreamAutoPlaySelector {
     fun orderAddonStreams(
@@ -55,7 +58,9 @@ object StreamAutoPlaySelector {
         selectedPlugins: Set<String>,
         preferredBingeGroup: String? = null,
         preferBingeGroupInSelection: Boolean = false,
-        bingeGroupOnly: Boolean = false
+        bingeGroupOnly: Boolean = false,
+        // Superfork G8b: display / add-on health inputs for BEST_QUALITY; NONE changes nothing.
+        rankContext: StreamRankContext = StreamRankContext.NONE
     ): Stream? {
         if (streams.isEmpty()) return null
 
@@ -101,6 +106,11 @@ object StreamAutoPlaySelector {
         return when (mode) {
             StreamAutoPlayMode.MANUAL -> null
             StreamAutoPlayMode.FIRST_STREAM -> candidateStreams.firstOrNull { isPlayable(it) }
+            // Superfork G8b (168): same candidates as the official modes, best stream by the G8 ranker.
+            StreamAutoPlayMode.BEST_QUALITY -> {
+                val playable = candidateStreams.filter { isPlayable(it) }
+                if (StreamIntelligence.enabled) StreamRanker.best(playable, rankContext) else playable.firstOrNull()
+            }
             StreamAutoPlayMode.REGEX_MATCH -> {
                 val pattern = regexPattern.trim()
  
