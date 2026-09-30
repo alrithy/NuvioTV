@@ -67,7 +67,10 @@ class PostPlayForkSources @Inject constructor(
                 extraArgs = mapOf("search" to query),
                 supportsSkip = true,
             ).first { it !is NetworkResult.Loading }
-            val row = (result as? NetworkResult.Success)?.data ?: break
+            val row = when (result) {
+                is NetworkResult.Success -> result.data
+                else -> null
+            } ?: break
             val before = items.size
             row.items.forEach { items.putIfAbsent("${it.apiType}:${it.id}".lowercase(), it) }
             if (items.size == before || !row.hasMore || row.items.size < pageSize ||
