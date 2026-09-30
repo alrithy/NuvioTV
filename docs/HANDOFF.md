@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G8 — Stream Intelligence
 - Active branch: `feat/stream-intelligence`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G8_STREAM_INTELLIGENCE.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
@@ -59,11 +59,18 @@ Keystore-encrypted key, Preview Sync, limits from `AdaptiveResources.seekPreview
 live-player seeking; 111, 113, 114) (#46). Device checks HV-G7-1..HV-G7-5 are MANUAL-PENDING (G14;
 `validation_pending_gates`).
 
-G8 Stream Intelligence READY on `feat/stream-intelligence` (task `tasks/G8_STREAM_INTELLIGENCE.md`).
+G8 Stream Intelligence IN_PROGRESS on `feat/stream-intelligence` (task `tasks/G8_STREAM_INTELLIGENCE.md`,
+IDs 147–168, plus 289 from G1). Audit `docs/audits/G8_STREAM_INTELLIGENCE_AUDIT.md`: official already emits
+results per add-on (148), has instant/bounded/unlimited scrape timeouts (152–154), keeps uncached results
+(157) and add-on order (167); its ranking engine covers the Direct Debrid list only. D053: one ranker in
+`fork/streams` on official facts (Cxsmo ranking chain), "Best quality" list order and autoplay mode (opt-in),
+Reshaped connection fit, progressive AIOStreams with fallback, bounded add-on retry. Official `dev` observed
+at `9bf4ed1` (version bump only; not accepted).
 
 ## Exact next action
-1. Start G8 with its mandatory audit (official stream selection / add-on stack vs Reshaped / Cxsmo sources
-   per SOURCE_MAP; 289 arrives from G1), one owner per concern.
+1. Merge the G8 audit PR, then slices G8a (progressive AIOStreams + fallback, bounded add-on retry; 147,
+   149–151, 289), G8b (one ranker, "Best quality" list order and autoplay; 155, 156, 158–164, 166, 168),
+   G8c (connection fit; 165).
 2. Continue G8→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.
