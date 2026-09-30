@@ -21,6 +21,15 @@ data class LiveTvChannel(
     val sourceId: String = "",
     /** What favorites, hiding and the last channel store: see [liveTvChannelKey]. */
     val key: Long = 0L,
+    /** What its guide is kept under: see [liveTvGuideKey] (G10c). */
+    val guideKey: String = "",
+)
+
+/** One guide programme (G10c). */
+data class LiveTvProgramme(
+    val title: String,
+    val startEpochMs: Long,
+    val stopEpochMs: Long,
 )
 
 /** The category key of channels the playlist gives no category; the screens call it "Uncategorised". */
@@ -154,8 +163,15 @@ data class LiveTvState(
     val sourceCounts: Map<String, Int> = emptyMap(),
     /** Sources whose last load failed (their earlier channels, if any, stay listed). */
     val sourceErrors: Map<String, LiveTvError> = emptyMap(),
-    /** Guide links the sources announced (read in G10c). */
+    /** Guide links the sources announced. */
     val epgUrls: List<String> = emptyList(),
+    /** [LiveTvChannel.guideKey] to the programme on air now (G10c). */
+    val currentProgrammes: Map<String, LiveTvProgramme> = emptyMap(),
+    /** [LiveTvChannel.guideKey] to the guide's logo, for channels the playlist gives none. */
+    val guideLogos: Map<String, String> = emptyMap(),
+    /** Goes up each time the kept guide is read again, so guide views redraw. */
+    val guideVersion: Int = 0,
+    val isEpgLoading: Boolean = false,
     val isLoading: Boolean = false,
     val isLoaded: Boolean = false,
     /** The last failed attempt to add a source. */
@@ -164,6 +180,10 @@ data class LiveTvState(
     val addedCount: Int = 0,
 ) {
     val hasSource: Boolean get() = sources.isNotEmpty()
+
+    /** The channel's logo, or the guide's when the playlist has none. */
+    fun logoFor(channel: LiveTvChannel): String? =
+        channel.logoUrl?.takeIf(String::isNotBlank) ?: guideLogos[channel.guideKey]
 
     /** Categories the list shows. */
     val visibleGroups: List<String>

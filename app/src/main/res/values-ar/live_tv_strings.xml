@@ -55,6 +55,10 @@
     <string name="live_tv_categories_none">تظهر الفئات هنا بعد تحميل القنوات.</string>
     <string name="live_tv_done">تم</string>
 
+    <string name="live_tv_guide_loading">جارٍ تحميل الدليل…</string>
+    <string name="live_tv_minutes_left">متبقٍ %1$d د</string>
+    <string name="live_tv_hours_minutes_left">متبقٍ %1$d س %2$d د</string>
+
     <string name="live_tv_error_invalid_url">أدخل رابط قائمة صالحًا يبدأ بـ HTTP أو HTTPS.</string>
     <string name="live_tv_error_no_channels">لم يُعثر على قنوات قابلة للتشغيل في هذه القائمة.</string>
     <string name="live_tv_error_load_failed">تعذّر تحميل القائمة.</string>

@@ -1,7 +1,9 @@
 package com.nuvio.tv.fork.livetv
 
 import android.util.Log
+import java.io.File
 import java.io.IOException
+import java.util.zip.Deflater
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.job
@@ -9,8 +11,10 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okio.BufferedSource
+import okio.GzipSink
 import okio.GzipSource
 import okio.buffer
+import okio.sink
 
 /** What Live TV reads playlists, provider APIs and guides through; fixtures replace it in tests. */
 internal interface LiveTvFetcher {
@@ -53,7 +57,48 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
             }
         }
 
+    /**
+     * Saves [url] to [target] gzip-compressed (as sent when the server already gzipped it, else
+     * compressed quickly on the way), so a 100+ MB guide takes a few MB on the TV's storage. The old
+     * file stays until the new one is complete (G10c; Reshaped `LiveTvHttp.download` @ 0ccf049).
+     * Some panels build their guide on request and send nothing for a minute or more.
+     */
+    suspend fun download(url: String, headers: Map<String, String>, target: File) {
+        withContext(Dispatchers.IO) {
+            val http = client.newBuilder().readTimeout(GUIDE_READ_TIMEOUT_S, TimeUnit.SECONDS).build()
+            val request = Request.Builder().url(url).apply {
+                headers.forEach { (name, value) -> header(name, value) }
+            }.build()
+            target.parentFile?.mkdirs()
+            val temp = File(target.path + ".part")
+            val call = http.newCall(request)
+            val cancelOnCompletion = coroutineContext.job.invokeOnCompletion { call.cancel() }
+            try {
+                call.execute().use { response ->
+                    if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
+                    val source = response.body?.source() ?: throw IOException("empty response")
+                    if (source.startsWithGzipMagic()) {
+                        temp.sink().buffer().use { it.writeAll(source) }
+                    } else {
+                        // Lowest compression: XML still shrinks about tenfold, at little CPU on a weak TV.
+                        val gzip = GzipSink(temp.sink()).apply { deflater.setLevel(Deflater.BEST_SPEED) }
+                        gzip.buffer().use { it.writeAll(source) }
+                    }
+                }
+                if (!temp.renameTo(target) && !(target.delete() && temp.renameTo(target))) {
+                    throw IOException("guide not saved")
+                }
+            } finally {
+                cancelOnCompletion.dispose()
+                temp.delete()
+            }
+        }
+    }
+
     companion object {
+        /** How long a guide download may wait for data. */
+        const val GUIDE_READ_TIMEOUT_S = 120L
+
         private val defaultClient: OkHttpClient by lazy {
             OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
