@@ -11,14 +11,14 @@ active_gate: G8
 active_gate_name: Stream Intelligence
 active_branch: feat/stream-intelligence
 active_task_packet: tasks/G8_STREAM_INTELLIGENCE.md
-active_status: READY
-active_pr: null
+active_status: IN_PROGRESS
+active_pr: 48
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 7334bf24b146685b64171ed0d0413f21cad4c0ab
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36698354964 ; G7b
-  PR #46 exact head, squash-merged as 33a4f19.
+last_green_commit: 4c08b612d15c4990515d2de716175e9118484436
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36699920766 ; G7
+  closeout PR #47 exact head, squash-merged as 2763e20.
 last_green_scope: Full suite guard (2011 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
@@ -81,10 +81,10 @@ validation_pending_gates:
   evidence: 'All code merged in PRs #44, #45, #46; on-device previews, keyframe-exact seek, Seekr fallback / Preview Sync, memory-disk bounds and automatic calibration checks HV-G7-1..HV-G7-5 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-09-30T08:00:00Z'
-  sha: 56aaba20b7d01746d616a2c8517adcf442950b90
-  accepted: true
-  reason: 'Adopted via chore/upstream-sync-2026-09-30 (D050): official Subtitle AutoSync (PR #3703) is the G6 subsystem; one conflict resolved (extractor factory).'
+  checked_at: '2026-09-30T10:15:00Z'
+  sha: 9bf4ed1e34ca5912c4d09bf02aa125f7d5e467a9
+  accepted: false
+  reason: 'Observed at G8 start: one commit after accepted 56aaba2 ("bump version", app/build.gradle.kts version fields only); touches no G8 seam, so no sync PR.'
 completed_gates:
 - gate: G0
   name: Fork Foundation

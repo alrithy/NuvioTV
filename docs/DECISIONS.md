@@ -359,3 +359,15 @@ player. The Seekr key is the user's own, AES-GCM encrypted per profile with an A
 slice because previews only appear while the user scrubs; memory and disk budgets come from
 AdaptiveResources. OFF restores the official scrubber exactly.
 
+## D053 — G8 has one stream ranking engine, built on official stream facts
+The only ranker is `fork/streams`, using official `DirectDebridStreamFilter` facts and
+`DebridStreamPreferences` (REUSE, no second parser), with the ranking chain of Cxsmo
+`StreamQualityRank` (ALGORITHM_PORT): cached debrid first (uncached stay visible), resolution,
+quality (REMUX first), release-group ladder, HDR/DV, lossless audio, channels, encode, bitrate,
+source reliability (G1 add-on health); stable, so add-on order survives every tie. The same ranker
+orders the lists when the user picks a "Best quality" order and chooses the stream for a new
+"Best quality" autoplay mode; official orders and modes remain the defaults. Reshaped connection fit
+demotes unsustainable files in stable order; progressive AIOStreams is capability-detected with a
+clean fallback; add-on retry (289) is one bounded retry inside the scrape timeout.
+STREAM_INTELLIGENCE becomes AUTO with the first code slice; OFF restores official behavior.
+
