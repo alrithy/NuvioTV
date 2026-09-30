@@ -11,7 +11,7 @@ active_gate: G9
 active_gate_name: Skip Recommendations Discovery
 active_branch: feat/discovery-skip-recommendations
 active_task_packet: tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md
-active_status: READY
+active_status: IN_PROGRESS
 active_pr: null
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
