@@ -93,7 +93,7 @@ More like this" = official chain and 4 cards); Auto = Kurato AI → BingeCat AI 
 MDBList = the watchlist official already syncs; every fork source falls back to official's chain; up to 20 cards
 with a prefetch window (1 behind, 4 ahead) in `AdaptiveResources`; add-on YouTube trailers after official's lookup.
 Device check HV-G9-4 MANUAL-PENDING (G14).
-G9d (171, 173–177) on this branch: on official's per-show shuffle, a season scope (Only season N), an opt-in
+G9d (171, 173–177) (#57, `317afca`): on official's per-show shuffle, a season scope (Only season N), an opt-in
 all-watched fallback (official empty pool stays default) and Mystery mode (number, title, still and overview hidden on
 the preview, hero, home cards, stream screen and up-next card until playback; a Mystery pick skips the stream list).
 Device check HV-G9-5 MANUAL-PENDING (G14).
