@@ -646,3 +646,4 @@ Every imported feature must add an entry before its PR is considered complete.
 - License: existing GPL-3.0 attribution retained; corrections are local glue, not a new fork source.
 - Resulting commit / CI: recorded in correction PR/HANDOFF before closeout; PR #61, awaiting exact-head CI.
 - Hardware: HV-G9-1..HV-G9-7 stay MANUAL-PENDING for G14, including raw-dialog coverage and restored/manual Mystery paths.
+- Follow-up correction (review of #61): with a fork provider active, the official Simkl id and episode-mapping lookups behind AniSkip / Anime-Skip now start at once and share the six-second deadline, each lookup keeping what it found; official `SimklIdResolver` GETs and its redirect probe use the same cancellation-aware call (`readSkipBody` / `readHeaderCancellable`), so the deadline stops them. Test: SkipIntroSimklDeadlineTest (2). Official-only path unchanged in order and results.

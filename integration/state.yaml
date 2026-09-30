@@ -13,7 +13,7 @@ active_branch: feat/discovery-skip-recommendations
 active_task_packet: tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md
 active_status: REVIEW
 active_pr: 61
-active_owner: codex (sequential; no lease)
+active_owner: claude-code (sequential; no lease; took over from codex at the user's request, codex idle since 18:31Z)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
 last_green_commit: 5dcde97b2349dd92bc403abbdca2ae06d406337b
