@@ -1,10 +1,10 @@
 # Nuvio Superfork handoff
 
 <!-- canonical-state:start -->
-- Active gate: G7 — Seek Intelligence
-- Active branch: `feat/seek-intelligence`
-- Status: IN_PROGRESS
-- Task: `tasks/G7_SEEK_INTELLIGENCE.md`
+- Active gate: G8 — Stream Intelligence
+- Active branch: `feat/stream-intelligence`
+- Status: READY
+- Task: `tasks/G8_STREAM_INTELLIGENCE.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -50,25 +50,21 @@ Verified official: 82, 83, 86–91, 95–99, 106. Deferred: 85 (no per-subtitle 
 (audio / ASR sync, G13 candidates). Device checks HV-G6-1..HV-G6-5 are MANUAL-PENDING (G14;
 `validation_pending_gates`).
 
-G7 Seek Intelligence IN_PROGRESS on `feat/seek-intelligence` (task `tasks/G7_SEEK_INTELLIGENCE.md`, IDs
-107–116, plus 279 from G2). Audit `docs/audits/G7_SEEK_INTELLIGENCE_AUDIT.md`: official has no seek
-preview. D052: one engine — local keyframe thumbnails (Reshaped `seekpreview/local`, FILE_PORT) →
-Seekr only for missing slots (Reshaped bounded track; Apache-2.0 SDK; user key only, Keystore-encrypted
-per profile as Cxsmo) → official scrubber; Seekr calibration = Cxsmo estimator on local keyframe frames
-(no live-player seeking).
-G7a (107–110, 112, 115, 116, 279) on this branch: hybrid seek preview engine in `fork/seek` (Reshaped
-FILE_PORT): keyframe tap after the DV factory, software thumbnail decoder, keyframe-exact commit,
-bounded Seekr fallback with the user's key (Cxsmo `SeekrKeyStore`, Keystore-encrypted per profile),
-Preview Sync; limits from `AdaptiveResources.seekPreviewBudget`; SEEK_INTELLIGENCE AUTO (D052). Device
-checks HV-G7-1..HV-G7-4 MANUAL-PENDING (G14).
-G7b (111, 113, 114) on this branch: automatic Seekr calibration (Cxsmo estimator, ALGORITHM_PORT) on the
-local keyframe thumbnails while paused or scrubbing; applied only when >= 3 anchors agree with confidence
->= 0.5; never over a manual Preview Sync value. Device check HV-G7-5 MANUAL-PENDING (G14).
+G7 CODE-COMPLETE (PRs #44, #45, #46, final `33a4f19`; 2011 tests, 15 known failures, 0 new, fullDebug
+APK). Audit `docs/audits/G7_SEEK_INTELLIGENCE_AUDIT.md`; D052 (one preview engine, SEEK_INTELLIGENCE AUTO).
+Slices: G7a hybrid seek preview engine in `fork/seek` (Reshaped FILE_PORT: thumbnails from the keyframes
+playback already downloads, keyframe-exact commit, memory-bounded Seekr fallback with the user's
+Keystore-encrypted key, Preview Sync, limits from `AdaptiveResources.seekPreviewBudget`; 107–110, 112, 115,
+116, and G2's 279) (#45); G7b automatic Seekr calibration (Cxsmo estimator on local keyframe frames, no
+live-player seeking; 111, 113, 114) (#46). Device checks HV-G7-1..HV-G7-5 are MANUAL-PENDING (G14;
+`validation_pending_gates`).
+
+G8 Stream Intelligence READY on `feat/stream-intelligence` (task `tasks/G8_STREAM_INTELLIGENCE.md`).
 
 ## Exact next action
-1. Merge G7b, then close G7 (CODE-COMPLETE, device checks VALIDATION-PENDING, batched to G14) and start
-   G8 with its mandatory audit.
-2. Continue G7→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
+1. Start G8 with its mandatory audit (official stream selection / add-on stack vs Reshaped / Cxsmo sources
+   per SOURCE_MAP; 289 arrives from G1), one owner per concern.
+2. Continue G8→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.
 5. Upstream: official `56aaba2` accepted (PR #40, D050). Before each gate, check official `dev`; sync through a reviewed `chore/upstream-sync-*` PR when the gate touches changed seams.
