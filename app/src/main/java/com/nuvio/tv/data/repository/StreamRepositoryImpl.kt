@@ -61,7 +61,9 @@ class StreamRepositoryImpl @Inject constructor(
     private val tmdbService: TmdbService,
     private val debridStreamPresentation: DebridStreamPresentation,
     private val localDebridAvailabilityService: LocalDebridAvailabilityService,
-    private val healthTracker: AddonHealthTracker = AddonHealthTracker.DISABLED
+    private val healthTracker: AddonHealthTracker = AddonHealthTracker.DISABLED,
+    // Superfork G8a: AIOStreams' opt-in progressive endpoint (null in tests = official request only).
+    private val progressiveAioStreams: com.nuvio.tv.fork.streams.ProgressiveAioStreamsClient? = null
 ) : StreamRepository {
     private val streamSearchSessions = StreamSearchSessionCache()
     private val localPluginSearchPaused = MutableStateFlow(false)
@@ -185,6 +187,10 @@ class StreamRepositoryImpl @Inject constructor(
 
             // Accumulate results as they arrive
             val accumulatedResults = mutableListOf<AddonStreams>()
+            // Superfork G8a (149): progressive snapshots replace their add-on's group (identity set).
+            val progressiveSnapshots = java.util.Collections.synchronizedSet(
+                java.util.Collections.newSetFromMap(java.util.IdentityHashMap<AddonStreams, Boolean>())
+            )
 
             coroutineScope {
                 // Channel to receive results as they complete
@@ -202,7 +208,15 @@ class StreamRepositoryImpl @Inject constructor(
                         val startedAt = System.nanoTime()
                         fun elapsedMs() = (System.nanoTime() - startedAt) / 1_000_000
                         try {
-                            val streamsResult = getStreamsFromAddon(addon, type, videoId)
+                            val streamsResult = forkAwareStreamsFromAddon(addon, type, videoId) { snapshot ->
+                                val group = AddonStreams(
+                                    addonName = addon.displayName,
+                                    addonLogo = addon.logo,
+                                    streams = snapshot.map { it.copy(addonName = addon.displayName, addonLogo = addon.logo) }
+                                )
+                                progressiveSnapshots.add(group)
+                                resultChannel.send(group)
+                            }
                             val latencyMs = elapsedMs()
                             when (streamsResult) {
                                 is NetworkResult.Success -> {
@@ -313,7 +327,11 @@ class StreamRepositoryImpl @Inject constructor(
                 for (result in resultChannel) {
                     val checkingResult = localDebridAvailabilityService.markChecking(listOf(result)).firstOrNull() ?: result
                     val checkedResult = localDebridAvailabilityService.annotateCachedAvailability(listOf(checkingResult)).firstOrNull() ?: checkingResult
-                    mergePresentedResult(accumulatedResults, checkedResult, debridSettings)
+                    if (progressiveSnapshots.remove(result)) {
+                        replacePresentedResult(accumulatedResults, checkedResult, debridSettings) // Superfork G8a
+                    } else {
+                        mergePresentedResult(accumulatedResults, checkedResult, debridSettings)
+                    }
                     emit(NetworkResult.Success(accumulatedResults.toList()))
                     Log.d(TAG, "Emitted ${accumulatedResults.size} addon(s), latest: ${checkedResult.addonName} with ${checkedResult.streams.size} streams")
                 }
@@ -435,6 +453,54 @@ class StreamRepositoryImpl @Inject constructor(
         } else {
             accumulatedResults.add(presentStreams(result, debridSettings))
         }
+    }
+
+    /** Superfork G8a (149, 150): a cumulative snapshot replaces its add-on's group in place. */
+    private fun replacePresentedResult(
+        accumulatedResults: MutableList<AddonStreams>,
+        result: AddonStreams,
+        debridSettings: DebridSettings
+    ) {
+        val deduped = result.copy(streams = mergeStreams(emptyList(), result.streams))
+        val presented = presentStreams(deduped, debridSettings)
+        val existingIndex = accumulatedResults.indexOfFirst { it.addonName == result.addonName }
+        if (existingIndex >= 0) accumulatedResults[existingIndex] = presented else accumulatedResults.add(presented)
+    }
+
+    /**
+     * Superfork G8a (147-151, 289): AIOStreams' progressive endpoint when the add-on URL opts in,
+     * else the official request with one bounded retry. STREAM_INTELLIGENCE OFF = exactly the
+     * official request.
+     */
+    private suspend fun forkAwareStreamsFromAddon(
+        addon: Addon,
+        type: String,
+        videoId: String,
+        onSnapshot: suspend (List<Stream>) -> Unit
+    ): NetworkResult<List<Stream>> {
+        if (!com.nuvio.tv.fork.streams.StreamIntelligence.enabled) return getStreamsFromAddon(addon, type, videoId)
+        val progressive = progressiveAioStreams
+        if (progressive != null && com.nuvio.tv.fork.streams.ProgressiveAioStreamsRules.isProgressive(addon.baseUrl)) {
+            progressive.fetch(
+                addonBaseUrl = addon.baseUrl,
+                encodedType = encodePathSegment(type),
+                encodedVideoId = encodePathSegment(videoId),
+                addonName = addon.displayName,
+                addonLogo = addon.logo,
+                onSnapshot = onSnapshot
+            )?.let { return NetworkResult.Success(it) }
+        }
+        val startedAt = System.nanoTime()
+        val first = getStreamsFromAddon(addon, type, videoId)
+        val elapsedMs = (System.nanoTime() - startedAt) / 1_000_000
+        if (first is NetworkResult.Error &&
+            com.nuvio.tv.fork.streams.AddonStreamRetry.shouldRetry(first.code, first.message, elapsedMs, attempt = 0)
+        ) {
+            Log.d(TAG, "Retrying stream request once host=${com.nuvio.tv.fork.streams.ProgressiveAioStreamsRules.logHost(addon.baseUrl)} code=${first.code}")
+            kotlinx.coroutines.delay(com.nuvio.tv.fork.streams.AddonStreamRetry.RETRY_DELAY_MS)
+            return getStreamsFromAddon(addon, type, videoId)
+        }
+        return first
     }
 
     private fun presentStreams(result: AddonStreams, debridSettings: DebridSettings): AddonStreams {
