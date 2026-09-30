@@ -15,10 +15,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -42,6 +45,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 @OptIn(ExperimentalCoroutinesApi::class)
 class LiveTvRepository internal constructor(
     private val store: LiveTvSourceStore,
+    private val libraryStore: LiveTvLibraryStore,
     private val http: LiveTvFetcher,
     private val activeProfileId: StateFlow<Int>,
     val featureEnabled: Boolean,
@@ -51,7 +55,7 @@ class LiveTvRepository internal constructor(
         store: LiveTvStorage,
         profileManager: ProfileManager,
         registry: FeatureRegistry,
-    ) : this(store, LiveTvHttp(), profileManager.activeProfileId, registry.mode(FeatureId.LIVE_TV) != FeatureMode.OFF)
+    ) : this(store, store, LiveTvHttp(), profileManager.activeProfileId, registry.mode(FeatureId.LIVE_TV) != FeatureMode.OFF)
 
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val xtream = LiveTvXtream(http)
@@ -90,17 +94,16 @@ class LiveTvRepository internal constructor(
         stalker.clearSessions()
         _state.value = LiveTvState(isLoading = true)
         profileJob = scope.launch(serial) {
-            val sources = try {
-                store.sources(profileId)
-            } catch (cancel: CancellationException) {
-                throw cancel
-            } catch (error: Exception) {
-                LiveTvLog.warn("Live TV sources unreadable", null, error)
-                emptyList()
-            }
+            val sources = readOrDefault("Live TV sources unreadable", emptyList()) { store.sources(profileId) }
+            val library = readOrDefault("Live TV choices unreadable", LiveTvLibrary()) { libraryStore.library(profileId) }
             if (loadedProfileId != profileId) return@launch
             loaded.clear()
-            _state.value = LiveTvState(sources = sources, isLoading = sources.isNotEmpty(), isLoaded = sources.isEmpty())
+            _state.value = LiveTvState(
+                sources = sources,
+                library = library,
+                isLoading = sources.isNotEmpty(),
+                isLoaded = sources.isEmpty(),
+            )
             sources.forEach { launchSourceLoad(profileId, it, adding = false) }
         }
         watchIdle()
@@ -124,6 +127,15 @@ class LiveTvRepository internal constructor(
                 if (released) return@launch
             }
         }
+    }
+
+    private suspend fun <T> readOrDefault(what: String, default: T, read: suspend () -> T): T = try {
+        read()
+    } catch (cancel: CancellationException) {
+        throw cancel
+    } catch (error: Exception) {
+        LiveTvLog.warn(what, null, error)
+        default
     }
 
     /** Runs on [serial]. */
@@ -175,6 +187,135 @@ class LiveTvRepository internal constructor(
             updateLoading()
         }
     }
+
+    // region Organisation (G10b)
+
+    /** Whether Live TV shows in the menu for the active profile: off until the user turns it on. */
+    val menuEnabled: Flow<Boolean> =
+        if (!featureEnabled) flowOf(false) else activeProfileId.flatMapLatest { libraryStore.menuEnabled(it) }
+
+    fun setMenuEnabled(enabled: Boolean) {
+        val profileId = activeProfileId.value
+        scope.launch(writer) {
+            try {
+                libraryStore.setMenuEnabled(profileId, enabled)
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                LiveTvLog.warn("Live TV menu switch not saved", null, error)
+            }
+        }
+    }
+
+    fun toggleFavorite(channel: LiveTvChannel) = updateLibrary { state ->
+        val favorites = state.library.favorites.toHashSet()
+        if (!favorites.add(channel.key)) favorites.remove(channel.key)
+        state.library.copy(favorites = favorites)
+    }
+
+    /** Shows or hides a category. */
+    fun setGroupHidden(group: String, hidden: Boolean) = updateLibrary { state ->
+        val groups = state.library.hiddenGroups
+        state.library.copy(hiddenGroups = if (hidden) groups + group else groups - group)
+    }
+
+    /** Shows every category, or hides every one (to then pick the few that are wanted). */
+    fun setAllGroupsHidden(hidden: Boolean) = updateLibrary { state ->
+        state.library.copy(hiddenGroups = if (hidden) state.groups.toHashSet() else emptySet())
+    }
+
+    /** Shows or hides single channels (a whole category's at once for Show all / Hide all). */
+    fun setChannelsHidden(channels: Collection<LiveTvChannel>, hidden: Boolean) = updateLibrary { state ->
+        val keys = channels.map { it.key }
+        val current = state.library.hiddenChannels
+        state.library.copy(hiddenChannels = if (hidden) current + keys else current - keys.toSet())
+    }
+
+    /** Moves a category [step] places up (negative) or down; the order is kept for every list. */
+    fun moveGroup(group: String, step: Int) = updateLibrary { state ->
+        LiveTvOrganisation.move(state.groups, group, step)?.let { state.library.copy(groupOrder = it) } ?: state.library
+    }
+
+    /** Back to A to Z. */
+    fun resetGroupOrder() = updateLibrary { it.library.copy(groupOrder = emptyList()) }
+
+    /**
+     * Gives a category a name of its own (blank goes back to the playlist's name). It keeps its
+     * channels, hiding and place: everything still goes by the playlist's name.
+     */
+    fun renameGroup(group: String, name: String) = updateLibrary { state ->
+        val names = state.library.groupNames
+        state.library.copy(groupNames = if (name.isBlank()) names - group else names + (group to name))
+    }
+
+    /** Remembers [channel] (the list's own entry) as the last channel watched. */
+    fun recordRecentChannel(channel: LiveTvChannel) = updateLibrary { state ->
+        val recent = LiveTvRecentChannel(channel.key, channel.name, channel.logoUrl, channel.group, channel.tvgId)
+        if (state.library.recent == recent) state.library else state.library.copy(recent = recent)
+    }
+
+    /** The list entry of the last channel watched, while a source still lists it. */
+    fun recentChannel(state: LiveTvState = _state.value): LiveTvChannel? {
+        val key = state.library.recent?.key ?: return null
+        return state.channels.firstOrNull { it.key == key }
+    }
+
+    /**
+     * Applies [change] to the profile's choices at once (a text field typing a category name reads
+     * them straight back), reorders the categories in the same update, and saves them in order. The
+     * channels zapping goes through are refiltered off the caller's thread when hiding changed. A
+     * change that leaves the choices as they were does nothing.
+     */
+    private fun updateLibrary(change: (LiveTvState) -> LiveTvLibrary) {
+        val profileId = loadedProfileId ?: return
+        var saved: LiveTvLibrary? = null
+        var hidingChanged = false
+        _state.update { state ->
+            val current = state.library
+            val next = change(state)
+            saved = next.takeIf { it != current }
+            hidingChanged = next.hiddenGroups != current.hiddenGroups || next.hiddenChannels != current.hiddenChannels
+            when {
+                next == current -> state
+                next.groupOrder != current.groupOrder || next.groupNames != current.groupNames -> state.copy(
+                    library = next,
+                    groups = LiveTvOrganisation.orderedGroups(state.groupCounts.keys, next.groupOrder, next.groupNames),
+                )
+                else -> state.copy(library = next)
+            }
+        }
+        val next = saved ?: return
+        if (hidingChanged) refreshShownChannels()
+        scope.launch(writer) {
+            try {
+                libraryStore.saveLibrary(profileId, next)
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                LiveTvLog.warn("Live TV choices not saved", null, error)
+            }
+        }
+    }
+
+    /** Recomputes the channels zapping goes through after a category or channel was hidden or shown. */
+    private fun refreshShownChannels() {
+        scope.launch(serial) {
+            val state = _state.value
+            val shown = LiveTvOrganisation.shownChannels(state.channels, state.library.hiddenGroups, state.library.hiddenChannels)
+            _state.update { current ->
+                // A newer list or newer hiding redoes this itself.
+                if (current.channels === state.channels && current.library.hiddenGroups === state.library.hiddenGroups &&
+                    current.library.hiddenChannels === state.library.hiddenChannels
+                ) {
+                    current.copy(shownChannels = shown)
+                } else {
+                    current
+                }
+            }
+        }
+    }
+
+    // endregion
 
     /** The channel with a link that plays now: Stalker links are created per play; others are as listed. */
     suspend fun playableChannel(channel: LiveTvChannel): LiveTvChannel {
@@ -347,11 +488,21 @@ class LiveTvRepository internal constructor(
         val channels = ArrayList<LiveTvChannel>(parts.sumOf { it.channels.size })
         parts.forEach { channels.addAll(it.channels) }
         val sourceCounts = HashMap<String, Int>()
-        channels.forEach { sourceCounts[it.sourceId] = (sourceCounts[it.sourceId] ?: 0) + 1 }
-        _state.update {
-            change(it).copy(
+        val groupCounts = HashMap<String, Int>()
+        channels.forEach {
+            sourceCounts[it.sourceId] = (sourceCounts[it.sourceId] ?: 0) + 1
+            // Channels without a category count under "Uncategorised", so they can be hidden too.
+            groupCounts[it.group] = (groupCounts[it.group] ?: 0) + 1
+        }
+        _state.update { current ->
+            val next = change(current)
+            val library = next.library
+            next.copy(
                 sources = sources,
                 channels = channels,
+                groups = LiveTvOrganisation.orderedGroups(groupCounts.keys, library.groupOrder, library.groupNames),
+                groupCounts = groupCounts,
+                shownChannels = LiveTvOrganisation.shownChannels(channels, library.hiddenGroups, library.hiddenChannels),
                 sourceCounts = sourceCounts,
                 epgUrls = parts.flatMap { part -> part.epgUrls }.distinct(),
                 isLoaded = true,

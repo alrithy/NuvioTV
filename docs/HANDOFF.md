@@ -97,16 +97,18 @@ headers only to the portal host; channels on the official player as `channel`; l
 on the Live TV playback registry; AFR stays with G5e's owner (live branch); preview budget from
 AdaptiveResources; menu entry off until enabled. Official `dev` observed at `5c1d9b0` (landscape
 posters, strings, hero focus; no Live TV seam; not accepted).
-Audit merged as #62 (`43a1dfb`). G10a (#63): `fork/livetv` sources and readers (M3U, Xtream, Stalker),
-several sources with per-source jobs and failure isolation, source list Keystore-encrypted per profile,
-hashed channel keys, own HTTP client with host-only logs; LIVE_TV AUTO, nothing loads until the G10b
-screen asks. 208–212 and 233 are in_progress until their screen / playback slices land.
+Audit merged as #62 (`43a1dfb`). G10a merged as #63 (`09b808a`; 2136 tests, 0 new): `fork/livetv`
+sources and readers (M3U, Xtream, Stalker), per-source jobs and failure isolation, source list
+Keystore-encrypted per profile, hashed channel keys, own HTTP client with host-only logs; LIVE_TV AUTO.
+G10b (#64): Live TV screen, source and category dialogs, favorites / hiding / order / names by channel
+key, per-profile menu switch in Layout sidebar settings (off by default), channels in the official
+player as type `channel`; 208–212, 219–225 implemented (device checks HV-G10-1..3 MANUAL-PENDING);
+233 in_progress until G10d.
 Owner: claude-code (took over from Codex at the user's request), sequential writer, no lease.
 Next gate: G11 Watch Party.
 
 ## Exact next action
-1. Merge G10a (#63), then slices G10b (screen, menu, playback as `channel`, favorites / categories / hide / search / logos;
-   208, 219–225), G10c (EPG; 214–218), G10d (live-only playback rules and live AFR; 233–236), G10e
+1. Merge G10b (#64), then slices G10c (EPG; 214–218), G10d (live-only playback rules and live AFR; 233–236), G10e
    (in-player zapping, panels, Now/Next; 228–232), G10f (preview; 226, 227), G10g (QR setup; 213).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G10→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.

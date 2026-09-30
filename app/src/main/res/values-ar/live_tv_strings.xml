@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="live_tv_title">البث المباشر</string>
+    <string name="settings_live_tv_title">البث المباشر</string>
+    <string name="settings_live_tv_description">إظهار البث المباشر في القائمة لقوائم قنوات M3U وXtream وStalker</string>
+
+    <string name="live_tv_all_channels">كل القنوات</string>
+    <string name="live_tv_favorites">المفضلة</string>
+    <string name="live_tv_channel_count">%1$d قناة</string>
+    <string name="live_tv_search">البحث في القنوات</string>
+    <string name="live_tv_refresh">تحديث</string>
+    <string name="live_tv_sources">المصادر</string>
+    <string name="live_tv_edit_categories">تعديل الفئات</string>
+    <string name="live_tv_source_error">%1$s: %2$s</string>
+    <string name="live_tv_continue">متابعة المشاهدة</string>
+    <string name="live_tv_loading">جارٍ تحميل القنوات…</string>
+    <string name="live_tv_no_channels_found">لا توجد قنوات مطابقة.</string>
+    <string name="live_tv_no_favorites">اضغط مطولًا على OK فوق قناة لإضافتها إلى المفضلة.</string>
+    <string name="live_tv_empty_title">أضف قنواتك</string>
+    <string name="live_tv_empty_description">اربط قائمة M3U أو حساب Xtream أو بوابة Stalker.</string>
+    <string name="live_tv_add_source">إضافة قنوات</string>
+
+    <string name="live_tv_sources_title">مصادر القنوات</string>
+    <string name="live_tv_sources_description">تظهر قنوات كل المصادر معًا في قائمة واحدة.</string>
+    <string name="live_tv_source_add_title">إضافة مصدر</string>
+    <string name="live_tv_add_source_button">إضافة مصدر</string>
+    <string name="live_tv_source_summary">%1$s · %2$d قناة</string>
+    <string name="live_tv_remove_confirm">اضغط مرة أخرى للحذف</string>
+    <string name="live_tv_back">رجوع</string>
+    <string name="live_tv_source_description">أدخل البيانات التي أعطاك إياها مزودك. تُحفظ مشفّرة على هذا التلفاز.</string>
+    <string name="live_tv_source_m3u">M3U</string>
+    <string name="live_tv_source_xtream">Xtream</string>
+    <string name="live_tv_source_stalker">Stalker</string>
+    <string name="live_tv_m3u_hint">رابط القائمة (https://…)</string>
+    <string name="live_tv_xtream_server_hint">رابط الخادم</string>
+    <string name="live_tv_username_hint">اسم المستخدم</string>
+    <string name="live_tv_password_hint">كلمة المرور</string>
+    <string name="live_tv_optional_username_hint">اسم المستخدم (اختياري)</string>
+    <string name="live_tv_optional_password_hint">كلمة المرور (اختيارية)</string>
+    <string name="live_tv_stalker_portal_hint">رابط البوابة</string>
+    <string name="live_tv_stalker_mac_hint">عنوان MAC، مثل 00:1A:79:12:34:56</string>
+    <string name="live_tv_load">تحميل القنوات</string>
+    <string name="live_tv_remove_source">حذف المصدر</string>
+    <string name="live_tv_close">إغلاق</string>
+
+    <string name="live_tv_categories_title">الفئات</string>
+    <string name="live_tv_categories_description">OK يُظهر الفئة أو يخفيها، و▶ يعيد تسميتها أو يختار قنواتها. اضغط مطولًا على OK لنقلها ثم ▲▼ ثم OK لإفلاتها. المخفية تختفي من القائمة والبحث وتبديل القنوات؛ المفضلة تبقى دائمًا.</string>
+    <string name="live_tv_category_channels_description">اكتب في الأعلى لإعادة تسمية الفئة. OK يُظهر القناة أو يخفيها. المخفية تختفي من القائمة والبحث وتبديل القنوات؛ المفضلة تبقى دائمًا.</string>
+    <string name="live_tv_category_rename_hint">إعادة تسمية %1$s</string>
+    <string name="live_tv_categories_sort">أ–ي</string>
+    <string name="live_tv_uncategorised">بلا فئة</string>
+    <string name="live_tv_categories_shown">%1$d من %2$d ظاهرة</string>
+    <string name="live_tv_categories_show_all">إظهار الكل</string>
+    <string name="live_tv_categories_hide_all">إخفاء الكل</string>
+    <string name="live_tv_categories_none">تظهر الفئات هنا بعد تحميل القنوات.</string>
+    <string name="live_tv_done">تم</string>
+
+    <string name="live_tv_error_invalid_url">أدخل رابط قائمة صالحًا يبدأ بـ HTTP أو HTTPS.</string>
+    <string name="live_tv_error_no_channels">لم يُعثر على قنوات قابلة للتشغيل في هذه القائمة.</string>
+    <string name="live_tv_error_load_failed">تعذّر تحميل القائمة.</string>
+    <string name="live_tv_error_file_empty">ملف M3U فارغ.</string>
+    <string name="live_tv_error_file_no_channels">لم يُعثر على قنوات قابلة للتشغيل في ملف M3U هذا.</string>
+    <string name="live_tv_error_stalker_required">رابط البوابة وعنوان MAC مطلوبان.</string>
+    <string name="live_tv_error_stalker_invalid_url">أدخل رابط بوابة صالحًا يبدأ بـ HTTP أو HTTPS.</string>
+    <string name="live_tv_error_stalker_no_channels">لم يُعثر على قنوات قابلة للتشغيل في هذه البوابة.</string>
+    <string name="live_tv_error_stalker_failed">تعذّر تحميل بوابة Stalker.</string>
+    <string name="live_tv_error_stalker_token">لم تبدأ البوابة جلسة. تحقّق من رابط البوابة وعنوان MAC.</string>
+    <string name="live_tv_error_stalker_incomplete">تعذّر تحميل بعض القنوات من البوابة. حدّث للمحاولة مجددًا.</string>
+    <string name="live_tv_error_xtream_required">رابط الخادم واسم المستخدم وكلمة المرور مطلوبة.</string>
+    <string name="live_tv_error_xtream_invalid_url">أدخل رابط خادم Xtream صالحًا يبدأ بـ HTTP أو HTTPS.</string>
+    <string name="live_tv_error_xtream_no_channels">لم يُعثر على قنوات قابلة للتشغيل لحساب Xtream هذا.</string>
+    <string name="live_tv_error_xtream_failed">تعذّر تحميل مزود Xtream.</string>
+</resources>

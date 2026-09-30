@@ -235,6 +235,7 @@ internal fun LayoutSidebarSection(
         rememberedLocation = uiState.lastNonOffDiscoverLocation,
         onLocationSelected = { location -> onEvent(LayoutSettingsEvent.SetDiscoverLocation(location)) }
     )
+    LiveTvSettingsItems() // Superfork G10b hook: Live TV menu entry, off by default
 }
 
 @Composable

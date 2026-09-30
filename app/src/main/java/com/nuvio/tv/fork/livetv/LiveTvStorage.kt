@@ -1,6 +1,7 @@
 package com.nuvio.tv.fork.livetv
 
 import android.content.Context
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import com.nuvio.tv.data.local.ProfileDataStoreFactory
@@ -11,7 +12,11 @@ import java.io.InputStream
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 /**
@@ -19,15 +24,19 @@ import kotlinx.coroutines.withContext
  * whole source list is one AES-GCM value ([KeystoreCipher], Android Keystore key) in the profile's
  * `fork_live_tv` DataStore, so a backed-up or copied settings file carries only ciphertext. An
  * imported playlist is an app-private file per profile and source, because it can be megabytes.
+ * The profile's choices (favorites, categories, hidden channels, last channel) and the menu switch
+ * sit beside them (G10b); they hold channel keys and names, never a link.
  */
 @Singleton
 class LiveTvStorage @Inject constructor(
     @ApplicationContext private val context: Context,
     private val factory: ProfileDataStoreFactory,
-) : LiveTvSourceStore {
+) : LiveTvSourceStore, LiveTvLibraryStore {
 
     private val cipher = KeystoreCipher(KEY_ALIAS)
     private val sourcesKey = stringPreferencesKey("sources_encrypted")
+    private val libraryKey = stringPreferencesKey("library")
+    private val menuKey = booleanPreferencesKey("menu_enabled")
 
     private fun store(profileId: Int) = factory.get(profileId, FEATURE)
 
@@ -42,6 +51,24 @@ class LiveTvStorage @Inject constructor(
                 if (encrypted == null) prefs.remove(sourcesKey) else prefs[sourcesKey] = encrypted
             }
         }
+    }
+
+    override suspend fun library(profileId: Int): LiveTvLibrary = withContext(Dispatchers.IO) {
+        LiveTvLibraryCodec.decode(store(profileId).data.first()[libraryKey].orEmpty())
+    }
+
+    override suspend fun saveLibrary(profileId: Int, library: LiveTvLibrary) {
+        withContext(Dispatchers.IO) {
+            val text = LiveTvLibraryCodec.encode(library)
+            store(profileId).edit { it[libraryKey] = text }
+        }
+    }
+
+    override fun menuEnabled(profileId: Int): Flow<Boolean> =
+        store(profileId).data.map { it[menuKey] == true }.catch { emit(false) }.distinctUntilChanged()
+
+    override suspend fun setMenuEnabled(profileId: Int, enabled: Boolean) {
+        store(profileId).edit { it[menuKey] = enabled }
     }
 
     private fun playlistDir(profileId: Int) = File(context.filesDir, "live_tv/profile_$profileId")
