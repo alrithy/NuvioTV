@@ -1,0 +1,12 @@
+{
+  "name": "nuvio-personal",
+  "interface": { "displayName": "Nuvio Personal Plugins" },
+  "plugins": [
+    {
+      "name": "nuvio-superfork",
+      "source": { "source": "local", "path": "./" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Developer Tools"
+    }
+  ]
+}

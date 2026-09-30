@@ -1,0 +1,21 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "nuvio-superfork",
+  "version": "1.0.0",
+  "description": "Repository-driven Nuvio Superfork development and status workflows.",
+  "author": { "name": "alrithy" },
+  "repository": "https://github.com/alrithy/NuvioTV",
+  "license": "GPL-3.0-only",
+  "extensions": {
+    "com.openai": {
+      "hooks": "./hooks/hooks.json",
+      "interface": {
+        "displayName": "Nuvio Superfork",
+        "shortDescription": "Continue Nuvio from live repository evidence",
+        "developerName": "alrithy",
+        "category": "Developer Tools",
+        "defaultPrompt": ["اشتغل على نوفيو", "شيك لي"]
+      }
+    }
+  }
+}

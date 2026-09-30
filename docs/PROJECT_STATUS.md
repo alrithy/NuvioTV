@@ -12,6 +12,13 @@
 
 This view's header is generated from state; use `state_view.py` after state changes.
 
+## Agent tooling
+Personal **Nuvio Superfork v1** plugin maintenance is an independent governance
+change on `chore/governance-nuvio-plugin-v1`; see `docs/NUVIO_PLUGIN.md` and the
+maintenance note in HANDOFF. It adds no application feature completion and does
+not advance the active gate. Local plugin/governance checks pass; application CI
+and hardware certification remain governed by their own evidence.
+
 ## Work boundary
 G0 DONE (PR #7). G1 Unified Diagnostics & Add-on Health DONE (PRs #10, #11, #12; 289 deferred to
 G8). G2 Adaptive Resource Manager DONE (PRs #14, #15, #16; 276 deferred, 279 → G7, 280 → G3). G3 Playback Strategy Framework DONE (PR #18). G4 REMUX / Network Performance is code-complete with all slices merged; its TCL C6K checks/A-B are VALIDATION-PENDING and intentionally batched to G14. G5 Audio / DV / HDR / AFR CODE-COMPLETE (PRs #31–#36; device checks VALIDATION-PENDING, batched to G14). G6 Subtitle Intelligence CODE-COMPLETE (PRs #39, #41, #42 after upstream sync #40 to official 56aaba2, D050; SUBTITLE_INTELLIGENCE AUTO, D051; device checks VALIDATION-PENDING, batched to G14). G7 Seek Intelligence IN_PROGRESS (audit PR #44; D052 one preview engine; G7a hybrid preview engine in review; SEEK_INTELLIGENCE AUTO). Legacy PR #1/#2 stay reference-only.

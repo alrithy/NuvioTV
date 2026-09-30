@@ -5,6 +5,11 @@ These instructions apply to Codex, Claude Code, Gemini, Copilot, or any coding a
 ## Zero-prompt behavior
 If the user only says "اشتغل على نوفيو", "work on Nuvio", or "continue Nuvio", do not ask for the project brief. The repository is the brief.
 
+Optional personal plugin: root `plugin.json` packages **Nuvio Superfork**; see
+`docs/NUVIO_PLUGIN.md` for installation/testing. Its skills read these repository
+sources each session. "شيك لي" requests read-only Git/GitHub status with exact-head
+CI, traceability and `docs/HANDOFF.md` evidence, without starting development.
+
 ## Mandatory preflight
 Before editing code:
 ```bash

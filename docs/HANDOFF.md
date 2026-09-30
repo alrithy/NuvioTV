@@ -84,3 +84,27 @@ and strip-path SEI, DV stream info, display output, 23.976/24 matching, track-fo
 ## Ownership / unfinished work
 Sequential writer, no lease. Admin actions (default branch, protection) remain in
 GITHUB_ADMIN_CHECKLIST; connector access to those settings is not available.
+
+## Personal plugin maintenance (independent governance work)
+Nuvio Superfork v1 is authored on `chore/governance-nuvio-plugin-v1`, based on
+verified integration ancestor `fe22d4bd42cd7156b4501bb7c9a76d4673526588`.
+Scope: portable root plugin.json, repo marketplace, five skills, read-only
+SessionStart hook, package validator/regression cases, documentation and CI scope
+integration. No application feature IDs/imports; traceability/source pins/active
+gate state are unchanged. AGENT_HANDOFF means this existing file, not a new copy.
+
+Local checks: plugin validator, official Agent Plugins 1.0.0 JSON schema,
+44 governance/plugin tests, project validator, state-view check and whitespace
+check PASS. Codex CLI 0.159.0-alpha.3 local marketplace registration, install,
+reinstall and removal PASS; installed five skills and installed-hook wire contract
+verified. Running the installed hook preserved every checkout/Git file byte.
+Hook regression cases compare all fixture files including Git metadata and
+preserve staged/untracked work. No Android/hardware or model-driven Arabic prompt
+end-to-end run is claimed; review/trust the hook and test prompts in a new session.
+
+Next plugin action: review/merge the scoped governance branch into
+`superfork/integration`, then install per `docs/NUVIO_PLUGIN.md`. For application
+continuation, read live remote state/PR/CI first: recorded G7a PR #45 is merged
+at the base ancestor above while the existing narrative still says merge G7a.
+Resolve that stale narrative from GitHub evidence before selecting G7b; plugin
+maintenance does not advance G7 or claim its remaining tests passed.

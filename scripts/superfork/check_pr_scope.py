@@ -7,12 +7,22 @@ import sys
 import yaml
 ROOT=Path(__file__).resolve().parents[2]
 
+def is_governance_path(path):
+    # Plugin resources are governance tooling, never an exemption for app code.
+    return (path.startswith(('docs/','integration/','tasks/','.github/','scripts/superfork/'))
+        or path in {'AGENTS.md','CLAUDE.md','CODEX_START.md','SUPERFORK.md',
+                    'CONTRIBUTING_SUPERFORK.md','.gitignore','scripts/superfork_guard.py',
+                    'plugin.json','.agents/plugins/marketplace.json',
+                    'hooks/hooks.json','hooks/session_start.py'}
+        or any(path.startswith('skills/'+name+'/') for name in
+               ('nuvio-orchestrator','nuvio-status','nuvio-feature-port',
+                'nuvio-ci-recovery','nuvio-handoff')))
+
 def main():
     p=argparse.ArgumentParser();p.add_argument('--base',required=True);p.add_argument('--head-branch',required=True);a=p.parse_args()
     base=yaml.safe_load(subprocess.check_output(['git','show',a.base+':integration/state.yaml'],text=True,cwd=ROOT))
     changed=set(subprocess.check_output(['git','diff','--name-only',a.base+'...HEAD'],text=True,cwd=ROOT).splitlines())
-    runtime=any(not (x.startswith(('docs/','integration/','tasks/','.github/','scripts/superfork/')) or x in
-        {'AGENTS.md','CLAUDE.md','CODEX_START.md','SUPERFORK.md','CONTRIBUTING_SUPERFORK.md','.gitignore','scripts/superfork_guard.py'}) for x in changed)
+    runtime=any(not is_governance_path(x) for x in changed)
     governance=a.head_branch.startswith('chore/governance-')
     sync=a.head_branch.startswith('chore/upstream-sync-')
     errors=[]
