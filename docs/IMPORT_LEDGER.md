@@ -615,3 +615,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: users with more than 80 active series see the 80 most recent; air dates are only as good as the metadata add-ons; device check MANUAL-PENDING (G14 campaign, HV-G9-6)
 
+### G9f — App Dimmer (206, 207)
+- Roadmap gate: G9
+- Source repository: Cxsmo-ai/NuvioTV-Custom
+- Source branch: main
+- Pinned source SHA: 3e0d0fad60a2721adec133b88640b49c0183883f
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/components/AppDimmerOverlay.kt, MainActivity.kt (`LocalAppDimPercent`, overlay above the content), ui/components/NuvioDialog.kt (overlay inside dialogs), ui/screens/settings/ThemeSettingsScreen.kt (slider), ui/screens/player/PlayerScreen.kt (control button and `AppDimmerDialog`)
+- Import mode: FILE_PORT (overlay) + DELTA_PORT (MainActivity, NuvioDialog, Appearance settings, player control)
+- Current official equivalent: none (official dims only its screensaver)
+- What already existed upstream: settings slider and single-choice dialog components, player control buttons
+- What was imported: the overlay, its placement above all content and in dialog windows, the settings slider and a player control
+- What was intentionally not imported: Cxsmo's storage in official `ThemeDataStore` (a fork store `fork_app_dimmer` keeps the official store untouched), Cxsmo's hard-coded "Off" label, its custom player dialog (official single-choice dialog with presets instead)
+- Local adaptations: 10 % steps up to 90 %; per profile; the player picker state lives on `PlayerViewModel` so auto-hiding controls never close it
+- Feature flag / fallback: FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS OFF = no dimming, no settings row, no player button
+- Tests ported/added: AppDimmerRulesTest (2)
+- License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: dialogs built on the raw Compose `Dialog` (not `NuvioDialog`) are separate windows and stay undimmed, as in Cxsmo; device check MANUAL-PENDING (G14 campaign, HV-G9-7)
+
