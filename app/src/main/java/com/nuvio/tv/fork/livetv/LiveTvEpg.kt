@@ -53,19 +53,29 @@ class LiveTvGuideRequest(
     val keysByName: Map<String, List<String>>,
     /** Keys of channels the playlist gives no logo: the guide's own logo is used for them. */
     val keysWithoutLogo: Set<String>,
+    /** Raw XMLTV ids to the source-scoped keys they feed. */
+    val keysById: Map<String, List<String>>,
 ) {
     companion object {
         fun from(channels: List<LiveTvChannel>): LiveTvGuideRequest {
             val keys = HashSet<String>(channels.size * 2)
             val byName = HashMap<String, MutableList<String>>(channels.size * 2)
             val withoutLogo = HashSet<String>()
+            val byId = HashMap<String, MutableList<String>>()
             channels.forEach { channel ->
-                if (!keys.add(channel.guideKey)) return@forEach
+                keys.add(channel.guideKey)
+                channel.tvgId?.trim()?.lowercase()?.takeIf(String::isNotEmpty)?.let { id ->
+                    val matches = byId.getOrPut(id) { ArrayList(1) }
+                    if (channel.guideKey !in matches) matches += channel.guideKey
+                }
                 val name = liveTvNameKey(channel.name)
-                if (name.isNotEmpty()) byName.getOrPut(name) { ArrayList(1) } += channel.guideKey
+                if (name.isNotEmpty()) {
+                    val matches = byName.getOrPut(name) { ArrayList(1) }
+                    if (channel.guideKey !in matches) matches += channel.guideKey
+                }
                 if (channel.logoUrl.isNullOrBlank()) withoutLogo += channel.guideKey
             }
-            return LiveTvGuideRequest(keys, byName, withoutLogo)
+            return LiveTvGuideRequest(keys, byName, withoutLogo, byId)
         }
     }
 }
@@ -75,6 +85,8 @@ class LiveTvGuide(
     val schedule: LiveTvSchedule,
     val logos: Map<String, String>,
     val truncated: Set<String>,
+    /** Partial results remain displayable, but must be re-downloaded soon and never cached as complete. */
+    val complete: Boolean = true,
 )
 
 /**
@@ -98,24 +110,27 @@ internal fun readXmlTvGuide(
     window: LiveTvGuideWindow,
 ): LiveTvGuide {
     val builder = LiveTvScheduleBuilder(request, nowEpochMs, window)
-    try {
+    val complete = try {
         readGuide(parser, input, builder)
     } catch (cancel: CancellationException) {
         throw cancel
     } catch (_: Exception) {
+        false
     }
-    return builder.build()
+    return builder.build(complete)
 }
 
-private fun readGuide(parser: XmlPullParser, input: InputStream, builder: LiveTvScheduleBuilder) {
+private fun readGuide(parser: XmlPullParser, input: InputStream, builder: LiveTvScheduleBuilder): Boolean {
     parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)
     runCatching { parser.setFeature(RELAXED_FEATURE, true) }
     parser.setInput(input, null)
     var events = 0
     var event = parser.eventType
+    var closedRoot = false
     while (event != XmlPullParser.END_DOCUMENT) {
         // Blocking IO thread: a cancelled load stops at the next check.
-        if (++events % CANCEL_CHECK_EVENTS == 0 && Thread.currentThread().isInterrupted) return
+        if (++events % CANCEL_CHECK_EVENTS == 0 && Thread.currentThread().isInterrupted) throw CancellationException("Guide read interrupted")
+        if (event == XmlPullParser.END_TAG && parser.depth == 1 && parser.name.equals("tv", ignoreCase = true)) closedRoot = true
         if (event == XmlPullParser.START_TAG) {
             when {
                 parser.name.equals("programme", ignoreCase = true) -> {
@@ -138,6 +153,7 @@ private fun readGuide(parser: XmlPullParser, input: InputStream, builder: LiveTv
         }
         event = parser.next()
     }
+    return closedRoot
 }
 
 /** From a START_TAG: moves to its matching END_TAG. */
@@ -219,10 +235,9 @@ internal class LiveTvScheduleBuilder(
     /** A `<channel>` of the guide ([channelId] lower case). Guides list these before their programmes. */
     fun channel(channelId: String, names: List<String>, icon: String?) {
         if (channelsDone) return
-        if (channelId in request.keys) {
-            claimed += channelId
-            if (icon != null && channelId in request.keysWithoutLogo) logos[channelId] = icon
-            return
+        request.keysById[channelId]?.forEach { key ->
+            claimed += key
+            if (icon != null && key in request.keysWithoutLogo) logos[key] = icon
         }
         for (name in names) {
             val keys = request.keysByName[liveTvNameKey(name)] ?: continue
@@ -251,8 +266,9 @@ internal class LiveTvScheduleBuilder(
     /** The channel keys a programme of guide channel [channelId] (lower case) is kept under, or null. */
     fun keysFor(channelId: String): List<String>? {
         if (!channelsDone) finishChannels()
-        aliases[channelId]?.let { return it }
-        return if (channelId in request.keys) listOf(channelId) else null
+        val direct = request.keysById[channelId].orEmpty()
+        val named = aliases[channelId].orEmpty()
+        return (direct + named).takeIf { it.isNotEmpty() }
     }
 
     fun add(keys: List<String>, title: String, startEpochMs: Long, stopEpochMs: Long) {
@@ -293,10 +309,11 @@ internal class LiveTvScheduleBuilder(
         )
     }
 
-    fun build(): LiveTvGuide = LiveTvGuide(
+    fun build(complete: Boolean = true): LiveTvGuide = LiveTvGuide(
         schedule = entries.mapValues { (_, list) -> list.sortedBy { it.startEpochMs } },
         logos = logos,
         truncated = truncated,
+        complete = complete,
     )
 }
 
@@ -372,8 +389,10 @@ internal fun liveTvNameKey(name: String): String {
 }
 
 /** The key a channel's guide is kept under: its guide id in lower case, else its name. */
-internal fun liveTvGuideKey(tvgId: String?, name: String): String =
-    tvgId?.trim()?.takeIf(String::isNotEmpty)?.lowercase() ?: (NAME_KEY_PREFIX + liveTvNameKey(name))
+internal fun liveTvGuideKey(tvgId: String?, name: String, sourceId: String = ""): String {
+    val raw = tvgId?.trim()?.takeIf(String::isNotEmpty)?.lowercase() ?: (NAME_KEY_PREFIX + liveTvNameKey(name))
+    return if (sourceId.isEmpty()) raw else "$sourceId\u0000$raw"
+}
 
 /** Never the start of a guide's channel id, so a name key can't meet one. */
 private const val NAME_KEY_PREFIX = "\u0001"

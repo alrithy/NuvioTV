@@ -3,6 +3,11 @@ package com.nuvio.tv.fork.livetv
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -17,6 +22,54 @@ import org.junit.Test
 /** Reshaped `LiveTvPlaylistParserTest` @ 0ccf049 (guide cases), plus timestamps, cache, window and the repository. */
 class LiveTvEpgTest {
     private val hour = 60L * 60 * 1000
+
+    @Test
+    fun guideFilesAndCacheKeysDoNotShareJavaHashCollisions() {
+        val a = "http://guide.example/Aa"
+        val b = "http://guide.example/BB"
+        assertEquals(a.hashCode(), b.hashCode())
+        org.junit.Assert.assertNotEquals(liveTvGuideFileName(a), liveTvGuideFileName(b))
+        org.junit.Assert.assertNotEquals(
+            LiveTvGuideCache.key(listOf(a), setOf("k"), LiveTvGuideWindow.Regular),
+            LiveTvGuideCache.key(listOf(b), setOf("k"), LiveTvGuideWindow.Regular),
+        )
+    }
+
+    @Test
+    fun variantsRetainEveryNameAndFallbackLogoWhileSharingAnId() {
+        val key = liveTvGuideKey("wrong", "Alias A", "source")
+        val channels = listOf(
+            LiveTvChannel("a", "Alias A", "a", tvgId = "wrong", logoUrl = "http://logo/a", guideKey = key),
+            LiveTvChannel("b", "Alias B", "b", tvgId = "wrong", guideKey = key),
+        )
+        val builder = LiveTvScheduleBuilder(LiveTvGuideRequest.from(channels), hour, LiveTvGuideWindow.Regular)
+        builder.channel("actual", listOf("Alias B"), "http://logo/guide")
+        assertEquals(listOf(key), builder.keysFor("actual"))
+        builder.add(builder.keysFor("actual")!!, "Show", 0, 2 * hour)
+        val guide = builder.build()
+        assertEquals("Show", guide.schedule[key]?.single()?.title)
+        assertEquals("http://logo/guide", guide.logos[key])
+    }
+
+    @Test
+    fun guideIdMatchingFeedsSourceScopedKeys() {
+        val a = LiveTvChannel("a", "One", "a", tvgId = "1", guideKey = liveTvGuideKey("1", "One", "source-a"))
+        val b = LiveTvChannel("b", "Two", "b", tvgId = "1", guideKey = liveTvGuideKey("1", "Two", "source-b"))
+        org.junit.Assert.assertNotEquals(a.guideKey, b.guideKey)
+        for (channel in listOf(a, b)) {
+            val builder = LiveTvScheduleBuilder(LiveTvGuideRequest.from(listOf(channel)), hour, LiveTvGuideWindow.Regular)
+            assertEquals(listOf(channel.guideKey), builder.keysFor("1"))
+        }
+    }
+
+    @Test
+    fun exactAndNameMatchedVariantsBothReceiveTheSameGuideChannel() {
+        val a = LiveTvChannel("a", "One HD", "a", tvgId = "1", guideKey = liveTvGuideKey("1", "One HD", "s"))
+        val b = LiveTvChannel("b", "One SD", "b", guideKey = liveTvGuideKey(null, "One SD", "s"))
+        val builder = LiveTvScheduleBuilder(LiveTvGuideRequest.from(listOf(a, b)), hour, LiveTvGuideWindow.Regular)
+        builder.channel("1", listOf("One"), null)
+        assertEquals(setOf(a.guideKey, b.guideKey), builder.keysFor("1")!!.toSet())
+    }
 
     @Test
     fun guideIsReadAgainWhenACutChannelRunsOut() {
@@ -139,7 +192,7 @@ class LiveTvEpgTest {
                 if ("list.example" !in url) throw IOException("unexpected")
                 "#EXTM3U url-tvg=\"http://guide.example/g.xml\"\n#EXTINF:-1 tvg-id=\"one.uk\",One\nhttp://s/1\n#EXTINF:-1,Two\nhttp://s/2"
             }
-            val oneKey = liveTvGuideKey("one.uk", "One")
+            val oneKey = liveTvGuideKey("one.uk", "One", "a")
             val files = FakeGuideFiles(dir) { request ->
                 assertTrue(oneKey in request.keys)
                 LiveTvGuide(
@@ -178,4 +231,126 @@ class LiveTvEpgTest {
             dir.deleteRecursively()
         }
     }
+    @Test
+    fun leavingTheScreenCancelsAnActiveGuideDownload() = runBlocking {
+        val dir = Files.createTempDirectory("guide-leave").toFile()
+        try {
+            val store = MemoryLiveTvStore(mapOf(1 to listOf(LiveTvSource("a", LiveTvSourceType.M3u, "http://list/a"))))
+            val http = FakeLiveTvFetcher { "#EXTM3U url-tvg=\"http://guide/g\"\n#EXTINF:-1,One\nhttp://s/1" }
+            val entered = CompletableDeferred<Unit>()
+            val cancelled = CompletableDeferred<Unit>()
+            val files = object : LiveTvGuideFiles {
+                override val dir = dir
+                override suspend fun download(url: String, headers: Map<String, String>, target: File) {
+                    entered.complete(Unit)
+                    try { awaitCancellation() } finally { cancelled.complete(Unit) }
+                }
+                override suspend fun read(file: File, request: LiveTvGuideRequest, nowEpochMs: Long, window: LiveTvGuideWindow) = error("not read")
+            }
+            val repository = LiveTvRepository(store, store, http, MutableStateFlow(1), true, guideFiles = files)
+            val collector = async { repository.state.collect { } }
+            repository.ensureLoaded()
+            withTimeout(5_000) { entered.await() }
+            collector.cancelAndJoin()
+            withTimeout(2_000) { cancelled.await() }
+        } finally { dir.deleteRecursively() }
+    }
+
+    @Test
+    fun separateSourceGuidesWithTheSameIdKeepDifferentProgrammes() = runBlocking {
+        val dir = Files.createTempDirectory("guide-source").toFile()
+        try {
+            val store = MemoryLiveTvStore(mapOf(1 to listOf(
+                LiveTvSource("a", LiveTvSourceType.M3u, "http://list/a"),
+                LiveTvSource("b", LiveTvSourceType.M3u, "http://list/b"),
+            )))
+            val http = FakeLiveTvFetcher { url ->
+                val source = url.substringAfterLast('/')
+                "#EXTM3U url-tvg=\"http://guide/$source\"\n#EXTINF:-1 tvg-id=\"1\",Station $source\nhttp://s/$source"
+            }
+            val now = LiveTvClock.nowEpochMs()
+            val files = FakeGuideFiles(dir) { request ->
+                val key = request.keys.single()
+                LiveTvGuide(mapOf(key to listOf(LiveTvProgramme(key.substringBefore('\u0000'), now - hour, now + hour))), emptyMap(), emptySet())
+            }
+            val repository = LiveTvRepository(store, store, http, MutableStateFlow(1), true, guideFiles = files)
+            repository.ensureLoaded()
+            val state = withTimeout(5_000) { repository.state.first { it.currentProgrammes.size == 2 && !it.isEpgLoading } }
+            assertEquals(setOf("a", "b"), state.currentProgrammes.values.map { it.title }.toSet())
+            assertEquals(2, files.downloads)
+        } finally { dir.deleteRecursively() }
+    }
+
+    @Test
+    fun partialGuidesAreDisplayedButNeverSavedAsComplete() = runBlocking {
+        val dir = Files.createTempDirectory("guide-partial").toFile()
+        try {
+            val store = MemoryLiveTvStore(mapOf(1 to listOf(LiveTvSource("a", LiveTvSourceType.M3u, "http://list/a"))))
+            val http = FakeLiveTvFetcher { "#EXTM3U url-tvg=\"http://guide/g\"\n#EXTINF:-1 tvg-id=\"1\",One\nhttp://s/1" }
+            val now = LiveTvClock.nowEpochMs()
+            val files = FakeGuideFiles(dir) { request ->
+                LiveTvGuide(mapOf(request.keys.single() to listOf(LiveTvProgramme("Partial", now - hour, now + hour))), emptyMap(), emptySet(), complete = false)
+            }
+            val repository = LiveTvRepository(store, store, http, MutableStateFlow(1), true, guideFiles = files)
+            repository.ensureLoaded()
+            val state = withTimeout(5_000) { repository.state.first { it.currentProgrammes.isNotEmpty() && !it.isEpgLoading } }
+            assertEquals("Partial", state.currentProgrammes.values.single().title)
+            org.junit.Assert.assertFalse(File(dir, LiveTvGuideCache.FILE_NAME).exists())
+        } finally { dir.deleteRecursively() }
+    }
+
+    @Test
+    fun refreshDownloadsGuidesEvenWhenEverySourceReloadFails() = runBlocking {
+        val dir = Files.createTempDirectory("guide-refresh").toFile()
+        try {
+            val store = MemoryLiveTvStore(mapOf(1 to listOf(LiveTvSource("a", LiveTvSourceType.M3u, "http://list/a"))))
+            var failSource = false
+            val http = FakeLiveTvFetcher {
+                if (failSource) throw IOException("source unavailable")
+                "#EXTM3U url-tvg=\"http://guide/g\"\n#EXTINF:-1,One\nhttp://s/1"
+            }
+            val files = FakeGuideFiles(dir) { LiveTvGuide(emptyMap(), emptyMap(), emptySet()) }
+            val repository = LiveTvRepository(store, store, http, MutableStateFlow(1), true, guideFiles = files)
+            val collector = async { repository.state.collect { } }
+            try {
+                repository.ensureLoaded()
+                withTimeout(5_000) { repository.state.first { it.channels.isNotEmpty() && !it.isEpgLoading } }
+                assertEquals(1, files.downloads)
+                failSource = true
+                repository.refresh()
+                withTimeout(5_000) { repository.state.first { files.downloads >= 2 && !it.isEpgLoading && it.sourceErrors.isNotEmpty() } }
+                assertEquals(1, repository.state.value.channels.size)
+            } finally { collector.cancelAndJoin() }
+        } finally { dir.deleteRecursively() }
+    }
+
+    @Test
+    fun partialGuideIsDownloadedAgainAtFailureRetryInsteadOfTenHours() = runBlocking {
+        val dir = Files.createTempDirectory("guide-retry").toFile()
+        try {
+            val store = MemoryLiveTvStore(mapOf(1 to listOf(LiveTvSource("a", LiveTvSourceType.M3u, "http://list/a"))))
+            val http = FakeLiveTvFetcher { "#EXTM3U url-tvg=\"http://guide/g\"\n#EXTINF:-1,One\nhttp://s/1" }
+            val clock = java.util.concurrent.atomic.AtomicLong(LiveTvClock.nowEpochMs())
+            val now = clock.get()
+            var reads = 0
+            val files = FakeGuideFiles(dir) { request ->
+                val complete = ++reads > 1
+                LiveTvGuide(mapOf(request.keys.single() to listOf(LiveTvProgramme(if (complete) "Recovered" else "Partial", now - hour, now + hour))),
+                    emptyMap(), emptySet(), complete = complete)
+            }
+            val repository = LiveTvRepository(store, store, http, MutableStateFlow(1), true,
+                guideFiles = files, epgClock = clock::get, epgTickMs = 5)
+            val collector = async { repository.state.collect { } }
+            try {
+                repository.ensureLoaded()
+                withTimeout(5_000) { repository.state.first { it.currentProgrammes.isNotEmpty() && !it.isEpgLoading } }
+                assertEquals(1, files.downloads)
+                clock.addAndGet(LiveTvRepository.EPG_RETRY_MS + 1)
+                withTimeout(5_000) { repository.state.first { it.currentProgrammes.values.any { p -> p.title == "Recovered" } } }
+                assertEquals(2, files.downloads)
+                withTimeout(5_000) { while (!File(dir, LiveTvGuideCache.FILE_NAME).exists()) kotlinx.coroutines.delay(5) }
+            } finally { collector.cancelAndJoin() }
+        } finally { dir.deleteRecursively() }
+    }
+
 }

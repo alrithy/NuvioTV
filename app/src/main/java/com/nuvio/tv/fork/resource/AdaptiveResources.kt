@@ -53,6 +53,11 @@ class AdaptiveResourcePolicy(
 
     val isConstrained: Boolean get() = tier != MemoryTier.STANDARD
 
+    /** G10c: XMLTV disk/expanded-byte and wall-clock limits; windows use the same tier. */
+    val liveTvGuideBudget: LiveTvGuideBudget
+        get() = if (isConstrained) LiveTvGuideBudget(64L shl 20, 256L shl 20)
+        else LiveTvGuideBudget(128L shl 20, 512L shl 20)
+
     /**
      * Addon stream/subtitle requests in flight at once; `null` keeps official (unbounded).
      * Each request holds a response body, its parsed DTOs and the mapped list simultaneously.
@@ -227,4 +232,3 @@ data class SeekPreviewBudget(
         const val FULL_HD_PIXELS = 1920L * 1088L
     }
 }
-

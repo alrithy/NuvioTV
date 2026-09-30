@@ -4,6 +4,8 @@ import android.util.Log
 import java.io.File
 import java.io.IOException
 import java.util.zip.Deflater
+import java.util.zip.GZIPInputStream
+import com.nuvio.tv.fork.resource.LiveTvGuideBudget
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineStart
@@ -18,6 +20,11 @@ import okio.GzipSink
 import okio.GzipSource
 import okio.buffer
 import okio.sink
+import okio.Buffer
+import okio.ForwardingSink
+import okio.ForwardingSource
+import okio.Source
+import okio.Sink
 
 /** What Live TV reads playlists, provider APIs and guides through; fixtures replace it in tests. */
 internal interface LiveTvFetcher {
@@ -73,9 +80,10 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
      * file stays until the new one is complete (G10c; Reshaped `LiveTvHttp.download` @ 0ccf049).
      * Some panels build their guide on request and send nothing for a minute or more.
      */
-    suspend fun download(url: String, headers: Map<String, String>, target: File) {
+    suspend fun download(url: String, headers: Map<String, String>, target: File, budget: LiveTvGuideBudget) {
         withContext(Dispatchers.IO) {
-            val http = client.newBuilder().readTimeout(GUIDE_READ_TIMEOUT_S, TimeUnit.SECONDS).build()
+            val http = client.newBuilder().readTimeout(GUIDE_READ_TIMEOUT_S, TimeUnit.SECONDS)
+                .callTimeout(budget.downloadTimeoutMs, TimeUnit.MILLISECONDS).build()
             val request = Request.Builder().url(url).apply {
                 headers.forEach { (name, value) -> header(name, value) }
             }.build()
@@ -92,12 +100,26 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
                 call.execute().use { response ->
                     if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
                     val source = response.body?.source() ?: throw IOException("empty response")
+                    val sink = GuideBudgetSink(temp.sink(), budget.compressedBytes)
                     if (source.startsWithGzipMagic()) {
-                        temp.sink().buffer().use { it.writeAll(source) }
+                        sink.buffer().use { it.writeAll(GuideBudgetSource(source, budget.compressedBytes)) }
                     } else {
                         // Lowest compression: XML still shrinks about tenfold, at little CPU on a weak TV.
-                        val gzip = GzipSink(temp.sink()).apply { deflater.setLevel(Deflater.BEST_SPEED) }
-                        gzip.buffer().use { it.writeAll(source) }
+                        val gzip = GzipSink(sink).apply { deflater.setLevel(Deflater.BEST_SPEED) }
+                        gzip.buffer().use { it.writeAll(GuideBudgetSource(source, budget.expandedBytes)) }
+                    }
+                }
+                // A small gzip file can expand far beyond its disk size. Validate before replacing
+                // the old guide; cancellation is checked even while inflating a local file.
+                GZIPInputStream(temp.inputStream().buffered()).use { input ->
+                    val bytes = ByteArray(64 * 1024)
+                    var total = 0L
+                    while (true) {
+                        ensureActive()
+                        val read = input.read(bytes)
+                        if (read < 0) break
+                        total += read
+                        if (total > budget.expandedBytes) throw IOException("guide too large")
                     }
                 }
                 ensureActive()
@@ -126,6 +148,28 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
                 .followSslRedirects(true)
                 .build()
         }
+    }
+}
+
+/** Bounded streaming IO: no whole guide allocation, including unknown-length/chunked bodies. */
+internal class GuideBudgetSource(source: Source, private val maxBytes: Long) : ForwardingSource(source) {
+    private var bytes = 0L
+    override fun read(sink: Buffer, byteCount: Long): Long {
+        val read = super.read(sink, minOf(byteCount, maxBytes - bytes + 1))
+        if (read > 0) {
+            bytes += read
+            if (bytes > maxBytes) throw IOException("guide too large")
+        }
+        return read
+    }
+}
+
+private class GuideBudgetSink(sink: Sink, private val maxBytes: Long) : ForwardingSink(sink) {
+    private var bytes = 0L
+    override fun write(source: Buffer, byteCount: Long) {
+        if (byteCount > maxBytes - bytes) throw IOException("guide too large")
+        super.write(source, byteCount)
+        bytes += byteCount
     }
 }
 

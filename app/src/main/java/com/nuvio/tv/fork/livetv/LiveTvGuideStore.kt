@@ -9,6 +9,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
+import com.nuvio.tv.fork.resource.AdaptiveResources
+import okio.buffer
+import okio.source
 
 /**
  * Guides in the app cache (`cache/live_tv`), downloaded with Live TV's own client and read with
@@ -23,7 +26,7 @@ class LiveTvGuideStore internal constructor(context: Context, private val http: 
     override val dir: File = File(context.cacheDir, "live_tv")
 
     override suspend fun download(url: String, headers: Map<String, String>, target: File) =
-        http.download(url, headers, target)
+        http.download(url, headers, target, AdaptiveResources.policy.liveTvGuideBudget)
 
     override suspend fun read(file: File, request: LiveTvGuideRequest, nowEpochMs: Long, window: LiveTvGuideWindow): LiveTvGuide =
         runInterruptible(Dispatchers.IO) {
@@ -32,7 +35,9 @@ class LiveTvGuideStore internal constructor(context: Context, private val http: 
                 val gzip = buffered.read() == 0x1f && buffered.read() == 0x8b
                 buffered.reset()
                 val input = if (gzip) GZIPInputStream(buffered, BUFFER_BYTES) else buffered
-                readXmlTvGuide(Xml.newPullParser(), input, request, nowEpochMs, window)
+                GuideBudgetSource(input.source(), AdaptiveResources.policy.liveTvGuideBudget.expandedBytes).buffer().inputStream().use { bounded ->
+                    readXmlTvGuide(Xml.newPullParser(), bounded, request, nowEpochMs, window)
+                }
             }
         }
 

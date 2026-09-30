@@ -103,20 +103,27 @@ Keystore-encrypted per profile, hashed channel keys, own HTTP client with host-o
 G10b merged as #64 (`93ddc6e`; 2143 tests, 0 new): Live TV screen, source and category dialogs,
 favorites / hiding / order / names by channel key, per-profile menu switch in Layout sidebar settings
 (off by default), channels in the official player as type `channel`; 208–212, 219–225 implemented.
-G10c (#65): XMLTV guide (window from AdaptiveResources' constrained tier, kept-programme cache, 10 h
-re-download), now / next / progress / time left, guide logos; 214–218 implemented. Device checks
-HV-G10-1..4 MANUAL-PENDING; 233 in_progress until G10d.
-Owner: Codex (sequential handoff from Claude), no lease.
-G10c review correction: socket cancellation on leaving (headers and stalled body), unique partial
-files and no destructive rename fallback; LiveTvHttpTest adds three real HTTP cases. Prior exact
-head `ead68bb9478c8bf4e361005d8a1e414e793ad202` passed run 36785444504: 2151 tests, 15 known
-failures, 0 new, 1 skipped; APK artifact 11129731886. Correction run 36786863382 exposed cancelled sockets surfacing IOException; `ensureActive` now
-preserves CancellationException. All 3 HTTP cases pass in a local standalone JVM harness (Android
-Log/host seams stubbed; no Android/device execution). Corrected head must pass fresh CI.
+G10c (#65, Ready): XMLTV guide, now / progress / time left and guide logos. 214–215 and 217–218
+implemented; 216 is in_progress (data API exists; display remains G10e). HV-G10-1..4 MANUAL-PENDING;
+233 in_progress until G10d. Owner: Codex, sequential writer, no lease.
+Reviewed head `20e3e6fb21eedf4334fcc727ca228b0a7206ecb4` passed Ready run 36788883076:
+2154 tests, 15 known failures, 0 new, 1 skipped; APK artifact 11131925780; tested merge ref
+`96d36da6cbd51b95a3d381598793c09f257cdce3`. PR remains unmerged because review found eight issues.
+Corrections: source-scoped guide identities and per-source requests; SHA-256 filenames/cache v2;
+duplicate-id aliases/logo requirements retained; partial XMLTV results display but cannot be cached
+as complete and force a fresh download on the 30-minute retry; zero collectors cancels active guide
+IO; Refresh also updates guides if all source reloads fail. AdaptiveResources owns the budgets
+(constrained: 64 MiB disk / 256 MiB expanded; standard: 128 MiB / 512 MiB; 5-minute total call,
+120-second idle read timeout). Old guide remains on cancellation, oversize, gzip or rename failure.
+Local standalone JVM harness: 85 tests PASS (real HTTP, guide lifecycle, source isolation, retry,
+cache, XML event seam, parsers/providers/organisation and resource policies; Android Log/profile/
+storage seams stubbed). No Android/device run claimed. Latest correction head requires fresh CI.
 Next gate: G11 Watch Party.
 
 ## Exact next action
-1. Merge G10c (#65), then slices G10d (live-only playback rules and live AFR; 233–236), G10e
+1. Wait for #65 latest exact-head fullDebug/governance/policy success, resolve verified review
+   threads, squash with expected head, fetch integration and safely merge it into feat/live-tv.
+   Then slices G10d (live-only playback rules and live AFR; 233–236), G10e
    (in-player zapping, panels, Now/Next; 228–232), G10f (preview; 226, 227), G10g (QR setup; 213).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G10→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.

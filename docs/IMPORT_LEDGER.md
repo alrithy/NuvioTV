@@ -705,3 +705,12 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: the XML reader itself runs on Android's parser, so real guides are a device check (HV-G10-4); guide memory on 1–2 GB boxes is MANUAL-PENDING (G14)
+
+#### G10c review hardening (PR #65)
+- Import mode: WRITE adapters/corrections around the attributed FILE_PORT; source pin unchanged.
+- Per-source guide URL/channel association and source-scoped result keys retain raw XMLTV-id-first matching; duplicate-id variants keep all names and any missing-logo requirement.
+- Partial/invalid-tail reads carry `complete=false`: retain parsed programmes, skip complete-cache writes, re-download at the failure retry. Guide workers use visibility `collectLatest` so the last collector leaving cancels network/parse IO immediately; source completion refreshes preserved guides even when every reload fails.
+- SHA-256 URL filenames and digest cache v2 include guide-to-source-key mapping (old cache is invalidated once). URLs/credentials remain absent from logs and filenames.
+- AdaptiveResources supplies compressed/disk and inflated byte caps (64/256 MiB constrained, 128/512 MiB standard) and a 5-minute total download timeout; 120-second idle timeout remains. Streaming limits reject chunked oversize or gzip expansion before old-file replacement. No app dependency added.
+- Added/adapted tests: duplicate IDs/aliases/logos; source namespaces and per-guide requests; hash-collision pair Aa/BB; parser incomplete-tail signal; immediate cancellation when invisible; partial display without complete caching and 30-minute re-download/recovery; failed-source Refresh; chunked/expanded oversize preserving old file; total call timeout; resource-tier budgets. Local standalone JVM harness: 85 tests PASS, Android seams stubbed; exact-head Android/fullDebug CI required.
+- Feature 216 stays in_progress: next-programme API exists but display is G10e. HV-G10-4 remains MANUAL-PENDING for G14.
