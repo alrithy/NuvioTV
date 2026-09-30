@@ -1762,7 +1762,11 @@ internal fun PlayerRuntimeController.playNextEpisode(userInitiated: Boolean = fa
 
             val installedAddons = addonRepository.getInstalledAddons().first().enabledAddons()
             val installedAddonOrder = installedAddons.map { it.displayName }
-            val rankContext = streamRanking.contextFor(installedAddons) // Superfork G8b
+            // Superfork G8b/G8c: the next episode runs about as long as this one.
+            val rankContext = streamRanking.contextFor(
+                installedAddons,
+                (lastKnownDuration / 60_000L).toInt().takeIf { lastKnownDuration > 0L }
+            )
             val effectiveMode = if (shouldAutoSelectInManualMode) {
                 StreamAutoPlayMode.FIRST_STREAM
             } else {

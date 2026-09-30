@@ -228,7 +228,8 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
         val mp4SessionMode = seekMediaMode == com.nuvio.tv.fork.playback.SeekMediaMode.MP4_SESSION
         val useChunkSessionSource = (useParallelConnections || mp4SessionMode) && !isHls && !isDash
         parallelStartupPrefetchUnlocked.set(!useChunkSessionSource)
-        val progressiveUpstreamFactory: DataSource.Factory = if (mp4SessionMode) {
+        // Superfork G8c: count network bytes for connection learning (no-op while STREAM_INTELLIGENCE is OFF).
+        val progressiveUpstreamFactory: DataSource.Factory = com.nuvio.tv.fork.streams.PlaybackThroughput.countingNetworkBytes(if (mp4SessionMode) {
             // ysosrs 45e0984 MP4 session mode: one connection, 8 MiB chunks, whole-chunk retention.
             val okHttpFactory = OkHttpDataSource.Factory(playbackHttpClient).apply {
                 setDefaultRequestProperties(sanitizedHeaders)
@@ -286,7 +287,7 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
             )
         } else {
             httpDataSourceFactory
-        }
+        })
 
         // 2. VOD disk cache (opt-in).
         val useVodCache = ENABLE_VOD_CACHE && vodCacheEnabled && !isHls && !isDash && shouldUseVodCache(url)
@@ -351,11 +352,11 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
         }
 
         val mediaSource = when {
-            isHls && !forceDefaultFactory -> HlsMediaSource.Factory(httpDataSourceFactory)
+            isHls && !forceDefaultFactory -> HlsMediaSource.Factory(com.nuvio.tv.fork.streams.PlaybackThroughput.countingNetworkBytes(httpDataSourceFactory))
                 .setAllowChunklessPreparation(true)
                 .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
                 .createMediaSource(mediaItem)
-            isDash && !forceDefaultFactory -> DashMediaSource.Factory(httpDataSourceFactory)
+            isDash && !forceDefaultFactory -> DashMediaSource.Factory(com.nuvio.tv.fork.streams.PlaybackThroughput.countingNetworkBytes(httpDataSourceFactory))
                 .setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
                 .createMediaSource(mediaItem)
             else -> defaultFactory.createMediaSource(mediaItem)

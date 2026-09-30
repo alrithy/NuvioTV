@@ -75,9 +75,13 @@ chain + TRaSH tiers): cache tier → resolution → quality → release group �
 audio → channels → codec → size → add-on health, stable; official autoplay gains BEST_QUALITY (same
 candidates; stream screen and next episode); opt-in "Sort streams by quality" list order (default off, 167).
 Device checks HV-G8-4..HV-G8-6 MANUAL-PENDING (G14).
+G8c (165) on this branch: connection fit (Reshaped FILE_PORT): throughput learned passively from playback
+(ExoPlayer byte counter, mpv cache-speed) per network kind; in the ranker a stream above connection ÷ 1.5
+average bitrate drops within its cache tier; unknown bitrate stays; captured once per load. Device check
+HV-G8-7 MANUAL-PENDING (G14).
 
 ## Exact next action
-1. Merge G8b, then G8c (connection fit; 165), then close G8 and start G9 with its mandatory audit.
+1. Merge G8b and G8c (connection fit; 165), then close G8 and start G9 with its mandatory audit.
 2. Continue G8→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.
