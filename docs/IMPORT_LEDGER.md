@@ -666,3 +666,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: provider formats are ported from Reshaped, not from provider documentation; real providers and the portal-host rule for Stalker headers need device coverage (G14, with the G10b screen)
+
+### G10b — Live TV screen, menu entry, organisation and playback as `channel` (208, 219–225)
+- Roadmap gate: G10
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: main
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/reshaped/livetv/LiveTvScreen.kt, LiveTvScreenModel.kt, LiveTvComponents.kt, LiveTvSourceDialog.kt, LiveTvCategoryDialog.kt, LiveTvNavigation.kt; reshaped/livetv/LiveTvRepository.kt (favorites, hiding, order, names, last channel), LiveTvStorage.kt (the same choices); ui/screens/settings/LiveTvSettingsItems.kt; res/values/live_tv_strings.xml
+- Import mode: FILE_PORT (screen, components, dialogs, strings); ALGORITHM_PORT (category order, shown channels, filters); ADAPTER (navigation, settings, player route)
+- Current official equivalent: none; the player route and `LivePlaybackUiPolicy` (type `channel`: live timeline, no progress) are REUSED
+- What already existed upstream: `Screen.Player.createRoute`, the drawer (`DrawerItem`, `rootRoutes`), `SettingsToggleRow`, `NuvioDialog`, theme tokens
+- What was imported: category column that follows focus, All / Favorites / per-source filters, remote-safe search and text fields, channel rows with logos decoded at drawn size, last-channel row, source dialog (M3U / Xtream / Stalker, two-press remove, per-source errors), category dialog (show / hide / hide all, move with hold-OK + ▲▼, A–Z, rename, per-channel hiding), favorites by hold-OK, off-main-thread filtering with the filtered list kept across the player round trip, focus restore on return
+- What was intentionally not imported: favorites / hidden / last channel keyed by stream URL (now `liveTvChannelKey`); the process-wide `LiveTvPreferences` object (now a per-profile DataStore value); the recent-channel stand-in built from a stored link (the last channel now resolves only while a source still lists it); the preview, guide, programme lines and player overlay (G10c, G10e, G10f); the QR phone setup column (G10g); Reshaped's pill-navigation hooks
+- Local adaptations: the menu switch lives in Layout → sidebar settings, per profile, off by default, hidden while LIVE_TV is OFF; turning it off while on the screen goes to Home; the choices are one JSON value per profile (channel keys as hex, category names) beside the encrypted sources; choice changes apply to the state at once (a rename field reads them back) and are saved in order on one writer; the zapping list is refiltered off the caller's thread; passwords typed in the source dialog are not kept in saved instance state; the player route carries type `channel` and the source's headers (Stalker session headers only for portal-host streams, G10a)
+- Feature flag / fallback: FeatureId.LIVE_TV (AUTO, D055); menu entry off until the user enables it; OFF removes the setting, the entry and every load
+- Tests ported/added: LiveTvOrganisationTest (7: order, filters, stale filters, moves, library codec without links, choices published / saved per profile, menu switch and OFF); LiveTvRepositoryTest fake extended
+- License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: TV focus and long-press behavior need device checks (HV-G10-1..HV-G10-3, G14); logos from the guide join in G10c

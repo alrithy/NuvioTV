@@ -115,11 +115,41 @@ enum class LiveTvError {
 
 internal class LiveTvException(val error: LiveTvError) : Exception(error.name)
 
+/** The last channel watched, as the list shows it above the categories (no link is kept). */
+data class LiveTvRecentChannel(
+    val key: Long,
+    val name: String,
+    val logoUrl: String? = null,
+    val group: String = "",
+    val tvgId: String? = null,
+)
+
+/** What a profile chose about its channels (G10b): kept by channel key and category name, never by link. */
+data class LiveTvLibrary(
+    val favorites: Set<Long> = emptySet(),
+    /** Categories the viewer chose not to see: their channels leave the list, search and zapping. */
+    val hiddenGroups: Set<String> = emptySet(),
+    /** The viewer's category order; categories not in it follow, A to Z. */
+    val groupOrder: List<String> = emptyList(),
+    /** Names the viewer gave categories, by the playlist's name. */
+    val groupNames: Map<String, String> = emptyMap(),
+    /** Single channels the viewer chose not to see, inside categories that stay. */
+    val hiddenChannels: Set<Long> = emptySet(),
+    val recent: LiveTvRecentChannel? = null,
+)
+
 /** What the repository publishes for the active profile. */
 data class LiveTvState(
     val sources: List<LiveTvSource> = emptyList(),
     /** Every source's channels, in the order the sources were added. */
     val channels: List<LiveTvChannel> = emptyList(),
+    val library: LiveTvLibrary = LiveTvLibrary(),
+    /** Category names of [channels] in the viewer's order (hidden ones included), computed once per change. */
+    val groups: List<String> = emptyList(),
+    /** How many channels each category has. */
+    val groupCounts: Map<String, Int> = emptyMap(),
+    /** [channels] without hidden categories and channels: what All channels and zapping go through. */
+    val shownChannels: List<LiveTvChannel> = emptyList(),
     /** How many channels each source listed. */
     val sourceCounts: Map<String, Int> = emptyMap(),
     /** Sources whose last load failed (their earlier channels, if any, stay listed). */
@@ -134,6 +164,10 @@ data class LiveTvState(
     val addedCount: Int = 0,
 ) {
     val hasSource: Boolean get() = sources.isNotEmpty()
+
+    /** Categories the list shows. */
+    val visibleGroups: List<String>
+        get() = if (library.hiddenGroups.isEmpty()) groups else groups.filterNot(library.hiddenGroups::contains)
 }
 
 /** The host of [url] (no scheme, user, port, path or query), for labels and logs. */
