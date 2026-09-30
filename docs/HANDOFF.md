@@ -88,9 +88,14 @@ G9b (120–122, 127–129) on this branch: MovieHavenDB / VideoSkip / NotScare (
 and content-warning categories (skip button only, never auto-skipped, every segment kept); mute segments turn
 the audio off for their span (ExoPlayer volume / mpv mute), never seek, never forwarded to external players.
 Endpoints unverified from this environment (fail closed). Device check HV-G9-3 MANUAL-PENDING (G14).
+G9c (136, 140–144, 146) on this branch: per-profile post-play source beside official's controller (default "Same as
+More like this" = official chain and 4 cards); Auto = Kurato AI → BingeCat AI add-on catalogs → official chain;
+MDBList = the watchlist official already syncs; every fork source falls back to official's chain; up to 20 cards
+with a prefetch window (1 behind, 4 ahead) in `AdaptiveResources`; add-on YouTube trailers after official's lookup.
+Device check HV-G9-4 MANUAL-PENDING (G14).
 
 ## Exact next action
-1. Merge G9b, then slices G9c (post-play; 136, 140–144, 146), G9d (random / Mystery; 171, 173–177), G9e
+1. Merge G9c, then slices G9d (random / Mystery; 171, 173–177), G9e
    (Calendar; 178–187), G9f (App Dimmer; 206, 207).
 2. Continue G9→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
