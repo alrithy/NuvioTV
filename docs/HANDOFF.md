@@ -110,7 +110,9 @@ Owner: Codex (sequential handoff from Claude), no lease.
 G10c review correction: socket cancellation on leaving (headers and stalled body), unique partial
 files and no destructive rename fallback; LiveTvHttpTest adds three real HTTP cases. Prior exact
 head `ead68bb9478c8bf4e361005d8a1e414e793ad202` passed run 36785444504: 2151 tests, 15 known
-failures, 0 new, 1 skipped; APK artifact 11129731886. Corrected head must pass fresh CI.
+failures, 0 new, 1 skipped; APK artifact 11129731886. Correction run 36786863382 exposed cancelled sockets surfacing IOException; `ensureActive` now
+preserves CancellationException. All 3 HTTP cases pass in a local standalone JVM harness (Android
+Log/host seams stubbed; no Android/device execution). Corrected head must pass fresh CI.
 Next gate: G11 Watch Party.
 
 ## Exact next action

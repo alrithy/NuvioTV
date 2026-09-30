@@ -57,6 +57,11 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
                     val source = response.body?.source() ?: throw IOException("empty response")
                     block(if (source.startsWithGzipMagic()) GzipSource(source).buffer() else source)
                 }
+            } catch (error: Exception) {
+                // Closing a cancelled socket throws IOException; preserve coroutine cancellation
+                // so callers do not treat leaving/profile changes as a provider failure.
+                ensureActive()
+                throw error
             } finally {
                 cancelOnLeave.cancel()
             }
@@ -99,6 +104,9 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
                 if (!temp.renameTo(target)) {
                     throw IOException("guide not saved")
                 }
+            } catch (error: Exception) {
+                ensureActive()
+                throw error
             } finally {
                 cancelOnLeave.cancel()
                 temp.delete()
