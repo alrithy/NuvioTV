@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G10 — Live TV
 - Active branch: `feat/live-tv`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G10_LIVE_TV.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
@@ -88,16 +88,24 @@ failed-autoplay source lists show neutral cards; skip HTTP (and the Simkl lookup
 Anime-Skip) is cancellation-aware inside the six-second provider deadline; encrypted credential
 writes change a non-secret cache revision with profile identity, so corrected keys are retried.
 
-G10 Live TV READY on `feat/live-tv`, task `tasks/G10_LIVE_TV.md`, IDs 208–236.
+G10 Live TV IN_PROGRESS on `feat/live-tv`, task `tasks/G10_LIVE_TV.md`, IDs 208–236. Audit
+`docs/audits/G10_LIVE_TV_AUDIT.md`: official has live-playback plumbing (type `channel`, live latch,
+live-window retry) but no Live TV feature, so no ID is verified official. D055: one `fork/livetv` owner
+(Reshaped FILE_PORT at `0ccf049`, adapted), source records Keystore-encrypted per profile, hashed
+favorites / hidden / recent keys, own OkHttp client without logging, host-only logs, Stalker auth
+headers only to the portal host; channels on the official player as `channel`; live-only rules gated
+on the Live TV playback registry; AFR stays with G5e's owner (live branch); preview budget from
+AdaptiveResources; menu entry off until enabled. Official `dev` observed at `5c1d9b0` (landscape
+posters, strings, hero focus; no Live TV seam; not accepted).
 Owner: claude-code (took over from Codex at the user's request), sequential writer, no lease.
 Next gate: G11 Watch Party.
 
 ## Exact next action
-1. After this governance transition merges, create/fast-forward `feat/live-tv` from remote
-   `superfork/integration`; run preflight. Perform the mandatory G10 audit before runtime code.
-2. Compare current official `NuvioMedia/NuvioTV dev` first, then Reshaped at SOURCE_MAP pin
-   `0ccf049d2789600835f3f7a75423e9149ea416ba`; classify every Live TV ID and plan coherent slices.
-   Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
+1. Merge the G10 audit PR, then slices G10a (sources and parsers, encrypted storage, repository; 208–212,
+   233), G10b (screen, menu, playback as `channel`, favorites / categories / hide / search / logos;
+   208, 219–225), G10c (EPG; 214–218), G10d (live-only playback rules and live AFR; 233–236), G10e
+   (in-player zapping, panels, Now/Next; 228–232), G10f (preview; 226, 227), G10g (QR setup; 213).
+2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G10→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 5. PR #28 remains independent governance work. Official pins change only through a dedicated sync PR.

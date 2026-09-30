@@ -385,3 +385,19 @@ trailer fallback; random episodes build on official `EpisodeShuffle` (season sco
 fallback, Mystery mode that never reveals hidden metadata); Calendar and App Dimmer are Cxsmo
 FILE_PORTs. DISCOVERY_SKIP_RECOMMENDATIONS becomes AUTO with the first code slice; OFF restores
 official behavior.
+
+## D055 — G10 has one Live TV owner, isolated from VOD playback
+The only Live TV module is `fork/livetv`: Reshaped FILE_PORT (streaming M3U / Xtream / Stalker readers,
+XMLTV pull parser, per-source jobs with failure isolation), adapted to a Hilt singleton bound to the
+active profile. Source records (links, users, passwords, MAC) are encrypted per profile with
+`KeystoreCipher`; favorites, hidden channels, category order and the last channel are keyed by
+non-secret hashes, never by stream URL. Live TV uses its own OkHttp client without a logging
+interceptor (Xtream URLs carry credentials), logs only source type and host, and sends Stalker's
+Cookie / Authorization only to the portal host. Channels play through the official player route as
+Stremio type `channel` (REUSE of `LivePlaybackUiPolicy`); every live-only playback rule (non-IDR TS
+start, HTTP-refusal retries, live-edge rejoin, player reuse on zap, no disk cache / AutoSync / seek
+preview / speed learning) is gated on the Live TV playback registry, so VOD keeps official behavior.
+AFR stays with G5e `TrackAfrPolicy`, which gains a live branch (no preflight probe, track or measured
+rate, one early switch). Preview size, default and guide window come from `AdaptiveResources`.
+LIVE_TV becomes AUTO with the first code slice; the menu entry stays off until the user enables it,
+and OFF removes the entry and every live-only hook.
