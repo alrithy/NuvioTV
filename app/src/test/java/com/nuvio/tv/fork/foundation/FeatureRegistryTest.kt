@@ -37,6 +37,7 @@ class FeatureRegistryTest {
                 FeatureId.SUBTITLE_INTELLIGENCE to FeatureMode.AUTO, // D051
                 FeatureId.SEEK_INTELLIGENCE to FeatureMode.AUTO, // D052
                 FeatureId.STREAM_INTELLIGENCE to FeatureMode.AUTO, // D053
+                FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS to FeatureMode.AUTO, // D054
             ),
             FeatureRegistry.DECIDED_DEFAULTS,
         )
@@ -48,6 +49,7 @@ class FeatureRegistryTest {
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.SUBTITLE_INTELLIGENCE))
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.SEEK_INTELLIGENCE))
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.STREAM_INTELLIGENCE))
+        assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS))
     }
 
     @Test

@@ -520,3 +520,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: the estimate needs two qualifying playbacks per network before it acts; device check MANUAL-PENDING (G14 campaign, HV-G8-7)
 
+### G9a — Skip aggregator core on the official seam (117, 124–126, 131–135)
+- Roadmap gate: G9
+- Source repository: Cxsmo-ai/NuvioTV-Custom
+- Source branch: main
+- Pinned source SHA: 3e0d0fad60a2721adec133b88640b49c0183883f
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): data/repository/SkipIntroRepository.kt (`fetchFromSkipMe`, `fetchFromTheIntroDb`, `fetchFromPublicMetaDb`, `mergeSkipIntervals`, `SkipMetadataParser.parseSkipMe` / `parseTheIntroDb` / `parsePublicMetaDb*` / `timeSeconds` / `parseClock`), data/local/SkipProviderCredentialsStore.kt
+- Import mode: FILE_PORT (fetchers, parsers moved from org.json to Moshi, credential cipher); ALGORITHM_PORT (evidence merge)
+- Current official equivalent: `SkipIntroRepository` with IntroDB, AniSkip and Anime-Skip in parallel and a one-per-category priority merge
+- What already existed upstream: the official repository, player skip button, auto-skip categories, movie TMDB/MAL/Kitsu → IMDb resolution, post-credits guard
+- What was imported: SkipMe.db / TheIntroDB / PublicMetaDB fetchers and parsers with Cxsmo confidences, 6 s per-provider timeout, 2 MiB response cap, confidence-weighted evidence merge, Keystore-encrypted per-profile provider keys
+- What was intentionally not imported: Cxsmo's rewrite that drops official AniSkip / Anime-Skip and the Simkl anime mapping; its IntroDB app key; MovieHavenDB / VideoSkip / NotScare and the preview / content-warning categories (G9b); SkipMe retry loop; Cxsmo's `"?$$query"` / `"Bearer $$apiKey"` strings (sent a literal `$`; fixed)
+- Local adaptations: fork providers run beside the unchanged official providers from inside official `SkipIntroRepository` and only when the user switched one on; official results keep their priority by confidence; one segment per official category; official post-credits guard reapplied after merging; with a fork provider on, official requests are also cancelled after 6 s; series under a non-IMDb id use the cached meta IMDb id; the Seekr key store now shares the same `KeystoreCipher` (same alias and format, stored keys unchanged); only `tt\d+` ids are sent; logs name the provider and status only
+- Feature flag / fallback: FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS (AUTO, D054) OFF = official skip exactly and no provider rows; no provider on = official path byte for byte
+- Tests ported/added: SkipEvidenceMergeTest (7), SkipIntroForkProvidersTest (6), FeatureRegistryTest updated
+- License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: provider response formats are ported from Cxsmo, not from provider docs; SkipMe answers only when the runtime is known at lookup time; device checks MANUAL-PENDING (G14 campaign, HV-G9-1, HV-G9-2)
+

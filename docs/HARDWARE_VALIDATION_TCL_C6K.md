@@ -126,6 +126,13 @@ for. Never mark a row PASS from memory or expectation. Copy finished rows into
 | HV-G8-6 next episode with Best quality (168) | Best quality on; play episode 1 of a series to the end. | The next episode starts with the stream the ranked list shows first for it (same engine as the stream screen). | MANUAL-PENDING | video |
 | HV-G8-7 connection fit (165) | Best quality and *Sort streams by quality* on. Play two different HTTP streams for 30 s each (learning). Then cap the router or TV to ~20 Mbps and open a title with a 60+ GB REMUX and a ~15 GB WEB-DL. | After learning, the REMUX the capped link cannot sustain sits below the WEB-DL in the list and autoplay picks the WEB-DL; the order does not change while the list is open. Uncapped, the REMUX is first again after the next two playbacks. | MANUAL-PENDING | photo + video |
 
+## 4f. G9 — Skip / Recommendations / Discovery
+
+| Test | Steps | Expected | Result | Evidence |
+|---|---|---|---|---|
+| HV-G9-1 extra skip sources (117, 124–126, 134) | Settings → Playback → skip: turn on SkipMe.db and TheIntroDB (and PublicMetaDB with a key). Play a popular series episode and a film; repeat one series episode opened from a TMDB-id catalog. | The skip button appears for intro / credits as before; with only the official sources on, times match official exactly. The TMDB-opened episode now gets skip segments. Keys never appear in the log. | MANUAL-PENDING | photo + log |
+| HV-G9-2 slow source isolation (131) | With the extra sources on, block one provider host on the router (or cut the network for 5 s at start). | Skip segments from the remaining sources still appear within about 6 s; the log shows `ForkSkip: <provider> timed out`; playback never waits for skip data. | MANUAL-PENDING | log |
+
 ## 5. G4 final validation — same-file A/B (required before Stable release)
 
 Use **F1** for arms A and B, and **F2 and F3** for the seek arm. Same TV, same network, same time

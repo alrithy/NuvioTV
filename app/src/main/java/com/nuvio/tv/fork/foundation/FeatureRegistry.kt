@@ -27,6 +27,7 @@ class FeatureRegistry(overrides: Map<FeatureId, FeatureMode> = emptyMap()) {
          * D052: seek previews only appear while the user scrubs; OFF keeps the official scrubber.
          * D053: stream ranking and the Best-quality autoplay mode are opt-in; requests only gain an
          *       opt-in progressive endpoint and one bounded retry.
+         * D054: extra skip providers and content categories are opt-in; official skip stays the default.
          */
         internal val DECIDED_DEFAULTS: Map<FeatureId, FeatureMode> = mapOf(
             FeatureId.UNIFIED_DIAGNOSTICS to FeatureMode.AUTO,
@@ -37,6 +38,7 @@ class FeatureRegistry(overrides: Map<FeatureId, FeatureMode> = emptyMap()) {
             FeatureId.SUBTITLE_INTELLIGENCE to FeatureMode.AUTO,
             FeatureId.SEEK_INTELLIGENCE to FeatureMode.AUTO,
             FeatureId.STREAM_INTELLIGENCE to FeatureMode.AUTO,
+            FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS to FeatureMode.AUTO,
         )
 
         val DEFAULTS: Map<FeatureId, FeatureMode> = immutableModes(
