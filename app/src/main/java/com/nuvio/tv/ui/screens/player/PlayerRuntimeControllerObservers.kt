@@ -614,7 +614,11 @@ internal fun PlayerRuntimeController.fetchSkipIntervals(id: String?, season: Int
         skipIntroFetchedKey = key
         scope.launch {
             skipIntervals = withTimeoutOrNull(15_000L) {
-                skipIntroRepository.getMovieSkipIntervals(id, effectiveId)
+                skipIntroRepository.getMovieSkipIntervals(
+                    id,
+                    effectiveId,
+                    durationMs = lastKnownDuration.takeIf { it > 0L } // Superfork G9a: SkipMe needs the runtime
+                )
             } ?: emptyList()
         }
         return
@@ -659,7 +663,10 @@ internal fun PlayerRuntimeController.fetchSkipIntervals(id: String?, season: Int
         return
     }
 
-    val imdbId = effectiveId.split(":").firstOrNull()?.takeIf { it.startsWith("tt") } ?: return
+    // Superfork G9a (134): a tmdb:/other series id falls back to the cached meta's IMDb id.
+    val imdbId = effectiveId.split(":").firstOrNull()?.takeIf { it.startsWith("tt") }
+        ?: metaImdbId?.takeIf { com.nuvio.tv.fork.skip.SkipIdNormalization.enabled }
+        ?: return
     if (season == null || episode == null) return
 
     val key = "$imdbId:$season:$episode"
@@ -668,7 +675,12 @@ internal fun PlayerRuntimeController.fetchSkipIntervals(id: String?, season: Int
 
     scope.launch {
         skipIntervals = withTimeoutOrNull(15_000L) {
-            skipIntroRepository.getSkipIntervals(imdbId, season, episode)
+            skipIntroRepository.getSkipIntervals(
+                imdbId,
+                season,
+                episode,
+                durationMs = lastKnownDuration.takeIf { it > 0L } // Superfork G9a: SkipMe needs the runtime
+            )
         } ?: emptyList()
     }
 }

@@ -108,6 +108,7 @@ internal fun PlaybackSkipSegmentsSection(
         enabled = autoSkipEnabled,
         onUpdate = onUpdate
     )
+    skipProviderSettingsItems(enabled = autoSkipEnabled) // Superfork G9a hook
 }
 
 @Composable

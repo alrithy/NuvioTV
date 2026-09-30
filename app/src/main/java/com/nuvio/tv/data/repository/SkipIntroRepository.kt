@@ -57,14 +57,21 @@ class SkipIntroRepository @Inject constructor(
     private val animeSkipApi: AnimeSkipApi,
     private val simklResolver: SimklIdResolver,
     private val animeSkipSettingsDataStore: AnimeSkipSettingsDataStore,
-    private val tmdbService: TmdbService
+    private val tmdbService: TmdbService,
+    // Superfork G9a (D054): extra providers beside the official ones; inactive = official behavior.
+    private val forkSkip: com.nuvio.tv.fork.skip.ForkSkipProviders
 ) {
     private val cache = ConcurrentHashMap<String, List<SkipInterval>>()
     private val animeSkipShowIdCache = ConcurrentHashMap<String, String>()
     private val introDbConfigured = BuildConfig.INTRODB_API_URL.isNotEmpty()
 
-    suspend fun getMovieSkipIntervals(contentId: String?, videoId: String? = null): List<SkipInterval> {
-        if (!introDbConfigured) return emptyList()
+    suspend fun getMovieSkipIntervals(
+        contentId: String?,
+        videoId: String? = null,
+        durationMs: Long? = null
+    ): List<SkipInterval> {
+        val forkConfig = forkSkip.activeConfig()
+        if (!introDbConfigured && forkConfig.active.isEmpty()) return emptyList()
         val ids = listOfNotNull(contentId, videoId).distinct()
         val imdbId = ids.firstNotNullOfOrNull { id ->
             id.substringBefore(':').takeIf { it.matches(Regex("tt[0-9]+")) }
@@ -77,18 +84,47 @@ class SkipIntroRepository @Inject constructor(
                 else -> null
             }
         } ?: return emptyList()
+        if (forkConfig.active.isNotEmpty()) return forkMovieSkipIntervals(imdbId, durationMs, forkConfig)
         val key = "movie:$imdbId"
         cache[key]?.let { return it }
         return fetchFromIntroDb(imdbId, isMovie = true).also { cache[key] = it }
     }
 
+    /** Superfork G9a: official IntroDB and the active fork providers, each with its own timeout. */
+    private suspend fun forkMovieSkipIntervals(
+        imdbId: String,
+        durationMs: Long?,
+        forkConfig: com.nuvio.tv.fork.skip.SkipProviderConfig
+    ): List<SkipInterval> = coroutineScope {
+        val key = "movie:$imdbId:fork:${forkConfig.active.joinToString(",") { it.key }}:${durationMs ?: 0}"
+        cache[key]?.let { return@coroutineScope it }
+        val introDb = async { if (introDbConfigured) fetchFromIntroDb(imdbId, isMovie = true) else emptyList() }
+        val fork = async { forkSkip.fetch(forkConfig, imdbId, null, null, isMovie = true, durationMs = durationMs) }
+        val official = com.nuvio.tv.fork.skip.awaitWithin(introDb, com.nuvio.tv.fork.skip.FORK_SKIP_PROVIDER_TIMEOUT_MS)
+        forkSkip.combine(official, fork.await(), isMovie = true).also { cache[key] = it }
+    }
+
     /**
      * Standard path for IMDB-identified content.
      */
-    suspend fun getSkipIntervals(imdbId: String?, season: Int, episode: Int): List<SkipInterval> = coroutineScope {
+    suspend fun getSkipIntervals(
+        imdbId: String?,
+        season: Int,
+        episode: Int,
+        durationMs: Long? = null
+    ): List<SkipInterval> = coroutineScope {
         if (imdbId == null) return@coroutineScope emptyList()
-        val cacheKey = "$imdbId:$season:$episode"
+        // Superfork G9a (D054): with fork providers active every provider gets its own timeout.
+        val forkConfig = forkSkip.activeConfig()
+        val forkActive = forkConfig.active.isNotEmpty()
+        val cacheKey = if (forkActive) {
+            "$imdbId:$season:$episode:fork:${forkConfig.active.joinToString(",") { it.key }}:${durationMs ?: 0}"
+        } else "$imdbId:$season:$episode"
         cache[cacheKey]?.let { return@coroutineScope it }
+        val forkDeferred = async {
+            if (forkActive) forkSkip.fetch(forkConfig, imdbId, season, episode, isMovie = false, durationMs = durationMs)
+            else emptyList()
+        }
 
         val introDbDeferred = async {
             if (introDbConfigured) fetchFromIntroDb(imdbId, season, episode) else emptyList()
@@ -116,6 +152,16 @@ class SkipIntroRepository @Inject constructor(
             if (anilistId != null) fetchFromAnimeSkip(anilistId, animeEpisode, season = null) else emptyList()
         }
 
+        if (forkActive) {
+            val timeout = com.nuvio.tv.fork.skip.FORK_SKIP_PROVIDER_TIMEOUT_MS
+            val official = mergeByPriority(
+                com.nuvio.tv.fork.skip.awaitWithin(introDbDeferred, timeout),
+                com.nuvio.tv.fork.skip.awaitWithin(animeSkipDeferred, timeout),
+                com.nuvio.tv.fork.skip.awaitWithin(aniSkipDeferred, timeout)
+            )
+            return@coroutineScope forkSkip.combine(official, forkDeferred.await(), isMovie = false)
+                .also { cache[cacheKey] = it }
+        }
         return@coroutineScope mergeByPriority(
             introDbDeferred.await(),
             animeSkipDeferred.await(),
