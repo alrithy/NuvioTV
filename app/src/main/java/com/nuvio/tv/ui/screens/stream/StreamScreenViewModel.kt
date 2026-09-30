@@ -94,11 +94,21 @@ class StreamScreenViewModel @Inject constructor(
     private val subtitleFileCache: com.nuvio.tv.core.player.SubtitleFileCache,
     private val torrentService: TorrentService,
     private val playbackStrategySession: com.nuvio.tv.fork.playback.PlaybackStrategySession,
+    private val streamRanking: com.nuvio.tv.fork.streams.StreamRankingPreferences,
     featureRegistry: com.nuvio.tv.fork.foundation.FeatureRegistry,
     profileManager: com.nuvio.tv.core.profile.ProfileManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val remuxPerformanceMode = featureRegistry.mode(com.nuvio.tv.fork.foundation.FeatureId.REMUX_PERFORMANCE)
+    // Superfork G8b: per-load rank inputs; the session is set only with the Best-quality list order.
+    private var streamRankContext = com.nuvio.tv.fork.streams.StreamRankContext.NONE
+    @Volatile private var streamRankSession: com.nuvio.tv.fork.streams.StreamRanker.Session? = null
+
+    /** The flat list the screen shows: add-on order (official), or ranked when the user chose it. */
+    private fun presentedStreams(groups: List<AddonStreams>): List<Stream> {
+        val flat = groups.flatMap { it.streams }
+        return streamRankSession?.rank(flat) ?: flat
+    }
     private var autoPlayHandledForSession = false
     private var directAutoPlayModeInitializedForSession = false
     private var directAutoPlayFlowEnabledForSession = false
@@ -211,7 +221,7 @@ class StreamScreenViewModel @Inject constructor(
                                 }
                             )
                         }
-                        val updatedAllStreams = updatedAddonStreams.flatMap { it.streams }
+                        val updatedAllStreams = presentedStreams(updatedAddonStreams)
                         val currentFilter = state.selectedAddonFilter
                         val fullFiltered = if (currentFilter == null) {
                             updatedAllStreams
@@ -469,6 +479,12 @@ class StreamScreenViewModel @Inject constructor(
 
             val installedAddons = addonRepository.getInstalledAddons().first().enabledAddons()
             val installedAddonOrder = installedAddons.map { it.displayName }
+            streamRankContext = streamRanking.contextFor(installedAddons)
+            streamRankSession = if (streamRanking.bestQualityListOrderNow()) {
+                com.nuvio.tv.fork.streams.StreamRanker.Session(streamRankContext)
+            } else {
+                null
+            }
             val directDebridSourceNames = emptyList<String>()
             val directDebridAvailable = false
             val persistedBingeGroup = if (playerSettings.streamAutoPlayPreferBingeGroupForNextEpisode &&
@@ -505,7 +521,7 @@ class StreamScreenViewModel @Inject constructor(
                     }
                 }
 
-                val allStreams = mergedAddonStreams.flatMap { it.streams }
+                val allStreams = presentedStreams(mergedAddonStreams)
                 val availableAddons = mergedAddonStreams.map { it.addonName }
                 // Auto-select only after all addons have responded or the
                 // configured timeout has elapsed. This gives slower addons a
@@ -524,7 +540,8 @@ class StreamScreenViewModel @Inject constructor(
                         selectedAddons = playerSettings.streamAutoPlaySelectedAddons,
                         selectedPlugins = playerSettings.streamAutoPlaySelectedPlugins,
                         preferredBingeGroup = persistedBingeGroup,
-                        preferBingeGroupInSelection = persistedBingeGroup != null
+                        preferBingeGroupInSelection = persistedBingeGroup != null,
+                        rankContext = streamRankContext
                     )
                 }
                 if (selectedAutoPlayStream != null) {
@@ -633,9 +650,7 @@ class StreamScreenViewModel @Inject constructor(
                             if (updatedGroups == state.addonStreams) {
                                 state
                             } else {
-                                val updatedAllStreams = updatedGroups.flatMap { addonStreams ->
-                                    addonStreams.streams
-                                }
+                                val updatedAllStreams = presentedStreams(updatedGroups)
                                 val currentFilter = state.selectedAddonFilter
                                 val fullFiltered = if (currentFilter == null) {
                                     updatedAllStreams
