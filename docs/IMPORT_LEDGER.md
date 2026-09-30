@@ -647,3 +647,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting commit / CI: recorded in correction PR/HANDOFF before closeout; PR #61, awaiting exact-head CI.
 - Hardware: HV-G9-1..HV-G9-7 stay MANUAL-PENDING for G14, including raw-dialog coverage and restored/manual Mystery paths.
 - Follow-up correction (review of #61): with a fork provider active, the official Simkl id and episode-mapping lookups behind AniSkip / Anime-Skip now start at once and share the six-second deadline, each lookup keeping what it found; official `SimklIdResolver` GETs and its redirect probe use the same cancellation-aware call (`readSkipBody` / `readHeaderCancellable`), so the deadline stops them. Test: SkipIntroSimklDeadlineTest (2). Official-only path unchanged in order and results.
+
+### G10a — Live TV sources, readers, encrypted storage and repository (208–212, 233)
+- Roadmap gate: G10
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: main
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): reshaped/livetv/LiveTvModels.kt, LiveTvPlaylistParser.kt, LiveTvProviders.kt, LiveTvHttp.kt, LiveTvStorage.kt (source records), LiveTvRepository.kt (sources and loads); app/src/test/.../LiveTvPlaylistParserTest.kt (parser cases)
+- Import mode: FILE_PORT (models, M3U parser, Xtream / Stalker readers, per-source load jobs); ADAPTER (storage, HTTP, repository lifecycle)
+- Current official equivalent: none (official has live playback plumbing only: type `channel`, live latch, live-window retry)
+- What already existed upstream: `LivePlaybackUiPolicy`, `PlayerRuntimeControllerErrorRecovery`, `KeystoreCipher` (G9a), `ProfileDataStoreFactory`
+- What was imported: line-streamed M3U parser (EXTINF attributes, EXTVLCOPT / EXTHTTP / Kodi headers, duplicates and category rows dropped, HLS or direct link as one channel); Xtream categories / live streams with the panel's own links and TS-unless-HLS-only; Stalker handshake, profile, per-portal session renewed once, all-channels or four-at-a-time ordered pages with one retry and an incomplete flag, per-play links, logo paths; multiple sources with per-source jobs (two at once), same-identity replace, a failing source keeping its channels, idle release after 5 min
+- What was intentionally not imported: plaintext SharedPreferences for sources, passwords and MACs; favorites / last channel by stream URL; `Log.w` with raw exceptions; the process-wide `object` with an `Int` profile; `android.util.JsonReader` / `org.json`; legacy single-source migration (no earlier Nuvio data); EPG, organisation, screens, preview, player and QR setup (G10b–G10g)
+- Local adaptations: Hilt singleton bound to `ProfileManager.activeProfileId`; the whole source list AES-GCM encrypted per profile with `KeystoreCipher` in the `fork_live_tv` DataStore, imported playlists app-private per profile; channel identity is a hash of source, category and name (`liveTvChannelKey`), never the link; Moshi streaming readers; own OkHttp client (the app client logs URLs in debug builds) with call cancellation on coroutine cancellation and a 1 MB cap for API text; logs name the host only; Stalker Cookie / Authorization attached only to streams on the portal host; `{"js":[...]}` answers read as data (Reshaped skipped them, losing Stalker genres); 100 000-channel cap per source; sources and channels published in one state update; secrets kept out of `toString`
+- Feature flag / fallback: FeatureId.LIVE_TV (AUTO, D055); nothing loads until a Live TV surface asks (G10b adds it behind a menu entry that is off by default); OFF = nothing loads
+- Tests ported/added: LiveTvPlaylistParserTest (7), LiveTvProvidersTest (8), LiveTvSourceCodecTest (2), LiveTvRepositoryTest (8), FeatureRegistryTest updated
+- License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: provider formats are ported from Reshaped, not from provider documentation; real providers and the portal-host rule for Stalker headers need device coverage (G14, with the G10b screen)
