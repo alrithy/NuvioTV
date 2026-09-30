@@ -1,10 +1,10 @@
 # Nuvio Superfork handoff
 
 <!-- canonical-state:start -->
-- Active gate: G6 — Subtitle Intelligence
-- Active branch: `feat/subtitle-intelligence`
-- Status: IN_PROGRESS
-- Task: `tasks/G6_SUBTITLE_INTELLIGENCE.md`
+- Active gate: G7 — Seek Intelligence
+- Active branch: `feat/seek-intelligence`
+- Status: READY
+- Task: `tasks/G7_SEEK_INTELLIGENCE.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -38,29 +38,27 @@ display mode size and `tv hdr` rows (52–54, 60, #35); G5e track-format AFR fal
 Deferred: 46 (TrueHD/DTS-HD cold start, device data needed, G14). Device checks HV-G5-1..HV-G5-10
 are MANUAL-PENDING (G14; `validation_pending_gates`).
 
-G6 IN_PROGRESS on `feat/subtitle-intelligence` (task `tasks/G6_SUBTITLE_INTELLIGENCE.md`, IDs 82–106).
-Pre-G6 upstream sync PR #40 (D050) adopted official `56aaba2` with official Subtitle AutoSync (#3703):
-it is the single G6 engine (REUSE; no fork engine, D049 superseded). Audit
-`docs/audits/G6_SUBTITLE_INTELLIGENCE_AUDIT.md` (re-audited on `56aaba2`): 82, 83, 86–91, 95–99, 106
-verified official; gaps are 84 (no reference when the file has no embedded subtitles), 94 (no Arabic
-AutoSync strings) and 100–105 (fonts, Arabic cinema preset). 85 deferred (the subtitle protocol has no
-per-subtitle hash-match flag); 92, 93 (audio / ASR sync) deferred to G13 candidates.
-G6a (84, 94) on this branch: when the file has no embedded subtitle reference, official AutoSync uses
-the stream's own subtitles as the reference (`fork/subtitles/StreamSubtitleReference`, one input to
-`findTimelineRetime`); Arabic AutoSync strings (`values-ar/autosync_strings.xml`). SUBTITLE_INTELLIGENCE
-is AUTO (D051). Device checks HV-G6-1, HV-G6-2 MANUAL-PENDING (G14).
-G6b (100–105) on this branch: custom subtitle fonts (Reshaped `SubtitleFontStore` / upload server,
-FILE_PORT into `fork/subtitles`: validated .ttf/.otf, QR/LAN upload behind a per-session token, HTTPS-only
-URL import, Exo typeface + libass `sub-font`, fallback to the official font) and the Arabic cinema preset
-(`ArabicCinemaPreset`, applied once through official setters). Device checks HV-G6-3..5 MANUAL-PENDING (G14).
+G6 CODE-COMPLETE (PRs #39, #41, #42, final `78fc577`; 1967 tests, 15 known failures, 0 new, fullDebug
+APK). Pre-G6 upstream sync PR #40 (`52b3a71`, D050) adopted official `56aaba2` with official Subtitle
+AutoSync (#3703): it is the single G6 engine (REUSE; no fork engine, D049 superseded). Audit
+`docs/audits/G6_SUBTITLE_INTELLIGENCE_AUDIT.md`; D051 (SUBTITLE_INTELLIGENCE AUTO, only on AutoSync's
+failure path or user-applied presentation). Slices: G6a stream-provided subtitle reference when the file
+has no embedded one (84) + Arabic AutoSync strings (94) (#41); G6b custom subtitle fonts (Reshaped
+FILE_PORT: validated .ttf/.otf, QR/LAN upload behind a per-session token, HTTPS-only URL import, Exo
+typeface + libass `sub-font`, official-font fallback; 100–104) + Arabic cinema preset (105) (#42).
+Verified official: 82, 83, 86–91, 95–99, 106. Deferred: 85 (no per-subtitle hash-match flag), 92, 93
+(audio / ASR sync, G13 candidates). Device checks HV-G6-1..HV-G6-5 are MANUAL-PENDING (G14;
+`validation_pending_gates`).
+
+G7 Seek Intelligence READY on `feat/seek-intelligence` (task `tasks/G7_SEEK_INTELLIGENCE.md`).
 
 ## Exact next action
-1. Merge G6b (100–105), then close G6 (CODE-COMPLETE, device checks VALIDATION-PENDING, batched to
-   G14) and start G7 with its mandatory audit.
-2. Continue G6→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
+1. Start G7 with its mandatory audit (official seek path vs Reshaped / cxsmo sources per SOURCE_MAP;
+   279 Seekr arrives from G2), one seek owner, never two competing systems.
+2. Continue G7→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.
-5. Upstream official `dev` advanced to `8e728ca` (not accepted); sync through a reviewed `chore/upstream-sync-*` PR before a slice touches `AudioSelectionOverlay` / `PlaybackEvents` / the changed home & post-play files.
+5. Upstream: official `56aaba2` accepted (PR #40, D050). Before each gate, check official `dev`; sync through a reviewed `chore/upstream-sync-*` PR when the gate touches changed seams.
 
 ## Evidence / limits
 Local Android execution is unavailable (no Android SDK); use GitHub CI evidence. Actions artifacts
