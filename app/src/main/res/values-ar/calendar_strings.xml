@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- التقويم (Superfork G9e). -->
+<resources>
+    <string name="nav_calendar">التقويم</string>
+    <string name="calendar_title">التقويم</string>
+    <string name="calendar_empty_title">لا توجد حلقات مجدولة</string>
+    <string name="calendar_empty_desc">تظهر هنا حلقات المسلسلات التي تشاهدها أو تتابعها أو حفظتها عند الإعلان عن مواعيد عرضها.</string>
+    <string name="calendar_filter_all">الكل</string>
+    <string name="calendar_filter_upcoming">القادمة</string>
+    <string name="calendar_filter_past">الأخيرة</string>
+    <string name="calendar_refresh">تحديث</string>
+    <string name="calendar_spoiler_hidden">مخفية حتى تشاهد الحلقة السابقة</string>
+    <string name="calendar_episode_fallback">الحلقة %1$d</string>
+    <string name="calendar_today">اليوم، %1$s</string>
+    <string name="calendar_tomorrow">غدًا، %1$s</string>
+    <string name="calendar_yesterday">أمس، %1$s</string>
+    <string name="calendar_tag_past">عُرضت · %1$s</string>
+    <string name="calendar_tag_in_days">بعد %1$d أيام · %2$s</string>
+    <plurals name="calendar_episode_count">
+        <item quantity="zero">%1$d حلقة</item>
+        <item quantity="one">حلقة واحدة</item>
+        <item quantity="two">حلقتان</item>
+        <item quantity="few">%1$d حلقات</item>
+        <item quantity="many">%1$d حلقة</item>
+        <item quantity="other">%1$d حلقة</item>
+    </plurals>
+</resources>
