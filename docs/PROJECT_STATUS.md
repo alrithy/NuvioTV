@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G9 — Skip Recommendations Discovery
 - Active branch: `feat/discovery-skip-recommendations`
-- Status: IN_PROGRESS
+- Status: REVIEW
 - Task: `tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY

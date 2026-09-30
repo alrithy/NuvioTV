@@ -11,8 +11,8 @@ active_gate: G9
 active_gate_name: Skip Recommendations Discovery
 active_branch: feat/discovery-skip-recommendations
 active_task_packet: tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md
-active_status: IN_PROGRESS
-active_pr: null
+active_status: REVIEW
+active_pr: 61
 active_owner: codex (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true

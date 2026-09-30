@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G9 — Skip Recommendations Discovery
 - Active branch: `feat/discovery-skip-recommendations`
-- Status: IN_PROGRESS
+- Status: REVIEW
 - Task: `tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
@@ -110,9 +110,9 @@ G9f #59 is merged at `9e1cd8002085c6b228206f0035a0c8f4d5dabc1b`; exact PR head
 `5dcde97b2349dd92bc403abbdca2ae06d406337b`, green run 36749475045 (2098 tests,
 15 known failures, 0 new, fullDebug APK 11114123283). Closeout PR #60 is draft, despite its
 successful CI run 36754596723, because its automated review identified four functional gaps.
-Targeted corrections on the canonical G9 branch: all raw dialogs/popups use the existing dimmer layer;
+Targeted corrections PR #61 on the canonical G9 branch: all raw dialogs/popups use the existing dimmer layer;
 Mystery route context survives process death and manual/failure source cards show neutral labels;
-HTTP cancellation closes stalled calls/body reads within the provider deadline; encrypted credential
+HTTP cancellation closes stalled calls/body reads within the provider deadline; official-provider deadlines begin inside their jobs; encrypted credential
 writes change a non-secret cache revision and profile identity is included. No slices/audit repeated.
 Local checks: governance validator/regression suite and whitespace. Android checks run in CI only.
 No manual/device checks performed; all HV-G9-1..HV-G9-7 remain MANUAL-PENDING for G14.
@@ -120,7 +120,7 @@ Owner: Codex (sequential; no lease). Git HTTPS write returns 401; GitHub Git API
 identical local commit/tree with expected old ref and force=false; API merge authentication works.
 
 ## Exact next action
-1. Finish and merge the G9 review-correction PR on feat/discovery-skip-recommendations only after
+1. Finish and merge G9 review-correction PR #61 on feat/discovery-skip-recommendations only after
    exact-head required CI/fullDebug APK and DoD. Fix any new failures; never waive them.
 2. Refresh draft closeout #60 from integration, update terminal traceability and real correction
    evidence, resolve its four review findings, then merge it with an expected exact HEAD after CI.

@@ -214,3 +214,7 @@ suspend fun <T> awaitWithin(deferred: Deferred<List<T>>, timeoutMs: Long): List<
     withTimeoutOrNull(timeoutMs) { deferred.await() } ?: emptyList<T>().also { deferred.cancel() }
 
 const val FORK_SKIP_PROVIDER_TIMEOUT_MS = 6_000L
+
+/** Start the deadline inside each official provider job, rather than at sequential await time. */
+internal suspend fun <T> boundedProvider(forkActive: Boolean, request: suspend () -> List<T>): List<T> =
+    if (forkActive) withTimeoutOrNull(FORK_SKIP_PROVIDER_TIMEOUT_MS) { request() }.orEmpty() else request()

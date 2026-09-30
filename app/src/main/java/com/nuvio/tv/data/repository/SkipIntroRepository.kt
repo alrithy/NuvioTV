@@ -106,7 +106,9 @@ class SkipIntroRepository @Inject constructor(
     ): List<SkipInterval> = coroutineScope {
         val key = "movie:$imdbId:fork:${forkConfig.cacheKey()}:${durationMs ?: 0}"
         cache[key]?.let { return@coroutineScope it }
-        val introDb = async { if (introDbConfigured) fetchFromIntroDb(imdbId, isMovie = true) else emptyList() }
+        val introDb = async { com.nuvio.tv.fork.skip.boundedProvider(true) {
+            if (introDbConfigured) fetchFromIntroDb(imdbId, isMovie = true) else emptyList()
+        } }
         val fork = async {
             forkSkip.fetch(forkConfig, imdbId, null, null, isMovie = true, durationMs = durationMs, title = title, releaseYear = releaseYear)
         }
@@ -139,7 +141,9 @@ class SkipIntroRepository @Inject constructor(
         }
 
         val introDbDeferred = async {
-            if (introDbConfigured) fetchFromIntroDb(imdbId, season, episode) else emptyList()
+            com.nuvio.tv.fork.skip.boundedProvider(forkActive) {
+                if (introDbConfigured) fetchFromIntroDb(imdbId, season, episode) else emptyList()
+            }
         }
         // Resolve IMDB -> season-specific MAL/AniList via Simkl episode mapping
         val simklIdsDeferred = async { simklResolver.resolveIdsForImdbEpisode(imdbId, season, episode) }
@@ -158,10 +162,14 @@ class SkipIntroRepository @Inject constructor(
         } else episode
 
         val aniSkipDeferred = async {
-            if (malId != null) fetchFromAniSkip(malId, animeEpisode) else emptyList()
+            com.nuvio.tv.fork.skip.boundedProvider(forkActive) {
+                if (malId != null) fetchFromAniSkip(malId, animeEpisode) else emptyList()
+            }
         }
         val animeSkipDeferred = async {
-            if (anilistId != null) fetchFromAnimeSkip(anilistId, animeEpisode, season = null) else emptyList()
+            com.nuvio.tv.fork.skip.boundedProvider(forkActive) {
+                if (anilistId != null) fetchFromAnimeSkip(anilistId, animeEpisode, season = null) else emptyList()
+            }
         }
 
         if (forkActive) {
