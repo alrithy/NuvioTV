@@ -1,10 +1,10 @@
 # Nuvio Superfork handoff
 
 <!-- canonical-state:start -->
-- Active gate: G9 — Skip Recommendations Discovery
-- Active branch: `feat/discovery-skip-recommendations`
-- Status: IN_PROGRESS
-- Task: `tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md`
+- Active gate: G10 — Live TV
+- Active branch: `feat/live-tv`
+- Status: READY
+- Task: `tasks/G10_LIVE_TV.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -69,48 +69,31 @@ lossless audio, add-on health), BEST_QUALITY autoplay mode (stream screen and ne
 network kind, heavy streams drop within their cache tier) (#51). Device checks HV-G8-1..HV-G8-7 are
 MANUAL-PENDING (G14; `validation_pending_gates`).
 
-G9 Skip / Recommendations / Discovery IN_PROGRESS on `feat/discovery-skip-recommendations` (task
-`tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md`, IDs 117–146, 169–187, 206–207). Audit
-`docs/audits/G9_DISCOVERY_SKIP_RECOMMENDATIONS_AUDIT.md`: official already has recap / credits skip, IntroDB,
-parallel providers (118, 119, 123, 130), TMDB / Trakt / Simkl post-play with lazy cards (137–139, 145) and
-random episodes across seasons, unwatched-only (169, 170, 172). D054: official `SkipIntroRepository` stays the
-one aggregator (IntroDB, AniSkip, Anime-Skip kept; Cxsmo's removal not inherited) with Cxsmo providers beside
-it, per-provider timeouts, evidence merge, opt-in providers / categories, skip vs mute distinct, encrypted
-keys; post-play sources / paging / trailer fallback; random on official shuffle (season scope, fallback,
-Mystery); Calendar and Dimmer FILE_PORT. Official `dev` observed at `7f32b3c` (no G9 seam; not accepted).
-G9a (117, 124–126, 131–135) (#54, `1dc2760`): SkipMe.db / TheIntroDB / PublicMetaDB (Cxsmo FILE_PORT, Moshi
-parsers) beside the unchanged official providers inside official `SkipIntroRepository`, off until the user
-switches one on; 6 s per-provider timeouts; confidence-weighted evidence merge, one segment per category,
-post-credits guard; series ids normalized to IMDb via cached meta; provider keys Keystore-encrypted per
-profile (shared `KeystoreCipher`, also used by the Seekr key). DISCOVERY_SKIP_RECOMMENDATIONS AUTO (D054).
-Device checks HV-G9-1, HV-G9-2 MANUAL-PENDING (G14).
-G9b (120–122, 127–129) (#55, `e526e9d`): MovieHavenDB / VideoSkip / NotScare (Cxsmo FILE_PORT) and opt-in preview
-and content-warning categories (skip button only, never auto-skipped, every segment kept); mute segments turn
-the audio off for their span (ExoPlayer volume / mpv mute), never seek, never forwarded to external players.
-Endpoints unverified from this environment (fail closed). Device check HV-G9-3 MANUAL-PENDING (G14).
-G9c (136, 140–144, 146) (#56, `0e41e4f`): per-profile post-play source beside official's controller (default "Same as
-More like this" = official chain and 4 cards); Auto = Kurato AI → BingeCat AI add-on catalogs → official chain;
-MDBList = the watchlist official already syncs; every fork source falls back to official's chain; up to 20 cards
-with a prefetch window (1 behind, 4 ahead) in `AdaptiveResources`; add-on YouTube trailers after official's lookup.
-Device check HV-G9-4 MANUAL-PENDING (G14).
-G9d (171, 173–177) (#57, `317afca`): on official's per-show shuffle, a season scope (Only season N), an opt-in
-all-watched fallback (official empty pool stays default) and Mystery mode (number, title, still and overview hidden on
-the preview, hero, home cards, stream screen and up-next card until playback; a Mystery pick skips the stream list).
-Device check HV-G9-5 MANUAL-PENDING (G14).
-G9e (178–187) (#58, `14f49be`): Calendar (Cxsmo FILE_PORT on official repositories) in the drawer: series from progress,
-watched items, the library and signed-in trackers, air dates from the metadata add-ons, 30 days back to 90 ahead,
-spoiler rule, watched-state-only refresh; 80 most recent series, add-on concurrency from `AdaptiveResources`, loads on
-first visit. Device check HV-G9-6 MANUAL-PENDING (G14).
-G9f (206, 207) on this branch: App dimmer (Cxsmo FILE_PORT): one black layer above every screen, the player included,
-and inside `NuvioDialog` windows; per-profile level (off by default, up to 90 %) under Appearance and from a player
-control. Device check HV-G9-7 MANUAL-PENDING (G14).
+G9 CODE-COMPLETE (audit #53; G9a #54; G9b #55; G9c #56; G9d #57; G9e #58; G9f #59).
+Final squash `9e1cd8002085c6b228206f0035a0c8f4d5dabc1b`; G9f exact PR head
+`5dcde97b2349dd92bc403abbdca2ae06d406337b`, CI run
+https://github.com/alrithy/NuvioTV/actions/runs/36749475045: 2098 tests, 15 known failures,
+0 new, 1 skipped, fullDebug APK artifact 11114123283. All 51 IDs (117–146, 169–187, 206–207)
+are terminal: 40 implemented, 11 verified_official, none deferred. Closeout evidence and slices:
+`docs/audits/G9_CLOSEOUT.md`; audit/architecture remain D054 and the existing G9 audit.
+One official skip aggregator, opt-in providers/categories, post-play on official controller,
+shuffle on official picker, bounded Calendar, per-profile App Dimmer (default 0%, up to 90%).
+DISCOVERY_SKIP_RECOMMENDATIONS OFF restores official; ThemeDataStore remains unchanged.
+HV-G9-1, HV-G9-2, HV-G9-3, HV-G9-4, HV-G9-5, HV-G9-6, HV-G9-7 are all MANUAL-PENDING
+for G14 in the hardware checklist, manual log and validation_pending_gates. No device run claimed.
+
+G10 Live TV READY on `feat/live-tv`, task `tasks/G10_LIVE_TV.md`, IDs 208–236.
+Owner: Codex, sequential writer, no lease. Next gate: G11 Watch Party.
 
 ## Exact next action
-1. Merge G9f, then the G9 closeout (next gate G10 Live TV).
-2. Continue G9→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
-3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
-4. PR #28 is the governance review-queue PR; it is independent of runtime work.
-5. Upstream: official `56aaba2` accepted (PR #40, D050). Before each gate, check official `dev`; sync through a reviewed `chore/upstream-sync-*` PR when the gate touches changed seams.
+1. After this governance transition merges, create/fast-forward `feat/live-tv` from remote
+   `superfork/integration`; run preflight. Perform the mandatory G10 audit before runtime code.
+2. Compare current official `NuvioMedia/NuvioTV dev` first, then Reshaped at SOURCE_MAP pin
+   `0ccf049d2789600835f3f7a75423e9149ea416ba`; classify every Live TV ID and plan coherent slices.
+   Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
+3. Continue G10→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
+4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
+5. PR #28 remains independent governance work. Official pins change only through a dedicated sync PR.
 
 ## Evidence / limits
 Local Android execution is unavailable (no Android SDK); use GitHub CI evidence. Actions artifacts

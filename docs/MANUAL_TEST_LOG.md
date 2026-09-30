@@ -28,3 +28,14 @@ G14 is the planned single hardware-certification stop: execute the accumulated c
 - Never convert MANUAL-PENDING to PASS without a real run.
 - Use the same file/source for A/B performance comparisons when possible.
 - Record vendor/device quirks rather than encoding them as universal assumptions.
+
+## 2026-09-30 — G9 carry-forward to G14
+- Gate / Feature IDs: G9, 117–146, 169–187, 206–207.
+- Commit: final squash 9e1cd8002085c6b228206f0035a0c8f4d5dabc1b (PR #59).
+- Test cases: HV-G9-1, HV-G9-2, HV-G9-3, HV-G9-4, HV-G9-5, HV-G9-6, HV-G9-7.
+- Device / Android / display / network / media: not run; to be captured in G14.
+- Expected: exact procedures and expected results in docs/HARDWARE_VALIDATION_TCL_C6K.md §4f.
+- Actual: no hardware execution or diagnostics captured.
+- Result: MANUAL-PENDING for every listed case.
+- Follow-up: execute all seven during G14, attach real evidence, reopen affected features on FAIL.
+- Automated evidence is separate: docs/audits/G9_CLOSEOUT.md (2098 tests, 15 known failures, 0 new, APK).

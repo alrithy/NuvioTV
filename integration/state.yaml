@@ -7,19 +7,19 @@ current_official_baseline_sha: 56aaba20b7d01746d616a2c8517adcf442950b90
 integration_upstream_sync_commit: 5c24805f82b2bb7092b9acafc00903a32fe5045c
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G9
-active_gate_name: Skip Recommendations Discovery
-active_branch: feat/discovery-skip-recommendations
-active_task_packet: tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md
-active_status: IN_PROGRESS
-active_pr: 59
-active_owner: claude-code (sequential; no lease)
+active_gate: G10
+active_gate_name: Live TV
+active_branch: feat/live-tv
+active_task_packet: tasks/G10_LIVE_TV.md
+active_status: READY
+active_pr: null
+active_owner: codex (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 3832984b032611dba81ede582fe8a58256a60bba
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36747657135 ; G9e
-  PR #58 exact head, squash-merged as 14f49be.
-last_green_scope: Full suite guard (2096 tests, 15 known failures, 0 new failures), governance
+last_green_commit: 5dcde97b2349dd92bc403abbdca2ae06d406337b
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36749475045 ; G9f
+  PR #59 exact head, squash-merged as 9e1cd8002085c6b228206f0035a0c8f4d5dabc1b.
+last_green_scope: Full suite guard (2098 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
@@ -28,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G10
-next_gate_name: Live TV
-next_branch: feat/live-tv
+next_gate: G11
+next_gate_name: Watch Party
+next_branch: feat/watch-party
 known_operational_risks:
 - id: R001
   severity: high
@@ -81,6 +81,8 @@ validation_pending_gates:
   evidence: 'All code merged in PRs #44, #45, #46; on-device previews, keyframe-exact seek, Seekr fallback / Preview Sync, memory-disk bounds and automatic calibration checks HV-G7-1..HV-G7-5 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 - gate: G8
   evidence: 'All code merged in PRs #48, #49, #50, #51; progressive AIOStreams and fallback, bounded add-on retry, Best-quality autoplay and list order, DV ranking by display, next-episode ranking and connection fit checks HV-G8-1..HV-G8-7 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
+- gate: G9
+  evidence: 'Audit #53 and all slices #54-#59 merged; HV-G9-1, HV-G9-2, HV-G9-3, HV-G9-4, HV-G9-5, HV-G9-6, HV-G9-7 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G9_CLOSEOUT.md.'
 governance_status: READY
 upstream_observation:
   checked_at: '2026-09-30T11:30:00Z'
@@ -161,4 +163,18 @@ completed_gates:
   evidence: 'CI runs 36701072362 (2011 tests), 36702510415 (2022), 36704722483 (2036), 36706132405
     (2047): 15 known failures, 0 new, fullDebug APK built; audit docs/audits/G8_STREAM_INTELLIGENCE_AUDIT.md;
     D053; G1 deferred 289 closed in G8a; device checks batched to G14 (validation_pending_gates)'
+  deferred_features: []
+- gate: G9
+  name: Skip Recommendations Discovery
+  status: CODE-COMPLETE
+  pr: [53, 54, 55, 56, 57, 58, 59]
+  head_sha: 5dcde97b2349dd92bc403abbdca2ae06d406337b
+  merge_sha: 9e1cd8002085c6b228206f0035a0c8f4d5dabc1b
+  slice_merges: [4379a17b86ef784480d3e526243f1dd2c3cd054b, 1dc2760a7b036860c4e57ba53e21f255b243ed79,
+    e526e9dbfa298e3c31f45fd09bb5159d9f676728, 0e41e4f06ea45e35d43e75d57d1bb048c2fca1be,
+    317afca6a05fc89a605c01cdd476f0fa6565b3b5, 14f49be97cdb8ca3c7b72ef3a3da179f5968dc15,
+    9e1cd8002085c6b228206f0035a0c8f4d5dabc1b]
+  evidence: 'Final G9f exact-head CI run 36749475045: 2098 tests, 15 known failures, 0 new,
+    1 skipped, fullDebug APK artifact 11114123283; docs/audits/G9_CLOSEOUT.md;
+    D047, D054; HV-G9-1..HV-G9-7 MANUAL-PENDING for G14.'
   deferred_features: []
