@@ -90,6 +90,8 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
         val tag = getSharedPreferences("app_locale", Context.MODE_PRIVATE)
             .getString("locale_tag", null)
         LocaleCache.localeTag = tag ?: ""
+        // Superfork G6b (100): load an imported subtitle font off the main thread.
+        com.nuvio.tv.fork.subtitles.SubtitleFontStore.warmUp(this)
     }
 
     override fun newImageLoader(context: android.content.Context): ImageLoader {
