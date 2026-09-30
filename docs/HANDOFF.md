@@ -42,13 +42,13 @@ G6 IN_PROGRESS on `feat/subtitle-intelligence` (task `tasks/G6_SUBTITLE_INTELLIG
 Pre-G6 upstream sync PR #40 (D050) adopted official `56aaba2` with official Subtitle AutoSync (#3703):
 it is the single G6 engine (REUSE; no fork engine, D049 superseded). Audit
 `docs/audits/G6_SUBTITLE_INTELLIGENCE_AUDIT.md` (re-audited on `56aaba2`): 82, 83, 86–91, 95–99, 106
-verified official; gaps are 84/85 (no reference when the file has no embedded subtitles), 94 (no Arabic
-AutoSync strings) and 100–105 (fonts, Arabic cinema preset). 92, 93 (audio / ASR sync) deferred to G13
-candidates.
+verified official; gaps are 84 (no reference when the file has no embedded subtitles), 94 (no Arabic
+AutoSync strings) and 100–105 (fonts, Arabic cinema preset). 85 deferred (the subtitle protocol has no
+per-subtitle hash-match flag); 92, 93 (audio / ASR sync) deferred to G13 candidates.
 
 ## Exact next action
-1. Merge the G6 audit PR #39, then slices G6a (extend official AutoSync: release-matched add-on
-   reference when the file has no embedded subtitles, Arabic AutoSync strings; 84, 85, 94) and G6b
+1. Merge the G6 audit PR #39, then slices G6a (extend official AutoSync: stream-provided subtitle as
+   the reference when the file has no embedded subtitles, Arabic AutoSync strings; 84, 94) and G6b
    (custom fonts + Arabic cinema preset, 100–105).
 2. Continue G6→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.

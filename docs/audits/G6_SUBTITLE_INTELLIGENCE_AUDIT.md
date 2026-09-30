@@ -55,8 +55,8 @@ fork removed them or predates them. PR #38 (a separate fork engine) is not impor
 |---|---|---|---|
 | 82 | Subtitle AutoSync | ALREADY_OFFICIAL | AutoSync V2, setting default off |
 | 83 | Embedded subtitle reference | ALREADY_OFFICIAL | `EmbeddedSubtitleTimelineLoader` + in-band cue observation |
-| 84 | Same-release subtitle reference | missing delta | official has no reference when the file has no embedded subtitles; use an add-on subtitle for the exact release as the reference → G6a |
-| 85 | Hash-matched subtitle reference | PARTIAL_OVERLAP | official fetches hash-matched subtitles (`videoHash`) but never uses one as the reference → G6a |
+| 84 | Same-release subtitle reference | missing delta | official has no reference when the file has no embedded subtitles; subtitles the stream itself provides (`Subtitle.isStreamProvided`, mapped from the stream's `subtitles`) belong to that exact release → use one as the reference → G6a |
+| 85 | Hash-matched subtitle reference | deferred | official sends `videoHash` to add-ons, but the subtitle response (`SubtitleItemDto`: id, url, lang, headers) has no per-subtitle hash-match flag, so a hash-matched subtitle cannot be told apart client-side; guessing from rank would feed a wrong reference |
 | 86 | Cue-rhythm alignment across languages | ALREADY_OFFICIAL | text-independent timeline retime; embedded reference of any language |
 | 87 | Automatic offset estimation | ALREADY_OFFICIAL | delay-only preflight / affine offset |
 | 88 | Clock-scale correction | ALREADY_OFFICIAL | whole-film affine fit |
@@ -80,13 +80,13 @@ fork removed them or predates them. PR #38 (a separate fork engine) is not impor
 | 106 | No video reload on sidecar switch | ALREADY_OFFICIAL | official buffer-preserving sidecar path |
 
 ## Slice plan
-- G6a (84, 85, 94): extend official AutoSync, not a second engine. When the file has no embedded
-  subtitle reference, use an add-on subtitle matched to the exact release (OpenSubtitles hash
-  match, else same release name) as the reference, only while AutoSync is on; official path
-  unchanged whenever an embedded reference exists. Add the Arabic strings for the AutoSync UI.
-  Header-scope rules unchanged (reference downloads use the add-on subtitle's own headers).
+- G6a (84, 94): extend official AutoSync, not a second engine. When the file has no embedded
+  subtitle reference, use a stream-provided subtitle (same release) other than the selected target
+  as the reference, only while AutoSync is on; official path unchanged whenever an embedded
+  reference exists. Add the Arabic strings for the AutoSync UI. Header-scope rules unchanged
+  (reference downloads use that subtitle's own headers).
 - G6b (100–105): custom fonts and the Arabic cinema preset; security review for the LAN upload
   (one-time token, size cap, font magic check, no path from the request).
-- 92, 93 deferred (reasons in traceability); every other ID verified official.
+- 85, 92, 93 deferred (reasons in traceability); every other ID verified official.
 
 Every slice keeps device checks MANUAL-PENDING in `docs/HARDWARE_VALIDATION_TCL_C6K.md` (G14, D047).
