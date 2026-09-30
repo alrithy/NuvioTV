@@ -12,7 +12,7 @@ active_gate_name: Seek Intelligence
 active_branch: feat/seek-intelligence
 active_task_packet: tasks/G7_SEEK_INTELLIGENCE.md
 active_status: IN_PROGRESS
-active_pr: 45
+active_pr: 46
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
