@@ -5,16 +5,15 @@ import com.nuvio.tv.data.repository.SkipInterval
 import com.squareup.moshi.Moshi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -181,20 +180,11 @@ class ForkSkipProviders @Inject constructor(
     private suspend fun post(provider: ForkSkipProvider, url: String, json: String): String? =
         execute(provider, Request.Builder().url(url).header("Accept", "application/json").post(json.toRequestBody(JSON)))
 
-    private suspend fun execute(provider: ForkSkipProvider, builder: Request.Builder): String? = withContext(Dispatchers.IO) {
+    private suspend fun execute(provider: ForkSkipProvider, builder: Request.Builder): String? {
         val request = builder.header("User-Agent", USER_AGENT).build()
-        okHttpClient.newCall(request).execute().use { response ->
-            if (!response.isSuccessful) {
-                Log.d(TAG, "${provider.key} HTTP ${response.code}")
-                return@use null
-            }
-            val body = response.body ?: return@use null
-            if (body.contentLength() > MAX_RESPONSE_BYTES) return@use null
-            val source = body.source()
-            source.request(MAX_RESPONSE_BYTES + 1)
-            if (source.buffer.size > MAX_RESPONSE_BYTES) return@use null
-            source.buffer.readUtf8()
-        }
+        val call = okHttpClient.newCall(request)
+        call.timeout().timeout(FORK_SKIP_PROVIDER_TIMEOUT_MS, TimeUnit.MILLISECONDS)
+        return call.readSkipBody(MAX_RESPONSE_BYTES)
     }
 
     private companion object {

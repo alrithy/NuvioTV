@@ -25,6 +25,9 @@ data class SkipProviderConfig(
     val keys: Map<ForkSkipProvider, String> = emptyMap(),
     /** G9b: optional categories (preview, content warnings) the user switched on; none by default. */
     val categories: Set<String> = emptySet(),
+    val profileId: Int = 0,
+    /** Non-secret revision, changed atomically with the encrypted credentials. */
+    val credentialRevision: String = "",
 ) {
     /** A provider runs only when switched on and, where required, given a key. */
     val active: Set<ForkSkipProvider>
@@ -32,7 +35,8 @@ data class SkipProviderConfig(
 
     /** Cache key part: results differ with the active providers and enabled categories. */
     fun cacheKey(): String =
-        active.joinToString(",") { it.key } + "|" + categories.sorted().joinToString(",")
+        "$profileId:$credentialRevision|" + active.sortedBy { it.key }.joinToString(",") { it.key } +
+            "|" + categories.sorted().joinToString(",")
 
     companion object {
         val NONE = SkipProviderConfig()
@@ -57,11 +61,12 @@ class SkipProviderSettings @Inject constructor(
     private val enabledKeys = ForkSkipProvider.entries.associateWith { booleanPreferencesKey("enabled_${it.key}") }
     private val apiKeys = ForkSkipProvider.entries.associateWith { stringPreferencesKey("api_key_${it.key}") }
     private val categoryKeys = SkipCategories.OPTIONAL.associateWith { booleanPreferencesKey("category_$it") }
+    private val credentialRevisionKey = stringPreferencesKey("credential_revision")
 
     private fun store(profileId: Int = profileManager.activeProfileId.value) = factory.get(profileId, FEATURE)
 
     val config: Flow<SkipProviderConfig> = profileManager.activeProfileId.flatMapLatest { profileId ->
-        store(profileId).data.map { prefs -> if (featureEnabled) prefs.toConfig() else SkipProviderConfig.NONE }
+        store(profileId).data.map { prefs -> if (featureEnabled) prefs.toConfig(profileId) else SkipProviderConfig.NONE }
     }
 
     /** Snapshot for one lookup; nothing active on any read failure (official providers only). */
@@ -81,10 +86,13 @@ class SkipProviderSettings @Inject constructor(
         store().edit { prefs ->
             val key = apiKeys.getValue(provider)
             if (normalized.isEmpty()) prefs.remove(key) else prefs[key] = cipher.encrypt(normalized)
+            prefs[credentialRevisionKey] = java.util.UUID.randomUUID().toString()
         }
     }
 
-    private fun Preferences.toConfig() = SkipProviderConfig(
+    private fun Preferences.toConfig(profileId: Int) = SkipProviderConfig(
+        profileId = profileId,
+        credentialRevision = this[credentialRevisionKey].orEmpty(),
         enabled = ForkSkipProvider.entries.filterTo(LinkedHashSet()) { this[enabledKeys.getValue(it)] == true },
         keys = ForkSkipProvider.entries.mapNotNull { provider ->
             cipher.decryptOrEmpty(this[apiKeys.getValue(provider)]).takeIf { it.isNotEmpty() }?.let { provider to it }

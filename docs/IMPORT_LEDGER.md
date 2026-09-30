@@ -594,7 +594,7 @@ Every imported feature must add an entry before its PR is considered complete.
 - Tests ported/added: ShuffleRulesTest (3), EpisodeShuffleForkTest (5), EpisodeShuffleStoreTest (+1)
 - License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
-- Known risks / follow-up: after process death the stream screen no longer knows the episode was a shuffle pick and shows it; a Mystery pick with no auto-selectable stream falls back to the official stream list, whose names can give it away; device check MANUAL-PENDING (G14 campaign, HV-G9-5)
+- Known risks / follow-up: closeout review correction adds saved route context and neutral manual/failure source cards (CI pending); device check MANUAL-PENDING (G14 campaign, HV-G9-5)
 
 ### G9e — Calendar (178–187)
 - Roadmap gate: G9
@@ -632,5 +632,17 @@ Every imported feature must add an entry before its PR is considered complete.
 - Tests ported/added: AppDimmerRulesTest (2)
 - License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
-- Known risks / follow-up: dialogs built on the raw Compose `Dialog` (not `NuvioDialog`) are separate windows and stay undimmed, as in Cxsmo; device check MANUAL-PENDING (G14 campaign, HV-G9-7)
+- Known risks / follow-up: closeout review correction adds the same draw layer to raw dialog windows through AppDimmedDialog (CI pending); device check MANUAL-PENDING (G14 campaign, HV-G9-7)
 
+
+### G9 closeout review corrections — existing seams only
+- Gate / IDs: G9; 125, 126, 131, 135, 174–177, 206, 207.
+- Source: existing G9a/G9d/G9f ledger entries at unchanged Cxsmo pin 3e0d0fad60a2721adec133b88640b49c0183883f; no new external import.
+- Mode: DELTA_PORT / local correctness fixes; retain official skip, shuffle, dialogs and playback owners.
+- Delta: cancellation-aware bounded skip HTTP (official OkHttpMdbListEngine callback pattern reused), per-profile/non-secret credential cache revision, SavedStateHandle Mystery route context, neutral source cards preserving original playback objects, input-transparent draw layer in raw dialog/popup windows.
+- Tests: SkipHttpCallTest (stalled headers/body, response cap, six-second provider isolation); SkipProviderSettingsTest (rotation/recreation/profile cache isolation); MysteryStreamContextTest (restoration, OFF, disable, neutral presentation). Existing dimmer rules retained.
+- Storage: optional credential_revision string defaults empty for existing prefs; encrypted key write and revision change are atomic. No official keys renamed/deleted. Route context persists through Android saved state only.
+- Fallback: DISCOVERY_SKIP_RECOMMENDATIONS OFF keeps official behavior; stored optional state retained. No new endpoints/dependencies/permissions; keys are never in cache keys, UI or logs.
+- License: existing GPL-3.0 attribution retained; corrections are local glue, not a new fork source.
+- Resulting commit / CI: recorded in correction PR/HANDOFF before closeout; currently in progress.
+- Hardware: HV-G9-1..HV-G9-7 stay MANUAL-PENDING for G14, including raw-dialog coverage and restored/manual Mystery paths.

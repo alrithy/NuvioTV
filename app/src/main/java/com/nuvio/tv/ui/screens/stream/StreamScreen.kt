@@ -295,7 +295,8 @@ fun StreamScreen(
     }
 
     LaunchedEffect(uiState.playbackErrorMessage) {
-        val message = uiState.playbackErrorMessage ?: return@LaunchedEffect
+        val originalMessage = uiState.playbackErrorMessage ?: return@LaunchedEffect
+        val message = if (uiState.mystery) context.getString(R.string.mystery_source_unavailable) else originalMessage
         Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
         viewModel.onPlaybackErrorShown()
     }
@@ -441,7 +442,8 @@ fun StreamScreen(
                 // Right side - Streams container
                 RightStreamSection(
                     isLoading = uiState.isLoading,
-                    error = uiState.error,
+                    error = if (uiState.mystery && uiState.error != null) stringResource(R.string.mystery_source_unavailable) else uiState.error,
+                    mystery = uiState.mystery,
                     streams = uiState.filteredStreams,
                     availableAddons = uiState.availableAddons,
                     sourceChips = uiState.sourceChips,
@@ -734,6 +736,7 @@ private fun LeftContentSection(
 private fun RightStreamSection(
     isLoading: Boolean,
     error: String?,
+    mystery: Boolean = false,
     streams: List<Stream>,
     availableAddons: List<String>,
     sourceChips: List<SourceChipItem>,
@@ -919,6 +922,7 @@ private fun RightStreamSection(
                     else -> {
                         StreamsList(
                             streams = streams,
+                            mystery = mystery,
                             onStreamSelected = onStreamSelected,
                             focusedStreamIndex = focusedStreamIndex,
                             shouldRestoreFocusedStream = shouldRestoreFocusedStream,
@@ -1037,6 +1041,7 @@ private fun EmptyState() {
 @Composable
 private fun StreamsList(
     streams: List<Stream>,
+    mystery: Boolean = false,
     onStreamSelected: (Stream) -> Unit,
     focusedStreamIndex: Int = 0,
     shouldRestoreFocusedStream: Boolean = false,
@@ -1169,11 +1174,14 @@ private fun StreamsList(
         }) { index, stream ->
             Box(modifier = Modifier.padding(vertical = NuvioTheme.spacing.xs)) {
                 StreamCard(
-                    stream = stream,
-                    showFileSizeBadges = showFileSizeBadges,
-                    showAddonLogo = showAddonLogo,
+                    // Display-only object; selection still resolves the original stream below.
+                    stream = if (mystery) com.nuvio.tv.fork.discovery.mysteryStreamPresentation(
+                        stringResource(R.string.mystery_source_number, index + 1)
+                    ) else stream,
+                    showFileSizeBadges = showFileSizeBadges && !mystery,
+                    showAddonLogo = showAddonLogo && !mystery,
                     badgePlacement = badgePlacement,
-                    reserveBadgeSpace = hasBadgeRules && stream.badges.isEmpty(),
+                    reserveBadgeSpace = !mystery && hasBadgeRules && stream.badges.isEmpty(),
                     onClick = { onStreamSelected(stream) },
                     focusRequester = when {
                         shouldRestoreFocusedStream && index == focusedStreamIndex.coerceIn(0, (streams.lastIndex).coerceAtLeast(0)) -> restoreFocusRequester
@@ -1378,7 +1386,7 @@ internal fun PlayerChoiceDialog(
         focusRequester.requestFocus()
     }
 
-    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+    com.nuvio.tv.ui.components.AppDimmedDialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(NuvioTheme.radii.xl))
