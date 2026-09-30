@@ -6,7 +6,10 @@ import java.io.IOException
 import java.util.zip.Deflater
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.job
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -45,7 +48,9 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
                 headers.forEach { (name, value) -> header(name, value) }
             }.build()
             val call = client.newCall(request)
-            val cancelOnCompletion = coroutineContext.job.invokeOnCompletion { call.cancel() }
+            val cancelOnLeave = launch(start = CoroutineStart.UNDISPATCHED) {
+                try { awaitCancellation() } finally { call.cancel() }
+            }
             try {
                 call.execute().use { response ->
                     if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
@@ -53,7 +58,7 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
                     block(if (source.startsWithGzipMagic()) GzipSource(source).buffer() else source)
                 }
             } finally {
-                cancelOnCompletion.dispose()
+                cancelOnLeave.cancel()
             }
         }
 
@@ -70,9 +75,14 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
                 headers.forEach { (name, value) -> header(name, value) }
             }.build()
             target.parentFile?.mkdirs()
-            val temp = File(target.path + ".part")
+            // An interrupted old read must never delete a new generation's partial download.
+            val temp = File.createTempFile(target.name + ".", ".part", target.parentFile)
             val call = http.newCall(request)
-            val cancelOnCompletion = coroutineContext.job.invokeOnCompletion { call.cancel() }
+            // Completion handlers run after blocking IO returns. A cancelled child closes the
+            // socket immediately, including while waiting for headers or reading the body.
+            val cancelOnLeave = launch(start = CoroutineStart.UNDISPATCHED) {
+                try { awaitCancellation() } finally { call.cancel() }
+            }
             try {
                 call.execute().use { response ->
                     if (!response.isSuccessful) throw IOException("HTTP ${response.code}")
@@ -85,11 +95,12 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
                         gzip.buffer().use { it.writeAll(source) }
                     }
                 }
-                if (!temp.renameTo(target) && !(target.delete() && temp.renameTo(target))) {
+                ensureActive()
+                if (!temp.renameTo(target)) {
                     throw IOException("guide not saved")
                 }
             } finally {
-                cancelOnCompletion.dispose()
+                cancelOnLeave.cancel()
                 temp.delete()
             }
         }
