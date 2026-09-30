@@ -367,3 +367,23 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, identical LICENSE; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: startup hold timing is device-dependent (HDMI mode-switch latency); device checks MANUAL-PENDING (G14 campaign, HV-G5-9, HV-G5-10)
+
+### G6a — Stream-provided subtitle reference for official AutoSync (84); Arabic AutoSync strings (94)
+- Roadmap gate: G6
+- Source repository: local (REWRITE on official AutoSync; no fork code imported)
+- Source branch: n/a
+- Pinned source SHA: n/a (official baseline `56aaba2`)
+- Source commit(s): n/a
+- Source file(s): n/a
+- Import mode: ADAPTER (fallback reference input to official `AutomaticSubtitleSync.findTimelineRetime`) + REWRITE (Arabic strings)
+- Current official equivalent: AutoSync V2 references embedded subtitles only; with none it stops with "no embedded subtitles to compare with"; AutoSync strings are English only
+- What already existed upstream: the whole AutoSync engine, cue parser, download with size cap and 429 retry, reference size/span floors, confidence gates, failure toasts
+- What was imported: nothing; added a `fallbackReferences` input used only when no embedded reference was found; the playing stream's own subtitles (`isStreamProvided`, same release) other than the target become reference tracks held to official's floors (8 cues, 45 s span); at most 2; `values-ar/autosync_strings.xml`
+- What was intentionally not imported: a second engine (VibeSubtitle aligner, PR #38); add-on subtitles as references (their release is unknown); hash-matched references (85 deferred: no per-subtitle flag in the protocol)
+- Local adaptations: pure `fork/subtitles/StreamSubtitleReference` selection; `PlayerRuntimeControllerStreamSubtitleReference` maps `streamSubtitles`; each reference is downloaded with its own headers only (stream request headers are never added); one count-only log line
+- Feature flag / fallback: FeatureId.SUBTITLE_INTELLIGENCE (AUTO, D051) OFF = official AutoSync exactly; runs only while the user's Auto Sync setting is on and only on its no-embedded-reference path
+- Tests ported/added: StreamSubtitleReferenceTest (6), FeatureRegistryTest updated
+- License / attribution notes: n/a (local)
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: a stream that ships subtitles from another release would give a wrong reference (official confidence gates still apply); if upstream later adds Arabic AutoSync strings, the duplicate resource is resolved in that sync PR; device check MANUAL-PENDING (G14 campaign, HV-G6-1, HV-G6-2)
+

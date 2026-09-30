@@ -340,3 +340,11 @@ by the official AutoSync factory). Official AutoSync defaults off. This revises 
 G6 sync engine is **official AutoSync** (REUSE); no fork `fork/subtitles` engine is built and the
 VibeSubtitle aligner / PR #38 engine are not imported, so there is never a second engine. G6
 continues with only the gaps official still lacks (re-audited on this baseline).
+
+## D051 — SUBTITLE_INTELLIGENCE runs by default; it only extends official AutoSync
+G6 adds to official AutoSync (D050), which itself stays off until the user turns on Auto Sync
+Subtitles. Each G6 addition is limited to a failure path of that user choice (G6a: the file has no
+embedded subtitle reference, where official gives up) or to presentation that defaults to official
+(G6b fonts/preset), so SUBTITLE_INTELLIGENCE is AUTO in `FeatureRegistry.DECIDED_DEFAULTS`; OFF
+restores official AutoSync exactly. Device evidence is batched into G14 (D047).
+

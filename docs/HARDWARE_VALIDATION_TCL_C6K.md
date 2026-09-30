@@ -94,6 +94,13 @@ for. Never mark a row PASS from memory or expectation. Copy finished rows into
 | HV-G5-9 23.976 / 24 matching (56) | AFR on (Start). Play a 23.976 fps film, a true 24.000 fps title and a 25 fps title, each from the TV at 60 Hz. | The TV info shows 23.976 Hz, 24 Hz and 50 Hz respectively (or a clean multiple); HUD `display` matches. | MANUAL-PENDING | TV info photos |
 | HV-G5-10 track-format AFR fallback (58, 59) | AFR on (Start), ExoPlayer. Play F3 (a non-faststart MP4 whose probe fails; the log has no `AFR preflight: ... FPS` detection). Then play it a second time. | First play: the log has `TRACK_AFR: raw=...` and, when the mode changed, `holding start 2000ms`; the picture starts after the switch, not during it, and never later than ~8 s. Second play: the official preflight hits the cache (`AFR preflight: cache hit`). A title under 20 fps (an error stub) never switches the panel. | MANUAL-PENDING | log + stopwatch |
 
+## 4c. G6 — Subtitle Intelligence
+
+| Test | Steps | Expected | Result | Evidence |
+|---|---|---|---|---|
+| HV-G6-1 stream subtitle reference (84) | Settings → Subtitles → *Auto Sync Subtitles* on. Play a title from a stream that ships its own subtitles but whose file has **no** embedded subtitle track; pick an add-on subtitle that is visibly out of sync. Repeat with a file that has embedded subtitles. | Without embedded subtitles the log has `AUTO_SYNC_V2 stream subtitle reference usable=1/…` (or 2) and the subtitle is shown "Auto synced" in time, or the official failure toast when no confident fit exists. With embedded subtitles the line is absent (official path). | MANUAL-PENDING | log + photo |
+| HV-G6-2 Arabic AutoSync (94) | App language Arabic. Open Settings → Subtitles, turn Auto Sync on, then play an Arabic add-on subtitle against an English embedded track. | The Auto Sync settings, the failure toasts and the "Auto synced" label are in Arabic; the Arabic subtitle is retimed on timing alone. | MANUAL-PENDING | photo |
+
 ## 5. G4 final validation — same-file A/B (required before Stable release)
 
 Use **F1** for arms A and B, and **F2 and F3** for the seek arm. Same TV, same network, same time
