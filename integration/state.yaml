@@ -12,13 +12,13 @@ active_gate_name: Skip Recommendations Discovery
 active_branch: feat/discovery-skip-recommendations
 active_task_packet: tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md
 active_status: IN_PROGRESS
-active_pr: 53
+active_pr: null
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 77cb071ea01baeda48fbb8d07fd71586ccf01264
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36706132405 ; G8c
-  PR #51 exact head, squash-merged as 3c881e6.
+last_green_commit: 79655e3b53fc93dfedb6af92f370b2ebd822f5a2
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36709188638 ; G9
+  audit PR #53 exact head, squash-merged as 4379a17.
 last_green_scope: Full suite guard (2047 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
