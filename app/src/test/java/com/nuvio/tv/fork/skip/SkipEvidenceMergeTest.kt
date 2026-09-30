@@ -78,7 +78,9 @@ class SkipEvidenceMergeTest {
         assertEquals(SkipCategories.ENDING, SkipCategories.categoryOf("credits", isMovie = false))
         assertEquals(SkipCategories.MOVIE_CREDITS, SkipCategories.categoryOf("credits", isMovie = true))
         assertEquals(SkipCategories.POST_CREDITS, SkipCategories.categoryOf("post-credits", isMovie = true))
-        assertNull("preview arrives with G9b", SkipCategories.categoryOf("preview", isMovie = false))
+        assertEquals(SkipCategories.PREVIEW, SkipCategories.categoryOf("preview", isMovie = false))
+        assertEquals(SkipCategories.JUMPSCARE, SkipCategories.categoryOf("jumpscare", isMovie = true))
+        assertNull("unknown types stay out", SkipCategories.categoryOf("custom", isMovie = false))
         assertEquals("intro", SkipCategories.officialType(SkipCategories.OPENING))
         assertEquals("outro", SkipCategories.officialType(SkipCategories.ENDING))
         assertEquals("movie-credits", SkipCategories.officialType(SkipCategories.MOVIE_CREDITS))
@@ -93,5 +95,40 @@ class SkipEvidenceMergeTest {
 
         val swallowed = MergedSkip(report(6210.0, 6250.0, "a", 0.9, SkipCategories.MOVIE_CREDITS), listOf("a"))
         assertTrue(SkipCategories.guardPostCredits(listOf(swallowed, scene)).none { it.report.category == SkipCategories.MOVIE_CREDITS })
+    }
+
+    @Test
+    fun contentSegmentsAllStayWhileOfficialCategoriesKeepOne() {
+        val merged = SkipEvidenceMerge.merge(
+            listOf(
+                report(600.0, 604.0, "notscare", 0.76, SkipCategories.JUMPSCARE, SkipReport.ACTION_WARN),
+                report(1800.0, 1806.0, "notscare", 0.76, SkipCategories.JUMPSCARE, SkipReport.ACTION_WARN),
+                report(60.0, 90.0, "introdb", 0.9),
+                report(900.0, 930.0, "skipme", 0.5),
+            ),
+        )
+        val best = SkipEvidenceMerge.bestPerCategory(merged)
+        assertEquals(listOf(60.0, 600.0, 1800.0), best.map { it.report.startTime })
+    }
+
+    @Test
+    fun optionalCategoriesNeedTheUsersSwitchAndStayOffExternalPlayers() {
+        assertTrue(SkipCategories.allowed(SkipCategories.OPENING, emptySet()))
+        assertTrue(!SkipCategories.allowed(SkipCategories.PREVIEW, emptySet()))
+        assertTrue(SkipCategories.allowed(SkipCategories.PREVIEW, setOf(SkipCategories.PREVIEW)))
+        assertTrue(!SkipCategories.allowed(SkipCategories.GORE, setOf(SkipCategories.PREVIEW)))
+        assertTrue(SkipCategories.forwardableToExternalPlayer("intro", SkipReport.ACTION_SKIP))
+        assertTrue(!SkipCategories.forwardableToExternalPlayer("intro", SkipReport.ACTION_MUTE))
+        assertTrue(!SkipCategories.forwardableToExternalPlayer("jumpscare", SkipReport.ACTION_SKIP))
+        assertTrue(!SkipCategories.forwardableToExternalPlayer("preview", SkipReport.ACTION_SKIP))
+    }
+
+    @Test
+    fun labelsMapToCategories() {
+        assertEquals(SkipCategories.JUMPSCARE, SkipCategories.categoryOfLabel("Jump Scare (major)", isMovie = true))
+        assertEquals(SkipCategories.PROFANITY, SkipCategories.categoryOfLabel("strong language", isMovie = true))
+        assertEquals(SkipCategories.MOVIE_CREDITS, SkipCategories.categoryOfLabel("End credits", isMovie = true))
+        assertEquals(SkipCategories.ENDING, SkipCategories.categoryOfLabel("End credits", isMovie = false))
+        assertNull(SkipCategories.categoryOfLabel("something else", isMovie = true))
     }
 }

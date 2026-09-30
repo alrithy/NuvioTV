@@ -15,6 +15,12 @@ data class SkipReport(
 ) {
     companion object {
         const val ACTION_SKIP = "skip"
+
+        /** G9b (122): lower the volume for the span, never seek. */
+        const val ACTION_MUTE = "mute"
+
+        /** G9b (121): offer the skip button only, never act on its own. */
+        const val ACTION_WARN = "warn"
     }
 }
 
@@ -71,17 +77,20 @@ object SkipEvidenceMerge {
     }
 
     /**
-     * One segment per category (the player shows one button per category): the merged group with
-     * the highest confidence, then the most providers, then the earliest.
+     * One segment per official category (the player shows one button per category): the merged
+     * group with the highest confidence, then the most providers, then the earliest. Preview and
+     * content-warning segments (G9b) all stay: a film can have many jump scares.
      */
-    fun bestPerCategory(merged: List<MergedSkip>): List<MergedSkip> =
-        merged.groupBy { it.report.category to it.report.action }.values
+    fun bestPerCategory(merged: List<MergedSkip>): List<MergedSkip> {
+        val (single, repeated) = merged.partition { it.report.category in SkipCategories.SINGLE }
+        return (single.groupBy { it.report.category to it.report.action }.values
             .map { candidates ->
                 candidates.maxWith(
                     compareBy<MergedSkip> { it.report.confidence }
                         .thenBy { it.providers.size }
                         .thenBy { -it.report.startTime },
                 )
-            }
+            } + repeated)
             .sortedBy { it.report.startTime }
+    }
 }

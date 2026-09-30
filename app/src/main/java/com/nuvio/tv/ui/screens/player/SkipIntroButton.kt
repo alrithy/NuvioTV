@@ -244,5 +244,9 @@ private fun getSkipLabel(type: String?, targetsPostCredits: Boolean): String = w
         stringResource(if (targetsPostCredits) R.string.skip_to_post_credits else R.string.skip_ending)
     "movie-credits" -> stringResource(if (targetsPostCredits) R.string.skip_to_post_credits else R.string.skip_movie_credits)
     "recap" -> stringResource(R.string.skip_recap)
+    // Superfork G9b: opt-in preview and content-warning segments.
+    "preview" -> stringResource(R.string.skip_preview)
+    "jumpscare" -> stringResource(R.string.skip_jumpscare)
+    "nudity", "sex", "gore", "violence", "profanity" -> stringResource(R.string.skip_scene)
     else -> stringResource(R.string.skip_generic)
 }

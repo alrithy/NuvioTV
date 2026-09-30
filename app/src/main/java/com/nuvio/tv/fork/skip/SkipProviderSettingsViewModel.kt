@@ -23,6 +23,10 @@ class SkipProviderSettingsViewModel @Inject constructor(
         viewModelScope.launch { settings.setEnabled(provider, value) }
     }
 
+    fun setCategoryEnabled(category: String, value: Boolean) {
+        viewModelScope.launch { settings.setCategoryEnabled(category, value) }
+    }
+
     fun setApiKey(provider: ForkSkipProvider, value: String) {
         viewModelScope.launch { settings.setApiKey(provider, value) }
     }
