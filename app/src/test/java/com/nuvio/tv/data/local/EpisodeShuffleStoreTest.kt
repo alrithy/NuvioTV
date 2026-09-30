@@ -39,6 +39,17 @@ class EpisodeShuffleStoreTest {
     private fun store() = EpisodeShuffleStore(factory, profiles, layout)
 
     @Test
+    fun `superfork season scope, Mystery mode and fallback survive store recreation`() = runTest {
+        val settings = EpisodeShuffleSettings(
+            enabled = true, includeWatched = false, season = 3, mystery = true, fallbackToWatched = true
+        )
+        store().save("tt789", settings, 1)
+        assertEquals(settings, store().observeProfile(1).first().settings("tt789", "series"))
+        store().save("tt789", settings.copy(season = null, mystery = false), 1)
+        assertEquals(settings.copy(season = null, mystery = false), store().observeProfile(1).first().settings("tt789", "series"))
+    }
+
+    @Test
     fun `show settings survive store recreation and remain independent`() = runTest {
         store().save("tmdb:123", EpisodeShuffleSettings(true, true), 1)
         store().save("tt456", EpisodeShuffleSettings(true, false), 1)

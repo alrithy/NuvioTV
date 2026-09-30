@@ -626,6 +626,12 @@ class MetaDetailsViewModel @Inject constructor(
         }
     }
 
+    /** Superfork G9d: the shuffle dialog's pick, so the stream screen keeps a Mystery pick hidden. */
+    fun markShufflePick(video: com.nuvio.tv.domain.model.Video) {
+        val meta = uiState.value.meta ?: return
+        episodeShuffle.markHandedOff(profileManager.activeProfileId.value, meta.id, video.id)
+    }
+
     suspend fun setEpisodeShuffle(settings: com.nuvio.tv.domain.model.EpisodeShuffleSettings): Boolean {
         val meta = uiState.value.meta ?: return false
         val profileId = profileManager.activeProfileId.value

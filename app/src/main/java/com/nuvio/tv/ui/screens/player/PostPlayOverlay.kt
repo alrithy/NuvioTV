@@ -441,7 +441,7 @@ private fun NextEpisodeStatusLine(text: String, modifier: Modifier = Modifier) {
 
 @Composable
 private fun nextEpisodeDisplayLabel(nextEpisode: NextEpisodeInfo): String {
-    if (nextEpisode.isOtherType) return nextEpisode.title
+    if (nextEpisode.isOtherType || nextEpisode.mystery) return nextEpisode.title
     val context = LocalContext.current
     val code = stringResource(
         R.string.season_episode_format,

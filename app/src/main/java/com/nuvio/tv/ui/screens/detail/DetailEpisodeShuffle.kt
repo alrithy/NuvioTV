@@ -41,15 +41,19 @@ internal fun applyDetailShuffle(
     }
     val selected = shuffle.select(
         profile.profileId, meta.id, meta.videos, settings.includeWatched,
-        state.watchedEpisodes, state.episodeProgressMap, ShuffleSurface.DETAIL, visit = visit
+        state.watchedEpisodes, state.episodeProgressMap, ShuffleSurface.DETAIL, visit = visit,
+        season = settings.season, fallbackToWatched = settings.fallbackToWatched
     )
     return result.copy(
         shufflePoolEmpty = selected == null,
         nextToWatch = NextToWatch(
             watchProgress = null, isResume = false, nextVideoId = selected?.id,
             nextSeason = selected?.season, nextEpisode = selected?.episode,
-            displayText = if (selected == null) context.getString(R.string.shuffle_change_selection)
-                else context.getString(R.string.detail_btn_play_episode, selected.season, selected.episode)
+            displayText = when {
+                selected == null -> context.getString(R.string.shuffle_change_selection)
+                settings.mystery -> context.getString(R.string.shuffle_play_mystery) // Superfork G9d
+                else -> context.getString(R.string.detail_btn_play_episode, selected.season, selected.episode)
+            }
         )
     )
 }
