@@ -444,3 +444,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: software decoders vary by device (a codec without one gets no local frames); Dolby Vision streams may expose a DV mime with no software decoder; device checks MANUAL-PENDING (G14 campaign, HV-G7-1..HV-G7-4)
 
+### G7b — Automatic Seekr calibration against local keyframe frames (111, 113, 114)
+- Roadmap gate: G7
+- Source repository: Cxsmo-ai/NuvioTV-Custom
+- Source branch: main
+- Pinned source SHA: 3e0d0fad60a2721adec133b88640b49c0183883f
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/screens/player/SeekrFrameCalibration.kt (`SeekrFrameCalibrator.estimate`, `perceptualSimilarity`, `sampleLuma`, constants)
+- Import mode: ALGORITHM_PORT
+- Current official equivalent: none
+- What already existed upstream: nothing; G7a (#45) provides the local keyframe thumbnails and the bounded Seekr track
+- What was imported: 32×18 luma-grid normalized cross-correlation, weak (< 0.56) and ambiguous (margin < 0.035) match rejection, median + MAD inlier band (max(1.25 s, 3·MAD)), confidence = mean inlier similarity × inlier share
+- What was intentionally not imported: `ExoSeekrFrameCapture` (seeks and mutes the live player behind a cover to copy its surface) and the three fixed source anchors at 20/50/80 %
+- Local adaptations: reference frames are real keyframes the local track already decoded (no seeking, no extra network); each anchor compares one local frame with the Seekr thumbnails at candidate offsets (a cue-interval grid around 0 and the duration-gap hint, ±240 s), one candidate per distinct cue so tiles cannot tie; applied only when ≥ 3 anchors agree with confidence ≥ 0.5 and the result is ≥ 1 s; runs only while paused or scrubbing, at most 5 attempts per track; never overrides a manual Preview Sync value; a new track resets both
+- Feature flag / fallback: FeatureId.SEEK_INTELLIGENCE OFF = no Seekr track, no calibration; rejected or weak result = offset unchanged (0 or the manual value)
+- Tests ported/added: SeekrCalibrationTest (10)
+- License / attribution notes: GPL-3.0 (Cxsmo is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: titles whose watched part is mostly dark or static give weak matches and stay uncalibrated (by design); device check MANUAL-PENDING (G14 campaign, HV-G7-5)
+

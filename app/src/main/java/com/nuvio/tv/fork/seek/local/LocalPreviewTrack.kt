@@ -240,6 +240,23 @@ internal class LocalPreviewTrack(
         return SeekPreviewCue(startMs, minOf(startMs + SLOT_MS, durationMs).coerceAtLeast(startMs + 1))
     }
 
+    /**
+     * G7b (111): up to [count] real decoded keyframes, evenly spread over the filled slots, as
+     * (frame time in ms, full-size thumbnail), for calibrating Seekr against this release.
+     */
+    suspend fun calibrationFrames(count: Int): List<Pair<Long, Bitmap>> {
+        if (closed || count <= 0) return emptyList()
+        val filled = synchronized(lock) {
+            (0 until slotCount).filter { jpegs[it] != null && frameMs[it] >= 0L }.map { it to frameMs[it] }
+        }
+        if (filled.isEmpty()) return emptyList()
+        val picked = if (filled.size <= count) filled else {
+            (0 until count).map { filled[(it.toLong() * (filled.size - 1) / (count - 1).coerceAtLeast(1)).toInt()] }
+                .distinctBy { it.first }
+        }
+        return picked.mapNotNull { (slot, ms) -> bitmapFor(slot, small = false)?.let { ms to it } }
+    }
+
     private fun nearestFilled(slot: Int): Int? {
         if (jpegs[slot] != null) return slot
         for (distance in 1 until slotCount) {

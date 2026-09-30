@@ -12,14 +12,14 @@ active_gate_name: Seek Intelligence
 active_branch: feat/seek-intelligence
 active_task_packet: tasks/G7_SEEK_INTELLIGENCE.md
 active_status: IN_PROGRESS
-active_pr: 45
+active_pr: 46
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: e8d33c438593ad45c7524b539bac3f1319e6bcf4
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36677245378 ; G7
-  audit PR #44 exact head, squash-merged as dc6371f.
-last_green_scope: Full suite guard (1967 tests, 15 known failures, 0 new failures), governance
+last_green_commit: c987f5ffd99aa9035b71b7bd967be419f8d5ece2
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36679052995 ; G7a
+  PR #45 exact head, squash-merged as fe22d4b.
+last_green_scope: Full suite guard (2001 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
