@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G9 — Skip Recommendations Discovery
 - Active branch: `feat/discovery-skip-recommendations`
-- Status: IN_PROGRESS
+- Status: REVIEW
 - Task: `tasks/G9_DISCOVERY_SKIP_RECOMMENDATIONS.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
@@ -101,16 +101,32 @@ G9e (178–187) (#58, `14f49be`): Calendar (Cxsmo FILE_PORT on official reposito
 watched items, the library and signed-in trackers, air dates from the metadata add-ons, 30 days back to 90 ahead,
 spoiler rule, watched-state-only refresh; 80 most recent series, add-on concurrency from `AdaptiveResources`, loads on
 first visit. Device check HV-G9-6 MANUAL-PENDING (G14).
-G9f (206, 207) on this branch: App dimmer (Cxsmo FILE_PORT): one black layer above every screen, the player included,
+G9f (206, 207) (#59, `9e1cd800`): App dimmer (Cxsmo FILE_PORT): one black layer above every screen, the player included,
 and inside `NuvioDialog` windows; per-profile level (off by default, up to 90 %) under Appearance and from a player
 control. Device check HV-G9-7 MANUAL-PENDING (G14).
 
+## Closeout review corrections
+G9f #59 is merged at `9e1cd8002085c6b228206f0035a0c8f4d5dabc1b`; exact PR head
+`5dcde97b2349dd92bc403abbdca2ae06d406337b`, green run 36749475045 (2098 tests,
+15 known failures, 0 new, fullDebug APK 11114123283). Closeout PR #60 is draft, despite its
+successful CI run 36754596723, because its automated review identified four functional gaps.
+Targeted corrections PR #61 on the canonical G9 branch: all raw dialogs/popups use the existing dimmer layer;
+Mystery route context survives process death and manual/failure source cards show neutral labels;
+HTTP cancellation closes stalled calls/body reads within the provider deadline; official-provider deadlines begin inside their jobs; encrypted credential
+writes change a non-secret cache revision and profile identity is included. No slices/audit repeated.
+Local checks: governance validator/regression suite and whitespace. Android checks run in CI only.
+No manual/device checks performed; all HV-G9-1..HV-G9-7 remain MANUAL-PENDING for G14.
+Owner: Codex (sequential; no lease). Git HTTPS write returns 401; GitHub Git API publishes the
+identical local commit/tree with expected old ref and force=false; API merge authentication works.
+
 ## Exact next action
-1. Merge G9f, then the G9 closeout (next gate G10 Live TV).
-2. Continue G9→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
-3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
-4. PR #28 is the governance review-queue PR; it is independent of runtime work.
-5. Upstream: official `56aaba2` accepted (PR #40, D050). Before each gate, check official `dev`; sync through a reviewed `chore/upstream-sync-*` PR when the gate touches changed seams.
+1. Finish and merge G9 review-correction PR #61 on feat/discovery-skip-recommendations only after
+   exact-head required CI/fullDebug APK and DoD. Fix any new failures; never waive them.
+2. Refresh draft closeout #60 from integration, update terminal traceability and real correction
+   evidence, resolve its four review findings, then merge it with an expected exact HEAD after CI.
+3. Only after #60 merges, create/fast-forward feat/live-tv and perform the G10 official-first audit
+   against current dev then pinned Reshaped. Next gate remains G11 after the transition.
+4. Execute all accumulated hardware checks in G14; no MANUAL-PENDING result is a PASS.
 
 ## Evidence / limits
 Local Android execution is unavailable (no Android SDK); use GitHub CI evidence. Actions artifacts

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="mystery_source_number">المصدر %1$d</string>
+    <string name="mystery_source_unavailable">هذا المصدر غير متاح. أعد المحاولة أو اختر مصدرًا آخر.</string>
+</resources>

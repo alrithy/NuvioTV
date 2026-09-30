@@ -158,9 +158,12 @@ class StreamScreenViewModel @Inject constructor(
 
     // Superfork G9d (174–177): the episode a shuffle surface picked stays hidden until the store says
     // its show is not in Mystery mode.
-    private val shufflePick: Boolean = com.nuvio.tv.fork.discovery.ShuffleRules.enabled &&
-        contentId != null && episodeShuffle.isSelected(playbackProfileId, contentId, videoId)
-    private var mysteryPick: Boolean = shufflePick
+    private val mysteryContext = com.nuvio.tv.fork.discovery.MysteryStreamContext(
+        savedStateHandle,
+        selectedByShuffle = contentId != null && episodeShuffle.isSelected(playbackProfileId, contentId, videoId),
+    )
+    private val shufflePick: Boolean = mysteryContext.shufflePick
+    private var mysteryPick: Boolean = mysteryContext.mystery
 
     private val _uiState = MutableStateFlow(
         StreamScreenUiState(
@@ -176,7 +179,7 @@ class StreamScreenViewModel @Inject constructor(
             runtime = runtime,
             genres = genres,
             year = year,
-            mystery = shufflePick
+            mystery = mysteryPick
         )
     )
     val uiState: StateFlow<StreamScreenUiState> = _uiState.asStateFlow()
@@ -382,10 +385,11 @@ class StreamScreenViewModel @Inject constructor(
                     episodeShuffleStore.observeProfile(playbackProfileId).first()
                         .settings(contentId.orEmpty(), contentType).let { it.enabled && it.mystery }
                 }.getOrDefault(true)
+                mysteryContext.resolve(mysteryPick)
                 updateUiStateIfChanged { it.copy(mystery = mysteryPick) }
             }
             // Superfork G9d: a Mystery pick skips the stream list (whose names give the episode away)
-            // unless the user asked to choose by hand; the Manual mode takes the best-quality stream (G8b).
+            // the Manual mode takes the best-quality stream (G8b). Manual/failure lists are anonymized.
             val playerSettings = if (mysteryPick && !manualSelection &&
                 storedPlayerSettings.streamAutoPlayMode == StreamAutoPlayMode.MANUAL
             ) {

@@ -13,10 +13,12 @@ import com.nuvio.tv.data.remote.api.IntroDbSegmentsResponse
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.withTimeoutOrNull
 
 data class SkipInterval(
     val startTime: Double, // seconds
@@ -106,7 +108,9 @@ class SkipIntroRepository @Inject constructor(
     ): List<SkipInterval> = coroutineScope {
         val key = "movie:$imdbId:fork:${forkConfig.cacheKey()}:${durationMs ?: 0}"
         cache[key]?.let { return@coroutineScope it }
-        val introDb = async { if (introDbConfigured) fetchFromIntroDb(imdbId, isMovie = true) else emptyList() }
+        val introDb = async { com.nuvio.tv.fork.skip.boundedProvider(true) {
+            if (introDbConfigured) fetchFromIntroDb(imdbId, isMovie = true) else emptyList()
+        } }
         val fork = async {
             forkSkip.fetch(forkConfig, imdbId, null, null, isMovie = true, durationMs = durationMs, title = title, releaseYear = releaseYear)
         }
@@ -139,13 +143,43 @@ class SkipIntroRepository @Inject constructor(
         }
 
         val introDbDeferred = async {
-            if (introDbConfigured) fetchFromIntroDb(imdbId, season, episode) else emptyList()
+            com.nuvio.tv.fork.skip.boundedProvider(forkActive) {
+                if (introDbConfigured) fetchFromIntroDb(imdbId, season, episode) else emptyList()
+            }
         }
+        if (forkActive) {
+            // Superfork G9 closeout: the Simkl id lookups AniSkip / Anime-Skip depend on start now and
+            // share one deadline with them, so a slow Simkl never delays the other providers; each
+            // lookup still keeps what it found inside that deadline.
+            val timeout = com.nuvio.tv.fork.skip.FORK_SKIP_PROVIDER_TIMEOUT_MS
+            val startedAt = System.nanoTime()
+            val animeDeferred = async {
+                val target = withTimeoutOrNull(timeout) { animeTarget(imdbId, season, episode) }
+                    ?: return@async emptyList<SkipInterval>() to emptyList()
+                animeProviders(target) { job ->
+                    val left = timeout - (System.nanoTime() - startedAt) / 1_000_000
+                    com.nuvio.tv.fork.skip.awaitWithin(job, left.coerceAtLeast(0))
+                }
+            }
+            val introDb = com.nuvio.tv.fork.skip.awaitWithin(introDbDeferred, timeout)
+            val (animeSkip, aniSkip) = animeDeferred.await()
+            return@coroutineScope forkSkip.combine(mergeByPriority(introDb, animeSkip, aniSkip), forkDeferred.await(), isMovie = false)
+                .also { cache[cacheKey] = it }
+        }
+        val (animeSkip, aniSkip) = animeProviders(animeTarget(imdbId, season, episode)) { it.await() }
+        return@coroutineScope mergeByPriority(
+            introDbDeferred.await(),
+            animeSkip,
+            aniSkip
+        ).also { cache[cacheKey] = it }
+    }
+
+    private data class AnimeTarget(val malId: String?, val anilistId: String?, val episode: Int)
+
+    /** Official's Simkl lookups: the season-specific MAL / AniList ids and the anime-local episode. */
+    private suspend fun animeTarget(imdbId: String, season: Int, episode: Int): AnimeTarget {
         // Resolve IMDB -> season-specific MAL/AniList via Simkl episode mapping
-        val simklIdsDeferred = async { simklResolver.resolveIdsForImdbEpisode(imdbId, season, episode) }
-        val simklIds = simklIdsDeferred.await()
-        val malId = simklIds?.mal
-        val anilistId = simklIds?.anilist
+        val simklIds = simklResolver.resolveIdsForImdbEpisode(imdbId, season, episode)
 
         // Remap the TVDB episode number to the anime-entry-local episode number.
         // When the resolved entry owns a specific TVDB season, its episode mapping
@@ -156,29 +190,21 @@ class SkipIntroRepository @Inject constructor(
                 ?.animeEpisode
                 ?: episode
         } else episode
+        return AnimeTarget(simklIds?.mal, simklIds?.anilist, animeEpisode)
+    }
 
+    /** Official's AniSkip and Anime-Skip lookups in parallel; returns (Anime-Skip, AniSkip). */
+    private suspend fun animeProviders(
+        target: AnimeTarget,
+        await: suspend (Deferred<List<SkipInterval>>) -> List<SkipInterval>
+    ): Pair<List<SkipInterval>, List<SkipInterval>> = coroutineScope {
         val aniSkipDeferred = async {
-            if (malId != null) fetchFromAniSkip(malId, animeEpisode) else emptyList()
+            if (target.malId != null) fetchFromAniSkip(target.malId, target.episode) else emptyList()
         }
         val animeSkipDeferred = async {
-            if (anilistId != null) fetchFromAnimeSkip(anilistId, animeEpisode, season = null) else emptyList()
+            if (target.anilistId != null) fetchFromAnimeSkip(target.anilistId, target.episode, season = null) else emptyList()
         }
-
-        if (forkActive) {
-            val timeout = com.nuvio.tv.fork.skip.FORK_SKIP_PROVIDER_TIMEOUT_MS
-            val official = mergeByPriority(
-                com.nuvio.tv.fork.skip.awaitWithin(introDbDeferred, timeout),
-                com.nuvio.tv.fork.skip.awaitWithin(animeSkipDeferred, timeout),
-                com.nuvio.tv.fork.skip.awaitWithin(aniSkipDeferred, timeout)
-            )
-            return@coroutineScope forkSkip.combine(official, forkDeferred.await(), isMovie = false)
-                .also { cache[cacheKey] = it }
-        }
-        return@coroutineScope mergeByPriority(
-            introDbDeferred.await(),
-            animeSkipDeferred.await(),
-            aniSkipDeferred.await()
-        ).also { cache[cacheKey] = it }
+        await(animeSkipDeferred) to await(aniSkipDeferred)
     }
 
     suspend fun getSkipIntervalsForMal(
