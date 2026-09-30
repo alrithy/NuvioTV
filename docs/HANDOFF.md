@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G6 — Subtitle Intelligence
 - Active branch: `feat/subtitle-intelligence`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G6_SUBTITLE_INTELLIGENCE.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
@@ -38,12 +38,18 @@ display mode size and `tv hdr` rows (52–54, 60, #35); G5e track-format AFR fal
 Deferred: 46 (TrueHD/DTS-HD cold start, device data needed, G14). Device checks HV-G5-1..HV-G5-10
 are MANUAL-PENDING (G14; `validation_pending_gates`).
 
-G6 READY on `feat/subtitle-intelligence` (task `tasks/G6_SUBTITLE_INTELLIGENCE.md`, IDs 82–106).
-Pre-G6 upstream sync (D050): official `56aaba2` adopted — official merged Subtitle AutoSync (#3703), so G6 reuses it as the single engine (D049 revised); G6 audit PR #39 is re-audited on this baseline after the sync merges.
+G6 IN_PROGRESS on `feat/subtitle-intelligence` (task `tasks/G6_SUBTITLE_INTELLIGENCE.md`, IDs 82–106).
+Pre-G6 upstream sync PR #40 (D050) adopted official `56aaba2` with official Subtitle AutoSync (#3703):
+it is the single G6 engine (REUSE; no fork engine, D049 superseded). Audit
+`docs/audits/G6_SUBTITLE_INTELLIGENCE_AUDIT.md` (re-audited on `56aaba2`): 82, 83, 86–91, 95–99, 106
+verified official; gaps are 84 (no reference when the file has no embedded subtitles), 94 (no Arabic
+AutoSync strings) and 100–105 (fonts, Arabic cinema preset). 85 deferred (the subtitle protocol has no
+per-subtitle hash-match flag); 92, 93 (audio / ASR sync) deferred to G13 candidates.
 
 ## Exact next action
-1. Start G6 with its mandatory audit: official subtitle stack vs Reshaped `audiosync/*` / subtitle
-   sync and VibeSubtitle (SOURCE_MAP pins); one sync engine, never two competing systems.
+1. Merge the G6 audit PR #39, then slices G6a (extend official AutoSync: stream-provided subtitle as
+   the reference when the file has no embedded subtitles, Arabic AutoSync strings; 84, 94) and G6b
+   (custom fonts + Arabic cinema preset, 100–105).
 2. Continue G6→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.

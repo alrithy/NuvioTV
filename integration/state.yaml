@@ -11,15 +11,15 @@ active_gate: G6
 active_gate_name: Subtitle Intelligence
 active_branch: feat/subtitle-intelligence
 active_task_packet: tasks/G6_SUBTITLE_INTELLIGENCE.md
-active_status: READY
-active_pr: null
+active_status: IN_PROGRESS
+active_pr: 39
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: fb18072ccd521de5511365220e229a16ea15bcea
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36635649223 ; G5e
-  PR #36 exact head, squash-merged as b973384.
-last_green_scope: Full suite guard (1903 tests, 15 known failures, 0 new failures), governance
+last_green_commit: 04b3f573f9d64f1d40cbf8c1cf5e766ee495806b
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36671475439 ; pre-G6
+  upstream sync PR #40 exact head, merged (merge commit) as 52b3a71.
+last_green_scope: Full suite guard (1947 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
