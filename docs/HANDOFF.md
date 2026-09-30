@@ -61,10 +61,13 @@ FILE_PORT): keyframe tap after the DV factory, software thumbnail decoder, keyfr
 bounded Seekr fallback with the user's key (Cxsmo `SeekrKeyStore`, Keystore-encrypted per profile),
 Preview Sync; limits from `AdaptiveResources.seekPreviewBudget`; SEEK_INTELLIGENCE AUTO (D052). Device
 checks HV-G7-1..HV-G7-4 MANUAL-PENDING (G14).
+G7b (111, 113, 114) on this branch: automatic Seekr calibration (Cxsmo estimator, ALGORITHM_PORT) on the
+local keyframe thumbnails while paused or scrubbing; applied only when >= 3 anchors agree with confidence
+>= 0.5; never over a manual Preview Sync value. Device check HV-G7-5 MANUAL-PENDING (G14).
 
 ## Exact next action
-1. Merge G7a, then G7b (automatic Seekr calibration on local keyframe frames with confidence gating and
-   weak-match rejection; 111, 113, 114).
+1. Merge G7b, then close G7 (CODE-COMPLETE, device checks VALIDATION-PENDING, batched to G14) and start
+   G8 with its mandatory audit.
 2. Continue G7→G13 without stopping for device-only MANUAL-PENDING checks. Record each one honestly in the gate docs/manual-test log and carry it into `validation_pending_gates`.
 3. In G14, stop once for the consolidated hardware-certification campaign and execute all accumulated device/manual checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 4. PR #28 is the governance review-queue PR; it is independent of runtime work.

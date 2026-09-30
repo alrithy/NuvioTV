@@ -29,6 +29,10 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.delay
+import com.nuvio.tv.fork.seek.local.LocalPreviewTrack
 import kotlin.math.abs
 
 /**
@@ -53,6 +57,14 @@ class SeekPreviewState internal constructor(
      * while no preview has resolved. Drives grid-locked scrubbing and the scrubber's cue ticks.
      */
     val previewCue: StateFlow<SeekPreviewCue?> = _previewCue.asStateFlow()
+
+    @Volatile
+    private var manualOffset = false
+
+    private val _calibration = MutableStateFlow<SeekrCalibration.Result?>(null)
+
+    /** The last automatic calibration of this session's Seekr track, or null before one ran. */
+    val calibration: StateFlow<SeekrCalibration.Result?> = _calibration.asStateFlow()
 
     private val _offsetMs = MutableStateFlow(0)
 
@@ -81,7 +93,7 @@ class SeekPreviewState internal constructor(
             .mapLatest { (durationMs, apiKey) ->
                 // A new track describes a different release, so any manual sync dialled in
                 // for the previous one is meaningless. Drop it.
-                setOffset(0)
+                resetOffset()
                 _previewCue.value = null
                 _showSyncOverlay.value = false
                 if (!SeekIntelligence.enabled || apiKey.isBlank() || durationMs <= 0L) return@mapLatest null
@@ -259,6 +271,19 @@ class SeekPreviewState internal constructor(
      * track before every lookup, so this is safe at D-pad repeat rate.
      */
     fun setOffset(targetMs: Int) {
+        // A value the user dialled in always wins over automatic calibration (G7b).
+        manualOffset = true
+        applyOffset(targetMs)
+    }
+
+    /** A new track describes a different release: drop both manual and calibrated offsets. */
+    private fun resetOffset() {
+        manualOffset = false
+        _calibration.value = null
+        applyOffset(0)
+    }
+
+    private fun applyOffset(targetMs: Int) {
         val clamped = targetMs.coerceIn(SEEK_PREVIEW_OFFSET_MIN_MS, SEEK_PREVIEW_OFFSET_MAX_MS)
         if (_offsetMs.value == clamped) return
         // The cached cue was converted to the playback timebase with the old offset.
@@ -270,6 +295,36 @@ class SeekPreviewState internal constructor(
 
     init {
         synchronized(states) { states[controller] = WeakReference(this) }
+    }
+
+    init {
+        // G7b (111, 113, 114): once both tracks exist, calibrate Seekr against real local frames
+        // while the viewer is paused or scrubbing (never mid-playback), a few times as more of the
+        // title gets frames. Only an accepted result moves the offset, and never over a manual one.
+        scope.launch {
+            combine(localTrack, track) { local, seekr -> (local as? LocalPreviewTrack) to seekr }
+                .distinctUntilChanged()
+                .collectLatest { (local, seekr) ->
+                    if (local == null || seekr == null) return@collectLatest
+                    repeat(CALIBRATION_ATTEMPTS) {
+                        delay(CALIBRATION_SPACING_MS)
+                        controller.uiState.first { state ->
+                            !(state.isPlaying || state.isBuffering) || state.showSeekOverlay ||
+                                state.pendingPreviewSeekPosition != null
+                        }
+                        if (manualOffset) return@collectLatest
+                        val result = SeekrCalibrationRunner.run(local, seekr, suggestedOffsetMs.value)
+                        if (manualOffset) return@collectLatest
+                        _calibration.value = result
+                        if (result.accepted) {
+                            if (abs(result.offsetMs) >= SeekrCalibration.MIN_USEFUL_OFFSET_MS) {
+                                applyOffset(result.offsetMs.toInt())
+                            }
+                            return@collectLatest
+                        }
+                    }
+                }
+        }
     }
 
     /** The active profile's Seekr key; empty (no Seekr track) when the store cannot be reached. */
@@ -293,6 +348,8 @@ class SeekPreviewState internal constructor(
         if (previewTrack.value != null) PreviewCommitSeek else null
 
     internal companion object {
+        private const val CALIBRATION_ATTEMPTS = 5
+        private const val CALIBRATION_SPACING_MS = 20_000L
         private val PreviewCommitSeek = SeekParameters(3_000_000L, 3_000_000L)
         // The value is weak too: the state references its controller, so a strong value would keep
         // the key, and with it every finished player session, alive for the whole app session.
