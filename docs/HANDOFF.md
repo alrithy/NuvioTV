@@ -84,7 +84,7 @@ switches one on; 6 s per-provider timeouts; confidence-weighted evidence merge, 
 post-credits guard; series ids normalized to IMDb via cached meta; provider keys Keystore-encrypted per
 profile (shared `KeystoreCipher`, also used by the Seekr key). DISCOVERY_SKIP_RECOMMENDATIONS AUTO (D054).
 Device checks HV-G9-1, HV-G9-2 MANUAL-PENDING (G14).
-G9b (120–122, 127–129) on this branch: MovieHavenDB / VideoSkip / NotScare (Cxsmo FILE_PORT) and opt-in preview
+G9b (120–122, 127–129) (#55, `e526e9d`): MovieHavenDB / VideoSkip / NotScare (Cxsmo FILE_PORT) and opt-in preview
 and content-warning categories (skip button only, never auto-skipped, every segment kept); mute segments turn
 the audio off for their span (ExoPlayer volume / mpv mute), never seek, never forwarded to external players.
 Endpoints unverified from this environment (fail closed). Device check HV-G9-3 MANUAL-PENDING (G14).
