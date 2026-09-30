@@ -19,9 +19,9 @@ jobs:
       matrix:
         include:
           - name: official
-            ref: 71632b9271e8bce6783e415d64f34cfa4e8b894c
+            ref: 56aaba20b7d01746d616a2c8517adcf442950b90
           - name: integration
-            ref: 898bc83abfc8e59cf1664699980942d3bd6718f6
+            ref: 5c24805f82b2bb7092b9acafc00903a32fe5045c
     steps:
       - uses: actions/checkout@v4
       - uses: actions/checkout@v4

@@ -3,8 +3,8 @@ project: Nuvio Superfork
 repository: alrithy/NuvioTV
 official_upstream: NuvioMedia/NuvioTV
 initial_bootstrap_baseline_sha: c257a2365ee3386b582dc2974ec235cfe0381f33
-current_official_baseline_sha: 71632b9271e8bce6783e415d64f34cfa4e8b894c
-integration_upstream_sync_commit: 898bc83abfc8e59cf1664699980942d3bd6718f6
+current_official_baseline_sha: 56aaba20b7d01746d616a2c8517adcf442950b90
+integration_upstream_sync_commit: 5c24805f82b2bb7092b9acafc00903a32fe5045c
 integration_branch: superfork/integration
 legacy_default_branch: dev
 active_gate: G6
@@ -77,10 +77,10 @@ validation_pending_gates:
   evidence: 'All code merged in PRs #31-#36; DV output, passthrough, lossless default, soft clip, AFR/settle and HUD checks HV-G5-1..HV-G5-10 remain MANUAL-PENDING in docs/HARDWARE_VALIDATION_TCL_C6K.md.'
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-09-29T20:10:00Z'
-  sha: 8e728cae7c6d8f2a0a089d7a240675e25a33a883
-  accepted: false
-  reason: 'Official dev advanced beyond accepted 71632b9 (MDBList ratings, home/hero, PostPlay*, AudioSelectionOverlay audio-delay UI, PlayerRuntimeControllerPlaybackEvents). G4 touched none of those player files (AR-006). G5 slices avoid AudioSelectionOverlay and PlaybackEvents (docs/audits/G5_AUDIO_VIDEO_AUDIT.md); a slice that needs them first adopts official through a reviewed upstream-sync PR.'
+  checked_at: '2026-09-30T08:00:00Z'
+  sha: 56aaba20b7d01746d616a2c8517adcf442950b90
+  accepted: true
+  reason: 'Adopted via chore/upstream-sync-2026-09-30 (D050): official Subtitle AutoSync (PR #3703) is the G6 subsystem; one conflict resolved (extractor factory).'
 completed_gates:
 - gate: G0
   name: Fork Foundation

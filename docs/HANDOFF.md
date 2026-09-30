@@ -5,7 +5,7 @@
 - Active branch: `feat/subtitle-intelligence`
 - Status: READY
 - Task: `tasks/G6_SUBTITLE_INTELLIGENCE.md`
-- Accepted official baseline: `71632b9271e8bce6783e415d64f34cfa4e8b894c`
+- Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
 <!-- canonical-state:end -->
@@ -39,6 +39,7 @@ Deferred: 46 (TrueHD/DTS-HD cold start, device data needed, G14). Device checks 
 are MANUAL-PENDING (G14; `validation_pending_gates`).
 
 G6 READY on `feat/subtitle-intelligence` (task `tasks/G6_SUBTITLE_INTELLIGENCE.md`, IDs 82–106).
+Pre-G6 upstream sync (D050): official `56aaba2` adopted — official merged Subtitle AutoSync (#3703), so G6 reuses it as the single engine (D049 revised); G6 audit PR #39 is re-audited on this baseline after the sync merges.
 
 ## Exact next action
 1. Start G6 with its mandatory audit: official subtitle stack vs Reshaped `audiosync/*` / subtitle
