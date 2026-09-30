@@ -78,6 +78,7 @@ internal fun PlayerRuntimeController.maybeRunAutomaticSubtitleSync(
 ) {
     AutoSyncPreferences.ensureLoaded(context)
     if (!AutoSyncPreferences.isEnabled(context)) return
+    if (isLiveTvPlayback) return // Superfork G10d hook: no extra reads on a one-connection channel
     if (selectedSubtitle.lang.isBlank()) return
     if (!currentStreamUrl.startsWith("http://", ignoreCase = true) &&
         !currentStreamUrl.startsWith("https://", ignoreCase = true)

@@ -93,6 +93,8 @@ internal fun PlayerRuntimeController.updateAvailableTracks(tracks: Tracks) {
                         }
                         // G5e (feature 58): switch from the track rate when the preflight found none.
                         maybeRunTrackFormatAfr(raw, format.width.takeIf { it > 0 }, format.height.takeIf { it > 0 })
+                    } else {
+                        maybeMeasureLiveTvFrameRate(format) // Superfork G10d hook (236): TS carries no rate
                     }
                     // Extract video codec, resolution, and bitrate for stream info
                     currentVideoCodec = CustomDefaultTrackNameProvider.formatNameFromMime(format.sampleMimeType)

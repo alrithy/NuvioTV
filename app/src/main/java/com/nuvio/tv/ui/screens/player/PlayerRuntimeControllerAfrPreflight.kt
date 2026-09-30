@@ -34,6 +34,7 @@ internal suspend fun PlayerRuntimeController.runAfrPreflightIfEnabled(
     mimeType: String? = null
 ) {
     mpvDelayStartAfterAfrSwitch = false
+    if (skipAfrPreflightForLiveTv(url)) return // Superfork G10d hook (236): no probe connection on a channel
 
     if (frameRateMatchingMode == FrameRateMatchingMode.OFF) {
         _uiState.update {

@@ -169,6 +169,8 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
         mediaMetadata: androidx.media3.common.MediaMetadata? = null,
         cacheKey: String? = null
     ): MediaSource {
+        // Superfork G10d hook: a Live TV channel gets quick retries on HTTP refusals (234).
+        val loadErrorHandlingPolicy = com.nuvio.tv.fork.livetv.LiveTvPlaybackHooks.loadErrorPolicy(url, this.loadErrorHandlingPolicy)
         val sanitizedHeaders = sanitizeHeaders(headers)
         val httpDataSourceFactory = PlayerPlaybackNetworking.createDataSourceFactory(context, sanitizedHeaders)
 
@@ -290,7 +292,8 @@ internal class PlayerMediaSourceFactory(private val context: Context) {
         })
 
         // 2. VOD disk cache (opt-in).
-        val useVodCache = ENABLE_VOD_CACHE && vodCacheEnabled && !isHls && !isDash && shouldUseVodCache(url)
+        val useVodCache = ENABLE_VOD_CACHE && vodCacheEnabled && !isHls && !isDash && shouldUseVodCache(url) &&
+            com.nuvio.tv.fork.livetv.LiveTvPlaybackHooks.allowsDiskCache(url) // Superfork G10d hook: live has no end
         // A playback started inside the delay window would have its own data swept out from under it.
         pendingEvictionJob?.cancel()
         pendingEvictionJob = null

@@ -43,6 +43,7 @@ internal fun PlayerRuntimeController.maybeRunTrackFormatAfr(rawFps: Float, width
         preflightDetected = state.detectedFrameRateSource == FrameRateSource.PROBE,
         preflightRunning = state.afrProbeRunning,
         playbackRunning = hasRenderedFirstFrame && player?.isPlaying == true,
+        liveTv = isLiveTvPlayback, // Superfork G10d (236)
     )
     when (action) {
         com.nuvio.tv.fork.video.TrackAfrAction.SKIP -> return
@@ -61,6 +62,10 @@ internal fun PlayerRuntimeController.maybeRunTrackFormatAfr(rawFps: Float, width
     }
     if (action == com.nuvio.tv.fork.video.TrackAfrAction.TOO_LATE) {
         Log.d(PlayerRuntimeController.TAG, "TRACK_AFR: playback already running, not switching (fps=$rawFps)")
+        return
+    }
+    if (action == com.nuvio.tv.fork.video.TrackAfrAction.RUN_LIVE) {
+        switchDisplayForLiveTv(rawFps, width, height)
         return
     }
     val activity = currentHostActivity() ?: return
