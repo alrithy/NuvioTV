@@ -202,6 +202,7 @@ internal fun PlayerRuntimeController.startProgressUpdates() {
                         currentPositionMs = pos,
                         durationMs = playerDuration
                     )
+                    view.sampleThroughput(context, currentStreamUrl) // Superfork G8c
                     val playingNow = view.isPlayingNow()
                     val cacheBuffering = view.isPausedForCacheNow() || view.isCoreIdleNow()
                     var firstFrameReady = hasRenderedFirstFrame
@@ -297,6 +298,12 @@ internal fun PlayerRuntimeController.startProgressUpdates() {
                     bufferedPosition = player.bufferedPosition.coerceAtLeast(displayPosition),
                     playerReportsLive = player.isCurrentMediaItemLive,
                     isPlaying = player.isPlaying
+                )
+                // Superfork G8c: connection learning on the existing tick; live streams say nothing about the network.
+                com.nuvio.tv.fork.streams.PlaybackThroughput.onExoTick(
+                    context,
+                    currentStreamUrl,
+                    !player.isCurrentMediaItemLive && playerDuration != androidx.media3.common.C.TIME_UNSET && player.isLoading
                 )
                 playbackAnalyticsDiagnostics.recordProgressSnapshot(
                     player = player,

@@ -17,6 +17,10 @@ data class StreamRankContext(
     val displaySupportsDv: Boolean = true,
     /** Official add-on display name → G1 health (feature 166). */
     val addonHealth: Map<String, AddonHealthState> = emptyMap(),
+    /** G8c (165): learned sustained throughput on the current network; null while still learning. */
+    val connectionMbps: Double? = null,
+    /** Runtime of the title, for average bitrate; null leaves connection fit off. */
+    val runtimeMinutes: Int? = null,
 ) {
     companion object {
         val NONE = StreamRankContext()
@@ -95,6 +99,7 @@ object StreamRanker {
             encode = orderIndex(facts.encode, ENCODE_ORDER),
             sizeBytes = facts.size,
             reliability = StreamRankRules.reliability(context.addonHealth[stream.addonName]),
+            connection = ConnectionFitRules.connectionTier(facts.size, context.runtimeMinutes, context.connectionMbps),
         )
     }
 

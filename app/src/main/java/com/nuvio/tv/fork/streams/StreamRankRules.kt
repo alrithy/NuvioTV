@@ -21,11 +21,13 @@ data class StreamRankInput(
     /** Within one title the runtime is the same for every stream, so size orders by average bitrate. */
     val sizeBytes: Long?,
     val reliability: Int,
+    /** G8c (165): 1 when the measured connection cannot sustain the stream's average bitrate. */
+    val connection: Int = 0,
 )
 
 /**
  * The ranking chain (ALGORITHM_PORT of Cxsmo `StreamQualityRank` @ 3e0d0fa, reordered and extended
- * per D053): cache tier → resolution → quality → release-group tier → HDR/DV → audio (lossless
+ * per D053): cache tier → connection fit (G8c) → resolution → quality → release-group tier → HDR/DV → audio (lossless
  * first) → channels → codec → size (bitrate) → source reliability. Stable: ties keep the incoming
  * add-on order, and nothing is ever dropped.
  */
@@ -33,6 +35,8 @@ object StreamRankRules {
 
     val COMPARATOR: Comparator<StreamRankInput> =
         compareBy<StreamRankInput> { it.cacheTier }
+            // G8c: heavy streams drop within their cache tier, so an uncached one never outranks them.
+            .thenBy { it.connection }
             .thenByDescending { it.resolution }
             .thenBy { it.quality }
             .thenBy { it.releaseGroupTier }
