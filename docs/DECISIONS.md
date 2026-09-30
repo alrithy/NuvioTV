@@ -348,3 +348,14 @@ embedded subtitle reference, where official gives up) or to presentation that de
 (G6b fonts/preset), so SUBTITLE_INTELLIGENCE is AUTO in `FeatureRegistry.DECIDED_DEFAULTS`; OFF
 restores official AutoSync exactly. Device evidence is batched into G14 (D047).
 
+## D052 — G7 has one seek-preview engine: local keyframes, then calibrated Seekr, then normal seek
+The only seek-preview pipeline is one `SeekPreviewTrack` chain in `fork/seek`: thumbnails from the
+keyframes playback already downloads (Reshaped `seekpreview/local`, FILE_PORT; software decoder
+only, no extra requests), Seekr sprite thumbnails only for slots without a local frame (Reshaped
+memory-bounded track, closing G2's 279), and otherwise the official scrubber. Seekr calibration is
+Cxsmo's estimator (ALGORITHM_PORT) run on the local keyframe thumbnails, never by seeking the live
+player. The Seekr key is the user's own, AES-GCM encrypted per profile with an Android Keystore key
+(Cxsmo store); no key is built into the APK. SEEK_INTELLIGENCE becomes AUTO with the first code
+slice because previews only appear while the user scrubs; memory and disk budgets come from
+AdaptiveResources. OFF restores the official scrubber exactly.
+
