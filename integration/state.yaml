@@ -16,10 +16,10 @@ active_pr: 56
 active_owner: claude-code (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 1bed0d70a358ae9f4e0e2de0b3d20f75ac675e5d
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36741495936 ; G9b
-  PR #55 exact head, squash-merged as e526e9d.
-last_green_scope: Full suite guard (2072 tests, 15 known failures, 0 new failures), governance
+last_green_commit: 823d8c665f910c4481d05bcebd09a48fd1a60c6e
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36743005346 ; G9c
+  PR #56 exact head, squash-merged as 0e41e4f.
+last_green_scope: Full suite guard (2082 tests, 15 known failures, 0 new failures), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
