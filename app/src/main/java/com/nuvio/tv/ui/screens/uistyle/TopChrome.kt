@@ -152,21 +152,8 @@ internal fun TopChromeScaffold(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
-                .onPreviewKeyEvent { event ->
-                    // Long-press Back on a root screen goes straight to the menu, as official's sidebar does.
-                    if (event.key != Key.Back) return@onPreviewKeyEvent false
-                    if (event.type == KeyEventType.KeyDown && onRootRoute && event.nativeKeyEvent.isLongPress) {
-                        if (!longPressBackHeld.value) {
-                            longPressBackHeld.value = true
-                            runCatching { menuFocusRequester.requestFocus() }
-                        }
-                        return@onPreviewKeyEvent true
-                    }
-                    if (longPressBackHeld.value) {
-                        if (event.type == KeyEventType.KeyUp) longPressBackHeld.value = false
-                        return@onPreviewKeyEvent true
-                    }
-                    false
+                .longPressBackToChrome(onRootRoute, longPressBackHeld) {
+                    runCatching { menuFocusRequester.requestFocus() }
                 },
         ) {
             CompositionLocalProvider(
@@ -183,7 +170,28 @@ internal fun TopChromeScaffold(
     }
 }
 
-private data class TopMenuProfile(
+/** Long-press Back on a root screen goes straight to the menu, as official's sidebar does. */
+internal fun Modifier.longPressBackToChrome(
+    onRootRoute: Boolean,
+    longPressBackHeld: MutableState<Boolean>,
+    focusChrome: () -> Unit,
+): Modifier = onPreviewKeyEvent { event ->
+    if (event.key != Key.Back) return@onPreviewKeyEvent false
+    if (event.type == KeyEventType.KeyDown && onRootRoute && event.nativeKeyEvent.isLongPress) {
+        if (!longPressBackHeld.value) {
+            longPressBackHeld.value = true
+            focusChrome()
+        }
+        return@onPreviewKeyEvent true
+    }
+    if (longPressBackHeld.value) {
+        if (event.type == KeyEventType.KeyUp) longPressBackHeld.value = false
+        return@onPreviewKeyEvent true
+    }
+    false
+}
+
+internal data class TopMenuProfile(
     val name: String,
     val colorHex: String,
     val avatarUrl: String?,
@@ -216,7 +224,7 @@ private fun TopMenuRow(
         TopMenu(
             items = items,
             selectedRoute = selectedRoute,
-            pill = !bar,
+            container = if (bar) Modifier else Modifier.pillSurface(),
             focusRequester = menuFocusRequester,
             onFocusChanged = onMenuFocusChanged,
             onNavigate = onNavigate,
@@ -230,15 +238,25 @@ private fun TopMenuRow(
     }
 }
 
+/** The PILL look's plain surface (the Glass look uses [glassSurface] instead). */
+@Composable
+private fun Modifier.pillSurface(): Modifier {
+    val shape = RoundedCornerShape(NuvioTheme.radii.full)
+    return clip(shape)
+        .background(NuvioTheme.colors.BackgroundElevated)
+        .border(NuvioTheme.spacing.hairline, NuvioTheme.colors.TextPrimary.copy(alpha = 0.14f), shape)
+}
+
 /**
  * The destinations, with one indicator that slides between them (NuvioGlass `GlassNavPill`):
  * opaque on the focused item, a faint marker on the current destination otherwise.
  */
 @Composable
-private fun TopMenu(
+internal fun TopMenu(
     items: List<DrawerItem>,
     selectedRoute: String?,
-    pill: Boolean,
+    /** The surface behind the items: none for BAR, a pill for PILL, glass for Glass. */
+    container: Modifier,
     focusRequester: FocusRequester,
     onFocusChanged: (Boolean) -> Unit,
     onNavigate: (String) -> Unit,
@@ -261,17 +279,8 @@ private fun TopMenu(
     Box(
         modifier = Modifier
             .height(MenuHeight)
-            .then(
-                if (pill) {
-                    Modifier
-                        .clip(shape)
-                        .background(NuvioTheme.colors.BackgroundElevated)
-                        .border(NuvioTheme.spacing.hairline, NuvioTheme.colors.TextPrimary.copy(alpha = 0.14f), shape)
-                        .padding(horizontal = 6.dp)
-                } else {
-                    Modifier
-                },
-            )
+            .then(container)
+            .padding(horizontal = 6.dp)
             .onFocusChanged { state ->
                 onFocusChanged(state.hasFocus)
                 if (!state.hasFocus) focusedIndex = null
@@ -364,7 +373,7 @@ private fun TopMenuItem(
 
 /** The time, redrawn on the minute, in the device's 12 / 24-hour format (NuvioGlass `GlassClockPill`). */
 @Composable
-private fun TopMenuClock() {
+internal fun TopMenuClock() {
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
     val locale = remember(configuration) {
@@ -389,7 +398,7 @@ private fun TopMenuClock() {
 
 /** The active profile; selecting it opens profile selection as official's sidebar profile row does. */
 @Composable
-private fun TopMenuProfileButton(profile: TopMenuProfile) {
+internal fun TopMenuProfileButton(profile: TopMenuProfile) {
     var focused by remember { mutableStateOf(false) }
     val shape = RoundedCornerShape(NuvioTheme.radii.full)
     Row(

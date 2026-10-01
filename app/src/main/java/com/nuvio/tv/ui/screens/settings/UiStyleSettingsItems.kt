@@ -27,6 +27,9 @@ class UiStyleSettingsViewModel @Inject constructor(private val settings: UiStyle
     val clockEnabled: StateFlow<Boolean> =
         settings.clockEnabled.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), true)
 
+    val lightweightEffects: StateFlow<Boolean> =
+        settings.lightweightEffects.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
     fun setNavigationStyle(style: NavigationStyle) {
         viewModelScope.launch { settings.setNavigationStyle(style) }
     }
@@ -34,11 +37,16 @@ class UiStyleSettingsViewModel @Inject constructor(private val settings: UiStyle
     fun setClockEnabled(enabled: Boolean) {
         viewModelScope.launch { settings.setClockEnabled(enabled) }
     }
+
+    fun setLightweightEffects(enabled: Boolean) {
+        viewModelScope.launch { settings.setLightweightEffects(enabled) }
+    }
 }
 
 /**
- * "Navigation style" in the sidebar settings (G12a, D058): official's sidebar (default), a top bar or a
- * pill, per profile; under a top menu, the clock beside it. Hidden while UI_STYLES is OFF.
+ * "Navigation style" in the sidebar settings (G12a / G12b, D058, D060): official's sidebar (default),
+ * a top bar, a pill or Glass, per profile; under a top menu, the clock beside it; under Glass, the
+ * "Lightweight effects" switch. Hidden while UI_STYLES is OFF.
  */
 @Composable
 internal fun UiStyleSettingsItems(viewModel: UiStyleSettingsViewModel = hiltViewModel()) {
@@ -52,6 +60,7 @@ internal fun UiStyleSettingsItems(viewModel: UiStyleSettingsViewModel = hiltView
                 NavigationStyle.SIDEBAR -> R.string.navigation_style_sidebar
                 NavigationStyle.TOP_BAR -> R.string.navigation_style_top_bar
                 NavigationStyle.PILL -> R.string.navigation_style_pill
+                NavigationStyle.GLASS -> R.string.navigation_style_glass
             },
         ),
         onClick = { viewModel.setNavigationStyle(style.next()) },
@@ -63,5 +72,13 @@ internal fun UiStyleSettingsItems(viewModel: UiStyleSettingsViewModel = hiltView
         subtitle = stringResource(R.string.settings_top_menu_clock_description),
         checked = clock,
         onToggle = { viewModel.setClockEnabled(!clock) },
+    )
+    if (style != NavigationStyle.GLASS) return
+    val lightweight by viewModel.lightweightEffects.collectAsStateWithLifecycle()
+    SettingsToggleRow(
+        title = stringResource(R.string.settings_lightweight_effects_title),
+        subtitle = stringResource(R.string.settings_lightweight_effects_description),
+        checked = lightweight,
+        onToggle = { viewModel.setLightweightEffects(!lightweight) },
     )
 }

@@ -1192,10 +1192,44 @@ open class MainActivity : ComponentActivity() {
                             hasSelectedProfileThisSession = false
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
-                            // Superfork G12a hook (D058): a profile's top menu replaces official's sidebar.
-                            val navigationStyle by uiStyleSettings.navigationStyle.collectAsState(initial = com.nuvio.tv.fork.uistyle.NavigationStyle.SIDEBAR)
+                            // Superfork G12a / G12b hook (D058, D060): a profile's top menu or Glass chrome replaces official's sidebar.
+                            val storedNavigationStyle by uiStyleSettings.navigationStyle.collectAsState(initial = com.nuvio.tv.fork.uistyle.NavigationStyle.SIDEBAR)
                             val topMenuClock by uiStyleSettings.clockEnabled.collectAsState(initial = false)
-                            if (navigationStyle != com.nuvio.tv.fork.uistyle.NavigationStyle.SIDEBAR) {
+                            val lightweightEffects by uiStyleSettings.lightweightEffects.collectAsState(initial = true)
+                            val homeLayout by layoutPreferenceDataStore.selectedLayout.collectAsState(initial = com.nuvio.tv.domain.model.HomeLayout.MODERN)
+                            val navigationStyle = com.nuvio.tv.fork.uistyle.UiStyleRules.effectiveStyle(
+                                storedNavigationStyle,
+                                modernLayout = homeLayout == com.nuvio.tv.domain.model.HomeLayout.MODERN
+                            )
+                            if (navigationStyle == com.nuvio.tv.fork.uistyle.NavigationStyle.GLASS) {
+                                com.nuvio.tv.ui.screens.uistyle.GlassChromeScaffold(
+                                    effect = com.nuvio.tv.fork.uistyle.UiStyleRules.glassEffect(
+                                        android.os.Build.VERSION.SDK_INT,
+                                        com.nuvio.tv.fork.resource.AdaptiveResources.detectedTier,
+                                        lightweightEffects
+                                    ),
+                                    clockEnabled = topMenuClock,
+                                    longPressBackHeld = longPressBackHeld,
+                                    navController = navController,
+                                    startDestination = startDestination,
+                                    currentRoute = currentRoute,
+                                    rootRoutes = rootRoutes,
+                                    drawerItems = drawerItems,
+                                    selectedDrawerRoute = selectedDrawerRoute,
+                                    profile = if (profiles.size > 1) {
+                                        com.nuvio.tv.ui.screens.uistyle.TopMenuProfile(
+                                            activeProfile?.name ?: "",
+                                            activeProfile?.avatarColorHex ?: "#1E88E5",
+                                            activeProfileAvatarImageUrl,
+                                            handleSwitchProfile
+                                        )
+                                    } else {
+                                        null
+                                    },
+                                    onNavigate = { optimisticRoute = it },
+                                    onExitApp = handleExitApp
+                                )
+                            } else if (navigationStyle != com.nuvio.tv.fork.uistyle.NavigationStyle.SIDEBAR) {
                                 com.nuvio.tv.ui.screens.uistyle.TopChromeScaffold(
                                     style = navigationStyle,
                                     clockEnabled = topMenuClock,
