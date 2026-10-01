@@ -103,28 +103,26 @@ Keystore-encrypted per profile, hashed channel keys, own HTTP client with host-o
 G10b merged as #64 (`93ddc6e`; 2143 tests, 0 new): Live TV screen, source and category dialogs,
 favorites / hiding / order / names by channel key, per-profile menu switch in Layout sidebar settings
 (off by default), channels in the official player as type `channel`; 208–212, 219–225 implemented.
-G10c (#65, Ready): XMLTV guide, now / progress / time left and guide logos. 214–215 and 217–218
-implemented; 216 is in_progress (data API exists; display remains G10e). HV-G10-1..4 MANUAL-PENDING;
-233 in_progress until G10d. Owner: Codex, sequential writer, no lease.
-Reviewed head `20e3e6fb21eedf4334fcc727ca228b0a7206ecb4` passed Ready run 36788883076:
-2154 tests, 15 known failures, 0 new, 1 skipped; APK artifact 11131925780; tested merge ref
-`96d36da6cbd51b95a3d381598793c09f257cdce3`. PR remains unmerged because review found eight issues.
-Corrections: source-scoped guide identities and per-source requests; SHA-256 filenames/cache v2;
-duplicate-id aliases/logo requirements retained; partial XMLTV results display but cannot be cached
-as complete and force a fresh download on the 30-minute retry; zero collectors cancels active guide
-IO; Refresh also updates guides if all source reloads fail. AdaptiveResources owns the budgets
-(constrained: 64 MiB disk / 256 MiB expanded; standard: 128 MiB / 512 MiB; 5-minute total call,
-120-second idle read timeout). Old guide remains on cancellation, oversize, gzip or rename failure.
-Local standalone JVM harness: 85 tests PASS (real HTTP, guide lifecycle, source isolation, retry,
-cache, XML event seam, parsers/providers/organisation and resource policies; Android Log/profile/
-storage seams stubbed). No Android/device run claimed. Latest correction head requires fresh CI.
+G10c merged as #65 (`4bc3621`; exact head `f6fe186`, run 36791938657: 2169 tests, 15 known
+failures, 0 new, 1 skipped; APK artifact 11133235363): XMLTV guide, now / progress / time left and
+guide logos, with the eight review corrections (source-scoped guide identities, SHA-256 filenames /
+cache v2, duplicate-id aliases, partial reads never cached as complete, zero collectors cancel guide
+IO, Refresh reloads guides when every source fails, AdaptiveResources download budgets). 214–215 and
+217–218 implemented; 216 in_progress until displayed in G10e. HV-G10-1..4 MANUAL-PENDING.
+G10d (#66, open): live-only playback rules and live-aware AFR (233–236) on the official player, gated
+on the in-memory Live TV playback registry so VOD is unchanged: HTTP refusals retried at
+0.7 / 1.4 / 2.1 s, MPEG-TS starts on the first I-frame, no disk cache for live, live-edge rejoin,
+frame rate measured from the stream and passed to the G5e `TrackAfrPolicy` owner (`RUN_LIVE`, no
+preflight second connection). HV-G10-5 MANUAL-PENDING. Owner: Claude, sequential writer, no lease.
+Local standalone JVM harness: 300 tests PASS (fork packages incl. LiveTvPlaybackTest; Android seams
+stubbed). No Android/device run claimed. #66 requires exact-head CI.
 Next gate: G11 Watch Party.
 
 ## Exact next action
-1. Wait for #65 latest exact-head fullDebug/governance/policy success, resolve verified review
-   threads, squash with expected head, fetch integration and safely merge it into feat/live-tv.
-   Then slices G10d (live-only playback rules and live AFR; 233–236), G10e
-   (in-player zapping, panels, Now/Next; 228–232), G10f (preview; 226, 227), G10g (QR setup; 213).
+1. Wait for #66 exact-head fullDebug/governance/policy success, resolve verified review threads,
+   squash with expected head, fetch integration and safely merge it into feat/live-tv. Then slices
+   G10e (in-player zapping, panels, Now/Next; 216, 228–232), G10f (preview; 226, 227), G10g (QR
+   setup; 213), then the G10 closeout.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G10→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
