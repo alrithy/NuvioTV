@@ -1,10 +1,10 @@
 # Nuvio Superfork handoff
 
 <!-- canonical-state:start -->
-- Active gate: G13 — Experimental AI & MAT
-- Active branch: `experimental/media`
-- Status: IN_PROGRESS
-- Task: `tasks/G13_EXPERIMENTAL.md`
+- Active gate: G14 — Hardening Release Upstream
+- Active branch: `chore/release-hardening`
+- Status: READY
+- Task: `tasks/G14_HARDENING_RELEASE.md`
 - Accepted official baseline: `5c1d9b0e2669199114a12ade38027da132303eb3`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -223,8 +223,8 @@ G14 (`validation_pending_gates`, MANUAL_TEST_LOG). No Android/device run is clai
 G12 closeout merged as #82 (`2791c1d`; exact head `0729e9e`, run 36874872121: 2219 tests, 15 known
 failures, 0 new, 1 skipped; APK artifact 11169431821). Legacy PR #1 / #2 stay reference-only.
 
-G13 Experimental AI & MAT IN_PROGRESS on `experimental/media`, task `tasks/G13_EXPERIMENTAL.md`, IDs 45
-and 250–261, owner Claude (sequential; no lease). Audit merged as #83 (`a62ce1d`; exact head `498da52`, run 36877526195: 2219 tests, 15 known failures,
+G13 Experimental AI & MAT CODE-COMPLETE (`experimental/media`, `tasks/G13_EXPERIMENTAL.md`, IDs 45 and
+250–261; closeout `docs/audits/G13_CLOSEOUT.md`). Audit merged as #83 (`a62ce1d`; exact head `498da52`, run 36877526195: 2219 tests, 15 known failures,
 0 new, 1 skipped; APK artifact 11170525995) `docs/audits/G13_EXPERIMENTAL_AUDIT.md`:
 official `5c1d9b0` has no AI and only platform passthrough; official `dev` `9e17941` (seven commits:
 MDBList cache, stream focus, strings) touches no G13 seam, so no sync PR. Fornace/nuvio-ai `518af71`
@@ -253,17 +253,25 @@ Provider Center (full-screen dialog) while it is active, with a preview notice (
 contract shells); profile deletion deletes AI keys through official's `ProfileScopedCredentialStore`
 set (vault resolved lazily); the manifest defines the provider bind permission and package queries.
 250, 255–261 `experimental`; HV-G13-1, HV-G13-2 MANUAL-PENDING. Local JVM harness: 448 tests PASS.
-G13c (#86, open): MAT (45), ysosrs `45e0984` FILE_PORT into `fork/audio/mat` (TrueHD framer, Kodi-
+G13c merged as #86 (`746c82a`; exact head `a8eeb15`, run 36885503149: 2330 tests, 15 known failures,
+0 new, 1 skipped; APK artifact 11174408183): MAT (45), ysosrs `45e0984` FILE_PORT into `fork/audio/mat` (TrueHD framer, Kodi-
 derived MAT packer, IEC 61937 sink, routing sink); the wrap happens only while MAT passthrough is
 opted in (Settings → Advanced → Experimental), otherwise official's audio path is untouched; the
 speed-aware renderer keeps the G5 passthrough policy and Bluetooth PCM while writing into the
 wrapper; MatFramingTest (the source has none). 45 `experimental`; HV-G13-3 MANUAL-PENDING. Local JVM
-harness: 455 tests PASS. Then the G13 closeout.
+harness: 455 tests PASS.
+G13 has 9 IDs `experimental` (45, 250, 255–261; OFF unless opted in) and 4 deferred (251–254, no
+engine in any pinned source; re-audit when Fornace ships engine providers); HV-G13-1..HV-G13-3 are
+carried to G14 (`validation_pending_gates`, MANUAL_TEST_LOG). No Android/device run is claimed.
+G14 Hardening / Distribution / Upstream READY on `chore/release-hardening`
+(`tasks/G14_HARDENING_RELEASE.md`, IDs 293–310, 312, 316, 320), owner Claude (sequential; no lease),
+after this closeout merges. It is the last gate. Legacy PR #1 / #2 stay reference-only.
 ## Exact next action
-1. Wait for #86 (G13c) exact-head CI and squash with the expected head; then the G13 closeout
-   (`docs/audits/G13_CLOSEOUT.md`, G13 CODE-COMPLETE, activate G14).
+1. Start G14 with an official-first audit (`docs/audits/G14_HARDENING_AUDIT.md`): the 320-row
+   accounting, IMPORT_LEDGER / license / dependency / sensitive-log audits, release CI and artifacts,
+   and the hardware-certification plan for every MANUAL-PENDING check from G1–G13.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
-3. Continue G13→G14 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
+3. Hardware results are recorded only as real PASS / FAIL; a FAIL reopens the affected gate / feature.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 5. PR #28 remains independent governance work. Official pins change only through a dedicated sync PR.
 
