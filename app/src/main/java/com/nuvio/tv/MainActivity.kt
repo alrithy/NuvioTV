@@ -2453,7 +2453,7 @@ private fun DrawerItemIcon(
 }
 
 @Composable
-internal fun rememberRawSvgPainter(rawIconRes: Int): Painter { // Superfork G12a: shared with the top menu
+private fun rememberRawSvgPainter(rawIconRes: Int): Painter {
     val density = androidx.compose.ui.platform.LocalDensity.current
     val sizePx = with(density) { NuvioTheme.spacing.xl.roundToPx() }
     return rememberAsyncImagePainter(
