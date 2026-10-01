@@ -3,8 +3,8 @@ project: Nuvio Superfork
 repository: alrithy/NuvioTV
 official_upstream: NuvioMedia/NuvioTV
 initial_bootstrap_baseline_sha: c257a2365ee3386b582dc2974ec235cfe0381f33
-current_official_baseline_sha: 56aaba20b7d01746d616a2c8517adcf442950b90
-integration_upstream_sync_commit: 5c24805f82b2bb7092b9acafc00903a32fe5045c
+current_official_baseline_sha: 5c1d9b0e2669199114a12ade38027da132303eb3
+integration_upstream_sync_commit: 89b46c4dfa4327a0eaaa212e2c05bad3c9c6b766
 integration_branch: superfork/integration
 legacy_default_branch: dev
 active_gate: G12
@@ -89,10 +89,10 @@ validation_pending_gates:
   evidence: 'Audit #71, slices #72-#73 and review corrections #74 merged; HV-G11-1, HV-G11-2, HV-G11-3, HV-G11-4 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G11_CLOSEOUT.md.'
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-10-01T10:15:00Z'
+  checked_at: '2026-10-01T10:30:00Z'
   sha: 5c1d9b0e2669199114a12ade38027da132303eb3
-  accepted: false
-  reason: 'Official dev changed the home layout files G12 touches (global landscape poster mode in Classic / Grid / Modern rows, cards and layout settings; Hebrew and Greek strings; libass fix; detail hero trailer focus). Sync PR #77 (chore/upstream-sync-2026-10-01) merges it with no conflicts; accepted after its clean replays and exact-head CI.'
+  accepted: true
+  reason: 'Adopted via chore/upstream-sync-2026-10-01 (#77, D059): official dev changed the home layout files G12 touches (global landscape poster mode); merge 89b46c4 without conflicts; clean replays run 36848159277 (official 1796 tests identical to 56aaba2; integration 2205 tests, 15 known, 0 new).'
 completed_gates:
 - gate: G0
   name: Fork Foundation

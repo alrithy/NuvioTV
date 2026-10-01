@@ -440,3 +440,11 @@ optional screensaver off by default. UI_STYLES becomes AUTO with the first code 
 Glass as Modern and restores the official sidebar. An upstream sync to official `dev` `5c1d9b0`
 precedes G12 code because official changed the home layout files. Legacy PRs #1 / #2 stay
 reference-only.
+
+## D059 — Adopt official dev 5c1d9b0 before G12
+Official `dev` `5c1d9b0` changed the home layouts, cards and layout settings that G12 builds on
+(global landscape poster mode) and fixed Exo libass subtitles. It is merged into integration before
+any G12 code (UPSTREAM_SYNC; D050 pattern), with no conflicts, and becomes the accepted baseline once
+the clean replays of official `5c1d9b0` and the integration merge show no new debt and no lost or
+newly skipped test. Any debt growth or reduced coverage needs exact-head maintainer approval (never
+self-approved). The sync merges with a merge commit so official stays a parent.

@@ -2,11 +2,11 @@
   "ci_reported_errors": [
     "3 new unit-test failures"
   ],
-  "ci_run": "36670841979",
+  "ci_run": "36848159277",
   "errors": [
     "3 new unit-test failures"
   ],
-  "evaluation_note": "Raw results from Superfork Baseline Audit run 36670841979 job 109745295876 (log SUPERFORK_RESULT lines); errors re-evaluated by check_baseline_test_failures.evaluate against this reviewed inventory (D050). ci_reported_errors is the CI evaluation against the previous 71632b9 inventory. The 3 new_failures are official's stale NuvioExoPlayerPerformanceHelperTest expectations, already corrected on integration by G2b (#15); they are not debt.",
+  "evaluation_note": "Raw results from Superfork Baseline Audit run 36848159277 job 110323188441 (log SUPERFORK_RESULT lines) for official 5c1d9b0 (D059). Outcomes are identical, test by test, to the reviewed 56aaba2 inventory (run 36670841979): same 1,796 tests, same 18 failures, same skip. The 3 new_failures are official's stale NuvioExoPlayerPerformanceHelperTest expectations, already corrected on integration by G2b (#15); they are not debt (D050).",
   "failures": 18,
   "gradle_exit": 0,
   "known_remaining": [
@@ -1833,6 +1833,6 @@
     "com.nuvio.tv.updater.VersionUtilsTest#version prefix and build metadata do not affect precedence": "passed"
   },
   "skipped": 1,
-  "tested_sha": "56aaba20b7d01746d616a2c8517adcf442950b90",
+  "tested_sha": "5c1d9b0e2669199114a12ade38027da132303eb3",
   "tests": 1796
 }

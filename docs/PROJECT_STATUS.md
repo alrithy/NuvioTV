@@ -5,7 +5,7 @@
 - Active branch: `feat/ui-styles`
 - Status: IN_PROGRESS
 - Task: `tasks/G12_UI_STYLES.md`
-- Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
+- Accepted official baseline: `5c1d9b0e2669199114a12ade38027da132303eb3`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
 <!-- canonical-state:end -->

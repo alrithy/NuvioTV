@@ -5,7 +5,7 @@
 - Active branch: `feat/ui-styles`
 - Status: IN_PROGRESS
 - Task: `tasks/G12_UI_STYLES.md`
-- Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
+- Accepted official baseline: `5c1d9b0e2669199114a12ade38027da132303eb3`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
 <!-- canonical-state:end -->
@@ -180,13 +180,13 @@ navigation style (Sidebar default); `HomeLayout.GLASS` and `CINEMATIC_GLASS` on 
 effects gated by AdaptiveResources tier and API level with a flat fallback; screensaver off by
 default; UI_STYLES AUTO with the first code slice. Official `dev` `5c1d9b0` changed the home layout
 files, so an upstream sync PR precedes G12 code: #77 (`chore/upstream-sync-2026-10-01`, open) merges
-official `dev` `5c1d9b0` with no conflicts (integration merge `89b46c4`); clean `[baseline-audit]` replays of
-official `5c1d9b0` and the merge decide the new baseline anchor. Slices: sync, G12a (196–200, 204, 205), G12b (193,
+official `dev` `5c1d9b0` with no conflicts (integration merge `89b46c4`); clean replays (run 36848159277):
+official 1,796 tests identical to the `56aaba2` inventory, integration 2,205 tests, 15 known, 0 new;
+baseline re-anchored on `5c1d9b0` (D059) with debt unchanged. Slices: sync, G12a (196–200, 204, 205), G12b (193,
 194), G12c (292). Legacy PR #1 / #2 stay reference-only. Next G13 Experimental AI & MAT.
 ## Exact next action
-1. Finish the upstream sync #77: read the official / integration replays, re-anchor the baseline
-   (state, BASELINE, SOURCE_MAP, baseline_test_debt, evidence, UPSTREAM_SYNC_LOG) if no new debt,
-   then exact-head CI and merge; then G12a on `feat/ui-styles`.
+1. Merge the upstream sync #77 with a merge commit after exact-head CI, then G12a on `feat/ui-styles`
+   (`fork/uistyle` effect policy, top-chrome scaffold, navigation style, clock and profile slots).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G12→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
