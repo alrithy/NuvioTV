@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 /**
- * Per-profile UI style choices in `fork_ui_style` (G12a–G12d, D058, D060, D061). Official layout preferences are never
+ * Per-profile UI style choices in `fork_ui_style` (G12a–G12d, D058, D060–D062). Official layout preferences are never
  * written. While UI_STYLES is OFF every flow reports official's sidebar.
  */
 @Singleton

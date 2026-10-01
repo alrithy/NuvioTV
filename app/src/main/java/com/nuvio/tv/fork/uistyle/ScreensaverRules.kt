@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /*
- * G12d optional screensaver (D058, D061; feature 292). ALGORITHM_PORT of Cxsmo-ai/NuvioTV-Custom
+ * G12d optional screensaver (D058, D062; feature 292). ALGORITHM_PORT of Cxsmo-ai/NuvioTV-Custom
  * @ 3e0d0fa (`core/player/ScreensaverController.kt`, the 1 Hz ticker and key handling in
  * `MainActivity`), made pure so every transition is JVM-tested with a fake clock. Adapted: off by
  * default and per profile (Cxsmo had it on), hidden while UI_STYLES is OFF; the key swallowing lives
