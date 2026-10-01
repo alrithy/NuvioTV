@@ -1,10 +1,10 @@
 # Nuvio Superfork handoff
 
 <!-- canonical-state:start -->
-- Active gate: G10 — Live TV
-- Active branch: `feat/live-tv`
-- Status: IN_PROGRESS
-- Task: `tasks/G10_LIVE_TV.md`
+- Active gate: G11 — Watch Party
+- Active branch: `feat/watch-party`
+- Status: READY
+- Task: `tasks/G11_WATCH_PARTY.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -88,7 +88,8 @@ failed-autoplay source lists show neutral cards; skip HTTP (and the Simkl lookup
 Anime-Skip) is cancellation-aware inside the six-second provider deadline; encrypted credential
 writes change a non-secret cache revision with profile identity, so corrected keys are retried.
 
-G10 Live TV IN_PROGRESS on `feat/live-tv`, task `tasks/G10_LIVE_TV.md`, IDs 208–236. Audit
+G10 Live TV CODE-COMPLETE (`feat/live-tv`, `tasks/G10_LIVE_TV.md`, IDs 208–236; closeout
+`docs/audits/G10_CLOSEOUT.md`). Audit
 `docs/audits/G10_LIVE_TV_AUDIT.md`: official has live-playback plumbing (type `channel`, live latch,
 live-window retry) but no Live TV feature, so no ID is verified official. D055: one `fork/livetv` owner
 (Reshaped FILE_PORT at `0ccf049`, adapted), source records Keystore-encrypted per profile, hashed
@@ -122,22 +123,23 @@ G10f merged as #68 (`f374ccf`; exact head `6a7fe12`, run 36829761290: 2181 tests
 failures, 0 new, 1 skipped; APK artifact 11147038290): channel preview in the Live TV list (226,
 227) sized by AdaptiveResources `liveTvPreviewBudget` (720p on constrained boxes, off by default on
 low-RAM boxes), per-profile Channel previews / Preview sound. HV-G10-7 MANUAL-PENDING.
-G10g (#69, open): set up Live TV from a phone (213): while the sources dialog is open and the app is
-in the foreground, a LAN page on a random 128-bit token path (QR code beside the add-source form)
-takes an M3U link or .m3u file, Xtream login or Stalker portal and loads it like a typed source,
-encrypted per profile; Origin check, 16 KiB form / 64 MiB playlist caps before reading, nothing
-logged (`LiveTvSetupPolicy`, `LiveTvSetupServer`, `LiveTvRepository.importPlaylist`). HV-G10-8
-MANUAL-PENDING. Owner: Claude, sequential writer, no lease. Local standalone JVM harness: 311 tests
-PASS (fork packages; Android seams stubbed); the server and dialog compile only in CI. No
-Android/device run claimed. #69 requires exact-head CI; with it every G10 ID (208–236) is terminal.
-Next gate: G11 Watch Party.
+G10g merged as #69 (`5aba471`; exact head `70035de`, run 36831015949: 2186 tests, 15 known
+failures, 0 new, 1 skipped; APK artifact 11147825837): set up Live TV from a phone (213) — a LAN page
+on a random 128-bit token path (QR code beside the add-source form) for an M3U link or file, Xtream
+or Stalker, Origin check and size caps, nothing logged. HV-G10-8 MANUAL-PENDING.
+All 29 G10 IDs are `implemented`; HV-G10-1..HV-G10-8 are carried to G14 (`validation_pending_gates`,
+MANUAL_TEST_LOG). No Android/device run is claimed.
+
+G11 Watch Party READY on `feat/watch-party`, task `tasks/G11_WATCH_PARTY.md`, owner Claude
+(sequential; no lease). It starts with an official-first audit against current official `dev` and
+the unchanged Reshaped pin `0ccf049`.
+Next gate: G12 UI Styles.
 
 ## Exact next action
-1. Wait for #69 exact-head fullDebug/governance/policy success, resolve verified review threads,
-   squash with expected head, then the G10 closeout (state to G11 Watch Party, D055 summary,
-   `validation_pending_gates` G10 entry for HV-G10-1..HV-G10-8).
+1. After this closeout merges: G11 Watch Party audit on `feat/watch-party` (official `dev` first,
+   then Reshaped `0ccf049`), with a decision record and slices like G10's.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
-3. Continue G10→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
+3. Continue G11→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 5. PR #28 remains independent governance work. Official pins change only through a dedicated sync PR.
 
