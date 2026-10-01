@@ -426,3 +426,17 @@ recorded residual risk). A guest follows one host until it leaves. The host's sp
 optional `rate` field, omitted at 1× so normal traffic stays protocol v1; the Nuvio Party phone build
 (AntoninoScardina/NuvioMobile `ff7a16b`, pinned as a reference only) ignores it. IP-locked or local
 sources show a guest-side unsupported state instead of failing silently.
+
+## D058 — G12 has one UI-style owner; official layouts and sidebars stay as shipped
+The only UI-style module is `fork/uistyle`: NuvioGlass `84098b7` glass surface, nav pill, clock and
+scaffold (FILE_PORT), Reshaped `0ccf049` pill behaviour and AGSL liquid-glass effect (FILE_PORT) and
+Cxsmo `3e0d0fa` top-bar profile access (ALGORITHM_PORT), as one top-chrome scaffold with three
+looks (BAR, PILL, GLASS) rather than three top bars. Classic / Grid / Modern, both official sidebars,
+the hero carousel, hero trailer and full-screen backdrop stay official (verified_official 188–192,
+195, 201–203). New: a per-profile navigation style for official layouts (Sidebar default, Top bar,
+Pill), `HomeLayout.GLASS` and `CINEMATIC_GLASS` on the Modern pipeline, effects gated by
+AdaptiveResources tier and API level with a flat fallback (always over video, or by setting), and an
+optional screensaver off by default. UI_STYLES becomes AUTO with the first code slice; OFF treats
+Glass as Modern and restores the official sidebar. An upstream sync to official `dev` `5c1d9b0`
+precedes G12 code because official changed the home layout files. Legacy PRs #1 / #2 stay
+reference-only.
