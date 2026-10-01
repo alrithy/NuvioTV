@@ -1,5 +1,6 @@
 package com.nuvio.tv.fork.subtitles
 
+import com.nuvio.tv.fork.security.LocalServerAccess
 import java.net.URI
 import java.security.SecureRandom
 
@@ -16,11 +17,7 @@ enum class SubtitleFontImportResult {
  */
 object SubtitleFontImportPolicy {
     /** 128-bit random path token for the LAN upload page; shown only in the TV's QR code. */
-    fun newToken(random: SecureRandom = SecureRandom()): String {
-        val bytes = ByteArray(16)
-        random.nextBytes(bytes)
-        return bytes.joinToString("") { "%02x".format(it.toInt() and 0xFF) }
-    }
+    fun newToken(random: SecureRandom = SecureRandom()): String = LocalServerAccess.newKey(random)
 
     /**
      * A page from another site may post to the TV from the user's browser; its Origin then differs
@@ -28,7 +25,7 @@ object SubtitleFontImportPolicy {
      * already limits the upload to someone who can see the TV screen.
      */
     fun originAllowed(origin: String?, host: String?): Boolean =
-        origin == null || (host != null && origin.equals("http://$host", ignoreCase = true))
+        LocalServerAccess.originAllowed(origin, referer = null, host = host)
 
     /** Upfront verdict from Content-Length; null means read the body. */
     fun uploadLengthVerdict(contentLength: Long?): SubtitleFontImportResult? = when {

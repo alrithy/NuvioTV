@@ -3,6 +3,8 @@ package com.nuvio.tv.core.server
 import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.nuvio.tv.fork.security.LocalServerAccess
+import com.nuvio.tv.fork.security.gate
 import fi.iki.elonen.NanoHTTPD
 import java.io.ByteArrayInputStream
 import java.util.concurrent.ConcurrentHashMap
@@ -19,6 +21,8 @@ class AddonConfigServer(
     private val logoProvider: (() -> ByteArray?)? = null,
     port: Int = 8080
 ) : NanoHTTPD(port) {
+    /** G14a (D064): the QR session; the QR code opens [LocalServerAccess.entryUrl]. */
+    val access = LocalServerAccess()
 
     private val gson = Gson()
     private val pendingChanges = ConcurrentHashMap<String, PendingAddonChange>()
@@ -32,6 +36,7 @@ class AddonConfigServer(
     }
 
     override fun serve(session: IHTTPSession): Response {
+        access.gate(session)?.let { return it }
         val uri = session.uri
         val method = session.method
 

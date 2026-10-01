@@ -3,9 +3,8 @@ package com.nuvio.tv.core.logging
 fun String?.rawForLog(): String =
     this ?: "(null)"
 
-fun String?.urlForLog(): String {
-    return this ?: "(null)"
-}
+/** G14a (D064): scheme, host and port only; path, query and user info never reach a log. */
+fun String?.urlForLog(): String = com.nuvio.tv.fork.security.LogRedaction.url(this)
 
 fun String?.bodySnippetForLog(maxLength: Int = Int.MAX_VALUE): String {
     val value = this ?: return "(null)"

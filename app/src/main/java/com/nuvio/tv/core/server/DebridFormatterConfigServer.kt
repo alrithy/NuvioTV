@@ -5,6 +5,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.nuvio.tv.core.debrid.DebridStreamFormatterDefaults
 import com.nuvio.tv.domain.model.DebridStreamPreferences
+import com.nuvio.tv.fork.security.LocalServerAccess
+import com.nuvio.tv.fork.security.gate
 import fi.iki.elonen.NanoHTTPD
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
@@ -16,10 +18,13 @@ class DebridFormatterConfigServer(
     private val logoProvider: (() -> ByteArray?)? = null,
     port: Int = 8090
 ) : NanoHTTPD(port) {
+    /** G14a (D064): the QR session; the QR code opens [LocalServerAccess.entryUrl]. */
+    val access = LocalServerAccess()
     private val gson = Gson()
     private val settingsMapType = object : TypeToken<Map<String, Any?>>() {}.type
 
     override fun serve(session: IHTTPSession): Response {
+        access.gate(session)?.let { return it }
         return when {
             session.method == Method.GET && session.uri == "/" -> serveWebPage()
             session.method == Method.GET && session.uri == "/logo.png" -> serveLogo()

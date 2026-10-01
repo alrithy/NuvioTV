@@ -7,6 +7,7 @@ import com.dokar.quickjs.quickJs
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.nuvio.tv.BuildConfig
+import com.nuvio.tv.core.logging.urlForLog
 import com.nuvio.tv.domain.model.LocalScraperResult
 import com.nuvio.tv.domain.model.Subtitle
 import kotlinx.coroutines.CoroutineDispatcher
@@ -296,7 +297,7 @@ class PluginRuntime @Inject constructor() {
                         try {
                             performNativeFetch(url, method, headersJson, bodyKind, body, followRedirects, inFlightCalls)
                         } catch (t: Throwable) {
-                            Log.e(TAG, "Async fetch bridge error for $method $url: ${t.message}")
+                            Log.e(TAG, "Async fetch bridge error for $method ${url.urlForLog()}: ${t.message}")
                             gson.toJson(
                                 mapOf(
                                     "ok" to false,
@@ -518,7 +519,7 @@ class PluginRuntime @Inject constructor() {
         followRedirects: Boolean,
         inFlightCalls: MutableSet<Call>
     ): String {
-        Log.d(TAG, "Fetch: $method $url bodyKind=$bodyKind")
+        Log.d(TAG, "Fetch: $method ${url.urlForLog()} bodyKind=$bodyKind")
         return try {
             val requestBytes = when (bodyKind) {
                 "base64" -> base64Decode(body)
@@ -606,7 +607,7 @@ class PluginRuntime @Inject constructor() {
                             }
                         }
                     } catch (e: Exception) {
-                        Log.w(TAG, "Failed to read/decode response body for $url: ${e.message}")
+                        Log.w(TAG, "Failed to read/decode response body for ${url.urlForLog()}: ${e.message}")
                         BoundedReadResult(ByteArray(0), false)
                     }
 
@@ -625,7 +626,7 @@ class PluginRuntime @Inject constructor() {
                         "truncated" to decodedRead.truncated
                     )
 
-                    Log.d(TAG, "Fetch result: ${httpResponse.code} ${httpResponse.message} url=$url bodyLen=${responseBody.length} bodyPreview=${responseBody.take(300)}")
+                    Log.d(TAG, "Fetch result: ${httpResponse.code} ${httpResponse.message} url=${url.urlForLog()} bodyLen=${responseBody.length} bodyPreview=${responseBody.take(300)}")
                     gson.toJson(result)
                 }
             } finally {
