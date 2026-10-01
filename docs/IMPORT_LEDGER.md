@@ -958,3 +958,19 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 fork of official; `MatPacker` keeps its Kodi / LAV Filters copyright header (GPL-2.0-or-later, compatible)
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: receivers that need IEC pause bursts on a rebuffer; boxes whose IEC 61937 AudioTrack refuses 192 kHz / 8 channels (falls back to the delegate); seek / flush timing (device check HV-G13-3)
+
+### G14a — Local QR server sessions and host-only log URLs (299, 303, 304, 305 implemented)
+- Roadmap gate: G14
+- Source repository: none (source group `official+project`; fork hardening of official code)
+- Source file(s): official `core/server/{AddonConfigServer,RepositoryConfigServer,CustomPosterConfigServer,DebridFormatterConfigServer,StreamBadgeConfigServer}.kt`, their QR URL builders, `core/logging/LogDiagnostics.kt` and the URL log sites
+- Import mode: REWRITE (fork-owned `fork/security`), ADAPTER (one-line hooks in official files)
+- Current official equivalent: none; official's QR servers answer anyone on the network at fixed paths, and `urlForLog()` returns the URL unchanged
+- What already existed upstream: NanoHTTPD servers and pages; `urlForLog()` call sites in the auth code
+- What was imported: nothing; the token / Origin rule of the fork's G6 font and G10 Live TV servers moved into `LocalServerAccess` and is shared
+- What was intentionally not imported: no rewrite of official's HTML / JS pages (same-origin `fetch` carries the cookie); no release-build log stripping (unverifiable without a release build in CI); official's Trakt / debrid / MDBList DataStores are not re-encrypted (D064)
+- Local adaptations: per-server `val access = LocalServerAccess()` and `access.gate(session)?.let { return it }` as the first line of `serve()`; the QR URL is `access.entryUrl(...)`; the 303 redirect drops the key from the address bar; per-session cookie names so servers on one address never collide; `urlForLog()` delegates to `LogRedaction`; the two official server tests send the session cookie
+- Feature flag / fallback: none (security fix, always on)
+- Tests ported/added: LocalServerAccessTest (7), LogRedactionTest (3); StreamBadgeConfigServerTest and DebridFormatterConfigServerTest adapted to carry the session cookie
+- License / attribution notes: GPL-3.0 fork of official; fork-owned code
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: phone browsers that block all cookies cannot open the QR pages; very old browsers that send neither Origin nor Referer are allowed only with the session cookie
