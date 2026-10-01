@@ -188,6 +188,8 @@ fun LiveTvScreen(
     val play: (LiveTvChannel) -> Unit = { channel ->
         if (!launching) {
             launching = true
+            // G10e: zapping in the player stays in the list the channel was picked from (all shown channels when it is not in it).
+            repository.setZapList(visibleChannels, filterKey.takeIf { query.isEmpty() })
             scope.launch {
                 try {
                     val route = viewModel.playerRoute(channel)

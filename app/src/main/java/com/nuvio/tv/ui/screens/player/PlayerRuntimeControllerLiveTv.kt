@@ -100,3 +100,23 @@ internal fun PlayerRuntimeController.switchDisplayForLiveTv(rawFps: Float, width
         }
     }
 }
+
+/**
+ * G10e (features 228, 229): a switch from one Live TV channel to another keeps the ExoPlayer it
+ * already has, so a zap skips rebuilding renderers, codecs and the audio sink, which takes seconds
+ * on weak TVs; the official switch then sets the new channel on that player. False (rebuild as
+ * usual) for anything else, including the mpv engine. Reshaped `keepPlayerForLiveTvZap` @ 0ccf049.
+ */
+internal fun PlayerRuntimeController.keepPlayerForLiveTvZap(newUrl: String): Boolean {
+    val player = _exoPlayer ?: return false
+    if (isUsingMpvEngine() || !isLiveTvPlayback || !LiveTvPlaybackRegistry.isLiveTv(newUrl)) return false
+    errorRetryJob?.cancel()
+    errorRetryJob = null
+    playbackPreparationJob?.cancel()
+    playbackPreparationJob = null
+    runCatching {
+        player.stop()
+        player.clearMediaItems()
+    }
+    return true
+}

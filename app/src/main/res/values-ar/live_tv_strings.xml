@@ -74,4 +74,13 @@
     <string name="live_tv_error_xtream_invalid_url">أدخل رابط خادم Xtream صالحًا يبدأ بـ HTTP أو HTTPS.</string>
     <string name="live_tv_error_xtream_no_channels">لم يُعثر على قنوات قابلة للتشغيل لحساب Xtream هذا.</string>
     <string name="live_tv_error_xtream_failed">تعذّر تحميل مزود Xtream.</string>
+    <!-- G10e -->
+    <string name="live_tv_categories">الفئات</string>
+    <string name="live_tv_player_channels">القنوات</string>
+    <string name="live_tv_player_categories_hint">◀ الفئات</string>
+    <string name="live_tv_player_hint">▲▼ تبديل القناة  ·  ◀ قائمة القنوات  ·  OK معلومات</string>
+    <string name="live_tv_info_hint">OK أدوات التحكم  ·  ◀ قائمة القنوات  ·  ▲▼ تبديل القناة</string>
+    <string name="live_tv_info_now">الآن</string>
+    <string name="live_tv_info_next">التالي · %1$s</string>
+    <string name="live_tv_info_no_guide">لا يوجد دليل لهذه القناة</string>
 </resources>

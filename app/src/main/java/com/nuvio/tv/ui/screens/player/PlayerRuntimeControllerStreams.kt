@@ -858,7 +858,7 @@ internal fun PlayerRuntimeController.switchToSourceStream(
     )
 
     resetLoadingOverlayForNewStream()
-    releasePlayer(flushPlaybackState = false)
+    if (!keepPlayerForLiveTvZap(url)) releasePlayer(flushPlaybackState = false) // Superfork G10e hook: zaps keep the player
 
     applySelectedStreamState(
         stream = stream,
