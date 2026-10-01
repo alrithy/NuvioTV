@@ -1,10 +1,10 @@
 # Nuvio Superfork handoff
 
 <!-- canonical-state:start -->
-- Active gate: G11 — Watch Party
-- Active branch: `feat/watch-party`
-- Status: IN_PROGRESS
-- Task: `tasks/G11_WATCH_PARTY.md`
+- Active gate: G12 — UI Styles
+- Active branch: `feat/ui-styles`
+- Status: READY
+- Task: `tasks/G12_UI_STYLES.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -130,8 +130,8 @@ or Stalker, Origin check and size caps, nothing logged. HV-G10-8 MANUAL-PENDING.
 All 29 G10 IDs are `implemented`; HV-G10-1..HV-G10-8 are carried to G14 (`validation_pending_gates`,
 MANUAL_TEST_LOG). No Android/device run is claimed.
 
-G11 Watch Party IN_PROGRESS on `feat/watch-party`, task `tasks/G11_WATCH_PARTY.md`, IDs 237–249,
-owner Claude (sequential; no lease). Audit merged as #71 (`2d39a6d`; 2186 tests, 0 new) `docs/audits/G11_WATCH_PARTY_AUDIT.md`: official
+G11 Watch Party CODE-COMPLETE (`feat/watch-party`, `tasks/G11_WATCH_PARTY.md`, IDs 237–249; closeout
+`docs/audits/G11_CLOSEOUT.md`). Audit merged as #71 (`2d39a6d`; 2186 tests, 0 new) `docs/audits/G11_WATCH_PARTY_AUDIT.md`: official
 (`56aaba2`, `dev` `5c1d9b0`) has no Watch Party but every player control a sync engine needs; source
 AntoninoScardina/NuvioTV `watchparty` @ `ff597b1` (one commit, `5853027`; VDO.Ninja SDK v1.6.1,
 MPL-2.0). D056: one `fork/watchparty` owner; wire format kept for the Nuvio Party phone build; host
@@ -150,7 +150,8 @@ two-step consent before a room is created, room panel and badge, joining from Pl
 guests' players opening the host's stream; unshareable reasons (torrent / local, Live TV,
 credentials); a guest's received link is kept in memory only and never saved for reuse
 (`streamCacheKey` guard); strings en + ar. 237–249 implemented; HV-G11-1..HV-G11-4 MANUAL-PENDING.
-Review corrections (#74, open; D057) for the 14 Codex findings that arrived on #71, #72 and #73
+Review corrections merged as #74 (`65e1c57`; exact head `af7de62`, run 36842866031: 2205 tests,
+15 known failures, 0 new, 1 skipped; APK artifact 11152162286; D057) for the 14 Codex findings that arrived on #71, #72 and #73
 after merge: the guest's player route carries a one-time in-memory ticket instead of the link and
 headers (none in navigation saved state) and diagnostics never save a received link; non-public
 destinations (loopback, private, CGNAT, link-local, ULA, multicast, reserved, LAN-only names,
@@ -160,16 +161,17 @@ travels as an optional `rate` (omitted at 1×) and guests correct around it and 
 back; terminal signaling loss ends the room; remote play / pause does the button's mpv bookkeeping;
 unshareable streams are detached; streams without a duration attach; guests see an unsupported-stream
 notice (IP-locked / local sources). Phone compatibility target pinned: AntoninoScardina/NuvioMobile
-`watchparty` @ `ff7a16b` (reference only). Local JVM harness: 330 tests PASS (the UI compiles only
-in CI). #74 requires exact-head CI.
-Next gate: G12 UI Styles.
+`watchparty` @ `ff7a16b` (reference only). All 14 review threads on #71–#73 were answered and resolved.
+All 13 G11 IDs are `implemented`; HV-G11-1..HV-G11-4 are carried to G14 (`validation_pending_gates`,
+MANUAL_TEST_LOG). No Android/device run is claimed.
+G12 UI Styles READY on `feat/ui-styles` (`tasks/G12_UI_STYLES.md`, IDs 188–205 and 292), owner
+Claude (sequential; no lease), after this closeout merges; next G13 Experimental AI & MAT.
 
 ## Exact next action
-1. Wait for #74 (G11 review corrections) exact-head CI, squash with expected head, reply on and
-   resolve the 14 review threads on #71–#73, then the G11 closeout
-   (`chore/governance-g11-closeout`: state to G12 UI Styles, HV-G11-1..4 to G14).
+1. Start G12 UI Styles with an official-first audit (`docs/audits/G12_UI_STYLES_AUDIT.md`) against
+   official `56aaba2` / `dev` and the pinned NuvioGlass, Reshaped and Cxsmo sources.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
-3. Continue G11→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
+3. Continue G12→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 5. PR #28 remains independent governance work. Official pins change only through a dedicated sync PR.
 

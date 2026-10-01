@@ -50,3 +50,14 @@ G14 is the planned single hardware-certification stop: execute the accumulated c
 - Result: MANUAL-PENDING for every listed case.
 - Follow-up: execute all eight during G14 with real M3U / Xtream / Stalker providers, attach real evidence, reopen affected features on FAIL.
 - Automated evidence is separate: docs/audits/G10_CLOSEOUT.md (2186 tests, 15 known failures, 0 new, APK).
+
+## 2026-10-01 — G11 carry-forward to G14
+- Gate / Feature IDs: G11, 237–249.
+- Commit: final squash 65e1c57e828daa6323f5968adbad627c1369e490 (PR #74).
+- Test cases: HV-G11-1, HV-G11-2, HV-G11-3, HV-G11-4.
+- Device / Android / display / network / media: not run; to be captured in G14.
+- Expected: exact procedures and expected results in docs/HARDWARE_VALIDATION_TCL_C6K.md §4h.
+- Actual: no hardware execution or diagnostics captured.
+- Result: MANUAL-PENDING for every listed case.
+- Follow-up: execute all four during G14 with two TVs, the Nuvio Party phone build and two networks, attach real evidence, reopen affected features on FAIL.
+- Automated evidence is separate: docs/audits/G11_CLOSEOUT.md (2205 tests, 15 known failures, 0 new, APK).
