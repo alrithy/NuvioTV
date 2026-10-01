@@ -333,10 +333,28 @@ android {
     }
 }
 
+// Superfork test builds (D066): `-PsuperforkTestAppId` gives the full debug build a fixed id and
+// `-PsuperforkTestBuild=<n>` a monotonic version code (versionCode * 100000 + n), so every test
+// build installs as an update over the previous one. Without them nothing changes.
+val superforkTestAppId = providers.gradleProperty("superforkTestAppId").orNull?.takeIf { it.isNotBlank() }
+val superforkTestBuild = providers.gradleProperty("superforkTestBuild").orNull?.toIntOrNull()
+    ?.also { require(it in 1..99_999) { "superforkTestBuild must be 1..99999" } }
+
 androidComponents {
     onVariants(selector().withBuildType("debug")) { variant ->
         val isPlaystore = variant.productFlavors.any { it.second == "playstore" }
-        variant.applicationId.set(if (isPlaystore) "com.nuvio.appdebug" else "com.nuviodebug.com")
+        variant.applicationId.set(
+            if (isPlaystore) "com.nuvio.appdebug" else superforkTestAppId ?: "com.nuviodebug.com"
+        )
+        if (!isPlaystore && superforkTestBuild != null) {
+            variant.outputs.forEach { output ->
+                // Read the DSL values once; mapping a property into itself is a circular evaluation.
+                val baseCode = output.versionCode.orNull ?: 0
+                val baseName = output.versionName.orNull.orEmpty()
+                output.versionCode.set(baseCode * 100_000 + superforkTestBuild)
+                output.versionName.set("$baseName-sf.$superforkTestBuild")
+            }
+        }
     }
 }
 

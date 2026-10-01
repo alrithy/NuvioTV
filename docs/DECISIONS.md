@@ -524,3 +524,24 @@ exact-head maintainer approval (never self-approved).
 Outcome (#89): merged without conflicts (integration merge `ed62c7b`); clean replays run 36891605846
 kept every `5c1d9b0` test with an identical outcome and added 28 passing official tests, so the
 baseline moved to `aeb6ee8` with debt unchanged and the minimum test count raised to 1,824.
+
+## D066 — One installable Superfork test build for device testing
+Device testing needs a build that logs in to the user's Nuvio account (TV QR login and sync need the
+real Supabase configuration) and that each new build updates in place. The CI APK cannot do either:
+CI writes empty `local.properties` / `local.dev.properties` (no backend) and signs with a key generated
+per run (no update path). `Superfork Test Build` therefore builds the full debug variant as
+`com.nuvio.tv.debug` (installs beside official and release builds), with the backend configuration
+from repository secrets (`LOCAL_PROPERTIES_BASE64` / `LOCAL_DEV_PROPERTIES_BASE64`, the names official's
+workflows use, or the `NUVIO_SUPABASE_URL` + `NUVIO_SUPABASE_ANON_KEY` secrets other Nuvio forks use).
+Without those secrets it reads the public client configuration official ships in its latest release
+APK (`NuvioMedia/NuvioTV`): only a key whose JWT role is `anon` (or an `sb_publishable_` key) is
+accepted, never a service-role or secret key, and a backend counts only if it creates a TV login
+session; the values are masked and never printed. It is signed with one fixed test key
+(`SUPERFORK_TEST_KEYSTORE_*`, certificate SHA-256 pinned in the workflow and checked on the keystore
+and the APK), the built APK must create a TV QR login session with the configuration compiled into
+it, and version code `versionCode * 100000 + run number`, so builds
+only move forward. Secrets are written to runner files only and never printed; the artifact holds
+the universal APK and its SHA-256. It runs on every push to `superfork/integration`, on demand, and on
+PRs titled `[test-build]`. The two Gradle properties it uses (`superforkTestAppId`,
+`superforkTestBuild`) change nothing when absent, so the regular CI build is unchanged. The test key
+is for testing only; releases keep their own key (GITHUB_ADMIN_CHECKLIST D).

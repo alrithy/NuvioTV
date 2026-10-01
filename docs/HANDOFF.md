@@ -308,12 +308,24 @@ G14c merged as #92 (`dc676bf`; exact head `d5832b8`, run 36917962782: 2373 tests
 commits after the accepted baseline and the fork seams they touch, as a job summary and one
 annotation, on every PR, on demand and daily once `superfork/integration` is the default branch;
 read-only, no secrets, no merges; test_upstream_watch. 316 implemented.
-Accounting (#93, open) `docs/audits/G14_ACCOUNTING.md`: 318 of 320 rows terminal with evidence, 3 (Auto network
+Accounting merged as #93 (`15a98c9`; exact head `87eefeb`, run 36920589024: 2373 tests, 15 known
+failures, 0 new, 1 skipped; APK artifact 11192301846) `docs/audits/G14_ACCOUNTING.md`: 318 of 320 rows terminal with evidence, 3 (Auto network
 input: needs the A/B thresholds; the G8c estimator is ready) and 320 (Stable distribution) blocked on
 the maintainer's devices and release actions; ledger, license, dependency (Seekr recorded) and
 sensitive-log audits done; the hardware campaign order. G14 BLOCKED: nothing in code remains.
+Device test build (#94, open; D066): the maintainer's first device run had no TV QR login (the CI APK
+has an empty backend configuration and a per-run signing key). `Superfork Test Build` builds
+`com.nuvio.tv.debug` with the real backend configuration from secrets, one fixed test key and version
+code `versionCode * 100000 + run`, verifies package / signature / configuration presence, and
+publishes the universal APK; secrets go to runner files only. Without backend secrets it reads the
+public client configuration (anon key only) from official's latest release APK on the runner (this
+session's egress cannot reach official's releases), and the built APK must create a TV QR login
+session. Needs only the two test-key secrets in GITHUB_ADMIN_CHECKLIST E (certificate pinned in the
+workflow).
 ## Exact next action
-1. Wait for #93 (accounting) exact-head CI and squash it. Then G14 waits on the maintainer: the
+1. Wait for #94 (test build) exact-head CI and squash it; once the maintainer adds the secrets in
+   GITHUB_ADMIN_CHECKLIST E, check the first Superfork Test Build run (package, signature, backend
+   configuration present) and hand over its artifact. Then G14 waits on the maintainer: the
    hardware campaign (`docs/audits/G14_ACCOUNTING.md` order) and GITHUB_ADMIN_CHECKLIST A–D. Record
    shared evidence as PASS / FAIL, fix any FAIL, then close 3, 320 and G14. Official upstream movement
    is reported by Superfork Upstream Watch; sync through a dedicated PR when it touches fork seams.

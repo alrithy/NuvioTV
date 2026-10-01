@@ -11,9 +11,12 @@ for. Never mark a row PASS from memory or expectation. Copy finished rows into
 
 ## 0. Setup (once)
 
-1. **APK:** open the latest green *Superfork CI* run on `superfork/integration` (Actions tab), job
-   *Superfork Full Debug CI*, artifact *APK*. Install it with `adb install -r <apk>`. The debug app
-   id is `com.nuviodebug.com`, so it installs next to any release build.
+1. **APK:** open the latest green *Superfork Test Build* run on `superfork/integration` (Actions tab)
+   and download the artifact `superfork-test-build-<n>` (`app-full-universal-debug.apk`). It is
+   `com.nuvio.tv.debug`, logs in to your Nuvio account (TV QR login) and installs beside official;
+   every later test build installs over it as an update (same test key, higher version code). Once:
+   uninstall any earlier CI build (`com.nuviodebug.com`), because both define the provider bind
+   permission with different signers. Install with `adb install -r <apk>`.
 2. **ADB over the network:** on the TV, go to Settings → System → About and press *Android TV OS
    build* 7 times. Then go to Settings → System → Developer options and turn on *USB debugging*
    (network ADB on Google TV). From a computer on the same network, run
