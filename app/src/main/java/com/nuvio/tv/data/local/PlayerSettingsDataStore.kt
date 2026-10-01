@@ -1706,7 +1706,9 @@ class PlayerSettingsDataStore @Inject constructor(
         store().edit { it[bufferBudgetManagedKey] = enabled }
     }
     suspend fun setLastPlaybackDiagnostics(diagnostics: LastPlaybackDiagnostics) {
-        store().edit { it[lastPlaybackDiagnosticsKey] = diagnostics.toJson() }
+        // Superfork G11 hook (D056): a link received in a Watch Party is never written to this device.
+        val saved = if (com.nuvio.tv.fork.watchparty.WatchPartyReceivedStreams.contains(diagnostics.streamUrl)) diagnostics.copy(streamUrl = null, headersJson = null) else diagnostics
+        store().edit { it[lastPlaybackDiagnosticsKey] = saved.toJson() }
     }
     suspend fun setParallelConnectionCount(count: Int) {
         store().edit { prefs ->

@@ -414,3 +414,15 @@ TV channel is not shareable. Received media is validated, kept in memory only an
 link reuse on the guest. No WebView console logging; errors are fixed codes; nothing logs URLs,
 headers, codes or names. Codes come from `SecureRandom`. WATCH_PARTY becomes AUTO with the first code
 slice; OFF hides every entry and never creates a WebView.
+
+## D057 — G11 review corrections keep D056's promises at the edges
+Corrections after the #71–#73 reviews, within D056's owner and flag. A guest's received link and
+headers never enter navigation saved state: the player route carries a one-time in-memory ticket,
+and the last-playback diagnostics never save a received link. Non-public destinations (loopback,
+private, carrier-grade NAT, link-local, unique-local, multicast, reserved; LAN-only names; numeric
+forms other than dotted IPv4) are never shared or opened, and a guest checks that every address a
+name resolves to is public before opening it; redirects inside the player are not revalidated (a
+recorded residual risk). A guest follows one host until it leaves. The host's speed travels as an
+optional `rate` field, omitted at 1× so normal traffic stays protocol v1; the Nuvio Party phone build
+(AntoninoScardina/NuvioMobile `ff7a16b`, pinned as a reference only) ignores it. IP-locked or local
+sources show a guest-side unsupported state instead of failing silently.

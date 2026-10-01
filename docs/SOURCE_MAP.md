@@ -9,6 +9,7 @@
 | hackerslash/NuvioTV-Lite | dev | 2afdcd05d45e27afd48fb83ef9db6c286216a44c | RAM tiers, bounded caches/fan-out, low-memory policies | LOGIC_PORT |
 | SPxMM3R1/NuvioTV-VibeSubtitle | vibe-dev | 9520190184c7299c7ac34617856adde53c1ce7a2 | cue-rhythm alignment, embedded reference | ALGORITHM_PORT |
 | AntoninoScardina/NuvioTV | watchparty | ff597b12bc7834b07dedda92c88e0d574c0aad81 | Watch Party | FILE_PORT |
+| AntoninoScardina/NuvioMobile | watchparty | ff7a16b19e7777cfce9254792cef9a141651dfe4 | Watch Party phone build (tag v2026.929.8): compatibility target for 240 only; protocol file identical to the TV source, reads with ignoreUnknownKeys | REFERENCE (no import) |
 | Fornace/nuvio-ai | dev | 518af7120c82d014c02f7717f4c9c6e396eb215c | external AI providers, BYOK, provider verification | EXPERIMENTAL_FILE_PORT |
 | xnucade/NuvioGlass | dev | 84098b7de222fb599e30d12f7a6f5b9b1e347fee | Glass UI/design system | UI_PORT |
 

@@ -108,7 +108,12 @@ class WebViewWatchPartyTransport(context: Context) : WatchPartyTransport {
                 l.onMessage(uuid, data.toString())
             }
             "error" -> l.onError(WatchPartyError.CONNECTION_FAILED)
-            // "signaling" (reconnects) needs no action: the SDK reconnects by itself.
+            // A signaling drop the SDK will retry needs no action; one it gave up on ends the room.
+            "signaling" -> {
+                val terminal = str("state") == "disconnected" &&
+                    str("willReconnect") == "false" && str("intentional") != "true"
+                if (terminal) l.onError(WatchPartyError.CONNECTION_FAILED)
+            }
         }
     }
 

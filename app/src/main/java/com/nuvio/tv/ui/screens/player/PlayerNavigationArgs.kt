@@ -97,7 +97,11 @@ internal data class PlayerNavigationArgs(
                 rememberedAudioName = decodedOrNull("rememberedAudioName"),
                 launchStartedAtMs = savedStateHandle.get<String>("launchStartedAtMs")?.toLongOrNull(),
                 profileId = savedStateHandle.get<String>("profileId")?.toIntOrNull()
-            )
+            ).let { args ->
+                // Superfork G11 hook (D056): a Watch Party link arrives as an in-memory ticket, never in saved state.
+                val received = com.nuvio.tv.fork.watchparty.WatchPartyReceivedStreams.redeem(args.streamUrl) ?: return@let args
+                args.copy(streamUrl = received.url, headersJson = received.headers.takeIf { it.isNotEmpty() }?.let { org.json.JSONObject(it).toString() })
+            }
         }
     }
 }
