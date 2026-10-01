@@ -168,7 +168,8 @@ G11 closeout merged as #75 (`aa0ec42`; exact head `d79e2f2`, run 36844691833: 22
 failures, 0 new, 1 skipped; APK artifact 11153062880).
 
 G12 UI Styles IN_PROGRESS on `feat/ui-styles`, task `tasks/G12_UI_STYLES.md`, IDs 188–205 and 292,
-owner Claude (sequential; no lease). Audit (#76, open) `docs/audits/G12_UI_STYLES_AUDIT.md`: official
+owner Claude (sequential; no lease). Audit merged as #76 (`bd1f13e`; exact head `86a521f`, run 36846143142: 2205 tests, 15 known failures,
+0 new, 1 skipped; APK artifact 11153369840) `docs/audits/G12_UI_STYLES_AUDIT.md`: official
 `56aaba2` already has Classic / Grid / Modern per profile, both sidebars (modern with icon pill and
 Android 12+ blur), the rotating hero carousel, the Modern hero trailer and full-screen backdrop
 (verified_official 188–192, 195, 201–203); it has no top navigation, Glass layout, clock,
@@ -178,11 +179,14 @@ access and screensaver); one top-chrome scaffold with BAR / PILL / GLASS looks; 
 navigation style (Sidebar default); `HomeLayout.GLASS` and `CINEMATIC_GLASS` on the Modern pipeline;
 effects gated by AdaptiveResources tier and API level with a flat fallback; screensaver off by
 default; UI_STYLES AUTO with the first code slice. Official `dev` `5c1d9b0` changed the home layout
-files, so an upstream sync PR precedes G12 code. Slices: sync, G12a (196–200, 204, 205), G12b (193,
+files, so an upstream sync PR precedes G12 code: #77 (`chore/upstream-sync-2026-10-01`, open) merges
+official `dev` `5c1d9b0` with no conflicts (integration merge `89b46c4`); clean `[baseline-audit]` replays of
+official `5c1d9b0` and the merge decide the new baseline anchor. Slices: sync, G12a (196–200, 204, 205), G12b (193,
 194), G12c (292). Legacy PR #1 / #2 stay reference-only. Next G13 Experimental AI & MAT.
 ## Exact next action
-1. Merge the G12 audit (#76) after exact-head CI, then open the upstream sync PR to official `dev`
-   `5c1d9b0` (D050 pattern), then G12a.
+1. Finish the upstream sync #77: read the official / integration replays, re-anchor the baseline
+   (state, BASELINE, SOURCE_MAP, baseline_test_debt, evidence, UPSTREAM_SYNC_LOG) if no new debt,
+   then exact-head CI and merge; then G12a on `feat/ui-styles`.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G12→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
