@@ -71,6 +71,7 @@ import androidx.compose.material.icons.filled.BrightnessMedium
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ClosedCaption
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
@@ -297,6 +298,7 @@ fun PlayerScreen(
     val handleBackPress = handleBackPress@{
         if (externalHandoffInProgress) return@handleBackPress
         if (viewModel.seekPreview.handleBack(uiState)) return@handleBackPress // Superfork G7a
+        if (viewModel.watchPartyPanelOpen.value) { viewModel.watchPartyPanelOpen.value = false; return@handleBackPress } // Superfork G11b
         if (postPlayRecommendationState.canReturnToPlayer && !uiState.playbackEnded) {
             returnToPlayerFromPostPlay()
             viewModel.hideControls()
@@ -747,7 +749,7 @@ fun PlayerScreen(
                         uiState.showAudioOverlay || uiState.showSubtitleOverlay ||
                         uiState.showSubtitleStylePanel || uiState.showSpeedDialog ||
                         uiState.showSubtitleDelayOverlay || uiState.showSubtitleTimingDialog ||
-                        uiState.showMoreDialog ||
+                        uiState.showMoreDialog || viewModel.watchPartyPanelOpen.value || // Superfork G11b hook
                         shouldConfirmNextEpisodeOnEnd ||
                         uiState.postPlayMode is PostPlayMode.StillWatching ||
                         postPlayRecommendationState.isVisible ||
@@ -1724,6 +1726,7 @@ fun PlayerScreen(
         }
 
         com.nuvio.tv.ui.screens.livetv.LiveTvPlayerOverlay(liveTvPlayer, uiState) // Superfork G10e hook
+        WatchPartyPlayerLayer(viewModel, uiState.showControls, containerFocusRequester) // Superfork G11b hook
 
         if (uiState.showSpeedDialog) {
             SpeedSelectionDialog(
@@ -2496,6 +2499,20 @@ private fun PlayerControlsOverlay(
                                 onDownKey = onHideControls,
                                 onFocused = onResetHideTimer
                             )
+                            // Superfork G11b (237): Watch Party, while the fork flag is on.
+                            if (watchPartyButtonVisible()) {
+                                ControlButton(
+                                    icon = Icons.Default.Groups,
+                                    contentDescription = stringResource(R.string.cd_watch_party),
+                                    onClick = {
+                                        onHideControls()
+                                        viewModel.watchPartyPanelOpen.value = true
+                                    },
+                                    upFocusRequester = progressUpTarget,
+                                    onDownKey = onHideControls,
+                                    onFocused = onResetHideTimer
+                                )
+                            }
                             // Superfork G9f (207): App dimmer, while the fork flag is on.
                             if (com.nuvio.tv.fork.dimmer.AppDimmerRules.enabled) {
                                 ControlButton(

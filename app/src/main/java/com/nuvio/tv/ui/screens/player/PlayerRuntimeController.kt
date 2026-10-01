@@ -727,6 +727,8 @@ class PlayerRuntimeController(
     internal var episodeStreamsCacheRequestKey: String? = null
     internal val streamCacheKey: String?
         get() {
+            // Superfork G11b hook (D056): a link received in a Watch Party is never saved for reuse.
+            if (com.nuvio.tv.fork.watchparty.WatchPartyReceivedStreams.contains(currentStreamUrl)) return null
             val type = contentType?.lowercase()
             val vid = currentVideoId
             return if (type.isNullOrBlank() || vid.isNullOrBlank()) null else "$type|$vid"
