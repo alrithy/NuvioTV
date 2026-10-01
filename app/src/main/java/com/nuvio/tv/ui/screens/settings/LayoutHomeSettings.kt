@@ -228,6 +228,7 @@ internal fun LayoutSidebarSection(
         onLocationSelected = { location -> onEvent(LayoutSettingsEvent.SetDiscoverLocation(location)) }
     )
     LiveTvSettingsItems() // Superfork G10b hook: Live TV menu entry, off by default
+    UiStyleSettingsItems() // Superfork G12a hook: navigation style, official sidebar by default
 }
 
 @Composable
