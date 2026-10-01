@@ -56,7 +56,8 @@ class UpdateRepository @Inject constructor(
                 releaseUrl = dto.htmlUrl,
                 assetName = asset.name,
                 assetUrl = asset.browserDownloadUrl,
-                assetSizeBytes = asset.size
+                assetSizeBytes = asset.size,
+                assetSha256 = com.nuvio.tv.fork.distribution.ReleaseDigest.sha256Hex(asset.digest)
             )
         }
     }

@@ -1,5 +1,6 @@
 package com.nuvio.tv.updater
 
+import com.nuvio.tv.fork.distribution.ReleaseDigest
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
@@ -15,6 +16,7 @@ class ApkDownloader @Inject constructor(
     suspend fun download(
         url: String,
         destinationFile: File,
+        expectedSha256: String?,
         onProgress: (downloadedBytes: Long, totalBytes: Long?) -> Unit
     ): Result<File> {
         return runCatching {
@@ -32,6 +34,7 @@ class ApkDownloader @Inject constructor(
 
                 val body = response.body ?: error("Empty download body")
                 val total = body.contentLength().takeIf { it > 0 }
+                val sha256 = ReleaseDigest.newDigest()
 
                 body.byteStream().use { input ->
                     FileOutputStream(destinationFile).use { output ->
@@ -41,11 +44,17 @@ class ApkDownloader @Inject constructor(
                             val read = input.read(buffer)
                             if (read <= 0) break
                             output.write(buffer, 0, read)
+                            sha256.update(buffer, 0, read)
                             downloaded += read
                             onProgress(downloaded, total)
                         }
                         output.flush()
                     }
+                }
+                // G14b (D064): nothing unverified reaches the installer.
+                if (!ReleaseDigest.verified(expectedSha256, sha256.digest())) {
+                    destinationFile.delete()
+                    throw ReleaseDigest.UnverifiedUpdate()
                 }
             }
 
