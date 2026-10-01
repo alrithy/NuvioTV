@@ -771,3 +771,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: a second decoder beside the UI on 1-2 GB boxes and one-connection accounts need real devices (HV-G10-7, G14)
+
+### G10g — Live TV set up from a phone via QR (213)
+- Roadmap gate: G10
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: main
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): reshaped/livetv/LiveTvSetupServer.kt (server and phone page), the QR column and server lifecycle of ui/reshaped/livetv/LiveTvSourceDialog.kt, `LiveTvRepository.importPlaylist`
+- Import mode: FILE_PORT (server, page, dialog column, playlist import); ALGORITHM_PORT (token, Origin and size checks as `LiveTvSetupPolicy` functions)
+- Current official equivalent: the add-on and G6b font LAN pages (`core/server` `DeviceIpAddress`, `QrCodeGenerator`, NanoHTTPD) — reused, not duplicated
+- What already existed upstream: NanoHTTPD, `DeviceIpAddress`, `QrCodeGenerator`; G10a `LiveTvSourceStore.savePlaylist` (bounded, temp file then rename)
+- What was imported: a per-session 128-bit token path page (M3U link or file, Xtream, Stalker) beside the add-source form, Origin check, 16 KiB form and 64 MiB playlist caps checked before reading, bounded body reads, file name stripped of folders, the playlist saved under its source and loaded like a new one; page language and direction follow the app; strings en + ar
+- What was intentionally not imported: Reshaped's org.json form parsing (Moshi's streaming reader keeps it testable on the JVM) and its singleton repository calls (the dialog hands the profile-bound repository to the server)
+- Local adaptations: the server runs only while the sources dialog is open and the app is in the foreground (a restart is a new token); credentials arrive only in the POST body and go to the encrypted per-profile store; nothing is logged; JSON responses never echo input
+- Feature flag / fallback: FeatureId.LIVE_TV (AUTO, D055); no network or no free port shows the reason instead of a QR code and the form still works
+- Tests ported/added: LiveTvSetupPolicyTest (5: token and Origin, size caps, form parsing and validation, file names, repository import of a file and refusal of an oversized one)
+- License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: phone browsers, LAN isolation on guest Wi-Fi and large files need real devices (HV-G10-8, G14)

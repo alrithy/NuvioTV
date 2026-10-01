@@ -51,11 +51,22 @@ internal class MemoryLiveTvStore(initial: Map<Int, List<LiveTvSource>> = emptyMa
 
     override fun newSourceId(): String = "s${next++}"
 
-    override suspend fun <T> readPlaylist(profileId: Int, sourceId: String, block: (Sequence<String>) -> T): T? = null
+    /** Imported playlist files (G10g), by profile and source. */
+    val playlists = HashMap<Pair<Int, String>, String>()
 
-    override suspend fun savePlaylist(profileId: Int, sourceId: String, input: InputStream, maxBytes: Long) = false
+    override suspend fun <T> readPlaylist(profileId: Int, sourceId: String, block: (Sequence<String>) -> T): T? =
+        synchronized(playlists) { playlists[profileId to sourceId] }?.let { block(it.lineSequence()) }
 
-    override suspend fun deletePlaylist(profileId: Int, sourceId: String) = Unit
+    override suspend fun savePlaylist(profileId: Int, sourceId: String, input: InputStream, maxBytes: Long): Boolean {
+        val bytes = input.readNBytes((maxBytes + 1).coerceAtMost(Int.MAX_VALUE.toLong()).toInt())
+        if (bytes.isEmpty() || bytes.size > maxBytes) return false
+        synchronized(playlists) { playlists[profileId to sourceId] = bytes.toString(Charsets.UTF_8) }
+        return true
+    }
+
+    override suspend fun deletePlaylist(profileId: Int, sourceId: String) {
+        synchronized(playlists) { playlists.remove(profileId to sourceId) }
+    }
 }
 
 class LiveTvRepositoryTest {

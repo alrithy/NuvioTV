@@ -92,4 +92,17 @@
     <string name="settings_live_tv_previews_description">Play a small picture of the channel you are on in the Live TV list</string>
     <string name="settings_live_tv_preview_sound_title">Preview sound</string>
     <string name="settings_live_tv_preview_sound_description">Hear the channel in the preview. It fades in, and stops when you leave the list</string>
+    <!-- G10g: set up from a phone (Reshaped 0ccf049) -->
+    <string name="live_tv_phone_instruction">Scan with your phone to paste a link, type a login or send an M3U file.</string>
+    <string name="live_tv_web_title">Live TV on your TV</string>
+    <string name="live_tv_web_subtitle">Choose how your provider gives you channels. The TV loads them as soon as you send.</string>
+    <string name="live_tv_web_m3u_link">Playlist link</string>
+    <string name="live_tv_web_m3u_file">Playlist file</string>
+    <string name="live_tv_web_send">Send to TV</string>
+    <string name="live_tv_web_sending">Sending…</string>
+    <string name="live_tv_web_sent">Sent. The TV is loading your channels.</string>
+    <string name="live_tv_web_choose_file">Choose an .m3u file first.</string>
+    <string name="live_tv_web_too_large">That file is too large.</string>
+    <string name="live_tv_web_failed">The TV could not take that. Check the fields.</string>
+    <string name="live_tv_web_connection_error">Could not reach the TV. Is it still on the Live TV setup screen?</string>
 </resources>
