@@ -249,10 +249,10 @@ feature_id,gate,source_group,owner,status,feature,evidence,reason,next_action
 248,G11,antonino-watchparty,watchparty,implemented,Hard seek for large drift.,"G11a+G11b: drift over 3 s seeks, ahead by a learned seek lead (up to 8 s); WatchPartySessionTest; device check MANUAL-PENDING (G14, HV-G11-4).",,
 249,G11,antonino-watchparty,watchparty,implemented,Never log sensitive stream URLs/headers.,"G11a+G11b: no WebView console logging, fixed error codes, media never prints its link or headers; WatchPartySharePolicyTest; device check MANUAL-PENDING (G14, HV-G11-3).",,
 250,G13,ysosrs+fornace,experimental,planned,AI Media Provider platform.,,,
-251,G13,ysosrs+fornace,experimental,planned,AI-generated subtitles.,,,
-252,G13,ysosrs+fornace,experimental,planned,AI speech-to-text.,,,
-253,G13,ysosrs+fornace,experimental,planned,AI subtitle translation.,,,
-254,G13,ysosrs+fornace,experimental,planned,AI voice translation / voice overlay.,,,
+251,G13,ysosrs+fornace,experimental,deferred,AI-generated subtitles.,G13 audit: Fornace 518af71 binds its subtitle provider to FakeSubtitleCuesProvider and its provider APK is a contract shell (negotiate / ping only); docs/audits/G13_EXPERIMENTAL_AUDIT.md.,No engine to port in any pinned source; writing an AI engine from scratch is out of scope (D063).,Re-audit when Fornace publishes a SUBTITLE_CUES_V1 engine provider; the G13 host already negotiates the capability.
+252,G13,ysosrs+fornace,experimental,deferred,AI speech-to-text.,G13 audit: the subtitle provider's OpenAI-compatible ASR adaptor only builds a request spec; nothing sends audio or calls a vendor; docs/audits/G13_EXPERIMENTAL_AUDIT.md.,No engine to port in any pinned source (D063).,Re-audit with 251 when a speech-to-text engine provider ships.
+253,G13,ysosrs+fornace,experimental,deferred,AI subtitle translation.,G13 audit: neither Fornace 518af71 nor ysosrs 45e0984 implements subtitle translation; docs/audits/G13_EXPERIMENTAL_AUDIT.md.,No pinned source (D063).,"Pin a source that translates subtitle cues, then audit it against the G13 host."
+254,G13,ysosrs+fornace,experimental,deferred,AI voice translation / voice overlay.,G13 audit: Fornace DubPlaybackCoordinator / AudioDelayMediaSource are not constructed anywhere and the voice provider APK is a contract shell; its decision record calls live dubbing research only; docs/audits/G13_EXPERIMENTAL_AUDIT.md.,No wired engine in any pinned source (D063).,Re-audit when Fornace publishes a DUB_ARTIFACT_V1 engine provider and wires the overlay.
 255,G13,ysosrs+fornace,experimental,planned,BYOK.,,,
 256,G13,ysosrs+fornace,experimental,planned,Multiple AI vendors.,,,
 257,G13,ysosrs+fornace,experimental,planned,Provider APK architecture.,,,

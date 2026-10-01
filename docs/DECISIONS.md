@@ -486,3 +486,16 @@ focus; the waking press is swallowed up to its release; hero trailers do not sta
 playing one is stopped. Official is touched only through one-line hooks: the activity's key dispatch
 and window focus, a 1 Hz check while started, the root overlay above the App Dimmer, the player's
 playing state and the trailer pool's `acquire`.
+
+## D063 — G13 ports the AI provider platform and MAT; AI engines wait for a source
+The pinned Fornace/nuvio-ai `518af71` ships an AI media provider *platform* (registry, signed and
+SHA-256-checked provider APKs, Messenger negotiation, per-profile BYOK vault, dedicated TLS client,
+Provider Center) but its providers are contract shells, its live subtitle path is a fake and its voice
+overlay is not wired. G13 therefore ports the platform into one `fork/aimedia` owner (250, 255–261)
+and the ysosrs `45e0984` MAT / IEC 61937 path into `fork/audio` (45), and defers AI-generated
+subtitles, speech-to-text, subtitle translation and voice translation (251–254) until a pinned source
+ships an engine; no AI engine is written from scratch. AI keys use the ported AAD-bound vault;
+`KeystoreCipher` keeps its existing stores. AI traffic never uses official's clients (the playback
+client falls back to trust-all). Nothing in G13 turns on by itself: a Settings → Experimental
+screen holds one OFF-by-default switch per experimental group, read into the feature registry's
+override seam on the next app start; OFF keeps every entry point hidden and every hook inert.
