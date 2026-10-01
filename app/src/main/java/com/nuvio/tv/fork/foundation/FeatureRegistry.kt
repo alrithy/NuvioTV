@@ -8,9 +8,11 @@ import java.util.EnumMap
  *
  * Every group defaults to [FeatureMode.OFF] so that the registry alone never changes
  * official Nuvio behavior, except groups listed in [DECIDED_DEFAULTS] by a recorded decision.
- * [overrides] is the seam for explicit user choices in later gates; it is copied on construction.
+ * [overrides] is the seam for explicit user choices; it is copied on construction. By default it is
+ * the experimental opt-ins ([ExperimentalOptIn], D063), so an experimental group is ON only after the
+ * user turned it on.
  */
-class FeatureRegistry(overrides: Map<FeatureId, FeatureMode> = emptyMap()) {
+class FeatureRegistry(overrides: Map<FeatureId, FeatureMode> = ExperimentalOptIn.overrides()) {
 
     private val modes: Map<FeatureId, FeatureMode> = immutableModes(DEFAULTS + overrides)
 

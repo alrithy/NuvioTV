@@ -224,7 +224,8 @@ G12 closeout merged as #82 (`2791c1d`; exact head `0729e9e`, run 36874872121: 22
 failures, 0 new, 1 skipped; APK artifact 11169431821). Legacy PR #1 / #2 stay reference-only.
 
 G13 Experimental AI & MAT IN_PROGRESS on `experimental/media`, task `tasks/G13_EXPERIMENTAL.md`, IDs 45
-and 250–261, owner Claude (sequential; no lease). Audit (#83, open) `docs/audits/G13_EXPERIMENTAL_AUDIT.md`:
+and 250–261, owner Claude (sequential; no lease). Audit merged as #83 (`a62ce1d`; exact head `498da52`, run 36877526195: 2219 tests, 15 known failures,
+0 new, 1 skipped; APK artifact 11170525995) `docs/audits/G13_EXPERIMENTAL_AUDIT.md`:
 official `5c1d9b0` has no AI and only platform passthrough; official `dev` `9e17941` (seven commits:
 MDBList cache, stream focus, strings) touches no G13 seam, so no sync PR. Fornace/nuvio-ai `518af71`
 ships the provider platform (registry, SHA-256 and exact-signer-set checked provider APKs, Messenger
@@ -235,9 +236,17 @@ D063: one `fork/aimedia` owner for the platform (250, 255–261) and the ysosrs 
 official's clients (the playback client falls back to trust-all); a Settings → Experimental screen
 with OFF-by-default switches is the only way G13 turns on. Slices: G13a (pure core + opt-in), G13b
 (Android bridges, Provider Center, Experimental screen), G13c (MAT). Next G14.
+G13a (#84, open): `fork/aimedia` core, FILE_PORT of Fornace `518af71` (registry and vendor-catalog
+models, constant-time SHA-256 artifact verifier, exact-signer-set contract validator, AAD-bound
+per-profile credential vault behind a Keystore bridge seam; Fornace tests ported) and
+`ExperimentalOptIn` (device-wide store read in `NuvioApplication.onCreate` before any registry read;
+only experimental groups can be opted in; the registry's default overrides are the opt-ins).
+Nothing is constructed at runtime yet. 255, 256, 259–261 in_progress (status `experimental` once
+the G13b flow lands). Local JVM harness: 415 tests PASS.
 ## Exact next action
-1. Merge the G13 audit (#83) after exact-head CI, then G13a (`fork/aimedia` pure core: registry and
-   vendor catalog, artifact verifier, contract validator, credential vault, experimental opt-in).
+1. Wait for #84 (G13a) exact-head CI and squash with the expected head; then G13b (registry client
+   over a dedicated TLS client, package scanner / installer bridge, Messenger client, install
+   coordinator, Provider Center, Settings → Experimental screen).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G13→G14 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.

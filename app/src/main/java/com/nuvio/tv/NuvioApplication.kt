@@ -80,6 +80,8 @@ class NuvioApplication : Application(), SingletonImageLoader.Factory {
 
     override fun onCreate() {
         // Before super.onCreate() (Hilt injection): singletons read the resource tier on first touch.
+        // Superfork G13a (D063): experimental opt-ins, before any feature-registry read.
+        com.nuvio.tv.fork.foundation.ExperimentalOptIn.install(com.nuvio.tv.fork.foundation.ExperimentalOptInStore.stored(this))
         AdaptiveResources.install(this)
         super.onCreate()
         SentryInitializer.start(this, sentrySettingsDataStore)
