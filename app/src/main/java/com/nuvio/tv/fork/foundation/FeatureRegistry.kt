@@ -31,6 +31,8 @@ class FeatureRegistry(overrides: Map<FeatureId, FeatureMode> = emptyMap()) {
          * D055: Live TV is isolated from VOD; its menu entry stays off until the user enables it.
          * D056: Watch Party shares nothing until the host consents; only a player button and a
          *       Settings entry appear, and no WebView exists until a room is opened or joined.
+         * D058: UI styles keep official's layouts and sidebars as the default; a top menu is a
+         *       per-profile choice and OFF restores the official sidebar.
          */
         internal val DECIDED_DEFAULTS: Map<FeatureId, FeatureMode> = mapOf(
             FeatureId.UNIFIED_DIAGNOSTICS to FeatureMode.AUTO,
@@ -44,6 +46,7 @@ class FeatureRegistry(overrides: Map<FeatureId, FeatureMode> = emptyMap()) {
             FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS to FeatureMode.AUTO,
             FeatureId.LIVE_TV to FeatureMode.AUTO,
             FeatureId.WATCH_PARTY to FeatureMode.AUTO,
+            FeatureId.UI_STYLES to FeatureMode.AUTO,
         )
 
         val DEFAULTS: Map<FeatureId, FeatureMode> = immutableModes(

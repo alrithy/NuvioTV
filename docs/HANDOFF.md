@@ -182,11 +182,22 @@ default; UI_STYLES AUTO with the first code slice. Official `dev` `5c1d9b0` chan
 files, so an upstream sync PR precedes G12 code: #77 (`chore/upstream-sync-2026-10-01`, open) merges
 official `dev` `5c1d9b0` with no conflicts (integration merge `89b46c4`); clean replays (run 36848159277):
 official 1,796 tests identical to the `56aaba2` inventory, integration 2,205 tests, 15 known, 0 new;
-baseline re-anchored on `5c1d9b0` (D059) with debt unchanged. Slices: sync, G12a (196–200, 204, 205), G12b (193,
+baseline re-anchored on `5c1d9b0` (D059) with debt unchanged.
+Upstream sync merged as #77 (`c45b78e`, merge commit; exact head `dbdca31`, run 36849295963: 2205
+tests, 15 known failures, 0 new, 1 skipped; APK artifact 11155351900).
+G12a (#78, open): `fork/uistyle` top menu. Per-profile Navigation style (Sidebar default, Top bar,
+Pill) replaces official's sidebar with one `TopChromeScaffold` in two looks (NuvioGlass sliding-
+indicator menu and minute-tick clock, Cxsmo top-bar profile access, Reshaped pill look); the menu sits
+above the content (Up from the top row reaches it; Back focuses it, then exits; long-press Back jumps
+to it); official `navigateToDrawerRoute` / `rememberRawSvgPainter` made internal and reused; clock in
+the device 12 / 24-hour format; profile button opens profile selection; UI_STYLES AUTO. 196, 198,
+204, 205 implemented; HV-G12-1, HV-G12-2 MANUAL-PENDING. Slice plan adjusted: the effect policy, liquid
+glass (199) and lightweight fallback (200) land with the overlaid Glass chrome in G12b, where they have
+a backdrop to work on. Local JVM harness: 334 tests PASS (UI compiles only in CI). Slices: sync, G12a (196–200, 204, 205), G12b (193,
 194), G12c (292). Legacy PR #1 / #2 stay reference-only. Next G13 Experimental AI & MAT.
 ## Exact next action
-1. Merge the upstream sync #77 with a merge commit after exact-head CI, then G12a on `feat/ui-styles`
-   (`fork/uistyle` effect policy, top-chrome scaffold, navigation style, clock and profile slots).
+1. Wait for #78 (G12a) exact-head CI and squash with the expected head; then G12b (Glass and
+   Cinematic Glass layouts, overlaid glass chrome, effect policy, liquid glass 199, fallback 200).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G12→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
