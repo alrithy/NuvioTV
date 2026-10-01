@@ -1,10 +1,10 @@
 # Nuvio Superfork handoff
 
 <!-- canonical-state:start -->
-- Active gate: G12 — UI Styles
-- Active branch: `feat/ui-styles`
-- Status: IN_PROGRESS
-- Task: `tasks/G12_UI_STYLES.md`
+- Active gate: G13 — Experimental AI & MAT
+- Active branch: `experimental/media`
+- Status: READY
+- Task: `tasks/G13_EXPERIMENTAL.md`
 - Accepted official baseline: `5c1d9b0e2669199114a12ade38027da132303eb3`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -167,8 +167,8 @@ MANUAL_TEST_LOG). No Android/device run is claimed.
 G11 closeout merged as #75 (`aa0ec42`; exact head `d79e2f2`, run 36844691833: 2205 tests, 15 known
 failures, 0 new, 1 skipped; APK artifact 11153062880).
 
-G12 UI Styles IN_PROGRESS on `feat/ui-styles`, task `tasks/G12_UI_STYLES.md`, IDs 188–205 and 292,
-owner Claude (sequential; no lease). Audit merged as #76 (`bd1f13e`; exact head `86a521f`, run 36846143142: 2205 tests, 15 known failures,
+G12 UI Styles CODE-COMPLETE (`feat/ui-styles`, `tasks/G12_UI_STYLES.md`, IDs 188–205 and 292;
+closeout `docs/audits/G12_CLOSEOUT.md`). Audit merged as #76 (`bd1f13e`; exact head `86a521f`, run 36846143142: 2205 tests, 15 known failures,
 0 new, 1 skipped; APK artifact 11153369840) `docs/audits/G12_UI_STYLES_AUDIT.md`: official
 `56aaba2` already has Classic / Grid / Modern per profile, both sidebars (modern with icon pill and
 Android 12+ blur), the rotating hero carousel, the Modern hero trailer and full-screen backdrop
@@ -179,7 +179,7 @@ access and screensaver); one top-chrome scaffold with BAR / PILL / GLASS looks; 
 navigation style (Sidebar default); `HomeLayout.GLASS` and `CINEMATIC_GLASS` on the Modern pipeline;
 effects gated by AdaptiveResources tier and API level with a flat fallback; screensaver off by
 default; UI_STYLES AUTO with the first code slice. Official `dev` `5c1d9b0` changed the home layout
-files, so an upstream sync PR precedes G12 code: #77 (`chore/upstream-sync-2026-10-01`, open) merges
+files, so an upstream sync PR precedes G12 code: #77 (`chore/upstream-sync-2026-10-01`) merges
 official `dev` `5c1d9b0` with no conflicts (integration merge `89b46c4`); clean replays (run 36848159277):
 official 1,796 tests identical to the `56aaba2` inventory, integration 2,205 tests, 15 known, 0 new;
 baseline re-anchored on `5c1d9b0` (D059) with debt unchanged.
@@ -211,18 +211,23 @@ AGSL liquid-glass lens (shader + backdrop recorder FILE_PORT) under the Glass pi
 level, LIQUID only on Android 13+ in the STANDARD tier with Lightweight effects off; the recorder runs
 only while the chrome shows. 194, 199 implemented; HV-G12-4 MANUAL-PENDING. Local JVM harness: 338
 tests PASS.
-G12d (#81, open; D062): the optional screensaver, Cxsmo's controller as a pure `ScreensaverMachine`
+G12d merged as #81 (`4d640fc`; exact head `b4c92e4`, run 36865550286: 2219 tests, 15 known failures,
+0 new, 1 skipped; APK artifact 11163438418; D062): the optional screensaver, Cxsmo's controller as a pure `ScreensaverMachine`
 plus overlay; per profile, off by default, under Appearance (start after 1–30 min, darkness
 50 / 70 / 85 %); never while playing or buffering, waits while a dialog has focus, the waking press is
 swallowed, hero trailers do not start under it. One-line hooks in MainActivity (1 Hz check, key
 dispatch, window focus, overlay), PlayerViewModel (playing state) and TrailerPlayerPool (acquire).
-292 implemented; HV-G12-5 MANUAL-PENDING. Local JVM harness: 344 tests PASS. Then the G12 closeout. Slices: sync, G12a (196–200, 204, 205), G12b (193,
-194), G12c (292). Legacy PR #1 / #2 stay reference-only. Next G13 Experimental AI & MAT.
+292 implemented; HV-G12-5 MANUAL-PENDING. Local JVM harness: 344 tests PASS.
+All 19 G12 IDs are terminal (10 implemented, 9 verified_official); HV-G12-1..HV-G12-5 are carried to
+G14 (`validation_pending_gates`, MANUAL_TEST_LOG). No Android/device run is claimed.
+G13 Experimental AI & MAT READY on `experimental/media` (`tasks/G13_EXPERIMENTAL.md`, IDs 45 and
+250–261, everything default OFF), owner Claude (sequential; no lease), after this closeout merges;
+next G14 Hardening / Release / Upstream. Legacy PR #1 / #2 stay reference-only.
 ## Exact next action
-1. Wait for #81 (G12d) exact-head CI and squash with the expected head; then the G12 closeout
-   (`docs/audits/G12_CLOSEOUT.md`, G12 CODE-COMPLETE, activate G13 Experimental AI & MAT).
+1. Start G13 Experimental AI & MAT with an official-first audit (`docs/audits/G13_EXPERIMENTAL_AUDIT.md`)
+   against official and the Fornace AI and ysosrs MAT sources; everything stays default OFF.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
-3. Continue G12→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
+3. Continue G13→G14 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
 5. PR #28 remains independent governance work. Official pins change only through a dedicated sync PR.
 
