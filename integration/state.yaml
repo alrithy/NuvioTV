@@ -11,8 +11,8 @@ active_gate: G11
 active_gate_name: Watch Party
 active_branch: feat/watch-party
 active_task_packet: tasks/G11_WATCH_PARTY.md
-active_status: READY
-active_pr: null
+active_status: IN_PROGRESS
+active_pr: 71
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
