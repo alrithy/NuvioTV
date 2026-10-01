@@ -183,6 +183,8 @@ class LiveTvRepository internal constructor(
         epgKey = null
         pendingEpg = null
         loaded.clear()
+        zapList = emptyList()
+        zapFolderKey = null
         stalker.clearSessions()
         loadedProfileId = null
         forceGuideDownload = false
@@ -230,6 +232,29 @@ class LiveTvRepository internal constructor(
             updateLoading()
         }
     }
+
+    // region Zapping (G10e)
+
+    /** The list the last channel was picked from (a category, favorites, a search): zapping stays in it. */
+    @Volatile var zapList: List<LiveTvChannel> = emptyList()
+        private set
+    /** The filter key [zapList] is, or null for a search. */
+    @Volatile var zapFolderKey: String? = null
+        private set
+
+    fun setZapList(channels: List<LiveTvChannel>, folderKey: String?) {
+        zapList = channels
+        zapFolderKey = folderKey
+    }
+
+    /** The list zapping moves through for [currentKey]: the one it was picked from, else every shown channel. */
+    fun zapTarget(currentKey: Long?): Pair<List<LiveTvChannel>, String?> {
+        val picked = zapList
+        if (picked.any { it.key == currentKey }) return picked to zapFolderKey
+        return _state.value.shownChannels to LiveTvFilterKeys.ALL
+    }
+
+    // endregion
 
     // region Organisation (G10b)
 
