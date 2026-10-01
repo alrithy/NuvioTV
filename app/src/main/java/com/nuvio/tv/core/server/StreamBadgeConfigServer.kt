@@ -8,6 +8,8 @@ import com.nuvio.tv.core.streams.StreamBadgePlacement
 import com.nuvio.tv.core.streams.StreamBadgeRules
 import com.nuvio.tv.core.streams.StreamBadgeRulesParser
 import com.nuvio.tv.core.streams.StreamBadgeSettings
+import com.nuvio.tv.fork.security.LocalServerAccess
+import com.nuvio.tv.fork.security.gate
 import fi.iki.elonen.NanoHTTPD
 import java.io.ByteArrayInputStream
 import java.net.HttpURLConnection
@@ -26,6 +28,8 @@ class StreamBadgeConfigServer(
     private val logoProvider: (() -> ByteArray?)? = null,
     port: Int = 8091
 ) : NanoHTTPD(port) {
+    /** G14a (D064): the QR session; the QR code opens [LocalServerAccess.entryUrl]. */
+    val access = LocalServerAccess()
     private val gson = Gson()
     private val settingsMapType = object : TypeToken<Map<String, Any?>>() {}.type
     @OptIn(ExperimentalSerializationApi::class)
@@ -35,6 +39,7 @@ class StreamBadgeConfigServer(
     }
 
     override fun serve(session: IHTTPSession): Response {
+        access.gate(session)?.let { return it }
         return when {
             session.method == Method.GET && session.uri == "/" -> serveWebPage()
             session.method == Method.GET && session.uri == "/logo.png" -> serveLogo()

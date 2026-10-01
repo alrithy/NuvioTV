@@ -2,6 +2,7 @@ package com.nuvio.tv.data.repository
 
 import android.content.Context
 import android.util.Log
+import com.nuvio.tv.core.logging.urlForLog
 import com.nuvio.tv.core.network.NetworkResult
 import com.nuvio.tv.core.network.safeApiCall
 import com.nuvio.tv.data.local.AddonPreferences
@@ -191,7 +192,7 @@ class SubtitleRepositoryImpl @Inject constructor(
             "$basePath/subtitles/$encodedType/$encodedActualId.json$baseQuery"
         }
         
-        Log.d(TAG, "Fetching subtitles from ${addon.name}: $subtitleUrl")
+        Log.d(TAG, "Fetching subtitles from ${addon.name}: ${subtitleUrl.urlForLog()}")
         
         return try {
             when (val result = safeApiCall(context) { api.getSubtitles(subtitleUrl) }) {

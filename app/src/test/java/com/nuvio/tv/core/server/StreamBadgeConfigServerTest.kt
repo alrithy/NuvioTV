@@ -40,7 +40,7 @@ class StreamBadgeConfigServerTest {
             )
         )
 
-        val response = server.serve(FakePostSession(body, "/api/badges/import"))
+        val response = server.serve(FakePostSession(body, "/api/badges/import", cookie = server.sessionCookie))
 
         assertEquals(NanoHTTPD.Response.Status.OK, response.status)
         assertEquals(1, settings.rules.imports.size)
@@ -71,7 +71,7 @@ class StreamBadgeConfigServerTest {
             )
         )
 
-        val response = server.serve(FakePostSession(body))
+        val response = server.serve(FakePostSession(body, cookie = server.sessionCookie))
 
         assertEquals(NanoHTTPD.Response.Status.OK, response.status)
         assertEquals(1, saved?.rules?.imports?.size)
@@ -103,7 +103,7 @@ class StreamBadgeConfigServerTest {
         )
         val body = Gson().toJson(mapOf("streamBadgeRules" to rules))
 
-        val response = server.serve(FakePostSession(body))
+        val response = server.serve(FakePostSession(body, cookie = server.sessionCookie))
 
         assertEquals(NanoHTTPD.Response.Status.OK, response.status)
         assertEquals(listOf(true, false), saved?.rules?.imports?.map { it.isActive })
@@ -134,7 +134,7 @@ class StreamBadgeConfigServerTest {
             onSettingsChanged = {}
         )
 
-        val response = server.serve(FakeGetSession())
+        val response = server.serve(FakeGetSession(cookie = server.sessionCookie))
         val body = response.data.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
 
         assertEquals(NanoHTTPD.Response.Status.OK, response.status)
@@ -145,7 +145,8 @@ class StreamBadgeConfigServerTest {
 
     private class FakePostSession(
         body: String,
-        private val uri: String = "/api/settings"
+        private val uri: String = "/api/settings",
+        private val cookie: String? = null
     ) : NanoHTTPD.IHTTPSession {
         private val bytes = body.toByteArray(StandardCharsets.UTF_8)
 
@@ -154,7 +155,7 @@ class StreamBadgeConfigServerTest {
         override fun getHeaders(): Map<String, String> = mapOf(
             "content-length" to bytes.size.toString(),
             "content-type" to "application/json; charset=utf-8"
-        )
+        ) + listOfNotNull(cookie?.let { "cookie" to it })
         override fun getInputStream(): InputStream = ByteArrayInputStream(bytes)
         override fun getMethod(): NanoHTTPD.Method = NanoHTTPD.Method.POST
         @Deprecated("Deprecated in NanoHTTPD")
@@ -171,11 +172,12 @@ class StreamBadgeConfigServerTest {
     }
 
     private class FakeGetSession(
-        private val uri: String = "/api/settings"
+        private val uri: String = "/api/settings",
+        private val cookie: String? = null
     ) : NanoHTTPD.IHTTPSession {
         override fun execute() = Unit
         override fun getCookies(): NanoHTTPD.CookieHandler? = null
-        override fun getHeaders(): Map<String, String> = emptyMap()
+        override fun getHeaders(): Map<String, String> = listOfNotNull(cookie?.let { "cookie" to it }).toMap()
         override fun getInputStream(): InputStream = ByteArrayInputStream(ByteArray(0))
         override fun getMethod(): NanoHTTPD.Method = NanoHTTPD.Method.GET
         @Deprecated("Deprecated in NanoHTTPD")
@@ -191,3 +193,7 @@ class StreamBadgeConfigServerTest {
         override fun getRemoteHostName(): String = "localhost"
     }
 }
+
+/** G14a (D064): requests carry the QR session cookie the server set on the QR link's first load. */
+private val StreamBadgeConfigServer.sessionCookie: String
+    get() = "${access.cookieName}=${access.key}"
