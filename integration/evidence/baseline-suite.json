@@ -2,11 +2,11 @@
   "ci_reported_errors": [
     "3 new unit-test failures"
   ],
-  "ci_run": "36848159277",
+  "ci_run": "36891605846",
   "errors": [
     "3 new unit-test failures"
   ],
-  "evaluation_note": "Raw results from Superfork Baseline Audit run 36848159277 job 110323188441 (log SUPERFORK_RESULT lines) for official 5c1d9b0 (D059). Outcomes are identical, test by test, to the reviewed 56aaba2 inventory (run 36670841979): same 1,796 tests, same 18 failures, same skip. The 3 new_failures are official's stale NuvioExoPlayerPerformanceHelperTest expectations, already corrected on integration by G2b (#15); they are not debt (D050).",
+  "evaluation_note": "Raw results from Superfork Baseline Audit run 36891605846 job 110468332513 (log SUPERFORK_RESULT lines) for official aeb6ee8 (D065). All 1,796 tests of the reviewed 5c1d9b0 inventory (run 36848159277) are present with identical outcomes; official added 28 tests (24 MpvPlaybackErrorPolicyTest, 4 PlayerBackPressTest), all passing; no test is missing or newly skipped. The 3 new_failures are official's stale NuvioExoPlayerPerformanceHelperTest expectations, already corrected on integration by G2b (#15); they are not debt (D050).",
   "failures": 18,
   "gradle_exit": 0,
   "known_remaining": [
@@ -1463,6 +1463,30 @@
     "com.nuvio.tv.ui.screens.player.LivePlaybackUiPolicyTest#vod hls is not live without player flag or channel type": "passed",
     "com.nuvio.tv.ui.screens.player.LivePlaybackUiPolicyTest#watch clock accumulates only while playing live": "passed",
     "com.nuvio.tv.ui.screens.player.LivePlaybackUiPolicyTest#watch clock resets when leaving live": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#cacheGrowth_ignoresNoiseBelowAQuarterSecond": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#directError_appendsTheSameHttpExplanationAsExo": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#directError_keepsDecoderDetailWithFileError": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#directError_keepsPlaybackFileErrorsUnderTheExistingExplanation": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#directError_putsFormatExplanationAboveCodecDetail": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#directError_putsOpenExplanationAboveLoadingFailed": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#directError_showsHttpCauseWithoutUrl": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#directError_showsOpenAndFormatCausesUnderTheFileError": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#directError_usesFileErrorWhenMpvLoggedNothing": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#fileErrorStrings_mapToReportCodes": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#nonHttpKind_separatesFormatInvalidContentAndOpenFailure": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#parseEndFile_ignoresEofAndStop": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#parseEndFile_integerReasonIsNotAFailure": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#parseEndFile_readsStringReasonAndFileError": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#rememberLog_keepsOpenFailureAheadOfYtdlNoise": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#rememberLog_keepsTheCauseWhenLaterLinesFillTheBuffer": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#staleEndFile_requiresBothIdsAndAMismatch": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#warnLine_keepsCodecReasonAndDropsUnrelatedNoise": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#watchdog_cacheGrowthExtendsWaitUntilAbsoluteTimeout": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#watchdog_idleAfterLoadFailsFast": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#watchdog_idleBlipsDoNotResetTheAbsoluteClock": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#watchdog_noCacheGrowthFailsAtStallTimeout": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#watchdog_pauseClearsAccumulatedTicks": "passed",
+    "com.nuvio.tv.ui.screens.player.MpvPlaybackErrorPolicyTest#watchdog_surfaceWaitDoesNotCountAsIdle": "passed",
     "com.nuvio.tv.ui.screens.player.MpvPositionFromMediaRequestTest#empty path is not from the request": "passed",
     "com.nuvio.tv.ui.screens.player.MpvPositionFromMediaRequestTest#new request records the current path": "passed",
     "com.nuvio.tv.ui.screens.player.MpvPositionFromMediaRequestTest#no request counts": "passed",
@@ -1506,6 +1530,10 @@
     "com.nuvio.tv.ui.screens.player.PlaybackProfileRouteTest#player navigation args parse explicit profile": "passed",
     "com.nuvio.tv.ui.screens.player.PlaybackProfileRouteTest#player route carries playback profile without changing launch timing": "passed",
     "com.nuvio.tv.ui.screens.player.PlaybackProfileRouteTest#stream route carries playback profile without changing existing flags": "passed",
+    "com.nuvio.tv.ui.screens.player.PlayerBackPressTest#binge group reuse skip next then back does not open next episode streams": "passed",
+    "com.nuvio.tv.ui.screens.player.PlayerBackPressTest#first stream skip next does not open the stream screen": "passed",
+    "com.nuvio.tv.ui.screens.player.PlayerBackPressTest#same episode back does not open a different episode stream screen": "passed",
+    "com.nuvio.tv.ui.screens.player.PlayerBackPressTest#strict manual skip next still opens current episode streams": "passed",
     "com.nuvio.tv.ui.screens.player.PlayerFirstFrameCodecRecoveryPolicyTest#evaluate_whenNotPlayWhenReady_returnsNone": "passed",
     "com.nuvio.tv.ui.screens.player.PlayerFirstFrameCodecRecoveryPolicyTest#evaluate_whenVc1_failsWithoutRetry": "passed",
     "com.nuvio.tv.ui.screens.player.PlayerFrameRateHeuristicsTest#isAmbiguousCinema24 covers 24_00 band only": "passed",
@@ -1833,6 +1861,6 @@
     "com.nuvio.tv.updater.VersionUtilsTest#version prefix and build metadata do not affect precedence": "passed"
   },
   "skipped": 1,
-  "tested_sha": "5c1d9b0e2669199114a12ade38027da132303eb3",
-  "tests": 1796
+  "tested_sha": "aeb6ee8591c55424256fdd1f35f426618297378d",
+  "tests": 1824
 }
