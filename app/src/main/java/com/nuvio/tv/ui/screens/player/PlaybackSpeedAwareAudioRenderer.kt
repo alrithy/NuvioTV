@@ -23,7 +23,9 @@ internal class PlaybackSpeedAwareAudioRenderer(
     enableDecoderFallback: Boolean,
     eventHandler: Handler?,
     eventListener: AudioRendererEventListener?,
-    private val playbackSpeedAwareAudioSink: PlaybackSpeedAwareAudioSink
+    private val playbackSpeedAwareAudioSink: PlaybackSpeedAwareAudioSink,
+    // Superfork G13c (D063): the sink audio is written to; the MAT wrapper when MAT is opted in.
+    outputSink: androidx.media3.exoplayer.audio.AudioSink = playbackSpeedAwareAudioSink
 ) : MediaCodecAudioRenderer(
     rendererContext,
     codecAdapterFactory,
@@ -31,7 +33,7 @@ internal class PlaybackSpeedAwareAudioRenderer(
     enableDecoderFallback,
     eventHandler,
     eventListener,
-    playbackSpeedAwareAudioSink
+    outputSink
 ) {
 
     override fun supportsFormat(mediaCodecSelector: MediaCodecSelector, format: Format): Int {

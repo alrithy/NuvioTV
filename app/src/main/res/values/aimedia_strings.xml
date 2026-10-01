@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- G13b AI media providers (D063): Provider Center (Fornace/nuvio-ai @ 518af71 strings) and the Experimental screen. -->
+<!-- G13b / G13c (D063): Provider Center (Fornace/nuvio-ai @ 518af71 strings), the Experimental screen and MAT. -->
 <resources>
     <string name="provider_center_add_key">Add API key</string>
     <string name="provider_center_cancel_install">Cancel</string>
@@ -62,4 +62,6 @@
     <string name="experimental_ai_media_description">Install signed AI provider apps and keep your own API keys, encrypted for each profile. Preview: providers do not generate subtitles or voice yet.</string>
     <string name="experimental_restart_pending">Restart Nuvio to apply</string>
     <string name="experimental_open_providers">Open AI Media Providers</string>
+    <string name="experimental_mat_title">MAT passthrough for Dolby TrueHD</string>
+    <string name="experimental_mat_description">Packs TrueHD into MAT inside the app for eARC receivers that show Atmos or TrueHD only this way. Untested on most TVs; turn it off if audio drops out.</string>
 </resources>
