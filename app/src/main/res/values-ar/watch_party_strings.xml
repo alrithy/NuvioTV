@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="watch_party_title">المشاهدة الجماعية</string>
+    <string name="cd_watch_party">المشاهدة الجماعية</string>
+    <string name="watch_party_create_description">أنشئ غرفة وشارك الرمز: من ينضم يشاهد البث نفسه متزامنًا معك.</string>
+    <string name="watch_party_not_shareable">لا يمكن مشاركة هذا البث (تورنت أو بث محلي). اختر مصدر HTTP لبدء مشاهدة جماعية.</string>
+    <string name="watch_party_not_shareable_live_tv">لا يمكن مشاركة قنوات البث المباشر: روابطها مرتبطة بحساب مزوّدك.</string>
+    <string name="watch_party_not_shareable_credentials">يحتاج هذا البث إلى بيانات حسابك ليعمل، لذلك لا تتم مشاركته. اختر مصدرًا آخر لبدء مشاهدة جماعية.</string>
+    <string name="watch_party_create">إنشاء غرفة</string>
+    <string name="watch_party_consent">سيحصل من ينضم على رابط هذا البث، مع الترويسات اللازمة لتشغيله فقط، ليفتحه جهازه أيضًا. شارك الرمز مع من تثق بهم فقط. مغادرة الغرفة توقف المشاركة.</string>
+    <string name="watch_party_consent_agree">مشاركة وإنشاء الغرفة</string>
+    <string name="watch_party_consent_cancel">إلغاء</string>
+    <string name="watch_party_close">إغلاق</string>
+    <string name="watch_party_leave">مغادرة الغرفة</string>
+    <string name="watch_party_share_code">شارك هذا الرمز:</string>
+    <string name="watch_party_joined_code">أنت في الغرفة:</string>
+    <string name="watch_party_room">الغرفة %1$s</string>
+    <string name="watch_party_connecting">جارٍ الاتصال…</string>
+    <string name="watch_party_waiting">بانتظار انضمام أحد…</string>
+    <string name="watch_party_waiting_host">تم الاتصال. بانتظار أن يبدأ المضيف التشغيل…</string>
+    <string name="watch_party_participants">تشاهد مع: %1$s</string>
+    <string name="watch_party_error_connection">تعذّر الاتصال بالغرفة. تحقّق من الشبكة وحاول مجددًا.</string>
+    <string name="watch_party_error_webview">تحتاج المشاهدة الجماعية إلى Android System WebView، وهو غير متوفر على هذا الجهاز.</string>
+    <string name="watch_party_badge">مشاهدة جماعية %1$s · %2$d</string>
+    <string name="watch_party_join_title">الانضمام إلى مشاهدة جماعية</string>
+    <string name="watch_party_join_description">أدخل الرمز الظاهر على جهاز المضيف. عندما يشغّل المضيف شيئًا يُفتح هنا؛ الرابط يأتي من المضيف.</string>
+    <string name="watch_party_join_code_label">رمز الغرفة</string>
+    <string name="watch_party_join">انضمام</string>
+    <string name="watch_party_invalid_code">رمز غير صالح: يتكوّن من 6 أحرف وأرقام.</string>
+</resources>

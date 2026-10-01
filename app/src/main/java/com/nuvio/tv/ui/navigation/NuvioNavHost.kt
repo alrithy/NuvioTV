@@ -83,6 +83,8 @@ private fun PlaybackNavHost(
         return from.startsWith("player/") && to.startsWith("stream/")
     }
 
+    com.nuvio.tv.ui.screens.watchparty.WatchPartyNavigationEffect(navController) // Superfork G11b hook: guests open the host's stream
+
     NavHost(
         navController = navController,
         startDestination = startDestination,

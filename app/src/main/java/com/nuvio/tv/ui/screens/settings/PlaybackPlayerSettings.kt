@@ -38,6 +38,7 @@ internal fun PlaybackPlayerSection(
         enabled = !usesExternalPlayer
     )
     seekPreviewSettingsItems(enabled = !usesExternalPlayer) // Superfork G7a hook
+    com.nuvio.tv.ui.screens.watchparty.watchPartySettingsItems() // Superfork G11b hook: join a Watch Party
 
     if (settings.playerPreference != PlayerPreference.INTERNAL) {
         SettingsSectionLabel(text = stringResource(R.string.playback_external_player_label))
