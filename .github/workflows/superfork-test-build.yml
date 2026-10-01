@@ -3,8 +3,13 @@ name: Superfork Test Build
 # D066: an installable test build of the Superfork for real devices.
 # - Package com.nuvio.tv.debug (beside official and release builds), signed with one fixed test key,
 #   version code = app versionCode * 100000 + run number, so every build installs as an update.
-# - Real backend configuration (Supabase / TV QR login, TMDB, Trakt, ...) from repository secrets.
-# - Secrets are only written to files on the runner (never echoed); the artifact holds the APKs only.
+# - Real backend configuration (Supabase / TV QR login): repository secrets when set, else the public
+#   client configuration (anon key only) read from official's latest release APK, kept only when it
+#   creates a TV login session. TMDB, Trakt, ... come only from secrets.
+# - The signing certificate must equal SUPERFORK_TEST_CERT_SHA256, and the built APK must create a TV
+#   QR login session with the configuration compiled into it.
+# - Secrets are only written to files on the runner (never echoed, values masked); the artifact holds
+#   the universal APK and its SHA-256 only.
 # Runs on every push to superfork/integration, on demand, and on PRs whose title has [test-build].
 on:
   push:
@@ -33,6 +38,10 @@ jobs:
     timeout-minutes: 45
     env:
       TEST_APP_ID: com.nuvio.tv.debug
+      OFFICIAL_REPO: NuvioMedia/NuvioTV
+      # Public certificate of the fixed test key (SUPERFORK_TEST_KEYSTORE_BASE64). Change only together
+      # with a new key, which needs one uninstall on every device.
+      SUPERFORK_TEST_CERT_SHA256: e99a5754c8037cc569192f1e4d549369fecefc047c5148ee4b2cbe825f8c81a8
     steps:
       - uses: actions/checkout@v4
 
@@ -51,7 +60,6 @@ jobs:
           NUVIO_SUPABASE_FALLBACK_URL_SECRET: ${{ secrets.NUVIO_SUPABASE_FALLBACK_URL }}
           SUPERFORK_TEST_KEYSTORE_BASE64: ${{ secrets.SUPERFORK_TEST_KEYSTORE_BASE64 }}
           SUPERFORK_TEST_KEYSTORE_PASSWORD: ${{ secrets.SUPERFORK_TEST_KEYSTORE_PASSWORD }}
-          SUPERFORK_TEST_KEY_ALIAS: ${{ secrets.SUPERFORK_TEST_KEY_ALIAS }}
         run: |
           missing=()
           state() { if [ -n "${!1}" ]; then echo "present"; else echo "missing"; fi; }
@@ -59,21 +67,46 @@ jobs:
             echo "## Secrets (presence only)"
             for name in LOCAL_PROPERTIES_BASE64 LOCAL_DEV_PROPERTIES_BASE64 NUVIO_SUPABASE_URL_SECRET \
                 NUVIO_SUPABASE_ANON_KEY_SECRET NUVIO_SUPABASE_FALLBACK_URL_SECRET SUPERFORK_TEST_KEYSTORE_BASE64 \
-                SUPERFORK_TEST_KEYSTORE_PASSWORD SUPERFORK_TEST_KEY_ALIAS; do
+                SUPERFORK_TEST_KEYSTORE_PASSWORD; do
               echo "- \`${name%_SECRET}\`: $(state "$name")"
             done
           } >> "$GITHUB_STEP_SUMMARY"
           [ -n "$SUPERFORK_TEST_KEYSTORE_BASE64" ] || missing+=(SUPERFORK_TEST_KEYSTORE_BASE64)
           [ -n "$SUPERFORK_TEST_KEYSTORE_PASSWORD" ] || missing+=(SUPERFORK_TEST_KEYSTORE_PASSWORD)
-          [ -n "$SUPERFORK_TEST_KEY_ALIAS" ] || missing+=(SUPERFORK_TEST_KEY_ALIAS)
-          if [ -z "$LOCAL_PROPERTIES_BASE64$LOCAL_DEV_PROPERTIES_BASE64" ] && \
-             { [ -z "$NUVIO_SUPABASE_URL_SECRET" ] || [ -z "$NUVIO_SUPABASE_ANON_KEY_SECRET" ]; }; then
-            missing+=("NUVIO_SUPABASE_URL + NUVIO_SUPABASE_ANON_KEY (or LOCAL_PROPERTIES_BASE64)")
-          fi
+          echo "- Backend: secrets when set, otherwise the official release APK's public configuration" >> "$GITHUB_STEP_SUMMARY"
           if [ ${#missing[@]} -gt 0 ]; then
-            printf '::error title=Missing secrets::Add in Settings > Secrets and variables > Actions: %s (docs/GITHUB_ADMIN_CHECKLIST.md section E).\n' "${missing[*]}"
-            exit 1
+            printf '::warning title=Missing secrets::%s (the signing step stops the run; docs/GITHUB_ADMIN_CHECKLIST.md section E).\n' "${missing[*]}"
           fi
+
+      - name: Read the official release APK's public client configuration (values not printed)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/official"
+          mkdir -p "$dir"
+          note() { echo "::warning title=Official APK::$1"; echo "- Official APK: $1" >> "$GITHUB_STEP_SUMMARY"; }
+          if ! gh release view --repo "$OFFICIAL_REPO" --json tagName,assets > "$dir/release.json"; then
+            note "the latest $OFFICIAL_REPO release could not be read"; exit 0
+          fi
+          tag="$(jq -r .tagName "$dir/release.json")"
+          asset="$(jq -r '[.assets[].name | select(endswith(".apk")) | select(test("playstore"; "i") | not)]
+            | (map(select(test("universal"; "i"))) + map(select(test("arm64"; "i"))) + .) | .[0] // empty' "$dir/release.json")"
+          [ -n "$asset" ] || { note "release $tag has no full APK"; exit 0; }
+          gh release download "$tag" --repo "$OFFICIAL_REPO" --pattern "$asset" --dir "$dir"
+          bt="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)"
+          signer="$("$bt/apksigner" verify --print-certs "$dir/$asset" | sed -nE 's/.*certificate SHA-256 digest: ([0-9a-f]+).*/\1/p' | head -1)"
+          {
+            echo "## Official release APK"
+            echo "- \`$OFFICIAL_REPO\` release \`$tag\`, asset \`$asset\`"
+            echo "- SHA-256 \`$(sha256sum "$dir/$asset" | cut -d' ' -f1)\`, signer certificate SHA-256 \`$signer\` (official's key; this build never uses it)"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if python3 scripts/superfork/test_build_config.py extract "$dir/$asset" --out "$RUNNER_TEMP/official.properties"; then
+            echo "OFFICIAL_PROPERTIES=$RUNNER_TEMP/official.properties" >> "$GITHUB_ENV"
+          else
+            note "no usable public configuration in $asset"
+          fi
+          rm -f "$dir/$asset"
 
       - name: Write build configuration (not printed)
         env:
@@ -99,12 +132,39 @@ jobs:
             done
           fi
           # The debug build reads local.dev.properties first, then local.properties.
+          value() { sed -nE "s/^[[:space:]]*$1[[:space:]]*=[[:space:]]*//p" "${@:2}" | head -1; }
+          source="secrets"
+          if ! grep -Eq '^[[:space:]]*NUVIO_SUPABASE_URL[[:space:]]*=[[:space:]]*[^[:space:]]' local.dev.properties local.properties; then
+            if [ -n "${OFFICIAL_PROPERTIES:-}" ]; then
+              source="official release APK"
+              for f in local.properties local.dev.properties; do
+                sed -i '/^NUVIO_SUPABASE_/d;/^AVATAR_PUBLIC_BASE_URL=/d' "$f"
+                grep -E '^NUVIO_SUPABASE_' "$OFFICIAL_PROPERTIES" >> "$f"
+                printf 'AVATAR_PUBLIC_BASE_URL=%s/storage/v1/object/public/avatars\n' "$(value NUVIO_SUPABASE_URL "$OFFICIAL_PROPERTIES")" >> "$f"
+              done
+              # Login pages differ from the build defaults only if official's do; the debug build reads them here.
+              grep -E '^(TV|DEVICE)_LOGIN_WEB_BASE_URL=' "$OFFICIAL_PROPERTIES" >> local.dev.properties || true
+            fi
+          fi
           has() { grep -Eq "^[[:space:]]*$1[[:space:]]*=[[:space:]]*[^[:space:]]" local.dev.properties local.properties; }
           for key in NUVIO_SUPABASE_URL NUVIO_SUPABASE_ANON_KEY; do
-            if ! has "$key"; then echo "::error title=Missing configuration::$key is empty in the configured secrets"; exit 1; fi
+            if ! has "$key"; then
+              echo "::error title=Missing configuration::$key is empty: set NUVIO_SUPABASE_URL + NUVIO_SUPABASE_ANON_KEY (docs/GITHUB_ADMIN_CHECKLIST.md section E)"
+              exit 1
+            fi
           done
           {
             echo "## Build configuration (presence only)"
+            echo "- Backend source: $source"
+            if [ "$source" = secrets ] && [ -n "${OFFICIAL_PROPERTIES:-}" ]; then
+              for key in NUVIO_SUPABASE_URL NUVIO_SUPABASE_ANON_KEY; do
+                if [ "$(value "$key" local.dev.properties local.properties)" = "$(value "$key" "$OFFICIAL_PROPERTIES")" ]; then
+                  echo "- \`$key\`: same as the official release APK"
+                else
+                  echo "- \`$key\`: differs from the official release APK"
+                fi
+              done
+            fi
             for key in NUVIO_SUPABASE_URL NUVIO_SUPABASE_ANON_KEY TMDB_API_KEY TRAKT_CLIENT_ID SIMKL_CLIENT_ID MDBLIST_CLIENT_ID TV_LOGIN_WEB_BASE_URL; do
               if has "$key"; then echo "- \`$key\`: set"; else echo "- \`$key\`: not set (default)"; fi
             done
@@ -113,14 +173,27 @@ jobs:
       - name: Write the fixed test signing key (not printed)
         env:
           SUPERFORK_TEST_KEYSTORE_BASE64: ${{ secrets.SUPERFORK_TEST_KEYSTORE_BASE64 }}
+          SUPERFORK_TEST_KEYSTORE_PASSWORD: ${{ secrets.SUPERFORK_TEST_KEYSTORE_PASSWORD }}
+          SUPERFORK_TEST_KEY_ALIAS: ${{ secrets.SUPERFORK_TEST_KEY_ALIAS || 'superforktest' }}
         run: |
+          set -euo pipefail
+          if [ -z "$SUPERFORK_TEST_KEYSTORE_BASE64" ] || [ -z "$SUPERFORK_TEST_KEYSTORE_PASSWORD" ]; then
+            echo "::error title=Missing secrets::Add SUPERFORK_TEST_KEYSTORE_BASE64 and SUPERFORK_TEST_KEYSTORE_PASSWORD in Settings > Secrets and variables > Actions (docs/GITHUB_ADMIN_CHECKLIST.md section E)."
+            exit 1
+          fi
           umask 077
           printf '%s' "$SUPERFORK_TEST_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/superfork-test.jks"
+          cert="$(keytool -exportcert -keystore "$RUNNER_TEMP/superfork-test.jks" -storepass:env SUPERFORK_TEST_KEYSTORE_PASSWORD \
+            -alias "$SUPERFORK_TEST_KEY_ALIAS" | sha256sum | cut -d' ' -f1)"
+          if [ "$cert" != "$SUPERFORK_TEST_CERT_SHA256" ]; then
+            echo "::error title=Test key::the keystore's certificate is not the fixed test certificate SUPERFORK_TEST_CERT_SHA256"
+            exit 1
+          fi
           echo "NUVIO_RELEASE_STORE_FILE=$RUNNER_TEMP/superfork-test.jks" >> "$GITHUB_ENV"
 
       - name: Build com.nuvio.tv.debug
         env:
-          NUVIO_RELEASE_KEY_ALIAS: ${{ secrets.SUPERFORK_TEST_KEY_ALIAS }}
+          NUVIO_RELEASE_KEY_ALIAS: ${{ secrets.SUPERFORK_TEST_KEY_ALIAS || 'superforktest' }}
           NUVIO_RELEASE_STORE_PASSWORD: ${{ secrets.SUPERFORK_TEST_KEYSTORE_PASSWORD }}
           NUVIO_RELEASE_KEY_PASSWORD: ${{ secrets.SUPERFORK_TEST_KEY_PASSWORD || secrets.SUPERFORK_TEST_KEYSTORE_PASSWORD }}
         run: >-
@@ -143,24 +216,28 @@ jobs:
           [ "$package" = "$TEST_APP_ID" ] || { echo "::error::package is $package, expected $TEST_APP_ID"; exit 1; }
           "$bt/apksigner" verify "$apk"
           cert="$("$bt/apksigner" verify --print-certs "$apk" | sed -nE 's/.*certificate SHA-256 digest: ([0-9a-f]+).*/\1/p' | head -1)"
-          [ -n "$cert" ] || { echo "::error::no signing certificate"; exit 1; }
+          [ "$cert" = "$SUPERFORK_TEST_CERT_SHA256" ] || { echo "::error::the APK is not signed with the fixed test certificate"; exit 1; }
           # The backend configuration reached the build (values not printed).
           cfg="$(find app/build/generated/source/buildConfig -path '*/full/debug/*' -name BuildConfig.java | head -1)"
           [ -n "$cfg" ] || { echo "::error::BuildConfig.java not found"; exit 1; }
           for field in SUPABASE_URL SUPABASE_ANON_KEY; do
             grep -Eq "String $field = \"[^\"]+\";" "$cfg" || { echo "::error::$field is empty in BuildConfig"; exit 1; }
           done
+          echo "BUILD_CONFIG=$cfg" >> "$GITHUB_ENV"
           (cd "$out" && sha256sum -- app-full-universal-debug.apk > SHA256SUMS.txt)
           {
             echo "## APK"
             echo "- Package: \`$package\`"
             echo "- Version: \`$name\` (code \`$code\`)"
-            echo "- Signing certificate SHA-256: \`$cert\` (must stay the same across builds)"
+            echo "- Signing certificate SHA-256: \`$cert\` (the fixed test certificate; same on every build)"
             echo "- Backend configuration in BuildConfig: SUPABASE_URL and SUPABASE_ANON_KEY set"
             echo '```'
             cat "$out/SHA256SUMS.txt"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create a TV QR login session with the built configuration
+        run: python3 scripts/superfork/test_build_config.py session --build-config "$BUILD_CONFIG"
 
       - name: Upload APKs
         uses: actions/upload-artifact@v7
@@ -174,4 +251,4 @@ jobs:
 
       - name: Remove secrets from the runner
         if: always()
-        run: rm -f local.properties local.dev.properties "$RUNNER_TEMP/superfork-test.jks"
+        run: rm -rf local.properties local.dev.properties "$RUNNER_TEMP/superfork-test.jks" "$RUNNER_TEMP/official" "$RUNNER_TEMP/official.properties"

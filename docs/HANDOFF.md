@@ -317,8 +317,11 @@ Device test build (#94, open; D066): the maintainer's first device run had no TV
 has an empty backend configuration and a per-run signing key). `Superfork Test Build` builds
 `com.nuvio.tv.debug` with the real backend configuration from secrets, one fixed test key and version
 code `versionCode * 100000 + run`, verifies package / signature / configuration presence, and
-publishes the universal APK; secrets go to runner files only. Needs the secrets in
-GITHUB_ADMIN_CHECKLIST E.
+publishes the universal APK; secrets go to runner files only. Without backend secrets it reads the
+public client configuration (anon key only) from official's latest release APK on the runner (this
+session's egress cannot reach official's releases), and the built APK must create a TV QR login
+session. Needs only the two test-key secrets in GITHUB_ADMIN_CHECKLIST E (certificate pinned in the
+workflow).
 ## Exact next action
 1. Wait for #94 (test build) exact-head CI and squash it; once the maintainer adds the secrets in
    GITHUB_ADMIN_CHECKLIST E, check the first Superfork Test Build run (package, signature, backend
