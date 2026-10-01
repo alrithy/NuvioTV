@@ -5,6 +5,7 @@ import com.nuvio.tv.fork.foundation.FeatureId
 import com.nuvio.tv.fork.foundation.FeatureMode
 import com.nuvio.tv.fork.foundation.FeatureRegistry
 import com.nuvio.tv.fork.resource.AdaptiveResources
+import com.nuvio.tv.fork.resource.LiveTvPreviewBudget
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -63,6 +64,8 @@ class LiveTvRepository internal constructor(
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
     private val epgClock: () -> Long = LiveTvClock::nowEpochMs,
     private val epgTickMs: Long = EPG_TICK_MS,
+    /** AdaptiveResources' channel preview budget (G10f): its default when the viewer has not chosen. */
+    private val previewBudget: () -> LiveTvPreviewBudget = { AdaptiveResources.policy.liveTvPreviewBudget },
 ) {
     @Inject constructor(
         store: LiveTvStorage,
@@ -252,6 +255,40 @@ class LiveTvRepository internal constructor(
         val picked = zapList
         if (picked.any { it.key == currentKey }) return picked to zapFolderKey
         return _state.value.shownChannels to LiveTvFilterKeys.ALL
+    }
+
+    // endregion
+
+    // region Channel preview (G10f)
+
+    /** Whether the list previews the focused channel, and with sound, for the active profile. */
+    val previewSettings: Flow<LiveTvPreviewSettings> =
+        if (!featureEnabled) {
+            flowOf(LiveTvPreviewSettings.OFF)
+        } else {
+            activeProfileId.flatMapLatest { libraryStore.previewChoice(it) }
+                .map { LiveTvPreviewSettings.resolve(it, previewBudget()) }
+                .distinctUntilChanged()
+        }
+
+    /** The preview's size and buffer limits on this device. */
+    fun previewBudget(): LiveTvPreviewBudget = previewBudget.invoke()
+
+    fun setPreviewsEnabled(enabled: Boolean) = updatePreviewChoice { it.copy(previews = enabled) }
+
+    fun setPreviewSound(enabled: Boolean) = updatePreviewChoice { it.copy(sound = enabled) }
+
+    private fun updatePreviewChoice(change: (LiveTvPreviewChoice) -> LiveTvPreviewChoice) {
+        val profileId = activeProfileId.value
+        scope.launch(writer) {
+            try {
+                libraryStore.setPreviewChoice(profileId, change(libraryStore.previewChoice(profileId).first()))
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                LiveTvLog.warn("Live TV preview setting not saved", null, error)
+            }
+        }
     }
 
     // endregion

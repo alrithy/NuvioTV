@@ -83,4 +83,12 @@
     <string name="live_tv_info_now">الآن</string>
     <string name="live_tv_info_next">التالي · %1$s</string>
     <string name="live_tv_info_no_guide">لا يوجد دليل لهذه القناة</string>
+    <!-- G10f -->
+    <string name="live_tv_live_badge">مباشر</string>
+    <string name="live_tv_preview_mute">كتم صوت المعاينة</string>
+    <string name="live_tv_preview_unmute">تشغيل صوت المعاينة</string>
+    <string name="settings_live_tv_previews_title">معاينة القنوات</string>
+    <string name="settings_live_tv_previews_description">تشغيل صورة صغيرة للقناة التي تقف عليها في قائمة البث المباشر</string>
+    <string name="settings_live_tv_preview_sound_title">صوت المعاينة</string>
+    <string name="settings_live_tv_preview_sound_description">سماع صوت القناة في المعاينة. يرتفع تدريجيًا ويتوقف عند مغادرة القائمة</string>
 </resources>

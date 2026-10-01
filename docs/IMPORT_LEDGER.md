@@ -752,3 +752,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: key routing, focus and zap timing need a remote and real channels (HV-G10-6, G14)
+
+### G10f — Live TV channel preview, sized by AdaptiveResources (226, 227)
+- Roadmap gate: G10
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: main
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/reshaped/livetv/LiveTvPreview.kt (LiveTvPreviewPlayer, LiveTvPreviewPanel, rememberLiveTvPreviewPlayer), the preview parts of ui/reshaped/livetv/LiveTvScreen.kt, reshaped/livetv/LiveTvPreferences.kt (previews, preview sound), reshaped/livetv/LiveTvDevice.kt (low-memory line), ui/screens/settings/LiveTvSettingsItems.kt (preview rows)
+- Import mode: FILE_PORT (preview player, panel, screen wiring, settings rows); ADAPTER (settings per profile in the Live TV DataStore beside the menu switch; size, buffers and default from AdaptiveResources)
+- Current official equivalent: none (official has no channel list)
+- What already existed upstream: `PlayerMediaSourceFactory.normalizePlaybackRequest` (reused so a user:password@ link becomes a header as in the player)
+- What was imported: one preview ExoPlayer for the focused channel after 400 ms (first channel at once), lowest adaptive bitrate, capped size, a few seconds of buffer, HLS retry for links without .m3u8, sound faded in only when on, a mute button under the picture, released on play / leaving / background; per-profile Channel previews and Preview sound settings; strings en + ar
+- What was intentionally not imported: Reshaped's `LiveTvDevice` second memory check (AdaptiveResources owns the tier: `liveTvPreviewBudget`, constrained = Reshaped's under-2.5 GB line) and its app-wide SharedPreferences (settings are per profile); the Guide button under the picture (no guide grid, G10e)
+- Local adaptations: previews default off on low-RAM boxes (D055 audit); the preview uses Live TV's own OkHttp client (no logging interceptor) with no disk cache; Stalker channels are not previewed (links made per play); nothing logs URLs or errors
+- Feature flag / fallback: FeatureId.LIVE_TV (AUTO, D055); LIVE_TV OFF resolves previews off; previews off shows the list as before
+- Tests ported/added: LiveTvPreviewTest (3: device default until chosen, per profile, sound; LIVE_TV off; Stalker and HLS rules), AdaptiveResourcesTest (+1: preview budget per tier)
+- License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: a second decoder beside the UI on 1-2 GB boxes and one-connection accounts need real devices (HV-G10-7, G14)
