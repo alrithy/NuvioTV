@@ -28,6 +28,8 @@ data class WatchPartyState(
     val error: WatchPartyError? = null,
     /** Host: the people who join get the open stream's link (allow-listed headers only). */
     val sharingConsented: Boolean = false,
+    /** Guest: the host's stream was refused or did not open here (feature 244; IP-locked or local links). */
+    val streamUnsupported: Boolean = false,
 ) {
     val isActive: Boolean get() = status == WatchPartyStatus.CONNECTING || status == WatchPartyStatus.CONNECTED
 }
@@ -40,6 +42,11 @@ data class WatchPartyState(
  * large one with a seek that learns how long a seek takes. Adapted: a host shares only after
  * consent; a guest accepts only what [WatchPartySharePolicy.acceptReceived] lets through; errors are
  * fixed codes; scope and clock are injectable for tests. Every method runs on the main thread.
+ *
+ * Corrections after review (G11 closeout): a guest follows one host — the first peer that speaks as
+ * host — and ignores MEDIA / STATE from anyone else until that host leaves, which also ends every
+ * correction based on it. Guests follow the host's chosen speed ([WatchPartyWire.rate]) and drift
+ * correction works around it; the viewer's own speed comes back when the room ends.
  */
 class WatchPartySession(
     private val transportFactory: () -> WatchPartyTransport,
@@ -75,6 +82,7 @@ class WatchPartySession(
     private var hostPosition = 0L
     private var hostPlaying = false
     private var hostStateAt = -1L
+    private var hostRate = 1f
 
     // Guest: after a seek, wait for the player to run again before correcting again, and measure
     // how long that took (seekLeadMs) to land a little further ahead next time.
@@ -83,7 +91,8 @@ class WatchPartySession(
     private var lastSeekTarget = 0L
     private var settledAt = 0L
     private var seekLeadMs = 0L
-    private var currentSpeed = 1f
+    /** The speed this session set on the player; null while the player runs at the viewer's own speed. */
+    private var appliedSpeed: Float? = null
 
     private fun now(): Long = clockMs()
 
@@ -107,7 +116,7 @@ class WatchPartySession(
     }
 
     fun leaveRoom() {
-        player?.let { setSpeed(it, 1f) }
+        player?.let(::restoreSpeed)
         transport?.let { t ->
             runCatching { t.send(encode(WatchPartyWire(type = WatchPartyProtocol.BYE))) }
             t.leave()
@@ -116,13 +125,16 @@ class WatchPartySession(
         tickerJob?.cancel()
         tickerJob = null
         peerNames.clear()
-        hostUuid = null
-        hostMedia = null
-        hostStateAt = -1L
-        awaitingSettle = false
+        forgetHost()
         seekLeadMs = 0L
         _mediaRequest.value = null
+        WatchPartyReceivedStreams.clearTickets()
         _state.value = WatchPartyState()
+    }
+
+    /** Guest: the host's stream did not open on this device (the player failed or it was refused). */
+    fun reportStreamUnsupported() {
+        if (_state.value.role == WatchPartyRole.GUEST) _state.update { it.copy(streamUnsupported = true) }
     }
 
     fun consumeMediaRequest() {
@@ -133,7 +145,7 @@ class WatchPartySession(
     fun attachPlayer(player: WatchPartyPlayer, media: WatchPartyMedia) {
         this.player = player
         this.playerMedia = media
-        currentSpeed = 1f
+        appliedSpeed = null
         awaitingSettle = false
         resetBaseline(player)
         if (!_state.value.isActive) return
@@ -149,7 +161,7 @@ class WatchPartySession(
 
     fun detachPlayer(player: WatchPartyPlayer) {
         if (this.player !== player) return
-        setSpeed(player, 1f)
+        restoreSpeed(player)
         this.player = null
         this.playerMedia = null
     }
@@ -196,7 +208,7 @@ class WatchPartySession(
         override fun onPeerLeft(uuid: String) {
             if (!current) return
             peerNames.remove(uuid)
-            if (uuid == hostUuid) hostUuid = null
+            if (uuid == hostUuid) forgetHost()
             publishParticipants()
         }
 
@@ -218,7 +230,7 @@ class WatchPartySession(
         when (msg.type) {
             WatchPartyProtocol.HELLO -> {
                 peerNames[uuid] = WatchPartySharePolicy.peerName(msg.name) ?: DEFAULT_NAME
-                if (msg.host == true && role == WatchPartyRole.GUEST) {
+                if (msg.host == true && role == WatchPartyRole.GUEST && followsHost(uuid)) {
                     hostUuid = uuid
                     sendToHost(WatchPartyWire(type = WatchPartyProtocol.REQUEST_STATE))
                 }
@@ -226,15 +238,21 @@ class WatchPartySession(
             }
             WatchPartyProtocol.BYE -> {
                 peerNames.remove(uuid)
-                if (uuid == hostUuid) hostUuid = null
+                if (uuid == hostUuid) forgetHost()
                 publishParticipants()
             }
             WatchPartyProtocol.REQUEST_STATE -> if (role == WatchPartyRole.HOST) sendMediaTo(uuid)
             WatchPartyProtocol.CMD -> if (role == WatchPartyRole.HOST) applyGuestCommand(msg)
-            WatchPartyProtocol.MEDIA -> if (role == WatchPartyRole.GUEST) {
+            WatchPartyProtocol.MEDIA -> if (role == WatchPartyRole.GUEST && followsHost(uuid)) {
                 hostUuid = uuid
                 // Only a public HTTP(S) link with allow-listed headers is ever opened (D056).
-                val media = msg.media?.let(WatchPartySharePolicy::acceptReceived) ?: return
+                val media = msg.media?.let(WatchPartySharePolicy::acceptReceived)
+                if (media == null) {
+                    _state.update { it.copy(streamUnsupported = true) }
+                    publishParticipants()
+                    return
+                }
+                _state.update { it.copy(streamUnsupported = false) }
                 hostMedia = media
                 recordHostState(msg)
                 if (!sameStream(media, playerMedia)) {
@@ -244,7 +262,7 @@ class WatchPartySession(
                 }
                 publishParticipants()
             }
-            WatchPartyProtocol.STATE -> if (role == WatchPartyRole.GUEST) {
+            WatchPartyProtocol.STATE -> if (role == WatchPartyRole.GUEST && followsHost(uuid)) {
                 hostUuid = uuid
                 recordHostState(msg)
                 if (now() >= ignoreHostStateUntil) applyHostState(force = false)
@@ -264,6 +282,7 @@ class WatchPartySession(
                 media = media,
                 positionMs = p?.positionMs,
                 playing = p?.isPlaying,
+                rate = p?.let(::sharedRate),
             ),
             uuid,
         )
@@ -275,8 +294,11 @@ class WatchPartySession(
         val p = player ?: return
         if (playerMedia == null) return
         lastStateSentAt = now()
-        send(WatchPartyWire(type = WatchPartyProtocol.STATE, positionMs = p.positionMs, playing = p.isPlaying))
+        send(WatchPartyWire(type = WatchPartyProtocol.STATE, positionMs = p.positionMs, playing = p.isPlaying, rate = sharedRate(p)))
     }
+
+    /** The host's speed on the wire: only when it is not 1×, so normal messages stay protocol v1. */
+    private fun sharedRate(p: WatchPartyPlayer): Float? = p.selectedSpeed.takeIf { it != 1f && it.isFinite() }
 
     private fun applyGuestCommand(msg: WatchPartyWire) {
         val p = player ?: return
@@ -306,11 +328,27 @@ class WatchPartySession(
         val position = msg.positionMs ?: return
         hostPosition = position
         hostPlaying = msg.playing ?: hostPlaying
+        hostRate = msg.rate?.takeIf { it.isFinite() && it in WatchPartyProtocol.MIN_RATE..WatchPartyProtocol.MAX_RATE } ?: 1f
         hostStateAt = now()
     }
 
     private fun estimatedHostPosition(): Long =
-        if (hostPlaying) hostPosition + (now() - hostStateAt) else hostPosition
+        if (hostPlaying) hostPosition + ((now() - hostStateAt) * hostRate).toLong() else hostPosition
+
+    /** A guest follows one host: the first peer that speaks as host, until that peer leaves. */
+    private fun followsHost(uuid: String): Boolean = hostUuid == null || hostUuid == uuid
+
+    /** The host left (or the room ended): nothing it said is applied any more. */
+    private fun forgetHost() {
+        hostUuid = null
+        hostMedia = null
+        hostStateAt = -1L
+        hostRate = 1f
+        hostPlaying = false
+        awaitingSettle = false
+        ignoreHostStateUntil = 0L
+        if (_state.value.role == WatchPartyRole.GUEST) player?.let(::restoreSpeed)
+    }
 
     private fun applyHostState(force: Boolean) {
         val p = player ?: return
@@ -361,10 +399,19 @@ class WatchPartySession(
         }
     }
 
-    private fun setSpeed(p: WatchPartyPlayer, speed: Float) {
-        if (speed == currentSpeed) return
-        currentSpeed = speed
+    /** Guest: plays at the host's speed times [factor] (1 = in step, up to ±10 % to catch up). */
+    private fun setSpeed(p: WatchPartyPlayer, factor: Float) {
+        val speed = hostRate * factor
+        if (speed == appliedSpeed) return
+        appliedSpeed = speed
         p.setPlaybackSpeed(speed)
+    }
+
+    /** Back to the speed the viewer picked. */
+    private fun restoreSpeed(p: WatchPartyPlayer) {
+        if (appliedSpeed == null) return
+        appliedSpeed = null
+        p.setPlaybackSpeed(p.selectedSpeed)
     }
 
     private fun sendToHost(msg: WatchPartyWire) {

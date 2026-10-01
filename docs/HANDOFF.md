@@ -144,16 +144,29 @@ failures, 0 new, 1 skipped; APK artifact 11148704473): `fork/watchparty` core �
 format kept), host-authority sync with soft speed correction and hard seek, consent-gated rooms,
 WatchPartySharePolicy, hidden WebView transport with the upstream VDO.Ninja SDK v1.6.1 (MPL-2.0,
 source form), no console logs; WATCH_PARTY AUTO.
-G11b (#73, open): Watch Party button in the player controls, two-step consent before a room is
-created, room panel and badge, joining from Playback settings, guests' players opening the host's
-stream; unshareable reasons (torrent / local, Live TV, credentials); a guest's received link is kept
-in memory only and never saved for reuse (`streamCacheKey` guard); strings en + ar. 237–249
-implemented; HV-G11-1..HV-G11-4 MANUAL-PENDING. Local JVM harness: 323 tests PASS (the UI compiles
-only in CI). #73 requires exact-head CI.
+G11b merged as #73 (`1002530`; exact head `c4e3a95`, run 36836494526: 2198 tests, 15 known
+failures, 0 new, 1 skipped; APK artifact 11149093802): Watch Party button in the player controls,
+two-step consent before a room is created, room panel and badge, joining from Playback settings,
+guests' players opening the host's stream; unshareable reasons (torrent / local, Live TV,
+credentials); a guest's received link is kept in memory only and never saved for reuse
+(`streamCacheKey` guard); strings en + ar. 237–249 implemented; HV-G11-1..HV-G11-4 MANUAL-PENDING.
+Review corrections (#74, open; D057) for the 14 Codex findings that arrived on #71, #72 and #73
+after merge: the guest's player route carries a one-time in-memory ticket instead of the link and
+headers (none in navigation saved state) and diagnostics never save a received link; non-public
+destinations (loopback, private, CGNAT, link-local, ULA, multicast, reserved, LAN-only names,
+non-dotted numeric hosts) are never shared or opened, and a guest checks resolved addresses before
+opening; a guest follows one host until it leaves, and the host leaving clears its state; host speed
+travels as an optional `rate` (omitted at 1×) and guests correct around it and get their own speed
+back; terminal signaling loss ends the room; remote play / pause does the button's mpv bookkeeping;
+unshareable streams are detached; streams without a duration attach; guests see an unsupported-stream
+notice (IP-locked / local sources). Phone compatibility target pinned: AntoninoScardina/NuvioMobile
+`watchparty` @ `ff7a16b` (reference only). Local JVM harness: 330 tests PASS (the UI compiles only
+in CI). #74 requires exact-head CI.
 Next gate: G12 UI Styles.
 
 ## Exact next action
-1. Wait for #73 (G11b) exact-head CI, squash with expected head, then the G11 closeout
+1. Wait for #74 (G11 review corrections) exact-head CI, squash with expected head, reply on and
+   resolve the 14 review threads on #71–#73, then the G11 closeout
    (`chore/governance-g11-closeout`: state to G12 UI Styles, HV-G11-1..4 to G14).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G11→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.

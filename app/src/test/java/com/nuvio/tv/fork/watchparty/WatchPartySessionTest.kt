@@ -12,7 +12,7 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** G11a: consent, received media, play / pause / seek sync, soft drift and hard seek, lifecycle. */
+/** G11a: consent, received media, play / pause / seek sync, soft drift and hard seek, lifecycle; G11 corrections. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class WatchPartySessionTest {
     private val json = Json { ignoreUnknownKeys = true }
@@ -40,12 +40,12 @@ class WatchPartySessionTest {
     }
 
     /** A player whose position runs with the test clock while it plays. */
-    private class FakePlayer(private val clock: () -> Long) : WatchPartyPlayer {
+    private class FakePlayer(override val selectedSpeed: Float = 1f, private val clock: () -> Long) : WatchPartyPlayer {
         private var base = 0L
         private var since = 0L
         var playing = true
             private set
-        var speed = 1f
+        var speed = selectedSpeed
             private set
         val seeks = mutableListOf<Long>()
         override var isBuffering = false
@@ -216,5 +216,116 @@ class WatchPartySessionTest {
         assertEquals(WatchPartyStatus.ERROR, party.state.value.status)
         assertEquals(WatchPartyError.CONNECTION_FAILED, party.state.value.error)
         party.leaveRoom()
+    }
+
+    @Test
+    fun aGuestFollowsOnlyItsHostAndAnotherPeerCannotTakeOver() = runTest {
+        val transports = mutableListOf<FakeTransport>()
+        val guest = session(transports)
+        guest.joinRoom("ABC234")
+        val l = transports.single().listener!!
+        val player = FakePlayer { testScheduler.currentTime }
+        guest.attachPlayer(player, media)
+        l.onMessage("host", wire(WatchPartyWire(type = WatchPartyProtocol.HELLO, name = "Host", host = true)))
+        l.onMessage("host", wire(WatchPartyWire(type = WatchPartyProtocol.MEDIA, media = media, positionMs = 0, playing = true)))
+        // Another participant claims to be host: its stream is not opened and its state is not applied.
+        l.onMessage("mallory", wire(WatchPartyWire(type = WatchPartyProtocol.HELLO, name = "M", host = true)))
+        l.onMessage("mallory", wire(WatchPartyWire(type = WatchPartyProtocol.MEDIA, media = media.copy(url = "https://evil.example/x"), positionMs = 0)))
+        assertNull(guest.mediaRequest.value)
+        l.onMessage("mallory", wire(WatchPartyWire(type = WatchPartyProtocol.STATE, positionMs = 600_000, playing = false)))
+        assertTrue(player.seeks.isEmpty())
+        assertTrue(player.playing)
+        guest.leaveRoom()
+    }
+
+    @Test
+    fun whenTheHostLeavesNothingItSaidIsAppliedAnyMore() = runTest {
+        val transports = mutableListOf<FakeTransport>()
+        val guest = session(transports)
+        guest.joinRoom("ABC234")
+        val l = transports.single().listener!!
+        val player = FakePlayer { testScheduler.currentTime }
+        guest.attachPlayer(player, media)
+        l.onPeerJoined("host")
+        l.onMessage("host", wire(WatchPartyWire(type = WatchPartyProtocol.MEDIA, media = media, positionMs = 0, playing = true)))
+        advanceTimeBy(2_000); runCurrent()
+        l.onMessage("host", wire(WatchPartyWire(type = WatchPartyProtocol.STATE, positionMs = player.positionMs + 1_000, playing = true)))
+        assertTrue(player.speed > 1f)
+        l.onPeerLeft("host")
+        assertEquals(1f, player.speed)
+        assertFalse(guest.state.value.hostPresent)
+        // The guest pauses on its own; with no host it is not forced back into playback or moved.
+        player.pause()
+        advanceTimeBy(10_000); runCurrent()
+        assertFalse(player.playing)
+        assertTrue(player.seeks.isEmpty())
+        // A new host may then lead.
+        l.onMessage("host-2", wire(WatchPartyWire(type = WatchPartyProtocol.STATE, positionMs = 120_000, playing = false)))
+        assertNull(guest.mediaRequest.value)
+        guest.leaveRoom()
+    }
+
+    @Test
+    fun guestsFollowTheHostsSpeedAndGetTheirOwnBackWhenTheRoomEnds() = runTest {
+        val hostTransports = mutableListOf<FakeTransport>()
+        val host = session(hostTransports)
+        host.createRoom(sharingConsented = true)
+        host.attachPlayer(FakePlayer(selectedSpeed = 1.5f) { testScheduler.currentTime }, media)
+        hostTransports.single().listener!!.onPeerJoined("guest-1")
+        val sentMedia = hostTransports.single().messages().first { it.first.type == WatchPartyProtocol.MEDIA }.first
+        assertEquals(1.5f, sentMedia.rate)
+        host.leaveRoom()
+
+        // At 1x the wire stays protocol v1: no rate field at all.
+        val plainTransports = mutableListOf<FakeTransport>()
+        val plain = session(plainTransports)
+        plain.createRoom(sharingConsented = true)
+        plain.attachPlayer(FakePlayer { testScheduler.currentTime }, media)
+        plainTransports.single().listener!!.onPeerJoined("guest-1")
+        assertTrue(plainTransports.single().sent.none { "rate" in it.first })
+        plain.leaveRoom()
+
+        val transports = mutableListOf<FakeTransport>()
+        val guest = session(transports)
+        guest.joinRoom("ABC234")
+        val l = transports.single().listener!!
+        val player = FakePlayer(selectedSpeed = 1.25f) { testScheduler.currentTime }
+        guest.attachPlayer(player, media)
+        l.onMessage("host", wire(WatchPartyWire(type = WatchPartyProtocol.MEDIA, media = media, positionMs = 0, playing = true, rate = 1.5f)))
+        advanceTimeBy(1_000); runCurrent()
+        assertEquals(1.5f, player.speed)
+        // In step at 1.5x for a while: no seeks, the estimate runs at the host's speed.
+        advanceTimeBy(20_000); runCurrent()
+        assertTrue(player.seeks.isEmpty())
+        // An out-of-range rate is ignored (treated as 1x).
+        l.onMessage("host", wire(WatchPartyWire(type = WatchPartyProtocol.STATE, positionMs = player.positionMs, playing = true, rate = 50f)))
+        assertEquals(1f, player.speed)
+        guest.leaveRoom()
+        assertEquals(1.25f, player.speed)
+    }
+
+    @Test
+    fun aGuestIsToldWhenTheHostsStreamCannotOpenHere() = runTest {
+        val transports = mutableListOf<FakeTransport>()
+        val guest = session(transports)
+        guest.joinRoom("ABC234")
+        val l = transports.single().listener!!
+        l.onJoined()
+        l.onMessage("host", wire(WatchPartyWire(type = WatchPartyProtocol.MEDIA, media = media.copy(url = "http://192.168.1.10/x.mkv"), positionMs = 0)))
+        assertTrue(guest.state.value.streamUnsupported)
+        assertNull(guest.mediaRequest.value)
+        l.onMessage("host", wire(WatchPartyWire(type = WatchPartyProtocol.MEDIA, media = media, positionMs = 0)))
+        assertFalse(guest.state.value.streamUnsupported)
+        guest.reportStreamUnsupported()
+        assertTrue(guest.state.value.streamUnsupported)
+        guest.leaveRoom()
+        assertFalse(guest.state.value.streamUnsupported)
+
+        // A host is never marked.
+        val host = session(mutableListOf())
+        host.createRoom(sharingConsented = true)
+        host.reportStreamUnsupported()
+        assertFalse(host.state.value.streamUnsupported)
+        host.leaveRoom()
     }
 }

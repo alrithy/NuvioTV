@@ -7,7 +7,9 @@ import kotlinx.serialization.Serializable
  * Watch Party wire format (G11a, D056). FILE_PORT of AntoninoScardina/NuvioTV
  * `watchparty/WatchPartyProtocol.kt` @ ff597b1. Field names, message types, the code alphabet and the
  * room / password derivation are kept exactly, so the Nuvio Party phone build can join (feature 240).
- * Adapted: the room code comes from SecureRandom.
+ * Adapted: the room code comes from SecureRandom. The phone side is pinned for compatibility at
+ * AntoninoScardina/NuvioMobile `watchparty` @ ff7a16b (tag v2026.929.8): its protocol file is the same
+ * as the TV source's, and it reads messages with `ignoreUnknownKeys`.
  */
 
 /** The stream the host shares: guests open exactly this link with these (allow-listed) headers. */
@@ -39,6 +41,10 @@ data class WatchPartyMedia(
  *  - REQUEST_STATE: guest → host, asks for MEDIA / STATE (just joined or player just opened)
  *  - CMD: guest → host, play / pause / seek done by a guest
  *  - BYE: leaving
+ *
+ * [rate] is a Superfork addition (G11 corrections): the host's chosen playback speed in MEDIA / STATE,
+ * sent only when it is not 1×, so normal-speed messages stay exactly protocol v1. Older builds ignore
+ * it (they read with `ignoreUnknownKeys`).
  */
 @Serializable
 data class WatchPartyWire(
@@ -50,6 +56,7 @@ data class WatchPartyWire(
     val positionMs: Long? = null,
     val playing: Boolean? = null,
     val action: String? = null,
+    val rate: Float? = null,
 )
 
 object WatchPartyProtocol {
@@ -65,6 +72,10 @@ object WatchPartyProtocol {
     const val ACTION_PLAY = "play"
     const val ACTION_PAUSE = "pause"
     const val ACTION_SEEK = "seek"
+
+    /** The player's speed range; a [WatchPartyWire.rate] outside it is ignored. */
+    const val MIN_RATE = 0.25f
+    const val MAX_RATE = 2f
 
     /** No 0/O, 1/I/L: easy to read off a TV and type on a remote. */
     private const val CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789"

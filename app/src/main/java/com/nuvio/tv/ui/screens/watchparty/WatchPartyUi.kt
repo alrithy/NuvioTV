@@ -17,6 +17,7 @@ import com.nuvio.tv.fork.watchparty.WatchPartyError
 import com.nuvio.tv.fork.watchparty.WatchPartyReceivedStreams
 import com.nuvio.tv.fork.watchparty.WatchPartyRole
 import com.nuvio.tv.fork.watchparty.WatchPartySession
+import com.nuvio.tv.fork.watchparty.WatchPartySharePolicy
 import com.nuvio.tv.fork.watchparty.WatchPartyState
 import com.nuvio.tv.fork.watchparty.WatchPartyStatus
 import com.nuvio.tv.fork.watchparty.watchPartyEnabled
@@ -25,6 +26,9 @@ import com.nuvio.tv.ui.screens.settings.ForkTextEntryDialog
 import com.nuvio.tv.ui.screens.settings.SettingsActionRow
 import com.nuvio.tv.ui.screens.settings.SettingsSectionLabel
 import dagger.hilt.android.EntryPointAccessors
+import java.net.URI
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /*
  * Watch Party outside the player (G11b, D056; features 237–240): the app's one session, opening the
@@ -45,7 +49,8 @@ internal fun rememberWatchPartySession(): WatchPartySession? {
 
 /**
  * Guest: when the host starts (or changes) a stream, the player opens on the same link. The link is
- * remembered as received, so this device never saves it for reuse.
+ * remembered as received, so this device never saves it for reuse, and reaches the player through an
+ * in-memory ticket, so it is never in navigation saved state.
  */
 @Composable
 fun WatchPartyNavigationEffect(navController: NavHostController) {
@@ -54,12 +59,20 @@ fun WatchPartyNavigationEffect(navController: NavHostController) {
     LaunchedEffect(request) {
         val media = request ?: return@LaunchedEffect
         session.consumeMediaRequest()
-        WatchPartyReceivedStreams.register(media.url)
+        // A host could name a server on the guest's own network: open only names that resolve to
+        // public addresses (D056).
+        val host = runCatching { URI(media.url).host }.getOrNull()
+        val public = host != null && withContext(Dispatchers.IO) { WatchPartySharePolicy.resolvesToPublic(host) }
+        if (!public) {
+            session.reportStreamUnsupported()
+            return@LaunchedEffect
+        }
+        // The route carries a ticket, not the link or its headers: route arguments are saved state.
         val route = Screen.Player.createRoute(
-            streamUrl = media.url,
+            streamUrl = WatchPartyReceivedStreams.register(media),
             title = media.title ?: WATCH_PARTY_FALLBACK_TITLE,
             streamName = media.streamName,
-            headers = media.headers.takeIf { it.isNotEmpty() },
+            headers = null,
             contentId = media.contentId,
             contentType = media.contentType,
             contentName = media.title,
@@ -125,6 +138,7 @@ internal fun watchPartySettingsItems() {
 internal fun watchPartyStatusText(state: WatchPartyState): String = when {
     state.status == WatchPartyStatus.ERROR -> watchPartyErrorText(state.error)
     state.status == WatchPartyStatus.CONNECTING -> stringResource(R.string.watch_party_connecting)
+    state.role == WatchPartyRole.GUEST && state.streamUnsupported -> stringResource(R.string.watch_party_stream_unsupported)
     state.participants.isEmpty() -> stringResource(R.string.watch_party_waiting)
     state.role == WatchPartyRole.GUEST && !state.hostPresent -> stringResource(R.string.watch_party_waiting_host)
     else -> stringResource(R.string.watch_party_participants, state.participants.joinToString(", "))

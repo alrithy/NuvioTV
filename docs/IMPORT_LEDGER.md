@@ -829,3 +829,20 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 (Antonino fork of official); attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: two-device sync, phone interop, NAT / TURN and logs need real devices (HV-G11-1..HV-G11-4, G14)
+
+### G11 review corrections — Watch Party after the #71–#73 reviews (237–249)
+- Roadmap gate: G11
+- Source repository: AntoninoScardina/NuvioTV (unchanged pin ff597b12bc7834b07dedda92c88e0d574c0aad81); compatibility reference AntoninoScardina/NuvioMobile `watchparty` @ ff7a16b19e7777cfce9254792cef9a141651dfe4 (tag v2026.929.8; read only, nothing imported)
+- Source commit(s): none new
+- Source file(s): none new; changes are local to `fork/watchparty`, `PlayerWatchParty.kt`, `WatchPartyUi.kt`, the bridge script and two one-line hooks
+- Import mode: local WRITE (corrections of G11a / G11b code)
+- Current official equivalent: none
+- What already existed upstream: `PlayerNavigationArgs` reads the route from `SavedStateHandle`; `setLastPlaybackDiagnostics` saves the last link and headers; `PlayerEvent.OnPlayPause` bookkeeping
+- What was imported: nothing
+- What was intentionally not imported: no revalidation of HTTP redirects inside the player's data source (a public link that redirects into the guest's network is a known residual risk, recorded in the closeout)
+- Local adaptations: the guest's player route carries a one-time in-memory ticket instead of the link and headers (`PlayerNavigationArgs` hook redeems it; leaving drops unredeemed tickets; a recreated process opens nothing); the last-playback diagnostics never save a received link (`setLastPlaybackDiagnostics` hook); loopback, private, carrier-grade NAT, link-local, unique-local, multicast and reserved addresses, LAN-only names and non-dotted numeric hosts are never shared or opened, and a guest opens a name only when every address it resolves to is public; a guest follows one host (the first to speak as host) until it leaves, and the host leaving clears its state and corrections; the host's speed travels as an optional `rate` field (omitted at 1×, ignored by older builds) and guests correct around it, getting their own speed back afterwards; terminal signaling loss (`reconnectFailed`, a non-retried disconnect) ends the room with the connection error; remote play / pause does the play / pause button's mpv bookkeeping (progress, watch progress, scrobbles); a stream that becomes unshareable is detached from the room (the panel says so); streams without a known duration attach once loaded; a guest whose player cannot open the host's link, or whose host sent a refused link, sees why (IP-locked / local sources)
+- Feature flag / fallback: FeatureId.WATCH_PARTY (AUTO, D056) unchanged
+- Tests ported/added: WatchPartySharePolicyTest +3 (non-public hosts, DNS answers, tickets), WatchPartySessionTest +4 (host pinning, host leaving, speed follow and restore with v1 wire at 1×, unsupported stream)
+- License / attribution notes: GPL-3.0, unchanged; the SDK file is unchanged
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: redirect and DNS-rebinding paths inside the player; the controller-level pause bookkeeping and Android saved-state behaviour compile only in CI and need device checks (HV-G11-3)
