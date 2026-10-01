@@ -1,0 +1,111 @@
+package com.nuvio.tv.fork.aimedia
+
+// G13b (D063): FILE_PORT of Fornace/nuvio-ai @ 518af71 `app/src/main/…/core/media/provider/host/ProviderRegistryClient.kt`; package renamed.
+
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.io.IOException
+
+sealed interface ProviderRegistryResult {
+    data class Success(val registry: ParsedProviderRegistry) : ProviderRegistryResult
+    data class NetworkError(val causeType: String) : ProviderRegistryResult
+    data class HttpStatusError(val statusCode: Int, val responseBodySize: Long?) : ProviderRegistryResult
+    data class ParseError(val message: String) : ProviderRegistryResult
+}
+
+sealed interface VendorCatalogResult {
+    data class Success(val catalog: ParsedVendorCatalog) : VendorCatalogResult
+    data class NetworkError(val causeType: String) : VendorCatalogResult
+    data class HttpStatusError(val statusCode: Int, val responseBodySize: Long?) : VendorCatalogResult
+    data class ParseError(val message: String) : VendorCatalogResult
+}
+
+/** Creates a client using OkHttp's platform trust manager and hostname verifier. */
+object ProviderRegistryHttpClientFactory {
+    fun create(): OkHttpClient = OkHttpClient.Builder().build()
+}
+
+open class ProviderRegistryClient(
+    private val httpClient: OkHttpClient = ProviderRegistryHttpClientFactory.create(),
+    private val registryUrl: String = OFFICIAL_PROVIDER_REGISTRY_URL,
+    private val vendorCatalogUrl: String = registryUrl.defaultVendorCatalogUrl(),
+    private val json: Json = Json { ignoreUnknownKeys = true }
+) {
+    open suspend fun fetch(): ProviderRegistryResult = withContext(Dispatchers.IO) {
+        val request = try {
+            Request.Builder().url(registryUrl).get().build()
+        } catch (error: IllegalArgumentException) {
+            return@withContext ProviderRegistryResult.ParseError("Invalid registry URL")
+        }
+
+        try {
+            httpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    return@withContext ProviderRegistryResult.HttpStatusError(
+                        statusCode = response.code,
+                        responseBodySize = response.body?.contentLength()?.takeIf { it >= 0 }
+                    )
+                }
+                val body = response.body?.string()
+                    ?: return@withContext ProviderRegistryResult.ParseError("Registry response has no body")
+                try {
+                    val dto = json.decodeFromString<ProviderRegistryDocumentDto>(body)
+                    ProviderRegistryResult.Success(dto.toParsedRegistry())
+                } catch (error: SerializationException) {
+                    ProviderRegistryResult.ParseError(error.safeParseMessage())
+                } catch (error: IllegalArgumentException) {
+                    ProviderRegistryResult.ParseError(error.safeParseMessage())
+                }
+            }
+        } catch (error: IOException) {
+            ProviderRegistryResult.NetworkError(error.javaClass.simpleName)
+        }
+    }
+
+    open suspend fun fetchVendorCatalog(): VendorCatalogResult = withContext(Dispatchers.IO) {
+        val request = try {
+            Request.Builder().url(vendorCatalogUrl).get().build()
+        } catch (error: IllegalArgumentException) {
+            return@withContext VendorCatalogResult.ParseError("Invalid vendor catalog URL")
+        }
+
+        try {
+            httpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) {
+                    return@withContext VendorCatalogResult.HttpStatusError(
+                        statusCode = response.code,
+                        responseBodySize = response.body?.contentLength()?.takeIf { it >= 0 }
+                    )
+                }
+                val body = response.body?.string()
+                    ?: return@withContext VendorCatalogResult.ParseError("Vendor catalog has no body")
+                try {
+                    val dto = json.decodeFromString<VendorCatalogDocumentDto>(body)
+                    VendorCatalogResult.Success(dto.toParsedVendorCatalog())
+                } catch (error: SerializationException) {
+                    VendorCatalogResult.ParseError(error.safeParseMessage())
+                } catch (error: IllegalArgumentException) {
+                    VendorCatalogResult.ParseError(error.safeParseMessage())
+                }
+            }
+        } catch (error: IOException) {
+            VendorCatalogResult.NetworkError(error.javaClass.simpleName)
+        }
+    }
+
+    private fun Throwable.safeParseMessage(): String =
+        message?.lineSequence()?.firstOrNull()?.take(160) ?: "Invalid registry response"
+
+    companion object {
+        const val OFFICIAL_PROVIDER_REGISTRY_URL =
+            "https://nuvio-extensions.fornace.net/v1/registry.json"
+
+        /** Derives the sibling vendors.json URL from a registry URL. */
+        fun String.defaultVendorCatalogUrl(): String =
+            substringBeforeLast('/') + "/vendors.json"
+    }
+}

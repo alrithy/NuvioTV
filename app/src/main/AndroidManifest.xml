@@ -2,11 +2,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Superfork G13b (D063): AI media providers are separate APKs whose service requires this
+         permission; the host defines and holds it, and binds them only after verifying them. -->
+    <permission
+        android:name="com.nuvio.tv.permission.BIND_MEDIA_PROVIDER"
+        android:protectionLevel="signature" />
+
+    <uses-permission android:name="com.nuvio.tv.permission.BIND_MEDIA_PROVIDER" />
+
     <!-- Android 11+ fix: SpeechRecognizer not available without this -->
     <!-- https://stackoverflow.com/questions/64319117/speechrecognizer-not-available-when-targeting-android-11 -->
     <queries>
         <intent>
             <action android:name="android.speech.RecognitionService" />
+        </intent>
+        <!-- Superfork G13b: the AI media provider packages and their bind action. -->
+        <package android:name="com.nuvio.tv.provider.subtitles" />
+        <package android:name="com.nuvio.tv.provider.voice" />
+        <intent>
+            <action android:name="com.nuvio.tv.provider.BIND" />
         </intent>
     </queries>
 
