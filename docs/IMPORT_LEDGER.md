@@ -990,3 +990,19 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 fork of official; fork-owned code
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: releases published before GitHub reported asset digests cannot be installed in-app; the first fork release and its signing secrets are maintainer actions (GITHUB_ADMIN_CHECKLIST D); keeping `com.nuvio.tv` means a fork build cannot update over an official install signed by another key
+
+### G14c — Read-only official upstream watch (316 implemented)
+- Roadmap gate: G14
+- Source repository: none (source group `official+project`)
+- Source file(s): new `scripts/superfork/upstream_watch.py`, `.github/workflows/superfork-upstream-watch.yml`
+- Import mode: REWRITE (fork-owned governance tooling)
+- Current official equivalent: none; the fork's upstream observation was manual (UPSTREAM_SYNC, `upstream_observation`)
+- What already existed upstream: nothing
+- What was imported: nothing
+- What was intentionally not imported: no automatic sync, merge, issue or PR creation; no suppression step in Superfork CI (the validator forbids it), so the watch is its own non-required check
+- Local adaptations: seams are computed, not listed: the files official changed since the accepted baseline that the fork also changed relative to it, governance paths excluded
+- Feature flag / fallback: none (CI only)
+- Tests ported/added: test_upstream_watch (3)
+- License / attribution notes: fork-owned
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: scheduled runs start only once `superfork/integration` is the default branch (GITHUB_ADMIN_CHECKLIST A); until then the report runs on PRs and on demand

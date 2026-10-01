@@ -294,7 +294,8 @@ G14a merged as #90 (`b33d343`; exact head `6c325b2`, run 36914173600: 2368 tests
 untouched; the fork font and Live TV servers share the rule) and `urlForLog()` keeps scheme, host and
 port only, with the add-on, stream, subtitle and plugin URL log sites routed through it. 299, 303,
 304, 305 implemented; HV-G14-1, HV-G14-2 MANUAL-PENDING. Local JVM harness: 465 tests PASS.
-G14b (#91, open): `fork/distribution`: the `full` updater reads the fork's own releases
+G14b merged as #91 (`bf939fb`; exact head `78235f0`, run 36916054114: 2373 tests, 15 known failures,
+0 new, 1 skipped; APK artifact 11190935543): `fork/distribution`: the `full` updater reads the fork's own releases
 (`FORK_UPDATE_OWNER` / `FORK_UPDATE_REPO`, default this repository) and installs an APK only when its
 streamed SHA-256 equals GitHub's published asset digest (missing or different → deleted, refused);
 official's stable / beta channels select among the fork's releases; the release workflow runs the
@@ -302,9 +303,13 @@ governance suite, validator and full unit suite with the baseline guard before b
 publishes `SHA256SUMS.txt`. 306, 308, 309, 310, 312 implemented; HV-G14-3 MANUAL-PENDING after the
 first fork release (maintainer: signing secrets, first release and the application-id choice,
 GITHUB_ADMIN_CHECKLIST D). Local JVM harness: 467 tests PASS.
+G14c (#92, open): `scripts/superfork/upstream_watch.py` + Superfork Upstream Watch: official `dev`
+commits after the accepted baseline and the fork seams they touch, as a job summary and one
+annotation, on every PR, on demand and daily once `superfork/integration` is the default branch;
+read-only, no secrets, no merges; test_upstream_watch. 316 implemented.
 ## Exact next action
-1. Wait for #91 (G14b) exact-head CI and squash with the expected head; then G14c
-   (`wip/g14c-upstream-watch`), then the 320-row accounting and the hardware run sheet.
+1. Wait for #92 (G14c) exact-head CI and squash with the expected head; then the 320-row accounting,
+   the hardware run sheet, and G14 BLOCKED on the maintainer's hardware campaign and admin actions.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Hardware results are recorded only as real PASS / FAIL; a FAIL reopens the affected gate / feature.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.

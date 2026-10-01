@@ -1,0 +1,34 @@
+name: Superfork Upstream Watch
+
+# G14c (D064; feature 316): a daily, read-only report of official dev movement since the accepted
+# baseline and of the fork seams it touches. It never merges; the sync stays a reviewed PR.
+# Scheduled runs start once superfork/integration is the default branch (GITHUB_ADMIN_CHECKLIST A);
+# until then the report also runs on every PR to superfork/integration.
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: ["superfork/integration"]
+
+permissions:
+  contents: read
+
+jobs:
+  watch:
+    name: Official upstream watch
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The PR head on pull_request, superfork/integration on schedule / dispatch.
+          ref: ${{ github.event.pull_request.head.sha || 'superfork/integration' }}
+          fetch-depth: 0
+      - name: Install governance dependency
+        run: python3 -m pip install -r scripts/superfork/requirements.txt
+      - name: Fetch official dev
+        run: git fetch --no-tags https://github.com/NuvioMedia/NuvioTV.git +dev:refs/remotes/official/dev
+      - name: Report
+        run: python3 scripts/superfork/upstream_watch.py --upstream official/dev --annotate >> "$GITHUB_STEP_SUMMARY"
