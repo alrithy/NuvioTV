@@ -12,14 +12,14 @@ active_gate_name: Hardening Release Upstream
 active_branch: chore/release-hardening
 active_task_packet: tasks/G14_HARDENING_RELEASE.md
 active_status: IN_PROGRESS
-active_pr: 91
+active_pr: 92
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 6c325b260a73157a14bd657a2c4540e07ce56f6c
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36914173600 ; G14a
-  PR #90 exact head, squash-merged as b33d34316b85e7fd3011b6551e838c23f789d224; fullDebug APK 11188249495.
-last_green_scope: Full suite guard (2368 tests, 15 known failures, 0 new failures, 1 skipped), governance
+last_green_commit: 78235f0311f844a9d497c74dc2b3bb2a1d2ce0af
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36916054114 ; G14b
+  PR #91 exact head, squash-merged as bf939fb95a31802c7d5eaaaf1721906fbce0d68a; fullDebug APK 11190935543.
+last_green_scope: Full suite guard (2373 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
