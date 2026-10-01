@@ -40,3 +40,15 @@ This file records every official Nuvio upstream movement after the Superfork pro
 - Official AutoSync defaults off (`AutoSyncPreferences` `KEY_ENABLED` false), so the sync changes no default playback timing.
 - Test evidence: exact-head Full Debug CI of this PR plus the `[baseline-audit]` clean replays of official `56aaba2` and the integration merge.
 - Decision: adopt official before G6 coding; G6 reuses official AutoSync as its single engine (D049 revised, D050).
+
+## 2026-10-01 — Sync before G12 (official home layouts)
+- Purpose: official `dev` changed the home layout files G12 touches (global landscape poster mode in `ClassicHomeContent`, `GridHomeContent`, `ModernHomeRows`, `ContentCard`, `GridContentCard`, `LayoutHomeSettings`, `MainActivity`). UPSTREAM_SYNC "before beginning a gate that will touch an upstream subsystem that changed materially" applies; D059.
+- Previous official anchor: `56aaba20b7d01746d616a2c8517adcf442950b90`
+- New official baseline: `5c1d9b0e2669199114a12ade38027da132303eb3`
+- Upstream distance: #3772 Hebrew, #3776 Greek parity, #3778 MDBList ratings in the Grid hero and an Exo libass fix, #3775 global landscape poster mode, #3780, #3784 detail hero trailer controls focus, version bump (22 Kotlin files, +407 / −123, plus el / iw / pl / vi strings).
+- Superfork integration merge commit: `89b46c4dfa4327a0eaaa212e2c05bad3c9c6b766` (this PR; merged with a merge commit so official stays a parent).
+- Conflicts: none. Files changed by both sides (auto-merged, reviewed): `app/build.gradle.kts` (fork Seekr dependency, official version bump), `MainActivity` (fork dimmer / Live TV hooks, official landscape poster plumbing), `ContentCard` and `SearchDiscoverSection` (fork G2c `directedFor` text direction, official landscape posters; no fork helper import lost), `LayoutHomeSettings` (fork Live TV row, official landscape setting moved), `values/strings.xml`.
+- Re-audit (UPSTREAM_SYNC step 6): changed `PlayerLibassCompat` (official Exo libass fix) and `MainActivity`; untouched PlayerRuntimeController, PlayerMediaSourceFactory, ParallelRangeDataSource, StreamSpeedTester, PlayerDebugStatsOverlay, PlayerSettingsDataStore, SkipIntroRepository, navigation.
+- Clean replays (Superfork Baseline Audit run 36848159277): official `5c1d9b0` 1,796 tests, 18 failed, 1 skipped, gradle exit 0, outcomes identical test by test to the reviewed `56aaba2` inventory (the 3 stale NuvioExoPlayerPerformanceHelperTest expectations are the same non-debt cases as under D050); integration merge `89b46c4` 2,205 tests, 15 failed (all registered), 0 new, 1 skipped. No test missing or newly skipped; debt and minimum test count unchanged. `integration/evidence/baseline-suite.json` is now the `5c1d9b0` replay.
+- Test evidence: exact-head Full Debug CI of this PR.
+- Decision: adopt official before G12 coding (D059).
