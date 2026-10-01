@@ -139,17 +139,22 @@ consent per room before anything is shared; header allowlist, credential / torre
 streams not shareable; guest media memory-only and never saved for reuse; no WebView console logs;
 SecureRandom codes; WATCH_PARTY AUTO with G11a. Slices G11a (core, 237–242, 244–249) and G11b (UI,
 consent, join, 243 and the UI of 237–240).
-G11a (#72, open): `fork/watchparty` core — protocol v1 (wire format kept), host-authority session
-with CMD / STATE, soft speed correction and hard seek, consent-gated room creation, WatchPartySharePolicy
-(header allowlist; credential / user-info / torrent / local / Live TV not shareable; received media
-validated), hidden WebView transport with the upstream VDO.Ninja SDK v1.6.1 (MPL-2.0, source form),
-no console logs, fixed error codes; WATCH_PARTY AUTO. No entry point until G11b; 237–249 in_progress.
-Local JVM harness: 322 tests PASS. #72 requires exact-head CI.
+G11a merged as #72 (`74ee62f`; exact head `c507bc8`, run 36835101903: 2197 tests, 15 known
+failures, 0 new, 1 skipped; APK artifact 11148704473): `fork/watchparty` core — protocol v1 (wire
+format kept), host-authority sync with soft speed correction and hard seek, consent-gated rooms,
+WatchPartySharePolicy, hidden WebView transport with the upstream VDO.Ninja SDK v1.6.1 (MPL-2.0,
+source form), no console logs; WATCH_PARTY AUTO.
+G11b (#73, open): Watch Party button in the player controls, two-step consent before a room is
+created, room panel and badge, joining from Playback settings, guests' players opening the host's
+stream; unshareable reasons (torrent / local, Live TV, credentials); a guest's received link is kept
+in memory only and never saved for reuse (`streamCacheKey` guard); strings en + ar. 237–249
+implemented; HV-G11-1..HV-G11-4 MANUAL-PENDING. Local JVM harness: 323 tests PASS (the UI compiles
+only in CI). #73 requires exact-head CI.
 Next gate: G12 UI Styles.
 
 ## Exact next action
-1. Wait for #72 (G11a) exact-head CI, squash with expected head, then assemble G11b (UI, consent,
-   join; `wip/g11b-ui`) on `feat/watch-party`, then the G11 closeout.
+1. Wait for #73 (G11b) exact-head CI, squash with expected head, then the G11 closeout
+   (`chore/governance-g11-closeout`: state to G12 UI Styles, HV-G11-1..4 to G14).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G11→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
