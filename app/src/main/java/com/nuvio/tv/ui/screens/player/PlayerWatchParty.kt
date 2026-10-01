@@ -36,6 +36,7 @@ import com.nuvio.tv.R
 import com.nuvio.tv.fork.livetv.LiveTvPlaybackRegistry
 import com.nuvio.tv.fork.watchparty.WatchPartyMedia
 import com.nuvio.tv.fork.watchparty.WatchPartyPlayer
+import com.nuvio.tv.fork.watchparty.WatchPartyReceivedStreams
 import com.nuvio.tv.fork.watchparty.WatchPartyRole
 import com.nuvio.tv.fork.watchparty.WatchPartySession
 import com.nuvio.tv.fork.watchparty.WatchPartyShareDecision
@@ -54,7 +55,10 @@ import kotlinx.coroutines.delay
  * `ui/screens/player/PlayerWatchParty.kt` @ ff597b1. Adapted: what may be shared comes from
  * WatchPartySharePolicy (allow-listed headers; credential, torrent, local and Live TV streams are
  * not shareable, with the reason shown); creating a room is a two-step consent that names what the
- * people who join receive.
+ * people who join receive. After review (G11 closeout): remote play / pause does the same
+ * bookkeeping as the play / pause button; speed changes are relative to the viewer's own speed; a
+ * stream that becomes unshareable stops being shared; a guest is told when the host's stream does not
+ * open here.
  */
 
 /** Nuvio's player (ExoPlayer or mpv), as the Watch Party sees it. */
@@ -70,6 +74,9 @@ internal class ControllerWatchPartyPlayer(
     override val isBuffering: Boolean
         get() = controller.uiState.value.let { it.isBuffering || it.showLoadingOverlay }
 
+    override val selectedSpeed: Float
+        get() = controller.uiState.value.playbackSpeed
+
     override fun play() = setPaused(false)
 
     override fun pause() = setPaused(true)
@@ -82,6 +89,7 @@ internal class ControllerWatchPartyPlayer(
         controller.setPlaybackSpeedInternal(speed)
     }
 
+    /** The play / pause button's bookkeeping (PlayerEvent.OnPlayPause), without showing the controls. */
     private fun setPaused(paused: Boolean) {
         if (controller.hasActivePlayIntent() == !paused) return
         controller.userPausedManually = paused
@@ -90,6 +98,7 @@ internal class ControllerWatchPartyPlayer(
             if (controller.isUsingMpvEngine()) {
                 controller.stopProgressUpdates()
                 controller.stopWatchProgressSaving()
+                controller.emitPauseScrobbleForCurrentProgress()
             }
             controller.schedulePauseOverlay()
         } else {
@@ -98,6 +107,7 @@ internal class ControllerWatchPartyPlayer(
             if (controller.isUsingMpvEngine()) {
                 controller.startProgressUpdates()
                 controller.startWatchProgressSaving()
+                controller.emitScrobbleStart()
             }
         }
     }
@@ -151,16 +161,29 @@ internal fun BoxScope.WatchPartyPlayerLayer(
     val adapter = remember(controller) { ControllerWatchPartyPlayer(controller) }
     val panelOpen by viewModel.watchPartyPanelOpen.collectAsStateWithLifecycle()
 
-    // Ties the player to the room once it plays, and again whenever the stream changes.
+    // Ties the player to the room once it plays, again whenever the stream changes, and lets go of
+    // it when the open stream cannot be shared (so the room never shares an earlier link). Live and
+    // other streams without a known duration count as playing once loaded.
     LaunchedEffect(adapter) {
         var attachedUrl: String? = null
         while (true) {
             val ui = controller.uiState.value
-            val ready = !ui.showLoadingOverlay && ui.error == null && controller.currentPlaybackDurationMs() > 0
-            val media = (controller.watchPartyShareable() as? WatchPartyShareable.Yes)?.media?.takeIf { ready }
-            if (media != null && media.url != attachedUrl) {
-                session.attachPlayer(adapter, media)
-                attachedUrl = media.url
+            if (!ui.showLoadingOverlay) {
+                when (val shareable = controller.watchPartyShareable()) {
+                    is WatchPartyShareable.Yes -> if (ui.error == null && shareable.media.url != attachedUrl) {
+                        session.attachPlayer(adapter, shareable.media)
+                        attachedUrl = shareable.media.url
+                    }
+                    is WatchPartyShareable.No -> if (attachedUrl != null) {
+                        session.detachPlayer(adapter)
+                        attachedUrl = null
+                    }
+                }
+                // A guest whose player cannot open the host's link (for example one locked to the
+                // host's connection) sees why instead of a silent room.
+                if (ui.error != null && WatchPartyReceivedStreams.contains(controller.currentStreamUrl)) {
+                    session.reportStreamUnsupported()
+                }
             }
             delay(1_000)
         }
@@ -169,7 +192,7 @@ internal fun BoxScope.WatchPartyPlayerLayer(
         onDispose { session.detachPlayer(adapter) }
     }
 
-    if (showControls && !panelOpen) {
+    if ((showControls || watchPartyNoticeShown(session)) && !panelOpen) {
         WatchPartyBadge(
             session = session,
             modifier = Modifier
@@ -258,7 +281,13 @@ private fun WatchPartyPlayerPanel(
                         onCreate = { confirming = true },
                         onDismiss = onDismiss,
                     )
-                    else -> RoomStep(state = state, firstButton = firstButton, onDismiss = onDismiss, onLeave = { session.leaveRoom() })
+                    else -> RoomStep(
+                        state = state,
+                        notSharing = state.role == WatchPartyRole.HOST && shareable is WatchPartyShareable.No,
+                        firstButton = firstButton,
+                        onDismiss = onDismiss,
+                        onLeave = { session.leaveRoom() },
+                    )
                 }
             }
         }
@@ -316,7 +345,7 @@ private fun ConsentStep(firstButton: FocusRequester, onAgree: () -> Unit, onCanc
 }
 
 @Composable
-private fun RoomStep(state: WatchPartyState, firstButton: FocusRequester, onDismiss: () -> Unit, onLeave: () -> Unit) {
+private fun RoomStep(state: WatchPartyState, notSharing: Boolean, firstButton: FocusRequester, onDismiss: () -> Unit, onLeave: () -> Unit) {
     if (state.status != WatchPartyStatus.ERROR) {
         Text(
             text = stringResource(if (state.role == WatchPartyRole.HOST) R.string.watch_party_share_code else R.string.watch_party_joined_code),
@@ -337,6 +366,13 @@ private fun RoomStep(state: WatchPartyState, firstButton: FocusRequester, onDism
         style = MaterialTheme.typography.bodyMedium,
         color = NuvioTheme.colors.TextPrimary,
     )
+    if (notSharing) {
+        Text(
+            text = stringResource(R.string.watch_party_host_not_sharing),
+            style = MaterialTheme.typography.bodyMedium,
+            color = NuvioTheme.colors.TextSecondary,
+        )
+    }
     Row(horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm)) {
         DialogButton(
             text = stringResource(R.string.watch_party_close),
@@ -348,13 +384,24 @@ private fun RoomStep(state: WatchPartyState, firstButton: FocusRequester, onDism
     }
 }
 
-/** A small label while in a room: the code and how many are watching. */
+/** Whether the guest's notice stays up without the controls: the host's stream did not open here. */
+@Composable
+private fun watchPartyNoticeShown(session: WatchPartySession): Boolean {
+    val state by session.state.collectAsStateWithLifecycle()
+    return state.isActive && state.streamUnsupported
+}
+
+/** A small label while in a room: the code and how many are watching, or the guest's notice. */
 @Composable
 private fun WatchPartyBadge(session: WatchPartySession, modifier: Modifier = Modifier) {
     val state by session.state.collectAsStateWithLifecycle()
     if (!state.isActive) return
     Text(
-        text = stringResource(R.string.watch_party_badge, formatWatchPartyCode(state.code), state.participants.size + 1),
+        text = if (state.streamUnsupported) {
+            stringResource(R.string.watch_party_stream_unsupported)
+        } else {
+            stringResource(R.string.watch_party_badge, formatWatchPartyCode(state.code), state.participants.size + 1)
+        },
         style = MaterialTheme.typography.labelMedium,
         color = NuvioTheme.colors.TextPrimary,
         modifier = modifier

@@ -62,7 +62,13 @@
         });
         instance.addEventListener('disconnected', function (e) {
             if (sdk !== instance) return;
-            emit({ type: 'signaling', state: 'disconnected', willReconnect: !!(e.detail && e.detail.willReconnect) });
+            var detail = e.detail || {};
+            emit({ type: 'signaling', state: 'disconnected', willReconnect: !!detail.willReconnect, intentional: !!detail.intentional });
+        });
+        // The SDK gave up reconnecting to signaling: the room cannot be restored.
+        instance.addEventListener('reconnectFailed', function () {
+            if (sdk !== instance) return;
+            emit({ type: 'error' });
         });
         instance.addEventListener('reconnected', function () {
             if (sdk !== instance) return;

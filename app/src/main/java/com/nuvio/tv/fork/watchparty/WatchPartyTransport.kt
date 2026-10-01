@@ -31,6 +31,8 @@ interface WatchPartyPlayer {
     fun play()
     fun pause()
     fun seekTo(positionMs: Long)
-    /** Guests catch up small drifts without a jump (1.0 = normal); pitch is kept. */
+    /** The speed the viewer picked (1.0 = normal); a room puts it back when it ends. */
+    val selectedSpeed: Float get() = 1f
+    /** The speed to play at right now: guests follow the host's speed and catch up small drifts; pitch is kept. */
     fun setPlaybackSpeed(speed: Float)
 }

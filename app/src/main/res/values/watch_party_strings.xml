@@ -27,5 +27,7 @@
     <string name="watch_party_join_description">Enter the code shown on the host\'s device. When the host plays something, it opens here; the link comes from the host.</string>
     <string name="watch_party_join_code_label">Room code</string>
     <string name="watch_party_join">Join</string>
+    <string name="watch_party_host_not_sharing">The stream open now can\'t be shared, so people in the room don\'t follow it.</string>
+    <string name="watch_party_stream_unsupported">The host\'s stream didn\'t open on this device. Some links only work on the host\'s own connection or network.</string>
     <string name="watch_party_invalid_code">Invalid code: it has 6 letters and numbers.</string>
 </resources>

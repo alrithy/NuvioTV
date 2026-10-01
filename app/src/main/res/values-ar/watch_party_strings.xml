@@ -26,5 +26,7 @@
     <string name="watch_party_join_description">أدخل الرمز الظاهر على جهاز المضيف. عندما يشغّل المضيف شيئًا يُفتح هنا؛ الرابط يأتي من المضيف.</string>
     <string name="watch_party_join_code_label">رمز الغرفة</string>
     <string name="watch_party_join">انضمام</string>
+    <string name="watch_party_host_not_sharing">لا يمكن مشاركة البث المفتوح الآن، لذلك لا يتابعه من في الغرفة.</string>
+    <string name="watch_party_stream_unsupported">لم يُفتح بث المضيف على هذا الجهاز. بعض الروابط تعمل فقط على اتصال المضيف أو شبكته.</string>
     <string name="watch_party_invalid_code">رمز غير صالح: يتكوّن من 6 أحرف وأرقام.</string>
 </resources>

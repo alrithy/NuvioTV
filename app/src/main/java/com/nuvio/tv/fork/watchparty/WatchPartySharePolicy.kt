@@ -1,12 +1,17 @@
 package com.nuvio.tv.fork.watchparty
 
+import java.net.Inet4Address
+import java.net.Inet6Address
+import java.net.InetAddress
 import java.net.URI
 
 /*
  * What a Watch Party may send and accept (G11a, D056; features 243, 244, 249). Local WRITE: the
  * Antonino source shares the current link with every header. Here only headers a player needs to
  * reach a public link are shared, and a stream that needs credentials is not shareable at all
- * (rather than shared half-working). The same checks guard what a guest accepts.
+ * (rather than shared half-working). The same checks guard what a guest accepts. A link to a
+ * loopback, private, link-local or otherwise non-public address is never shared or opened, so a host
+ * cannot point a guest's TV at the guest's own network.
  */
 
 /** Why the open stream cannot be shared; the panel says so instead of offering a room. */
@@ -91,10 +96,74 @@ object WatchPartySharePolicy {
         return uri
     }
 
-    private fun isLocal(host: String?): Boolean {
-        val h = host?.lowercase()?.trim('[', ']') ?: return true
-        return h == "localhost" || h.endsWith(".localhost") || h == "::1" || h.startsWith("127.") || h == "0.0.0.0"
+    /**
+     * Guest, before opening a received link: every address [host] resolves to must be public, so a
+     * name that points into the guest's own network is refused too. A failed lookup is a refusal.
+     * Blocking; call off the main thread.
+     */
+    fun resolvesToPublic(host: String, lookup: (String) -> List<InetAddress> = { InetAddress.getAllByName(it).toList() }): Boolean {
+        if (isLocal(host)) return false
+        val addresses = runCatching { lookup(host.trim('[', ']')) }.getOrNull() ?: return false
+        return addresses.isNotEmpty() && addresses.all(::isPublicAddress)
     }
+
+    /**
+     * Loopback, private, link-local and other non-public hosts, judged from the name alone (no DNS):
+     * IP literals by range, LAN-only names, and numeric forms other than plain dotted IPv4 (such as
+     * `0x7f.1` or `2130706433`, which some resolvers read as loopback).
+     */
+    internal fun isLocal(host: String?): Boolean {
+        val h = host?.lowercase()?.trim('[', ']')?.trimEnd('.') ?: return true
+        if (h.isEmpty()) return true
+        if (':' in h) return ipv6Literal(h)?.let { !isPublicAddress(it) } ?: true
+        if (NUMERIC_HOST.matches(h)) return ipv4Literal(h)?.let { !isPublicAddress(it) } ?: true
+        if ('.' !in h) return true
+        return LOCAL_NAMES.any { h == it || h.endsWith(".$it") }
+    }
+
+    internal fun isPublicAddress(address: InetAddress): Boolean {
+        if (address.isAnyLocalAddress || address.isLoopbackAddress || address.isLinkLocalAddress ||
+            address.isSiteLocalAddress || address.isMulticastAddress
+        ) return false
+        val b = address.address.map { it.toInt() and 0xff }
+        return when (address) {
+            is Inet4Address -> !(
+                b[0] == 0 ||
+                    (b[0] == 100 && b[1] in 64..127) || // carrier-grade NAT
+                    (b[0] == 192 && b[1] == 0 && b[2] == 0) ||
+                    (b[0] == 198 && b[1] in 18..19) ||
+                    b[0] >= 240
+                )
+            is Inet6Address -> when {
+                (b[0] and 0xfe) == 0xfc -> false // unique local
+                address.isIPv4CompatibleAddress || isNat64(b) ->
+                    InetAddress.getByAddress(b.takeLast(4).map(Int::toByte).toByteArray()).let(::isPublicAddress)
+                else -> true
+            }
+            else -> false
+        }
+    }
+
+    private fun isNat64(b: List<Int>): Boolean =
+        b[0] == 0x00 && b[1] == 0x64 && b[2] == 0xff && b[3] == 0x9b && b.subList(4, 12).all { it == 0 }
+
+    /** Plain dotted IPv4 only: no leading zeros (octal in some resolvers), each part 0–255. */
+    private fun ipv4Literal(h: String): InetAddress? {
+        val parts = h.split('.')
+        if (parts.size != 4 || parts.any { !IPV4_PART.matches(it) || it.toInt() > 255 }) return null
+        return InetAddress.getByAddress(parts.map { it.toInt().toByte() }.toByteArray())
+    }
+
+    /** An IPv6 literal (a zone id is refused); Java parses literals without a DNS lookup. */
+    private fun ipv6Literal(h: String): InetAddress? {
+        if (!IPV6_CHARS.matches(h)) return null
+        return runCatching { InetAddress.getByName(h) }.getOrNull()
+    }
+
+    private val NUMERIC_HOST = Regex("^(0x[0-9a-f]*|[0-9]+)(\\.(0x[0-9a-f]*|[0-9]+))*$")
+    private val IPV4_PART = Regex("^(0|[1-9][0-9]{0,2})$")
+    private val IPV6_CHARS = Regex("^[0-9a-f:.]+$")
+    private val LOCAL_NAMES = listOf("localhost", "local", "lan", "home", "internal", "intranet", "localdomain", "home.arpa")
 
     private fun String?.bounded(): String? = this?.filterNot { it < ' ' }?.take(MAX_TEXT_CHARS)?.takeIf(String::isNotBlank)
 
