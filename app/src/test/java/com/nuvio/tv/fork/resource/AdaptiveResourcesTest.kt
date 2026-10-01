@@ -26,6 +26,16 @@ class AdaptiveResourcesTest {
     fun tearDown() = AdaptiveResources.resetForTest()
 
     @Test
+    fun liveGuideBudgetsAllowLargeGuidesWithFiniteDiskInflationAndTimeLimits() {
+        assertEquals(low.liveTvGuideBudget, constrained.liveTvGuideBudget)
+        assertEquals(64 * mib, constrained.liveTvGuideBudget.compressedBytes)
+        assertEquals(256 * mib, constrained.liveTvGuideBudget.expandedBytes)
+        assertEquals(128 * mib, standard.liveTvGuideBudget.compressedBytes)
+        assertEquals(512 * mib, standard.liveTvGuideBudget.expandedBytes)
+        assertEquals(300_000L, standard.liveTvGuideBudget.downloadTimeoutMs)
+    }
+
+    @Test
     fun tierCutsSitWhereDocumented() {
         assertEquals(MemoryTier.LOW_RAM, MemoryTier.classify(1600, isLowRamDevice = false))
         assertEquals(MemoryTier.CONSTRAINED, MemoryTier.classify(1601, isLowRamDevice = false))

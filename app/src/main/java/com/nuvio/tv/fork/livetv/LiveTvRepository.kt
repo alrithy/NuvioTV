@@ -4,17 +4,24 @@ import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.fork.foundation.FeatureId
 import com.nuvio.tv.fork.foundation.FeatureMode
 import com.nuvio.tv.fork.foundation.FeatureRegistry
+import com.nuvio.tv.fork.resource.AdaptiveResources
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -49,13 +56,23 @@ class LiveTvRepository internal constructor(
     private val http: LiveTvFetcher,
     private val activeProfileId: StateFlow<Int>,
     val featureEnabled: Boolean,
+    /** Guides (G10c); none in tests that do not read one. */
+    private val guideFiles: LiveTvGuideFiles? = null,
+    /** AdaptiveResources' constrained tier: a smaller guide window. */
+    private val constrained: () -> Boolean = { AdaptiveResources.policy.isConstrained },
     dispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val epgClock: () -> Long = LiveTvClock::nowEpochMs,
+    private val epgTickMs: Long = EPG_TICK_MS,
 ) {
     @Inject constructor(
         store: LiveTvStorage,
+        guides: LiveTvGuideStore,
         profileManager: ProfileManager,
         registry: FeatureRegistry,
-    ) : this(store, store, LiveTvHttp(), profileManager.activeProfileId, registry.mode(FeatureId.LIVE_TV) != FeatureMode.OFF)
+    ) : this(
+        store, store, LiveTvHttp(), profileManager.activeProfileId, registry.mode(FeatureId.LIVE_TV) != FeatureMode.OFF,
+        guideFiles = guides,
+    )
 
     private val scope = CoroutineScope(SupervisorJob() + dispatcher)
     private val xtream = LiveTvXtream(http)
@@ -75,6 +92,21 @@ class LiveTvRepository internal constructor(
     private var profileJob: Job? = null
     private var idleJob: Job? = null
 
+    private var epgJob: Job? = null
+    @Volatile private var epgGeneration = 0
+    /** The guide programmes kept for each [LiveTvChannel.guideKey], for "up next" and the guide. */
+    @Volatile private var keptSchedule: LiveTvSchedule = emptyMap()
+    private class GuidePlan(val channelsByUrl: Map<String, List<LiveTvChannel>>) {
+        val urls = channelsByUrl.keys.toList()
+        val identity = channelsByUrl.mapValues { (_, channels) -> channels.mapTo(HashSet()) { it.guideKey } }
+        val keys = identity.values.flatMapTo(HashSet()) { it }
+    }
+    private var epgKey: Map<String, Set<String>>? = null
+    /** A guide read waiting for the sources still loading; set and started on [serial]. */
+    @Volatile private var pendingEpg: GuidePlan? = null
+    /** Set by Refresh: the next guide read downloads every guide again, however recent its saved copy. */
+    @Volatile private var forceGuideDownload = false
+
     /** What each source loaded last. Only touched on [serial]. */
     private class LoadedSource(val channels: List<LiveTvChannel>, val epgUrls: List<String>)
     private val loaded = HashMap<String, LoadedSource>()
@@ -89,11 +121,15 @@ class LiveTvRepository internal constructor(
         val profileId = activeProfileId.value
         if (loadedProfileId == profileId) return false
         loadedProfileId = profileId
+        forceGuideDownload = false
         profileJob?.cancel()
         cancelAllLoads()
         stalker.clearSessions()
         _state.value = LiveTvState(isLoading = true)
         profileJob = scope.launch(serial) {
+            stopEpg()
+            epgKey = null
+            pendingEpg = null
             val sources = readOrDefault("Live TV sources unreadable", emptyList()) { store.sources(profileId) }
             val library = readOrDefault("Live TV choices unreadable", LiveTvLibrary()) { libraryStore.library(profileId) }
             if (loadedProfileId != profileId) return@launch
@@ -143,9 +179,13 @@ class LiveTvRepository internal constructor(
         profileJob?.cancel()
         profileJob = null
         cancelAllLoads()
+        stopEpg()
+        epgKey = null
+        pendingEpg = null
         loaded.clear()
         stalker.clearSessions()
         loadedProfileId = null
+        forceGuideDownload = false
         _state.value = LiveTvState()
     }
 
@@ -154,6 +194,9 @@ class LiveTvRepository internal constructor(
         val profileId = loadedProfileId ?: return
         _state.update { it.copy(error = null) }
         scope.launch(serial) {
+            // The guides are downloaded again too, once the channels are back.
+            forceGuideDownload = true
+            epgKey = null
             _state.value.sources.forEach { launchSourceLoad(profileId, it, adding = false) }
         }
     }
@@ -342,6 +385,19 @@ class LiveTvRepository internal constructor(
     private fun updateLoading() {
         val busy = sourceJobs.values.any { it.isActive }
         _state.update { if (it.isLoading == busy) it else it.copy(isLoading = busy) }
+        if (!busy) {
+            scope.launch(serial) {
+                if (sourceJobs.values.any { it.isActive }) return@launch
+                val pending = pendingEpg
+                if (pending != null) {
+                    pendingEpg = null
+                    startEpg(pending)
+                } else if (forceGuideDownload) {
+                    // Failed source reloads keep their channels. Refresh their existing guides too.
+                    publish(_state.value.sources) { it }
+                }
+            }
+        }
     }
 
     /** A source being added keeps the id of a saved one that is the same source, so it replaces it. */
@@ -494,10 +550,21 @@ class LiveTvRepository internal constructor(
             // Channels without a category count under "Uncategorised", so they can be hidden too.
             groupCounts[it.group] = (groupCounts[it.group] ?: 0) + 1
         }
+        val channelsByUrl = LinkedHashMap<String, MutableList<LiveTvChannel>>()
+        if (guideFiles != null) parts.forEach { part ->
+            part.epgUrls.forEach { url -> channelsByUrl.getOrPut(url) { ArrayList() }.addAll(part.channels) }
+        }
+        val guidePlan = GuidePlan(channelsByUrl)
+        val hasGuide = guidePlan.urls.isNotEmpty() && guidePlan.keys.isNotEmpty()
+        val guideChanged = epgKey != guidePlan.identity || epgJob?.isActive != true
         _state.update { current ->
             val next = change(current)
             val library = next.library
             next.copy(
+                // What is on now stays shown until the guide is read again.
+                currentProgrammes = if (hasGuide) next.currentProgrammes else emptyMap(),
+                guideLogos = if (hasGuide) next.guideLogos else emptyMap(),
+                isEpgLoading = hasGuide && (guideChanged || next.isEpgLoading),
                 sources = sources,
                 channels = channels,
                 groups = LiveTvOrganisation.orderedGroups(groupCounts.keys, library.groupOrder, library.groupNames),
@@ -508,13 +575,207 @@ class LiveTvRepository internal constructor(
                 isLoaded = true,
             )
         }
+        if (!hasGuide) {
+            stopEpg()
+            epgKey = null
+            pendingEpg = null
+            forceGuideDownload = false
+        } else if (guideChanged) {
+            epgKey = guidePlan.identity
+            // Each source that finishes changes the channels: read the guide once, after the last.
+            if (sourceJobs.values.any { it.isActive }) {
+                pendingEpg = guidePlan
+            } else {
+                pendingEpg = null
+                startEpg(guidePlan)
+            }
+        }
     }
+
+    // region Guide (G10c; Reshaped LiveTvRepository @ 0ccf049)
+
+    /** The next programme after the one on now for [guideKey], from the kept guide; a map lookup. */
+    fun nextProgramme(guideKey: String, nowEpochMs: Long = LiveTvClock.nowEpochMs()): LiveTvProgramme? =
+        keptSchedule[guideKey]?.firstOrNull { it.startEpochMs > nowEpochMs }
+
+    /** Every kept programme of [guideKey], earliest first: the last few hours and the next ones. */
+    fun schedule(guideKey: String): List<LiveTvProgramme> = keptSchedule[guideKey].orEmpty()
+
+    private fun stopEpg() {
+        keptSchedule = emptyMap()
+        epgGeneration++
+        epgJob?.cancel()
+        epgJob = null
+    }
+
+    /**
+     * Reads the guide and moves each channel's "now playing" on every minute. Only runs while
+     * something shows Live TV and catches up when it is opened again. The guide is saved compressed
+     * in the cache, downloaded again every 10 hours (or on Refresh), and re-read from there whenever
+     * channels run out of kept programmes. A guide that fails is tried again sooner, without holding
+     * back the ones that loaded. Runs on [serial].
+     */
+    private fun startEpg(plan: GuidePlan) {
+        val epgUrls = plan.urls
+        val guideKeys = plan.keys
+        val files = guideFiles ?: return
+        val window = LiveTvGuideWindow.forDevice(constrained())
+        // What is shown stays until the new read replaces it; constrained TVs let go of the old
+        // programmes first, so two guides are never held at once.
+        if (window === LiveTvGuideWindow.LowMemory) keptSchedule = emptyMap()
+        epgGeneration++
+        epgJob?.cancel()
+        val generation = epgGeneration
+        val dir = files.dir
+        val guidePaths = epgUrls.map { File(dir, liveTvGuideFileName(it)) }
+        val cacheFile = File(dir, LiveTvGuideCache.FILE_NAME)
+        val cacheKey = LiveTvGuideCache.key(epgUrls, guideKeys, window, plan.identity)
+        epgJob = scope.launch {
+            val requests = plan.channelsByUrl.mapValues { (_, channels) -> LiveTvGuideRequest.from(channels) }
+            val retryUrls = HashSet<String>()
+            var schedule: LiveTvSchedule = keptSchedule.filterKeys { it in guideKeys }
+            var nextReadAtMs = 0L
+            var firstRead = true
+            val publishGuide = { kept: LiveTvSchedule, logos: Map<String, String>?, nowMs: Long ->
+                if (epgGeneration == generation) keptSchedule = kept
+                val current = currentProgrammes(kept, guideKeys, nowMs)
+                _state.update { state ->
+                    if (epgGeneration != generation) {
+                        state
+                    } else {
+                        state.copy(
+                            guideLogos = if (logos == null || state.guideLogos == logos) state.guideLogos else logos,
+                            guideVersion = state.guideVersion + 1,
+                            currentProgrammes = current,
+                        )
+                    }
+                }
+            }
+            _state.subscriptionCount.map { it > 0 }.distinctUntilChanged().collectLatest { visible ->
+                if (!visible) return@collectLatest
+                withContext(Dispatchers.IO) {
+                    dir.listFiles()?.filter { it !in guidePaths && it != cacheFile }?.forEach(File::delete)
+                }
+                while (currentCoroutineContext().isActive) {
+                    val nowMs = epgClock()
+                    if (nowMs >= nextReadAtMs) {
+                        val force = forceGuideDownload
+                        // Opening again: the programmes kept by the last full read, while still good.
+                        val saved = if (firstRead && !force) {
+                            withContext(Dispatchers.IO) { LiveTvGuideCache.read(cacheFile, cacheKey, guidePaths, nowMs, EPG_DOWNLOAD_MS) }
+                        } else {
+                            null
+                        }
+                        firstRead = false
+                        if (saved != null) {
+                            schedule = saved.schedule
+                            nextReadAtMs = saved.nextReadAtMs
+                            publishGuide(schedule, saved.logos, nowMs)
+                        } else {
+                            val previous = schedule
+                            val loadedGuides = HashMap<String, List<LiveTvProgramme>>()
+                            val logos = HashMap<String, String>()
+                            val truncated = HashSet<String>()
+                            var failed = false
+                            epgUrls.forEachIndexed { index, epgUrl ->
+                                val guide = readGuide(files, epgUrl, guidePaths[index], requests.getValue(epgUrl), nowMs, window, force || epgUrl in retryUrls)
+                                if (guide == null || !guide.complete) {
+                                    failed = true
+                                    retryUrls += epgUrl
+                                } else {
+                                    retryUrls -= epgUrl
+                                }
+                                if (guide == null) return@forEachIndexed
+                                guide.schedule.forEach { (key, list) ->
+                                    if (loadedGuides.putIfAbsent(key, list) == null && key in guide.truncated) truncated += key
+                                }
+                                guide.logos.forEach(logos::putIfAbsent)
+                                // Each guide shows as soon as it is read; the slowest one holds back nothing.
+                                if (index < epgUrls.lastIndex) {
+                                    publishGuide(HashMap(previous).apply { putAll(loadedGuides) }, HashMap(logos), nowMs)
+                                }
+                            }
+                            if (force && epgGeneration == generation) forceGuideDownload = false
+                            // A guide that failed keeps what it showed before.
+                            schedule = if (failed && previous.isNotEmpty()) HashMap(previous).apply { putAll(loadedGuides) } else loadedGuides
+                            val regular = if (loadedGuides.isEmpty()) {
+                                nowMs + EPG_RETRY_MS
+                            } else {
+                                nextScheduleReadAt(loadedGuides, truncated, nowMs, EPG_MIN_READ_GAP_MS, EPG_DOWNLOAD_MS)
+                            }
+                            nextReadAtMs = if (failed) minOf(regular, nowMs + EPG_RETRY_MS) else regular
+                            publishGuide(schedule, logos, nowMs)
+                            if (!failed && loadedGuides.isNotEmpty() && epgGeneration == generation) {
+                                val entry = LiveTvGuideCache.Entry(loadedGuides, logos, nextReadAtMs)
+                                withContext(Dispatchers.IO) { LiveTvGuideCache.write(cacheFile, cacheKey, guidePaths, entry) }
+                            }
+                        }
+                    }
+                    val current = currentProgrammes(schedule, guideKeys, nowMs)
+                    _state.update { state ->
+                        when {
+                            epgGeneration != generation -> state
+                            state.currentProgrammes != current || state.isEpgLoading ->
+                                state.copy(currentProgrammes = current, isEpgLoading = false)
+                            else -> state
+                        }
+                    }
+                    if (epgGeneration != generation) return@collectLatest
+                    delay(epgTickMs)
+                }
+            }
+        }
+    }
+
+    /**
+     * One guide, downloaded when its saved copy is missing, old or [force]d; an old copy still
+     * serves when the download fails. Null when there is no guide to read.
+     */
+    private suspend fun readGuide(
+        files: LiveTvGuideFiles,
+        url: String,
+        file: File,
+        request: LiveTvGuideRequest,
+        nowMs: Long,
+        window: LiveTvGuideWindow,
+        force: Boolean,
+    ): LiveTvGuide? {
+        try {
+            val saved = withContext(Dispatchers.IO) { file.lastModified() }
+            if (force || saved == 0L || nowMs - saved !in 0 until EPG_DOWNLOAD_MS) {
+                try {
+                    files.download(url, LIVE_TV_STREAM_HEADERS, file)
+                } catch (cancel: CancellationException) {
+                    throw cancel
+                } catch (error: Exception) {
+                    LiveTvLog.warn("Guide download failed", url, error)
+                    if (saved == 0L) return null
+                }
+            }
+            return files.read(file, request, nowMs, window)
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (error: Exception) {
+            LiveTvLog.warn("Guide unreadable", url, error)
+            return null
+        }
+    }
+
+    // endregion
 
     // endregion
 
     internal companion object {
         /** Sources loaded at once: each holds a connection and a parse buffer. */
         const val PARALLEL_SOURCES = 2
+
+        const val EPG_TICK_MS = 60_000L
+        /** How long a downloaded guide is used before it is downloaded again. */
+        const val EPG_DOWNLOAD_MS = 10L * 60 * 60 * 1000
+        /** The saved guide is read again when channels run out of kept programmes, at most this often. */
+        const val EPG_MIN_READ_GAP_MS = 60L * 60 * 1000
+        /** A guide that could not be read is tried again sooner. */
+        const val EPG_RETRY_MS = 30L * 60 * 1000
 
         /** How long Live TV may go unseen before its channels are let go (Reshaped: 5 min). */
         const val IDLE_RELEASE_MS = 5L * 60 * 1000
@@ -549,6 +810,7 @@ class LiveTvRepository internal constructor(
                     sourceId = sourceId,
                     group = group,
                     key = liveTvChannelKey(sourceId, group, channel.name),
+                    guideKey = liveTvGuideKey(channel.tvgId, channel.name, sourceId),
                 )
             }
             return tagged

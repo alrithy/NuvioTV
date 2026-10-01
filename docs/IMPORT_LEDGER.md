@@ -685,3 +685,32 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: TV focus and long-press behavior need device checks (HV-G10-1..HV-G10-3, G14); logos from the guide join in G10c
+
+### G10c — Live TV guide: now, next, progress, time left, guide logos (214–218, 225)
+- Roadmap gate: G10
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: main
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): reshaped/livetv/LiveTvEpg.kt, LiveTvGuideCache.kt, LiveTvHttp.kt (`download`, `readFile`), LiveTvRepository.kt (guide region); ui/reshaped/livetv/LiveTvComponents.kt (minute clock, progress bar, time left), LiveTvScreen.kt (programme lines); app/src/test/.../LiveTvPlaylistParserTest.kt (guide cases)
+- Import mode: FILE_PORT (XMLTV reader, schedule builder, name keys, guide cache, guide lifecycle, UI pieces)
+- Current official equivalent: none
+- What already existed upstream: AdaptiveResources tiers (G2, D042)
+- What was imported: XMLTV pull reading with flat memory, id-then-name matching (country tags / quality words ignored), bounded past / ahead window, repeated titles shared, kept-programme cache keyed by guides / channels / window, download to gzip (fast compression) with the old copy kept until complete, 10 h re-download, re-read when a cut channel runs out, 30 min retry, each guide published as soon as read, now / next / progress / time left, guide logos for channels without one
+- What was intentionally not imported: `LiveTvDevice` (its low-memory line, under 2.5 GB, is AdaptiveResources' constrained tier, so that owner decides the window); the full-screen guide grid and the Now/Next card (G10e)
+- Local adaptations: the pull parser and file access go through `LiveTvGuideFiles` (Android's `Xml.newPullParser()` in `LiveTvGuideStore`, fakes in tests); downloads use Live TV's own client with call cancellation and a 120 s read timeout; guide failures are logged by host only (Xtream's guide URL carries the login); guide files are named by a hash of the URL, never the URL
+- Feature flag / fallback: FeatureId.LIVE_TV (AUTO, D055); no guide link means no guide work at all; the guide only runs while Live TV is shown
+- Tests ported/added: LiveTvEpgTest (8: Reshaped's read-again, name-key and id/name/window cases; timestamps with and without offsets; programme on now; window per tier; kept-programme cache validity; repository publishing now / next / guide logos with a fake guide seam; a failing download leaves the list without programmes)
+- Review correction: a child cancellation monitor closes pending/stalled OkHttp calls immediately; unique partial files prevent old-generation cleanup from deleting a new download; failed rename preserves the old guide. Cancelled sockets preserve CancellationException via ensureActive. LiveTvHttpTest adds real HTTP cancellation before headers, during body read, and gzip replacement (3 cases).
+- License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: the XML reader itself runs on Android's parser, so real guides are a device check (HV-G10-4); guide memory on 1–2 GB boxes is MANUAL-PENDING (G14)
+
+#### G10c review hardening (PR #65)
+- Import mode: WRITE adapters/corrections around the attributed FILE_PORT; source pin unchanged.
+- Per-source guide URL/channel association and source-scoped result keys retain raw XMLTV-id-first matching; duplicate-id variants keep all names and any missing-logo requirement.
+- Partial/invalid-tail reads carry `complete=false`: retain parsed programmes, skip complete-cache writes, re-download at the failure retry. Guide workers use visibility `collectLatest` so the last collector leaving cancels network/parse IO immediately; source completion refreshes preserved guides even when every reload fails.
+- SHA-256 URL filenames and digest cache v2 include guide-to-source-key mapping (old cache is invalidated once). URLs/credentials remain absent from logs and filenames.
+- AdaptiveResources supplies compressed/disk and inflated byte caps (64/256 MiB constrained, 128/512 MiB standard) and a 5-minute total download timeout; 120-second idle timeout remains. Streaming limits reject chunked oversize or gzip expansion before old-file replacement. No app dependency added.
+- Added/adapted tests: duplicate IDs/aliases/logos; source namespaces and per-guide requests; hash-collision pair Aa/BB; parser incomplete-tail signal; immediate cancellation when invisible; partial display without complete caching and 30-minute re-download/recovery; failed-source Refresh; chunked/expanded oversize preserving old file; total call timeout; resource-tier budgets. Local standalone JVM harness: 85 tests PASS, Android seams stubbed; exact-head Android/fullDebug CI required.
+- Feature 216 stays in_progress: next-programme API exists but display is G10e. HV-G10-4 remains MANUAL-PENDING for G14.
