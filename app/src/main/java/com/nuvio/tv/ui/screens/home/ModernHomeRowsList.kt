@@ -274,6 +274,8 @@ internal fun ModernHomeRowsList(
     } else {
         null
     }
+    // Superfork G12b hook (D060): Up from the first row may reveal the Glass chrome; false otherwise.
+    val revealTopChrome = com.nuvio.tv.ui.screens.uistyle.LocalGlassChromeReveal.current
 
     CompositionLocalProvider(
         LocalBringIntoViewSpec provides verticalRowBringIntoViewSpec,
@@ -293,6 +295,11 @@ internal fun ModernHomeRowsList(
                 .focusRestorer { focusRestorerRequester() }
                 .onPreviewKeyEvent { event ->
                     val firstRowKey = carouselRows.list.firstOrNull()?.key
+                    if (event.type == KeyEventType.KeyDown &&
+                        event.key == Key.DirectionUp &&
+                        activeRowKey.value == firstRowKey &&
+                        revealTopChrome()
+                    ) return@onPreviewKeyEvent true
                     val lastRowKey = carouselRows.list.lastOrNull()?.key
                     if (event.type == KeyEventType.KeyDown &&
                         event.key == Key.DirectionUp &&
