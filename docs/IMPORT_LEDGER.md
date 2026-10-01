@@ -810,3 +810,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: Antonino port GPL-3.0 (fork of official); SDK MPL-2.0, file-level, recorded in LICENSE_AND_ATTRIBUTION; the SDK license grants no right to VDO.Ninja's hosted signaling / STUN / TURN (their terms apply) and no trademark use
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: availability and terms of the hosted signaling / TURN service; WebView WebRTC support on TV boxes; NAT traversal and phone interop are device checks (G14)
+
+### G11b — Watch Party UI: player button, consent, room panel, join, guest playback (237–244 UI)
+- Roadmap gate: G11
+- Source repository: AntoninoScardina/NuvioTV
+- Source branch: watchparty
+- Pinned source SHA: ff597b12bc7834b07dedda92c88e0d574c0aad81
+- Source commit(s): 58530279d10f3378c237c248ce3ca7bdde5e13cd
+- Source file(s): ui/screens/player/PlayerWatchParty.kt (player adapter, binding, panel, badge), ui/screens/watchparty/WatchPartyNavigationEffect.kt, WatchPartyJoinScreen.kt, the PlayerScreen / NuvioNavHost / Settings hooks
+- Import mode: FILE_PORT (player adapter, binding loop, panel, badge, navigation effect); ADAPTER (join as a Playback settings row with a code dialog instead of a new settings category and route); local WRITE (consent step, unshareable reasons, received-stream registry)
+- Current official equivalent: none; reuses `PlayerOverlayScaffold`, `DialogButton`, `ControlButton`, `ForkTextEntryDialog`, `Screen.Player.createRoute`
+- What already existed upstream: the player controls and route
+- What was imported: Watch Party button in the player controls, panel (create, code, participants, leave), badge, guest navigation to the host's stream, joining by code; strings en + ar
+- What was intentionally not imported: a new Settings category and route (a Playback settings row instead); Italian strings
+- Local adaptations: two-step consent naming what joiners receive; unshareable reasons (torrent / local, Live TV, credentials) from WatchPartySharePolicy and G10's playback registry; a guest's received link is registered in memory (`WatchPartyReceivedStreams`) and `streamCacheKey` returns null for it, so it is never saved for reuse; panel state as a one-line `PlayerViewModel` flow (as G9f's dimmer); everything hidden while WATCH_PARTY is OFF
+- Feature flag / fallback: FeatureId.WATCH_PARTY (AUTO, D056); OFF: no button, no settings row, no navigation effect, no WebView
+- Tests ported/added: WatchPartySharePolicyTest +1 (received links remembered in memory, bounded); consent gate already in WatchPartySessionTest
+- License / attribution notes: GPL-3.0 (Antonino fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: two-device sync, phone interop, NAT / TURN and logs need real devices (HV-G11-1..HV-G11-4, G14)

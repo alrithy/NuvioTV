@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- G11b Watch Party (AntoninoScardina/NuvioTV ff597b1, adapted: consent and unshareable reasons). -->
+<resources>
+    <string name="watch_party_title">Watch Party</string>
+    <string name="cd_watch_party">Watch Party</string>
+    <string name="watch_party_create_description">Create a room and share the code: whoever joins watches this same stream in sync with you.</string>
+    <string name="watch_party_not_shareable">This stream can\'t be shared (torrent or local stream). Pick an HTTP source to start a Watch Party.</string>
+    <string name="watch_party_not_shareable_live_tv">Live TV channels can\'t be shared: their links belong to your provider account.</string>
+    <string name="watch_party_not_shareable_credentials">This stream needs your account details to play, so it isn\'t shared. Pick another source to start a Watch Party.</string>
+    <string name="watch_party_create">Create room</string>
+    <string name="watch_party_consent">People who join get this stream\'s link, and only the headers needed to play it, so their device can open it too. Share the code only with people you trust. Leaving the room stops sharing.</string>
+    <string name="watch_party_consent_agree">Share and create room</string>
+    <string name="watch_party_consent_cancel">Cancel</string>
+    <string name="watch_party_close">Close</string>
+    <string name="watch_party_leave">Leave room</string>
+    <string name="watch_party_share_code">Share this code:</string>
+    <string name="watch_party_joined_code">You are in room:</string>
+    <string name="watch_party_room">Room %1$s</string>
+    <string name="watch_party_connecting">Connecting…</string>
+    <string name="watch_party_waiting">Waiting for someone to join…</string>
+    <string name="watch_party_waiting_host">Connected. Waiting for the host to start playback…</string>
+    <string name="watch_party_participants">Watching with: %1$s</string>
+    <string name="watch_party_error_connection">Couldn\'t connect to the room. Check the network and try again.</string>
+    <string name="watch_party_error_webview">Watch Party needs Android System WebView, which isn\'t available on this device.</string>
+    <string name="watch_party_badge">Watch Party %1$s · %2$d</string>
+    <string name="watch_party_join_title">Join a Watch Party</string>
+    <string name="watch_party_join_description">Enter the code shown on the host\'s device. When the host plays something, it opens here; the link comes from the host.</string>
+    <string name="watch_party_join_code_label">Room code</string>
+    <string name="watch_party_join">Join</string>
+    <string name="watch_party_invalid_code">Invalid code: it has 6 letters and numbers.</string>
+</resources>

@@ -92,4 +92,17 @@ class WatchPartySharePolicyTest {
         assertNull(WatchPartySharePolicy.peerName(" \u0001 "))
         assertEquals(WatchPartySharePolicy.MAX_NAME_CHARS, WatchPartySharePolicy.peerName("n".repeat(100))!!.length)
     }
+
+    @Test
+    fun receivedLinksAreRememberedInMemoryOnlyAndBounded() {
+        WatchPartyReceivedStreams.clearForTest()
+        assertTrue(!WatchPartyReceivedStreams.contains("https://cdn.example/a"))
+        WatchPartyReceivedStreams.register("https://cdn.example/a")
+        assertTrue(WatchPartyReceivedStreams.contains("https://cdn.example/a"))
+        (1..8).forEach { WatchPartyReceivedStreams.register("https://cdn.example/$it") }
+        assertTrue(!WatchPartyReceivedStreams.contains("https://cdn.example/a"))
+        assertTrue(WatchPartyReceivedStreams.contains("https://cdn.example/8"))
+        assertTrue(!WatchPartyReceivedStreams.contains(null))
+        WatchPartyReceivedStreams.clearForTest()
+    }
 }
