@@ -14,7 +14,8 @@ class TrackAfrPolicyTest {
         detected: Boolean = false,
         running: Boolean = false,
         playing: Boolean = false,
-    ) = TrackAfrPolicy.decide(enabled, exo, afrOn, attempted, fps, detected, running, playing)
+        live: Boolean = false,
+    ) = TrackAfrPolicy.decide(enabled, exo, afrOn, attempted, fps, detected, running, playing, live)
 
     @Test
     fun runsOnlyAsAFallbackWhenThePreflightFoundNothing() {
@@ -38,5 +39,14 @@ class TrackAfrPolicyTest {
         assertEquals(TrackAfrAction.TOO_LATE, decide(playing = true))
         // A running preflight is waited for before the implausible / too-late checks.
         assertEquals(TrackAfrAction.DEFER, decide(fps = 1f, running = true))
+    }
+
+    @Test
+    fun liveTvSwitchesOnceWithoutAHoldWhenTheRateCameLate() {
+        assertEquals(TrackAfrAction.RUN_LIVE, decide(playing = true, live = true, fps = 50f))
+        assertEquals(TrackAfrAction.RUN, decide(live = true, fps = 50f))
+        assertEquals(TrackAfrAction.SKIP, decide(playing = true, live = true, attempted = true))
+        assertEquals(TrackAfrAction.IGNORE_IMPLAUSIBLE, decide(playing = true, live = true, fps = 12f))
+        assertEquals(TrackAfrAction.TOO_LATE, decide(playing = true, live = false))
     }
 }

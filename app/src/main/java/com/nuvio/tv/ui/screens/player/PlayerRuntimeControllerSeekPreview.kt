@@ -16,7 +16,8 @@ internal fun PlayerRuntimeController.seekPreviewExtractorsFactory(
     delegate: ExtractorsFactory,
     url: String,
 ): ExtractorsFactory {
-    if (!SeekIntelligence.enabled) return delegate
+    // Superfork G10d hook: a Live TV channel has no timeline to preview.
+    if (!SeekIntelligence.enabled || com.nuvio.tv.fork.livetv.LiveTvPlaybackRegistry.isLiveTv(url)) return delegate
     return LocalPreviewSources.register(
         owner = this,
         context = context,

@@ -12,6 +12,12 @@ enum class TrackAfrAction {
     TOO_LATE,
     /** Hold the start, switch, settle, release. */
     RUN,
+    /**
+     * G10d (feature 236, D055): a Live TV channel already playing whose rate became known only from
+     * its frames (MPEG-TS carries none). A live stream has no start to hold, so it switches once
+     * without pausing, as IPTV players do.
+     */
+    RUN_LIVE,
 }
 
 object TrackAfrPolicy {
@@ -26,10 +32,13 @@ object TrackAfrPolicy {
         preflightDetected: Boolean,
         preflightRunning: Boolean,
         playbackRunning: Boolean,
+        /** A Live TV channel (the official preflight probe is skipped for these). */
+        liveTv: Boolean = false,
     ): TrackAfrAction = when {
         !enabled || !exoPlayerEngine || !afrOn || alreadyAttempted || rawFps <= 0f || preflightDetected -> TrackAfrAction.SKIP
         preflightRunning -> TrackAfrAction.DEFER
         rawFps < MIN_FPS -> TrackAfrAction.IGNORE_IMPLAUSIBLE
+        playbackRunning && liveTv -> TrackAfrAction.RUN_LIVE
         playbackRunning -> TrackAfrAction.TOO_LATE
         else -> TrackAfrAction.RUN
     }
