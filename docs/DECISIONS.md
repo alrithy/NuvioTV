@@ -448,3 +448,16 @@ any G12 code (UPSTREAM_SYNC; D050 pattern), with no conflicts, and becomes the a
 the clean replays of official `5c1d9b0` and the integration merge show no new debt and no lost or
 newly skipped test. Any debt growth or reduced coverage needs exact-head maintainer approval (never
 self-approved). The sync merges with a merge commit so official stays a parent.
+
+## D060 — Glass is a navigation style over official's Modern home (amends D058)
+D058 planned `HomeLayout.GLASS` and `CINEMATIC_GLASS` as new layouts on the Modern pipeline. Adding
+values to official's `HomeLayout` reaches every `when (layout)` in official home, settings, chooser
+and preference code, and every later upstream sync. Glass reskins Modern without changing its rows,
+hero or enrichment (NuvioGlass `usesModernPipeline`), so it is instead a fourth Navigation style,
+GLASS, in `fork_ui_style`: official's Modern home with frosted chrome floating over the full-bleed
+hero (NuvioGlass `GlassScaffold` FILE_PORT), hiding itself on Home and returning on Up from the first
+row through one hook in `ModernHomeRowsList`. With Classic or Grid it falls back to Pill. Official
+layout preferences are never written. The glass is a live Haze blur only on Android 12+ outside the
+LOW_RAM tier (AdaptiveResources) and without the per-profile "Lightweight effects" switch; otherwise an
+opaque tint. The chrome is only on root screens, never over the player. Cinematic Glass (194) and the
+AGSL liquid-glass refraction (199) build on the same style next.

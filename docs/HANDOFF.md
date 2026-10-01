@@ -185,7 +185,8 @@ official 1,796 tests identical to the `56aaba2` inventory, integration 2,205 tes
 baseline re-anchored on `5c1d9b0` (D059) with debt unchanged.
 Upstream sync merged as #77 (`c45b78e`, merge commit; exact head `dbdca31`, run 36849295963: 2205
 tests, 15 known failures, 0 new, 1 skipped; APK artifact 11155351900).
-G12a (#78, open): `fork/uistyle` top menu. Per-profile Navigation style (Sidebar default, Top bar,
+G12a merged as #78 (`14a3353`; exact head `362dd45`, run 36855538291: 2209 tests, 15 known failures,
+0 new, 1 skipped; APK artifact 11159113616): `fork/uistyle` top menu. Per-profile Navigation style (Sidebar default, Top bar,
 Pill) replaces official's sidebar with one `TopChromeScaffold` in two looks (NuvioGlass sliding-
 indicator menu and minute-tick clock, Cxsmo top-bar profile access, Reshaped pill look); the menu sits
 above the content (Up from the top row reaches it; Back focuses it, then exits; long-press Back jumps
@@ -193,11 +194,19 @@ to it); official `navigateToDrawerRoute` / `rememberRawSvgPainter` made internal
 the device 12 / 24-hour format; profile button opens profile selection; UI_STYLES AUTO. 196, 198,
 204, 205 implemented; HV-G12-1, HV-G12-2 MANUAL-PENDING. Slice plan adjusted: the effect policy, liquid
 glass (199) and lightweight fallback (200) land with the overlaid Glass chrome in G12b, where they have
-a backdrop to work on. Local JVM harness: 334 tests PASS (UI compiles only in CI). Slices: sync, G12a (196–200, 204, 205), G12b (193,
+a backdrop to work on. Local JVM harness: 334 tests PASS (UI compiles only in CI).
+G12b (#79, open; D060 amends D058): Glass is a fourth Navigation style rather than new `HomeLayout`
+values: official's Modern home with frosted chrome floating over the full-bleed hero (NuvioGlass
+`GlassScaffold` / `GlassSurface` FILE_PORT), auto-hiding on Home and revealed by Up from the first row
+(one hook in `ModernHomeRowsList`); Pill with Classic / Grid; live Haze blur only on Android 12+ with
+a known non-LOW_RAM tier and the per-profile Lightweight effects switch off, otherwise an opaque tint;
+Back / long-press Back as the other top menus; never over the player. 193, 197, 200 implemented;
+HV-G12-3 MANUAL-PENDING. Local JVM harness: 337 tests PASS. Remaining G12: Cinematic Glass (194),
+liquid glass (199), screensaver (292). Slices: sync, G12a (196–200, 204, 205), G12b (193,
 194), G12c (292). Legacy PR #1 / #2 stay reference-only. Next G13 Experimental AI & MAT.
 ## Exact next action
-1. Wait for #78 (G12a) exact-head CI and squash with the expected head; then G12b (Glass and
-   Cinematic Glass layouts, overlaid glass chrome, effect policy, liquid glass 199, fallback 200).
+1. Wait for #79 (G12b) exact-head CI and squash with the expected head; then Cinematic Glass (194)
+   and AGSL liquid glass (199) on the Glass style, then the screensaver (292) and the G12 closeout.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G12→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.

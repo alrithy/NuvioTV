@@ -25,6 +25,7 @@ class UiStyleSettings @Inject constructor(
 ) {
     private val navigationKey = stringPreferencesKey("navigation_style")
     private val clockKey = booleanPreferencesKey("top_menu_clock")
+    private val lightweightKey = booleanPreferencesKey("lightweight_effects")
 
     val featureEnabled: Boolean get() = UiStyleRules.enabled
 
@@ -43,6 +44,19 @@ class UiStyleSettings @Inject constructor(
         profileManager.activeProfileId.flatMapLatest { profileId ->
             factory.get(profileId, FEATURE).data.map { it[clockKey] ?: true }
         }
+    }
+
+    /** "Lightweight effects": the Glass chrome without live blur on any device (feature 200). */
+    val lightweightEffects: Flow<Boolean> = if (!UiStyleRules.enabled) {
+        flowOf(true)
+    } else {
+        profileManager.activeProfileId.flatMapLatest { profileId ->
+            factory.get(profileId, FEATURE).data.map { it[lightweightKey] ?: false }
+        }
+    }
+
+    suspend fun setLightweightEffects(enabled: Boolean) {
+        factory.get(profileManager.activeProfileId.value, FEATURE).edit { it[lightweightKey] = enabled }
     }
 
     suspend fun setNavigationStyle(style: NavigationStyle) {

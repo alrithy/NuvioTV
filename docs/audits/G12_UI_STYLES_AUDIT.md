@@ -73,6 +73,8 @@ harvested, but no code is merged from them. This audit changes no code.
   default), Top bar or Pill. Glass layouts always use Glass top chrome.
 - **New layouts:** `HomeLayout.GLASS` and `HomeLayout.CINEMATIC_GLASS`, both on the Modern
   pipeline (NuvioGlass's `usesModernPipeline`).
+  - **Amended by D060 (G12b):** Glass (and Cinematic Glass) are navigation styles over official's
+    Modern home instead of new `HomeLayout` values, so official layout code is not edited.
   - Cinematic Glass is Glass with the focused title's artwork full screen (official
     `modern_hero_full_screen_backdrop`) and the official hero trailer on. Those are the Cinema View
     ideas, built on official owners.
