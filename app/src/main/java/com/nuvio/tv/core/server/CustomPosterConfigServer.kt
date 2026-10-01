@@ -2,6 +2,8 @@ package com.nuvio.tv.core.server
 
 import android.content.Context
 import com.nuvio.tv.R
+import com.nuvio.tv.fork.security.LocalServerAccess
+import com.nuvio.tv.fork.security.gate
 import fi.iki.elonen.NanoHTTPD
 import java.nio.charset.StandardCharsets
 
@@ -11,8 +13,11 @@ class CustomPosterConfigServer(
     private val context: Context? = null,
     port: Int = 8092
 ) : NanoHTTPD(port) {
+    /** G14a (D064): the QR session; the QR code opens [LocalServerAccess.entryUrl]. */
+    val access = LocalServerAccess()
 
     override fun serve(session: IHTTPSession): Response {
+        access.gate(session)?.let { return it }
         return when {
             session.method == Method.GET && session.uri == "/" -> serveWebPage()
             session.method == Method.GET && session.uri == "/api/pattern" -> serveCurrentPattern()

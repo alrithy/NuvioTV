@@ -1,5 +1,6 @@
 package com.nuvio.tv.fork.livetv
 
+import com.nuvio.tv.fork.security.LocalServerAccess
 import com.squareup.moshi.JsonReader
 import java.net.URLDecoder
 import java.security.SecureRandom
@@ -33,15 +34,11 @@ internal object LiveTvSetupPolicy {
     private const val MAX_NAME_CHARS = 80
 
     /** 128 random bits as hex: the path only someone who can see the TV's QR code knows. */
-    fun newToken(random: SecureRandom = SecureRandom()): String {
-        val bytes = ByteArray(16)
-        random.nextBytes(bytes)
-        return bytes.joinToString("") { "%02x".format(it.toInt() and 0xFF) }
-    }
+    fun newToken(random: SecureRandom = SecureRandom()): String = LocalServerAccess.newKey(random)
 
     /** A page from another site may post here: its Origin then differs from our Host. */
     fun originAllowed(origin: String?, host: String?): Boolean =
-        origin == null || (host != null && origin.equals("http://$host", ignoreCase = true))
+        LocalServerAccess.originAllowed(origin, referer = null, host = host)
 
     fun formLengthAllowed(contentLength: Long?): Boolean = contentLength != null && contentLength in 1..MAX_FORM_BYTES
 

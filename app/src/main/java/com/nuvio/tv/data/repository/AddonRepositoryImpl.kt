@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.nuvio.tv.core.logging.urlForLog
 import com.nuvio.tv.core.network.NetworkResult
 import com.nuvio.tv.core.network.safeApiCall
 import com.nuvio.tv.data.local.AddonPreferences
@@ -316,7 +317,7 @@ class AddonRepositoryImpl(
                 healthTracker.record(cleanBaseUrl, AddonHealthClassifier.success(latencyMs), latencyMs)
                 val addon = result.data.toDomain(cleanBaseUrl)
                 if (putCachedManifestIfChanged(cleanBaseUrl, addon)) {
-                    Log.d(TAG, "Updated addon manifest cache url=$cleanBaseUrl version=${addon.version} configVersion=${addon.configVersion}")
+                    Log.d(TAG, "Updated addon manifest cache url=${cleanBaseUrl.urlForLog()} version=${addon.version} configVersion=${addon.configVersion}")
                 }
                 NetworkResult.Success(addon)
             }
@@ -326,7 +327,7 @@ class AddonRepositoryImpl(
                     AddonHealthClassifier.failure(AddonRequest.MANIFEST, result.code, result.message),
                     latencyMs
                 )
-                Log.w(TAG, "Failed to fetch addon manifest for url=$manifestUrl code=${result.code} message=${result.message}")
+                Log.w(TAG, "Failed to fetch addon manifest for url=${manifestUrl.urlForLog()} code=${result.code} message=${result.message}")
                 result
             }
             NetworkResult.Loading -> NetworkResult.Loading

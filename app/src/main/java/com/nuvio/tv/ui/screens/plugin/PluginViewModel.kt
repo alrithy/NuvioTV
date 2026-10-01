@@ -305,7 +305,7 @@ class PluginViewModel @Inject constructor(
             return
         }
 
-        val url = "http://$ip:${activeServer.listeningPort}"
+        val url = activeServer.access.entryUrl("http://$ip:${activeServer.listeningPort}")
         val qrBitmap = QrCodeGenerator.generate(url, 512)
 
         _uiState.update {

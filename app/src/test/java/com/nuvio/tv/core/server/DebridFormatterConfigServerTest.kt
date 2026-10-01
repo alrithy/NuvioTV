@@ -36,7 +36,7 @@ class DebridFormatterConfigServerTest {
             )
         )
 
-        val response = server.serve(FakePostSession(body))
+        val response = server.serve(FakePostSession(body, cookie = server.sessionCookie))
 
         assertEquals(NanoHTTPD.Response.Status.OK, response.status)
         assertEquals("🔥4K UHD ☁️", saved?.nameTemplate)
@@ -65,7 +65,7 @@ class DebridFormatterConfigServerTest {
             )
         )
 
-        val response = server.serve(FakePostSession(body))
+        val response = server.serve(FakePostSession(body, cookie = server.sessionCookie))
 
         assertEquals(NanoHTTPD.Response.Status.OK, response.status)
         assertEquals("", saved?.nameTemplate)
@@ -74,7 +74,8 @@ class DebridFormatterConfigServerTest {
 
     private class FakePostSession(
         body: String,
-        private val uri: String = "/api/settings"
+        private val uri: String = "/api/settings",
+        private val cookie: String? = null
     ) : NanoHTTPD.IHTTPSession {
         private val bytes = body.toByteArray(StandardCharsets.UTF_8)
 
@@ -83,7 +84,7 @@ class DebridFormatterConfigServerTest {
         override fun getHeaders(): Map<String, String> = mapOf(
             "content-length" to bytes.size.toString(),
             "content-type" to "application/json; charset=utf-8"
-        )
+        ) + listOfNotNull(cookie?.let { "cookie" to it })
         override fun getInputStream(): InputStream = ByteArrayInputStream(bytes)
         override fun getMethod(): NanoHTTPD.Method = NanoHTTPD.Method.POST
         override fun getParms(): Map<String, String> = emptyMap()
@@ -97,3 +98,7 @@ class DebridFormatterConfigServerTest {
         override fun getRemoteHostName(): String = "localhost"
     }
 }
+
+/** G14a (D064): requests carry the QR session cookie the server set on the QR link's first load. */
+private val DebridFormatterConfigServer.sessionCookie: String
+    get() = "${access.cookieName}=${access.key}"

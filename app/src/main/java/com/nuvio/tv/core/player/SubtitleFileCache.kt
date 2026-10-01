@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
+import com.nuvio.tv.core.logging.urlForLog
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -74,7 +75,7 @@ class SubtitleFileCache @Inject constructor(
         try {
             okHttpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) {
-                    Log.w(TAG, "HTTP ${response.code} downloading subtitle: ${input.url}")
+                    Log.w(TAG, "HTTP ${response.code} downloading subtitle: ${input.url.urlForLog()}")
                     return@withContext null
                 }
 
@@ -91,7 +92,7 @@ class SubtitleFileCache @Inject constructor(
                 file
             )
         } catch (e: Exception) {
-            Log.w(TAG, "Failed to download subtitle file: ${input.url}", e)
+            Log.w(TAG, "Failed to download subtitle file: ${input.url.urlForLog()}", e)
             file.delete()
             null
         }

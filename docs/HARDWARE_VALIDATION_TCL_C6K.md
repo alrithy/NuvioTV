@@ -178,6 +178,13 @@ for. Never mark a row PASS from memory or expectation. Copy finished rows into
 | HV-G13-2 BYOK per profile (255, 256, 261) | With two profiles, add a vendor key on profile A, switch to B (no key shown), delete profile B and create a new one, then clear app data. | A's key is never displayed again and B cannot see it; a new profile that reuses B's id has no key; nothing readable remains after clearing data. | MANUAL-PENDING | screenshots |
 | HV-G13-3 MAT passthrough on an eARC receiver (45) | Settings → Advanced → Experimental: MAT passthrough on, restart. Play a Dolby TrueHD (and a TrueHD Atmos) title through an eARC AV receiver; seek several times, pause / resume, change speed; play an E-AC-3 and a DTS title; with Bluetooth headphones connected play the TrueHD title; turn MAT off and restart. | The receiver shows TrueHD (Atmos) with no dropouts; seeks recover within a second; E-AC-3 / DTS follow the G5 switches as before; Bluetooth gets PCM; with MAT off the official path returns. | MANUAL-PENDING | photos of the receiver, video |
 
+## 4k. G14 — Hardening
+
+| Test | Steps | Expected | Result | Evidence |
+|---|---|---|---|---|
+| HV-G14-1 QR configuration pages (303, 304) | For each QR page (add-ons, repositories, custom posters, debrid formatter, stream badges): scan the QR code with a phone, make a change, confirm it on the TV. Then open `http://<tv-ip>:<port>/` without the key from another phone, and open the page from a second browser tab after closing the first. | The scanned page opens and saves as before; the key leaves the address bar; without the key the page answers "Open this page by scanning the QR code shown on the TV."; a fresh QR scan always works. | MANUAL-PENDING | phone screenshots |
+| HV-G14-2 Logs carry no secrets (305) | Install an add-on whose URL carries a config / key, play a stream and an add-on subtitle, open a plugin repository, then capture `adb logcat -d`. | Add-on, stream, subtitle and plugin URLs appear as scheme and host only; no path, query, key or user info. | MANUAL-PENDING | logcat |
+
 ## 5. G4 final validation — same-file A/B (required before Stable release)
 
 Use **F1** for arms A and B, and **F2 and F3** for the seek arm. Same TV, same network, same time

@@ -280,15 +280,22 @@ Origin check and expose add-on URLs; `urlForLog` is an identity and several offi
 add-on / stream URLs; the `full` updater points at official's releases and never checks a digest;
 the release workflow runs only the updater tests and publishes no checksums; nothing watches official
 `dev`. Official `dev` `aeb6ee8` (eleven commits, player error path) merges cleanly; a sync PR precedes
-G14 code (D065): #89 (`chore/upstream-sync-2026-10-01-g14`, open) merges it with no conflicts
+G14 code (D065): #89 (`chore/upstream-sync-2026-10-01-g14`, merge commit `8832fa0`; exact head `9ca1b50`, run 36893473195:
+2,358 tests, 15 known failures, 0 new, 1 skipped; APK artifact 11179166278) merges it with no conflicts
 (integration merge `ed62c7b`); clean replays (run 36891605846): official `aeb6ee8` 1,824 tests (the 1,796
 of `5c1d9b0` identical, 28 new passing), integration 2,358 tests, 15 known, 0 new; baseline re-anchored
 on `aeb6ee8` with debt unchanged and the minimum test count raised to 1,824 (D065). Slices: sync, G14a (299, 303–305 `fork/security`), G14b (306, 308–310, 312
 `fork/distribution`), G14c (316 upstream watch), then the 320-row accounting and the hardware
 campaign (72 HV cases plus the G4 A/B), which only the maintainer can run.
+G14a (#90, open): `fork/security` `LocalServerAccess` gates official's five QR configuration servers
+(the QR code's per-session key is exchanged for an HttpOnly SameSite=Lax session cookie; no session →
+403; writes from another site's page refused by Origin / Referer; one-line hooks, official pages
+untouched; the fork font and Live TV servers share the rule) and `urlForLog()` keeps scheme, host and
+port only, with the add-on, stream, subtitle and plugin URL log sites routed through it. 299, 303,
+304, 305 implemented; HV-G14-1, HV-G14-2 MANUAL-PENDING. Local JVM harness: 465 tests PASS.
 ## Exact next action
-1. Wait for #89 exact-head CI and merge it with a merge commit (official stays a parent); then G14a
-   (`wip/g14a-security`), G14b (`wip/g14b-distribution`) and G14c (`wip/g14c-upstream-watch`).
+1. Wait for #90 (G14a) exact-head CI and squash with the expected head; then G14b
+   (`wip/g14b-distribution`) and G14c (`wip/g14c-upstream-watch`).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Hardware results are recorded only as real PASS / FAIL; a FAIL reopens the affected gate / feature.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
