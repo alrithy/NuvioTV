@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G13 — Experimental AI & MAT
 - Active branch: `experimental/media`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G13_EXPERIMENTAL.md`
 - Accepted official baseline: `5c1d9b0e2669199114a12ade38027da132303eb3`
 - Governance: READY
@@ -220,12 +220,24 @@ dispatch, window focus, overlay), PlayerViewModel (playing state) and TrailerPla
 292 implemented; HV-G12-5 MANUAL-PENDING. Local JVM harness: 344 tests PASS.
 All 19 G12 IDs are terminal (10 implemented, 9 verified_official); HV-G12-1..HV-G12-5 are carried to
 G14 (`validation_pending_gates`, MANUAL_TEST_LOG). No Android/device run is claimed.
-G13 Experimental AI & MAT READY on `experimental/media` (`tasks/G13_EXPERIMENTAL.md`, IDs 45 and
-250–261, everything default OFF), owner Claude (sequential; no lease), after this closeout merges;
-next G14 Hardening / Release / Upstream. Legacy PR #1 / #2 stay reference-only.
+G12 closeout merged as #82 (`2791c1d`; exact head `0729e9e`, run 36874872121: 2219 tests, 15 known
+failures, 0 new, 1 skipped; APK artifact 11169431821). Legacy PR #1 / #2 stay reference-only.
+
+G13 Experimental AI & MAT IN_PROGRESS on `experimental/media`, task `tasks/G13_EXPERIMENTAL.md`, IDs 45
+and 250–261, owner Claude (sequential; no lease). Audit (#83, open) `docs/audits/G13_EXPERIMENTAL_AUDIT.md`:
+official `5c1d9b0` has no AI and only platform passthrough; official `dev` `9e17941` (seven commits:
+MDBList cache, stream focus, strings) touches no G13 seam, so no sync PR. Fornace/nuvio-ai `518af71`
+ships the provider platform (registry, SHA-256 and exact-signer-set checked provider APKs, Messenger
+negotiation, AAD-bound per-profile BYOK vault, dedicated platform-TLS client, Provider Center) but
+its providers are contract shells, its subtitle path is a fake and its voice overlay is unwired.
+D063: one `fork/aimedia` owner for the platform (250, 255–261) and the ysosrs `45e0984` MAT path in
+`fork/audio` (45); 251–254 deferred until a pinned source ships an engine; AI traffic never uses
+official's clients (the playback client falls back to trust-all); a Settings → Experimental screen
+with OFF-by-default switches is the only way G13 turns on. Slices: G13a (pure core + opt-in), G13b
+(Android bridges, Provider Center, Experimental screen), G13c (MAT). Next G14.
 ## Exact next action
-1. Start G13 Experimental AI & MAT with an official-first audit (`docs/audits/G13_EXPERIMENTAL_AUDIT.md`)
-   against official and the Fornace AI and ysosrs MAT sources; everything stays default OFF.
+1. Merge the G13 audit (#83) after exact-head CI, then G13a (`fork/aimedia` pure core: registry and
+   vendor catalog, artifact verifier, contract validator, credential vault, experimental opt-in).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G13→G14 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
