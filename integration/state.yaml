@@ -7,19 +7,19 @@ current_official_baseline_sha: 56aaba20b7d01746d616a2c8517adcf442950b90
 integration_upstream_sync_commit: 5c24805f82b2bb7092b9acafc00903a32fe5045c
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G11
-active_gate_name: Watch Party
-active_branch: feat/watch-party
-active_task_packet: tasks/G11_WATCH_PARTY.md
-active_status: IN_PROGRESS
-active_pr: 74
+active_gate: G12
+active_gate_name: UI Styles
+active_branch: feat/ui-styles
+active_task_packet: tasks/G12_UI_STYLES.md
+active_status: READY
+active_pr: null
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: c4e3a953a80d68c7da2d872d4094eeccbf1bd2dc
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36836494526 ; G11b
-  PR #73 exact head, squash-merged as 1002530090c25c6ad41f4826afe730ffe267f258; fullDebug APK 11149093802.
-last_green_scope: Full suite guard (2198 tests, 15 known failures, 0 new failures, 1 skipped), governance
+last_green_commit: af7de6221030afbe5bde4f5c14cd11a35e9b2241
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36842866031 ; G11
+  review corrections PR #74 exact head, squash-merged as 65e1c57e828daa6323f5968adbad627c1369e490; fullDebug APK 11152162286.
+last_green_scope: Full suite guard (2205 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
@@ -28,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G12
-next_gate_name: UI Styles
-next_branch: feat/ui-styles
+next_gate: G13
+next_gate_name: Experimental AI & MAT
+next_branch: experimental/media
 known_operational_risks:
 - id: R001
   severity: high
@@ -85,6 +85,8 @@ validation_pending_gates:
   evidence: 'Audit #53, all slices #54-#59 and closeout corrections #61 merged; HV-G9-1, HV-G9-2, HV-G9-3, HV-G9-4, HV-G9-5, HV-G9-6, HV-G9-7 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G9_CLOSEOUT.md.'
 - gate: G10
   evidence: 'Audit #62 and all slices #63-#69 merged; HV-G10-1, HV-G10-2, HV-G10-3, HV-G10-4, HV-G10-5, HV-G10-6, HV-G10-7, HV-G10-8 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G10_CLOSEOUT.md.'
+- gate: G11
+  evidence: 'Audit #71, slices #72-#73 and review corrections #74 merged; HV-G11-1, HV-G11-2, HV-G11-3, HV-G11-4 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G11_CLOSEOUT.md.'
 governance_status: READY
 upstream_observation:
   checked_at: '2026-09-30T11:30:00Z'
@@ -194,4 +196,16 @@ completed_gates:
     1 skipped, fullDebug APK; per-slice exact-head runs 36791938657 (2169), 36827186218 (2175),
     36828493852 (2177), 36829761290 (2181); docs/audits/G10_CLOSEOUT.md; D047, D055;
     HV-G10-1..HV-G10-8 MANUAL-PENDING for G14.'
+  deferred_features: []
+- gate: G11
+  name: Watch Party
+  status: CODE-COMPLETE
+  pr: [71, 72, 73, 74]
+  head_sha: af7de6221030afbe5bde4f5c14cd11a35e9b2241
+  merge_sha: 65e1c57e828daa6323f5968adbad627c1369e490
+  slice_merges: [2d39a6d4f91779f15e040f3ae344fd9385202437, 74ee62ff3f5a143735b91140107c19e6684ed216,
+    1002530090c25c6ad41f4826afe730ffe267f258, 65e1c57e828daa6323f5968adbad627c1369e490]
+  evidence: 'G11 review corrections PR #74 exact-head CI run 36842866031: 2205 tests, 15 known failures,
+    0 new, 1 skipped, fullDebug APK; per-slice exact-head runs 36835101903 (2197), 36836494526 (2198);
+    docs/audits/G11_CLOSEOUT.md; D047, D056, D057; HV-G11-1..HV-G11-4 MANUAL-PENDING for G14.'
   deferred_features: []
