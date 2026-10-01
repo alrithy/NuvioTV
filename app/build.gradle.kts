@@ -348,8 +348,11 @@ androidComponents {
         )
         if (!isPlaystore && superforkTestBuild != null) {
             variant.outputs.forEach { output ->
-                output.versionCode.set(output.versionCode.map { (it ?: 0) * 100_000 + superforkTestBuild })
-                output.versionName.set(output.versionName.map { "$it-sf.$superforkTestBuild" })
+                // Read the DSL values once; mapping a property into itself is a circular evaluation.
+                val baseCode = output.versionCode.orNull ?: 0
+                val baseName = output.versionName.orNull.orEmpty()
+                output.versionCode.set(baseCode * 100_000 + superforkTestBuild)
+                output.versionName.set("$baseName-sf.$superforkTestBuild")
             }
         }
     }
