@@ -11,14 +11,14 @@ active_gate: G14
 active_gate_name: Hardening Release Upstream
 active_branch: chore/release-hardening
 active_task_packet: tasks/G14_HARDENING_RELEASE.md
-active_status: READY
-active_pr: null
+active_status: IN_PROGRESS
+active_pr: 88
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: a8eeb15782a3708b692b3d8ca3be365e09e59952
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36885503149 ; G13c
-  PR #86 exact head, squash-merged as 746c82aa49b299ab77ac1a5541b6b516b5e01121; fullDebug APK 11174408183.
+last_green_commit: 79809952fa7c9949ba5665150d2fa7c82c4af0dd
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36887451146 ; G13
+  closeout PR #87 exact head, squash-merged as 4a7115a9b1371ec9d0f3ecec6dcb0d0385354663; fullDebug APK 11175173134.
 last_green_scope: Full suite guard (2330 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
@@ -93,10 +93,10 @@ validation_pending_gates:
   evidence: 'Audit #83 and slices #84-#86 merged; HV-G13-1, HV-G13-2, HV-G13-3 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G13_CLOSEOUT.md.'
 governance_status: READY
 upstream_observation:
-  checked_at: '2026-10-01T14:45:00Z'
-  sha: 9e1794155cc3adfc08c5799b8eaa218b430c3ce6
+  checked_at: '2026-10-01T16:10:00Z'
+  sha: aeb6ee8591c55424256fdd1f35f426618297378d
   accepted: false
-  reason: 'Observed at G13 start: seven commits after accepted 5c1d9b0 (MDBList ratings disk cache, stream-screen focus fix, Polish / Hebrew strings, autosync strings moved into strings.xml); touches no G13 seam (audio sink, subtitles, settings, credentials), so no sync PR before G13.'
+  reason: 'Observed at G14 start: eleven commits after accepted 5c1d9b0 (libmpv failure causes on the error screen, Back after binge skip, stream-screen focus, MDBList ratings disk cache, Polish / Hebrew strings); merges without conflicts; G14 hardens the release and touches the player error path and logging, so an upstream sync PR precedes G14 code (D065).'
 completed_gates:
 - gate: G0
   name: Fork Foundation
