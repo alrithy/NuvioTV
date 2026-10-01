@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G11 — Watch Party
 - Active branch: `feat/watch-party`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G11_WATCH_PARTY.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
@@ -130,14 +130,20 @@ or Stalker, Origin check and size caps, nothing logged. HV-G10-8 MANUAL-PENDING.
 All 29 G10 IDs are `implemented`; HV-G10-1..HV-G10-8 are carried to G14 (`validation_pending_gates`,
 MANUAL_TEST_LOG). No Android/device run is claimed.
 
-G11 Watch Party READY on `feat/watch-party`, task `tasks/G11_WATCH_PARTY.md`, owner Claude
-(sequential; no lease). It starts with an official-first audit against current official `dev` and
-the unchanged Reshaped pin `0ccf049`.
+G11 Watch Party IN_PROGRESS on `feat/watch-party`, task `tasks/G11_WATCH_PARTY.md`, IDs 237–249,
+owner Claude (sequential; no lease). Audit (#71) `docs/audits/G11_WATCH_PARTY_AUDIT.md`: official
+(`56aaba2`, `dev` `5c1d9b0`) has no Watch Party but every player control a sync engine needs; source
+AntoninoScardina/NuvioTV `watchparty` @ `ff597b1` (one commit, `5853027`; VDO.Ninja SDK v1.6.1,
+MPL-2.0). D056: one `fork/watchparty` owner; wire format kept for the Nuvio Party phone build; host
+consent per room before anything is shared; header allowlist, credential / torrent / local / Live TV
+streams not shareable; guest media memory-only and never saved for reuse; no WebView console logs;
+SecureRandom codes; WATCH_PARTY AUTO with G11a. Slices G11a (core, 237–242, 244–249) and G11b (UI,
+consent, join, 243 and the UI of 237–240).
 Next gate: G12 UI Styles.
 
 ## Exact next action
-1. After this closeout merges: G11 Watch Party audit on `feat/watch-party` (official `dev` first,
-   then Reshaped `0ccf049`), with a decision record and slices like G10's.
+1. Merge the G11 audit (#71) after exact-head CI, then G11a (`fork/watchparty` core) and G11b (UI,
+   consent, join) on `feat/watch-party`, each merged before the next; then the G11 closeout.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G11→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.

@@ -401,3 +401,16 @@ AFR stays with G5e `TrackAfrPolicy`, which gains a live branch (no preflight pro
 rate, one early switch). Preview size, default and guide window come from `AdaptiveResources`.
 LIVE_TV becomes AUTO with the first code slice; the menu entry stays off until the user enables it,
 and OFF removes the entry and every live-only hook.
+
+## D056 — G11 has one Watch Party owner; consent first, nothing secret leaves the device
+The only Watch Party module is `fork/watchparty`: AntoninoScardina/NuvioTV `ff597b1` FILE_PORT
+(protocol v1, host-authority sync engine with soft speed correction and hard seek, hidden WebView
+running the unmodified VDO.Ninja SDK (MPL-2.0) over a WebRTC data channel), adapted. The wire format,
+code alphabet and room / password derivation stay identical so the Nuvio Party phone build can join.
+Nothing is shared until the host confirms a consent dialog for that room. Only `User-Agent`,
+`Referer`, `Origin`, `Accept` and `Accept-Language` are shared; a stream that needs credentials
+(Authorization, Cookie, key / token headers, a user:password@ link), a torrent, a local link or a Live
+TV channel is not shareable. Received media is validated, kept in memory only and never saved for
+link reuse on the guest. No WebView console logging; errors are fixed codes; nothing logs URLs,
+headers, codes or names. Codes come from `SecureRandom`. WATCH_PARTY becomes AUTO with the first code
+slice; OFF hides every entry and never creates a WebView.
