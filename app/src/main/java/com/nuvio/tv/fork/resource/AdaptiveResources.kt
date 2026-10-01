@@ -59,6 +59,25 @@ class AdaptiveResourcePolicy(
         else LiveTvGuideBudget(128L shl 20, 512L shl 20)
 
     /**
+     * G10f: the Live TV list's channel preview. Constrained boxes get a 720p cap and a small buffer
+     * (Reshaped's low-memory line); low-RAM boxes also start with previews off.
+     */
+    val liveTvPreviewBudget: LiveTvPreviewBudget
+        get() = if (isConstrained) {
+            LiveTvPreviewBudget(
+                onByDefault = !isLowRam, maxWidth = 1280, maxHeight = 720,
+                minBufferMs = 1_500, maxBufferMs = 3_000, bufferForPlaybackMs = 500, bufferAfterRebufferMs = 1_000,
+                targetBufferBytes = 2 shl 20,
+            )
+        } else {
+            LiveTvPreviewBudget(
+                onByDefault = true, maxWidth = 1920, maxHeight = 1080,
+                minBufferMs = 2_000, maxBufferMs = 5_000, bufferForPlaybackMs = 500, bufferAfterRebufferMs = 1_500,
+                targetBufferBytes = 4 shl 20,
+            )
+        }
+
+    /**
      * Addon stream/subtitle requests in flight at once; `null` keeps official (unbounded).
      * Each request holds a response body, its parsed DTOs and the mapped list simultaneously.
      */

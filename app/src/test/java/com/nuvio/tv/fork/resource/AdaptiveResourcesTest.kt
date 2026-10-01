@@ -36,6 +36,18 @@ class AdaptiveResourcesTest {
     }
 
     @Test
+    fun livePreviewIsOffByDefaultOnLowRamAndCappedAt720pOnConstrainedBoxes() {
+        assertEquals(false, low.liveTvPreviewBudget.onByDefault)
+        assertEquals(true, constrained.liveTvPreviewBudget.onByDefault)
+        assertEquals(true, standard.liveTvPreviewBudget.onByDefault)
+        assertEquals(1280 to 720, constrained.liveTvPreviewBudget.let { it.maxWidth to it.maxHeight })
+        assertEquals(1280 to 720, low.liveTvPreviewBudget.let { it.maxWidth to it.maxHeight })
+        assertEquals(1920 to 1080, standard.liveTvPreviewBudget.let { it.maxWidth to it.maxHeight })
+        assertEquals(2 * mib, constrained.liveTvPreviewBudget.targetBufferBytes.toLong())
+        assertEquals(4 * mib, standard.liveTvPreviewBudget.targetBufferBytes.toLong())
+    }
+
+    @Test
     fun tierCutsSitWhereDocumented() {
         assertEquals(MemoryTier.LOW_RAM, MemoryTier.classify(1600, isLowRamDevice = false))
         assertEquals(MemoryTier.CONSTRAINED, MemoryTier.classify(1601, isLowRamDevice = false))

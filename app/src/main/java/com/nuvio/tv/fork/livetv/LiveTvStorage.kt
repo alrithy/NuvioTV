@@ -37,6 +37,8 @@ class LiveTvStorage @Inject constructor(
     private val sourcesKey = stringPreferencesKey("sources_encrypted")
     private val libraryKey = stringPreferencesKey("library")
     private val menuKey = booleanPreferencesKey("menu_enabled")
+    private val previewsKey = booleanPreferencesKey("previews_enabled")
+    private val previewSoundKey = booleanPreferencesKey("preview_sound")
 
     private fun store(profileId: Int) = factory.get(profileId, FEATURE)
 
@@ -69,6 +71,20 @@ class LiveTvStorage @Inject constructor(
 
     override suspend fun setMenuEnabled(profileId: Int, enabled: Boolean) {
         store(profileId).edit { it[menuKey] = enabled }
+    }
+
+    override fun previewChoice(profileId: Int): Flow<LiveTvPreviewChoice> =
+        store(profileId).data
+            .map { LiveTvPreviewChoice(previews = it[previewsKey], sound = it[previewSoundKey] ?: true) }
+            .catch { emit(LiveTvPreviewChoice()) }
+            .distinctUntilChanged()
+
+    override suspend fun setPreviewChoice(profileId: Int, choice: LiveTvPreviewChoice) {
+        store(profileId).edit { prefs ->
+            val previews = choice.previews
+            if (previews == null) prefs.remove(previewsKey) else prefs[previewsKey] = previews
+            prefs[previewSoundKey] = choice.sound
+        }
     }
 
     private fun playlistDir(profileId: Int) = File(context.filesDir, "live_tv/profile_$profileId")

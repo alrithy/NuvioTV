@@ -1,0 +1,431 @@
+@file:OptIn(androidx.tv.material3.ExperimentalTvMaterial3Api::class)
+
+package com.nuvio.tv.ui.screens.livetv
+
+import android.content.Context
+import android.os.Handler
+import android.os.Looper
+import android.view.TextureView
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player
+import androidx.media3.common.Tracks
+import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.tv.material3.MaterialTheme
+import androidx.tv.material3.Text
+import com.nuvio.tv.R
+import com.nuvio.tv.fork.livetv.LiveTvChannel
+import com.nuvio.tv.fork.livetv.LiveTvClock
+import com.nuvio.tv.fork.livetv.LiveTvHttp
+import com.nuvio.tv.fork.livetv.LiveTvPreviewRules
+import com.nuvio.tv.fork.livetv.LiveTvProgramme
+import com.nuvio.tv.fork.resource.LiveTvPreviewBudget
+import com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory
+import com.nuvio.tv.ui.theme.NuvioTheme
+import kotlinx.coroutines.delay
+
+/**
+ * One small player for the focused channel's preview (G10f, features 226, 227). FILE_PORT of Reshaped
+ * `LiveTvPreviewPlayer` @ 0ccf049. Built for weak TVs: created on the first preview and released when
+ * the list is left or a channel opens, sound only when the viewer wants it (faded in, never decoded
+ * otherwise), the lowest quality an adaptive stream offers and a few seconds of buffer. Loads go
+ * through Live TV's own HTTP client with no disk cache, so previews never touch Nuvio's player, its
+ * caches or the connection speed learning. Adapted: the size cap and buffers come from
+ * AdaptiveResources ([LiveTvPreviewBudget]: 720p on constrained boxes, 1080p elsewhere); a channel
+ * that only comes larger is not decoded at all, the panel keeps its logo and what is on now.
+ */
+@androidx.annotation.OptIn(UnstableApi::class)
+internal class LiveTvPreviewPlayer(private val context: Context, private val budget: LiveTvPreviewBudget) {
+    private var player: ExoPlayer? = null
+    private var surface: TextureView? = null
+    private var current: LiveTvChannel? = null
+    private var triedHls = false
+
+    /** Whether the preview plays sound; the audio track is not even decoded without it. */
+    var soundEnabled: Boolean = true
+        set(value) {
+            if (field == value) return
+            field = value
+            player?.let { exo ->
+                exo.trackSelectionParameters = exo.trackSelectionParameters.buildUpon()
+                    .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, !value)
+                    .build()
+                exo.setAudioAttributes(exo.audioAttributes, value)
+                if (!value) mute() else if (showingVideo) fadeIn()
+            }
+        }
+    private val handler = Handler(Looper.getMainLooper())
+    private val fadeStep = object : Runnable {
+        override fun run() {
+            val exo = player ?: return
+            exo.volume = (exo.volume + FADE_STEP).coerceAtMost(1f)
+            if (exo.volume < 1f) handler.postDelayed(this, FADE_TICK_MS)
+        }
+    }
+
+    /** Sound rises over a moment rather than starting at full volume as focus lands. */
+    private fun fadeIn() {
+        handler.removeCallbacks(fadeStep)
+        if (soundEnabled) handler.post(fadeStep)
+    }
+
+    private fun mute() {
+        handler.removeCallbacks(fadeStep)
+        player?.volume = 0f
+    }
+
+    /** True once the channel shows a picture. */
+    var showingVideo by mutableStateOf(false)
+        private set
+
+    /** The picture's width over its height. */
+    var aspectRatio by mutableFloatStateOf(16f / 9f)
+        private set
+
+    private val listener = object : Player.Listener {
+        override fun onRenderedFirstFrame() {
+            showingVideo = true
+            fadeIn()
+        }
+
+        override fun onVideoSizeChanged(videoSize: VideoSize) {
+            if (videoSize.width > 0 && videoSize.height > 0) {
+                aspectRatio = (videoSize.width * videoSize.pixelWidthHeightRatio / videoSize.height).coerceIn(1f, 2.4f)
+            }
+        }
+
+        override fun onTracksChanged(tracks: Tracks) {
+            // Only renditions above the cap: stop, so no connection stays open for nothing.
+            if (tracks.containsType(C.TRACK_TYPE_VIDEO) && !tracks.isTypeSelected(C.TRACK_TYPE_VIDEO)) {
+                stop()
+            }
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            showingVideo = false
+            // A link without .m3u8 in it can still be HLS: try that once, then give up quietly.
+            val channel = current ?: return
+            if (!triedHls) {
+                triedHls = true
+                start(channel, hls = true)
+            }
+        }
+    }
+
+    fun play(channel: LiveTvChannel) {
+        val hls = LiveTvPreviewRules.looksHls(channel.streamUrl)
+        triedHls = hls
+        start(channel, hls)
+    }
+
+    private fun start(channel: LiveTvChannel, hls: Boolean) {
+        current = channel
+        showingVideo = false
+        mute()
+        val exo = player ?: create().also { created ->
+            player = created
+            surface?.let(created::setVideoTextureView)
+        }
+        // As the player sends it: a user:password@ part moves into an Authorization header.
+        val request = PlayerMediaSourceFactory.normalizePlaybackRequest(channel.streamUrl, channel.headers)
+        val dataSource = OkHttpDataSource.Factory(LiveTvHttp.sharedClient).apply {
+            setDefaultRequestProperties(request.headers)
+            if (request.headers.keys.none { it.equals("User-Agent", ignoreCase = true) }) setUserAgent(PREVIEW_USER_AGENT)
+        }
+        val item = MediaItem.Builder()
+            .setUri(request.url)
+            .apply { if (hls) setMimeType(MimeTypes.APPLICATION_M3U8) }
+            .build()
+        runCatching {
+            exo.setMediaSource(DefaultMediaSourceFactory(dataSource).createMediaSource(item))
+            exo.prepare()
+            exo.playWhenReady = true
+        }
+    }
+
+    /** Stops the preview and closes its connection; the player stays for the next one. */
+    fun stop() {
+        current = null
+        showingVideo = false
+        mute()
+        player?.let { exo ->
+            runCatching {
+                exo.stop()
+                exo.clearMediaItems()
+            }
+        }
+    }
+
+    /** Frees the player and its decoder (leaving the list, opening a channel, the app in the background). */
+    fun release() {
+        current = null
+        showingVideo = false
+        handler.removeCallbacks(fadeStep)
+        player?.let { exo -> runCatching { exo.release() } }
+        player = null
+    }
+
+    fun attach(view: TextureView) {
+        surface = view
+        player?.setVideoTextureView(view)
+    }
+
+    fun detach(view: TextureView) {
+        if (surface !== view) return
+        player?.clearVideoTextureView(view)
+        surface = null
+    }
+
+    private fun create(): ExoPlayer {
+        val trackSelector = DefaultTrackSelector(context).apply {
+            setParameters(
+                buildUponParameters()
+                    .setForceLowestBitrate(true)
+                    .setMaxVideoSize(budget.maxWidth, budget.maxHeight)
+                    .setExceedVideoConstraintsIfNecessary(false)
+                    .setTrackTypeDisabled(C.TRACK_TYPE_AUDIO, !soundEnabled)
+                    .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true),
+            )
+        }
+        // The picture shows after half a second: a brief stutter in a small preview beats a longer wait.
+        val loadControl = DefaultLoadControl.Builder()
+            .setBufferDurationsMs(budget.minBufferMs, budget.maxBufferMs, budget.bufferForPlaybackMs, budget.bufferAfterRebufferMs)
+            .setTargetBufferBytes(budget.targetBufferBytes)
+            .setPrioritizeTimeOverSizeThresholds(false)
+            .build()
+        return ExoPlayer.Builder(context)
+            .setTrackSelector(trackSelector)
+            .setLoadControl(loadControl)
+            .build()
+            .apply {
+                volume = 0f
+                // Takes audio focus while it plays sound, and gives it back when released.
+                setAudioAttributes(
+                    AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MOVIE).build(),
+                    soundEnabled,
+                )
+                repeatMode = Player.REPEAT_MODE_OFF
+                addListener(listener)
+            }
+    }
+
+    private companion object {
+        const val PREVIEW_USER_AGENT = "VLC/3.0.0 LibVLC/3.0.0"
+        const val FADE_TICK_MS = 40L
+        /** Full volume in about half a second. */
+        const val FADE_STEP = 0.08f
+    }
+}
+
+/**
+ * The focused channel, the way some TVs show it in their channel list: a small live picture (after
+ * focus rests a moment, only while [playVideo]) above the channel and what is on now. Reshaped
+ * `LiveTvPreviewPanel` @ 0ccf049.
+ */
+@Composable
+internal fun LiveTvPreviewPanel(
+    preview: LiveTvPreviewPlayer,
+    sound: Boolean,
+    channel: LiveTvChannel?,
+    logo: String?,
+    programme: LiveTvProgramme?,
+    clock: State<Long>,
+    groupName: String?,
+    sourceLabel: String?,
+    playVideo: Boolean,
+    modifier: Modifier = Modifier,
+    actions: @Composable RowScope.() -> Unit = {},
+) {
+    SideEffect { preview.soundEnabled = sound }
+    // The first channel focused after the list opens (or comes back) starts at once: that is
+    // landing, not scrolling past.
+    var landed by remember { mutableStateOf(false) }
+    LaunchedEffect(channel?.id, playVideo) {
+        preview.stop()
+        if (!playVideo || channel == null) {
+            if (!playVideo) landed = false
+            return@LaunchedEffect
+        }
+        if (!LiveTvPreviewRules.canPreview(channel)) return@LaunchedEffect
+        if (landed) delay(LiveTvPreviewRules.DELAY_MS)
+        landed = true
+        preview.play(channel)
+    }
+    // Turning previews off removes the panel: nothing may keep playing unseen.
+    DisposableEffect(preview) { onDispose { preview.stop() } }
+
+    Column(modifier = modifier) {
+        val shape = RoundedCornerShape(16.dp)
+        val videoAlpha by animateFloatAsState(if (preview.showingVideo) 1f else 0f, tween(260), label = "liveTvPreviewAlpha")
+        val videoScale by animateFloatAsState(
+            if (preview.showingVideo) 1f else 0.96f,
+            spring(dampingRatio = 0.65f, stiffness = 380f),
+            label = "liveTvPreviewScale",
+        )
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(16f / 9f)
+                .clip(shape)
+                .background(NuvioTheme.colors.BackgroundElevated),
+            contentAlignment = Alignment.Center,
+        ) {
+            if (channel != null) {
+                LiveTvLogo(url = logo, name = channel.name, width = 128.dp, height = 76.dp)
+            }
+            val context = LocalContext.current
+            val textureView = remember { TextureView(context) }
+            DisposableEffect(textureView) {
+                preview.attach(textureView)
+                onDispose { preview.detach(textureView) }
+            }
+            AndroidView(
+                factory = { textureView },
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .aspectRatio(preview.aspectRatio, matchHeightConstraintsFirst = true)
+                    .graphicsLayer {
+                        alpha = videoAlpha
+                        scaleX = videoScale
+                        scaleY = videoScale
+                    },
+            )
+            Text(
+                text = stringResource(R.string.live_tv_live_badge),
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 1.sp,
+                color = Color.Black,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .padding(10.dp)
+                    .clip(LiveTvPillShape)
+                    .background(Color.White.copy(alpha = 0.9f))
+                    .padding(horizontal = 8.dp, vertical = 2.dp),
+            )
+        }
+        // Right under the picture, where TV channel lists put what can be done with it.
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = NuvioTheme.spacing.sm),
+            horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm),
+            verticalAlignment = Alignment.CenterVertically,
+            content = actions,
+        )
+
+        Crossfade(targetState = channel to programme, animationSpec = tween(180), label = "liveTvPreviewInfo") { (shown, onNow) ->
+            if (shown == null) return@Crossfade
+            Column(modifier = Modifier.fillMaxWidth().padding(top = NuvioTheme.spacing.md, start = 4.dp, end = 4.dp)) {
+                Text(
+                    text = shown.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = NuvioTheme.colors.TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (onNow != null) {
+                    Text(
+                        text = onNow.title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = NuvioTheme.colors.TextSecondary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                    Text(
+                        text = "${LiveTvClock.formatSpan(onNow)}  ·  ${liveTvTimeLeft(onNow, clock)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NuvioTheme.colors.TextTertiary,
+                        modifier = Modifier.padding(top = 2.dp),
+                    )
+                    LiveTvProgressBar(
+                        programme = onNow,
+                        clock = clock,
+                        fill = NuvioTheme.colors.TextPrimary,
+                        track = Color.White.copy(alpha = 0.12f),
+                        modifier = Modifier.padding(top = 8.dp).fillMaxWidth(),
+                    )
+                }
+                val details = listOfNotNull(groupName ?: shown.group.takeIf(String::isNotBlank), sourceLabel).joinToString("  ·  ")
+                if (details.isNotEmpty()) {
+                    Text(
+                        text = details,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = NuvioTheme.colors.TextTertiary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.padding(top = 8.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/** The preview player for a screen: released when the screen leaves or the app goes to the background. */
+@Composable
+internal fun rememberLiveTvPreviewPlayer(budget: LiveTvPreviewBudget): LiveTvPreviewPlayer {
+    val context = LocalContext.current
+    val preview = remember(budget) { LiveTvPreviewPlayer(context.applicationContext, budget) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, preview) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_STOP) preview.release()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+            preview.release()
+        }
+    }
+    return preview
+}

@@ -12,4 +12,9 @@ interface LiveTvLibraryStore {
     fun menuEnabled(profileId: Int): Flow<Boolean>
 
     suspend fun setMenuEnabled(profileId: Int, enabled: Boolean)
+
+    /** The list's channel preview choices for [profileId] (G10f). */
+    fun previewChoice(profileId: Int): Flow<LiveTvPreviewChoice>
+
+    suspend fun setPreviewChoice(profileId: Int, choice: LiveTvPreviewChoice)
 }

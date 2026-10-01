@@ -140,6 +140,12 @@ internal class LiveTvHttp(private val client: OkHttpClient = defaultClient) : Li
         /** How long a guide download may wait for data. */
         const val GUIDE_READ_TIMEOUT_S = 120L
 
+        /**
+         * Live TV's own client (no logging interceptor, unlike the app's in debug builds), shared with
+         * the list's channel preview (G10f) so a preview never touches Nuvio's player networking.
+         */
+        internal val sharedClient: OkHttpClient get() = defaultClient
+
         private val defaultClient: OkHttpClient by lazy {
             OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)

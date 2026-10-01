@@ -32,6 +32,17 @@ internal class MemoryLiveTvStore(initial: Map<Int, List<LiveTvSource>> = emptyMa
         menu(profileId).value = enabled
     }
 
+    val previewChoices = HashMap<Int, MutableStateFlow<LiveTvPreviewChoice>>()
+
+    private fun previewChoiceFlow(profileId: Int) =
+        synchronized(previewChoices) { previewChoices.getOrPut(profileId) { MutableStateFlow(LiveTvPreviewChoice()) } }
+
+    override fun previewChoice(profileId: Int) = previewChoiceFlow(profileId)
+
+    override suspend fun setPreviewChoice(profileId: Int, choice: LiveTvPreviewChoice) {
+        previewChoiceFlow(profileId).value = choice
+    }
+
     override suspend fun sources(profileId: Int) = saved[profileId].orEmpty()
 
     override suspend fun saveSources(profileId: Int, sources: List<LiveTvSource>) {
