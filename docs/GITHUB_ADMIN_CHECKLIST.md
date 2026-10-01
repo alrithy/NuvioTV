@@ -34,6 +34,21 @@ Do not guess check names in GitHub settings; select the actual checks emitted by
 - [ ] Run "Build Android TV Release" in `dry-run`, then `draft`, and publish the first fork release; its assets must show a `sha256:` digest in the GitHub release API.
 - [ ] Decide the distribution identity: keep `com.nuvio.tv` (replaces official; installs need official removed because the signers differ) or a fork application id (installs beside official).
 
+### E. Device test builds (D066)
+Repository → Settings → Secrets and variables → Actions → New repository secret:
+- [ ] Backend, one of:
+  - `LOCAL_PROPERTIES_BASE64` = `base64 -w0 local.properties` of a properties file with at least
+    `NUVIO_SUPABASE_URL` and `NUVIO_SUPABASE_ANON_KEY` (plus `TMDB_API_KEY`, `TRAKT_CLIENT_ID`,
+    `TRAKT_CLIENT_SECRET`, ... as available); optionally `LOCAL_DEV_PROPERTIES_BASE64` the same way;
+  - or just `SUPERFORK_SUPABASE_URL` and `SUPERFORK_SUPABASE_ANON_KEY`.
+- [ ] Fixed test signing key, created once and kept (losing it means one uninstall):
+  `keytool -genkeypair -keystore superfork-test.jks -alias superforktest -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=Superfork Test"`,
+  then `SUPERFORK_TEST_KEYSTORE_BASE64` = `base64 -w0 superfork-test.jks`, `SUPERFORK_TEST_KEYSTORE_PASSWORD`
+  = its password, `SUPERFORK_TEST_KEY_ALIAS` = `superforktest` (and `SUPERFORK_TEST_KEY_PASSWORD` only
+  if the key password differs).
+- [ ] Re-run "Superfork Test Build" (or push to `superfork/integration`); the run summary shows which
+  secrets are present (names only), the package, version and signing-certificate SHA-256.
+
 ## Recommended before high-risk gates
 - [ ] Require at least one review for playback/audio/security/release PRs if another reviewer is available.
 - [ ] Require CODEOWNERS review where practical.
