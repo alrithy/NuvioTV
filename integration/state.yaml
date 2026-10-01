@@ -12,14 +12,14 @@ active_gate_name: Experimental AI & MAT
 active_branch: experimental/media
 active_task_packet: tasks/G13_EXPERIMENTAL.md
 active_status: IN_PROGRESS
-active_pr: 85
+active_pr: 86
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: fdc8640cc37f8696c6bf717cc206ef72dcf31f19
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36879784424 ; G13a
-  PR #84 exact head, squash-merged as b5da99514949ed2df5128b96bf9652626e53a12e; fullDebug APK 11170983846.
-last_green_scope: Full suite guard (2290 tests, 15 known failures, 0 new failures, 1 skipped), governance
+last_green_commit: ebe2e4944e501951cb0e125b24aa495f9f33b66d
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36882099635 ; G13b
+  PR #85 exact head, squash-merged as a4f66f51e3a54819de884bf205028dd27491f6b1; fullDebug APK 11173800583.
+last_green_scope: Full suite guard (2323 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3

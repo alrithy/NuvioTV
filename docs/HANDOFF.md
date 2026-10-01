@@ -244,7 +244,8 @@ per-profile credential vault behind a Keystore bridge seam; Fornace tests ported
 only experimental groups can be opted in; the registry's default overrides are the opt-ins).
 Nothing is constructed at runtime yet. 255, 256, 259–261 in_progress (status `experimental` once
 the G13b flow lands). Local JVM harness: 415 tests PASS.
-G13b (#85, open): the Provider Center and its Android host (Fornace FILE_PORT): registry client and
+G13b merged as #85 (`a4f66f5`; exact head `ebe2e49`, run 36882099635: 2323 tests, 15 known failures,
+0 new, 1 skipped; APK artifact 11173800583): the Provider Center and its Android host (Fornace FILE_PORT): registry client and
 APK downloader on the dedicated platform-TLS client, PackageInstaller bridge, package scanner,
 Messenger contract client, install coordinator, controller and screen, vendor selection, Keystore
 and SharedPreferences storage; Settings → Advanced → Experimental holds the AI opt-in and opens the
@@ -252,9 +253,15 @@ Provider Center (full-screen dialog) while it is active, with a preview notice (
 contract shells); profile deletion deletes AI keys through official's `ProfileScopedCredentialStore`
 set (vault resolved lazily); the manifest defines the provider bind permission and package queries.
 250, 255–261 `experimental`; HV-G13-1, HV-G13-2 MANUAL-PENDING. Local JVM harness: 448 tests PASS.
+G13c (#86, open): MAT (45), ysosrs `45e0984` FILE_PORT into `fork/audio/mat` (TrueHD framer, Kodi-
+derived MAT packer, IEC 61937 sink, routing sink); the wrap happens only while MAT passthrough is
+opted in (Settings → Advanced → Experimental), otherwise official's audio path is untouched; the
+speed-aware renderer keeps the G5 passthrough policy and Bluetooth PCM while writing into the
+wrapper; MatFramingTest (the source has none). 45 `experimental`; HV-G13-3 MANUAL-PENDING. Local JVM
+harness: 455 tests PASS. Then the G13 closeout.
 ## Exact next action
-1. Wait for #85 (G13b) exact-head CI and squash with the expected head; then G13c (MAT, 45) and the
-   G13 closeout.
+1. Wait for #86 (G13c) exact-head CI and squash with the expected head; then the G13 closeout
+   (`docs/audits/G13_CLOSEOUT.md`, G13 CODE-COMPLETE, activate G14).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G13→G14 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
