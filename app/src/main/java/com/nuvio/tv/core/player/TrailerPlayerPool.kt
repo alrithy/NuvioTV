@@ -64,6 +64,8 @@ class TrailerPlayerPool @Inject constructor(
      */
     fun acquire(): ExoPlayer? {
         if (released.get()) return null
+        // Superfork G12d (292): no trailer starts under the screensaver (it would keep the screen on).
+        if (com.nuvio.tv.fork.uistyle.Screensaver.machine.trailersSuppressed) return null
         if (yielded.get()) {
             // Reclaim was not called yet but someone wants the player — rebuild.
             reclaim()

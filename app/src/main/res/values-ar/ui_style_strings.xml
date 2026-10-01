@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- G12a–G12c UI styles (D058, D060, D061): top menu choice, Glass, Cinematic Glass, clock and profile access. -->
+<!-- G12a–G12d UI styles (D058, D060, D061): top menu choice, Glass, Cinematic Glass, clock, profile access and screensaver. -->
 <resources>
     <string name="settings_navigation_style_title">نمط التنقل</string>
     <string name="settings_navigation_style_description">مكان القائمة الرئيسية: الشريط الجانبي، أو شريط في أعلى الشاشة، أو كبسولة عائمة، أو زجاجي (شفاف فوق الواجهة الحديثة)، أو زجاجي سينمائي (زجاجي مع صورة العمل بملء الشاشة)؛ ومع الواجهات الأخرى يظهر النمطان الزجاجيان ككبسولة. الشريط الجانبي هو الافتراضي.</string>
@@ -13,4 +13,13 @@
     <string name="settings_top_menu_clock_title">الساعة في القائمة العلوية</string>
     <string name="settings_top_menu_clock_description">تعرض الوقت بجانب القائمة العلوية بتنسيق 12 أو 24 ساعة حسب إعداد هذا الجهاز.</string>
     <string name="top_menu_switch_profile">%1$s · تبديل الملف الشخصي</string>
+    <string name="screensaver_title">شاشة التوقف</string>
+    <string name="screensaver_subtitle">تخفّض إضاءة الشاشة عند عدم الضغط على أي زر لفترة. لا تعمل أثناء التشغيل أبدًا.</string>
+    <string name="screensaver_enabled">شاشة التوقف</string>
+    <string name="screensaver_enabled_subtitle">متوقفة افتراضيًا. أي زر يوقظ الشاشة دون أن يفعل شيئًا آخر.</string>
+    <string name="screensaver_timeout">تبدأ بعد</string>
+    <string name="screensaver_timeout_subtitle">المدة دون الضغط على أي زر قبل خفض إضاءة الشاشة.</string>
+    <string name="screensaver_timeout_value">%1$d د</string>
+    <string name="screensaver_dim">درجة الإعتام</string>
+    <string name="screensaver_dim_subtitle">مدى إعتام الشاشة.</string>
 </resources>
