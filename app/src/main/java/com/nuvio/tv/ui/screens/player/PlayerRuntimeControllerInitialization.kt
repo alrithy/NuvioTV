@@ -2344,6 +2344,13 @@ private class SubtitleOffsetRenderersFactory(
         )
         playbackSpeedAwareAudioSink.setInitialPlaybackSpeed(playbackSpeedProvider())
         onPlaybackSpeedAwareAudioSinkCreated(playbackSpeedAwareAudioSink)
+        // Superfork G13c (45, D063): app-side TrueHD -> MAT / IEC 61937 only while MAT is opted in; off,
+        // the wrapper is never constructed and the audio path is exactly official's.
+        if (com.nuvio.tv.fork.foundation.FeatureRegistry().mode(com.nuvio.tv.fork.foundation.FeatureId.MAT_AUDIO) ==
+            com.nuvio.tv.fork.foundation.FeatureMode.ON
+        ) {
+            return com.nuvio.tv.fork.audio.mat.MatRoutingAudioSink(playbackSpeedAwareAudioSink, matEnabled = true)
+        }
         return playbackSpeedAwareAudioSink
     }
 
@@ -2357,7 +2364,9 @@ private class SubtitleOffsetRenderersFactory(
         eventListener: AudioRendererEventListener,
         out: ArrayList<Renderer>
     ) {
+        // Superfork G13c: see through the MAT wrapper for the passthrough policy, but write into it.
         val playbackAwareSink = audioSink as? PlaybackSpeedAwareAudioSink
+            ?: (audioSink as? com.nuvio.tv.fork.audio.mat.MatRoutingAudioSink)?.delegate as? PlaybackSpeedAwareAudioSink
         val startIndex = out.size
         super.buildAudioRenderers(
             context,
@@ -2381,7 +2390,8 @@ private class SubtitleOffsetRenderersFactory(
                     enableDecoderFallback = enableDecoderFallback,
                     eventHandler = eventHandler,
                     eventListener = eventListener,
-                    playbackSpeedAwareAudioSink = playbackAwareSink
+                    playbackSpeedAwareAudioSink = playbackAwareSink,
+                    outputSink = audioSink
                 )
         }
         applyFfmpegRendererSettings(out)

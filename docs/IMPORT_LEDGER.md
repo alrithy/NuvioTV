@@ -942,3 +942,19 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 fork of official; each ported file names its source path
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: the bind permission name is fixed by the provider APKs, so another differently signed app that defines it (Fornace's Nuvio AI, or a differently signed build of this fork) cannot be installed alongside; PackageInstaller and Messenger behaviour on TV boxes; Fornace's registry is a third-party trust root (device checks HV-G13-1, HV-G13-2)
+
+### G13c — Experimental MAT / IEC 61937 TrueHD passthrough (45 experimental)
+- Roadmap gate: G13
+- Source repository: ysosrs123/NuvioTV-Fork (`nuvio-test` @ 45e0984c18460d2a65c5d745999011b4314328eb)
+- Source file(s): `app/src/main/java/com/nuvio/tv/diagnostics/` `MatRoutingAudioSink.kt`, `TrueHdAuFramer.kt`, `MatPacker.kt`, `Iec61937MatSink.kt`; the `buildAudioSink` wrap in `PlayerRuntimeControllerInitialization.kt`
+- Import mode: FILE_PORT (package renamed to `fork/audio/mat`); ADAPTER (renderer output-sink parameter, the opt-in gate)
+- Current official equivalent: Media3 passthrough of what the HDMI / eARC chain reports; no app-side MAT
+- What already existed upstream: official's `PlaybackSpeedAwareAudioSink` / `PlaybackSpeedAwareAudioRenderer`, G5's passthrough policy
+- What was imported: TrueHD access-unit framing, the MAT packer (Kodi `CPackerMAT` port with LAV seamless-branch handling), the 192 kHz / 8-channel IEC 61937 AudioTrack sink opened paused and reopened on flush, the routing sink (non-blocking writes with a pending-frame queue, volume ignored in MAT mode, fallback to the delegate when the IEC sink will not open)
+- What was intentionally not imported: `Gate0Probe` and its diagnostics UI; the `mat_passthrough_enabled` player setting and the device-assessment step that turned it on; the HUD MAT row; skipping the speed-aware renderer when MAT is on
+- Local adaptations: the wrap happens only while `MAT_AUDIO` is opted in (otherwise the wrapper is never constructed); `MatRoutingAudioSink.delegate` is public so the audio renderer keeps reading the G5 passthrough policy and Bluetooth PCM decision from official's speed-aware sink while writing into the wrapper (`PlaybackSpeedAwareAudioRenderer` gained an `outputSink` parameter defaulting to the old behaviour); the switch sits in Settings → Advanced → Experimental
+- Feature flag / fallback: FeatureId.MAT_AUDIO (experimental, OFF unless opted in)
+- Tests ported/added: MatFramingTest (7, new: multi-AU chunks, split AUs, malformed length, reset, major-sync detection, packer runts / wait for major sync, steady stream into full 61,440-byte MAT frames); the source has none
+- License / attribution notes: GPL-3.0 fork of official; `MatPacker` keeps its Kodi / LAV Filters copyright header (GPL-2.0-or-later, compatible)
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: receivers that need IEC pause bursts on a rebuffer; boxes whose IEC 61937 AudioTrack refuses 192 kHz / 8 channels (falls back to the delegate); seek / flush timing (device check HV-G13-3)
