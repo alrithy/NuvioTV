@@ -910,3 +910,19 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 fork of official; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: remotes that send only key-up or long-press codes, MediaSession resumes from the system, and OLED retention are device checks (HV-G12-5)
+
+### G13a — AI media provider host core and the experimental opt-in (255, 256, 259–261; 250, 257 core)
+- Roadmap gate: G13
+- Source repository: Fornace/nuvio-ai (`dev` @ 518af7120c82d014c02f7717f4c9c6e396eb215c)
+- Source file(s): `app/src/main/java/com/nuvio/tv/core/media/provider/host/` `ExternalProviderContract.kt`, `HostCrypto.kt`, `ProviderArtifactVerifier.kt`, `ProviderContractValidator.kt`, `ProviderPackageScanner.kt`, `ProviderRegistryModels.kt`, `VendorCatalogModels.kt`; `security/` `CipherTextStore.kt`, `InstallIdentity.kt`, `KeystoreBridge.kt`, `ProfileGenerationStore.kt`, `ProviderCredentialVault.kt`, `ProviderSecret.kt`; their tests
+- Import mode: FILE_PORT (package renamed to `fork/aimedia`; `AndroidKeystoreBridge` split from the bridge interface so the pure code is JVM-testable); local WRITE (ExperimentalOptIn, ExperimentalOptInStore, the registry seam)
+- Current official equivalent: none
+- What already existed upstream: `kotlinx.serialization`, the feature registry's override seam (unused until now)
+- What was imported: registry and vendor-catalog models with their safety checks, constant-time SHA-256 artifact check, exact signer-set contract validation, AAD-bound per-profile credential vault, install identity and profile generations
+- What was intentionally not imported: the capability grants, transform-provider registry, fake subtitle provider and cue / dub player pieces (engine-time; 251–254 deferred, D063); Android clients, installer and UI (G13b); Fornace fork identity
+- Local adaptations: one `fork/aimedia` owner; nothing is constructed at runtime yet; experimental groups turn on only through `ExperimentalOptIn` (device-wide store read in `NuvioApplication.onCreate` before any registry read; only experimental group names are accepted)
+- Feature flag / fallback: FeatureId.AI_MEDIA (experimental, OFF unless opted in); the opt-in default is empty, so every registry read is unchanged
+- Tests ported/added: ProviderArtifactVerifierTest, ProviderContractValidatorTest, ProviderRegistryModelsTest, VendorCatalogModelsTest, ProviderVersionComparisonTest, ProviderCredentialVaultTest (including a bytecode scan that the security classes never reference android.util.Log), InstallIdentityTest, ProfileGenerationStoreTest (ported); ExperimentalOptInTest (4, new)
+- License / attribution notes: GPL-3.0 fork of official; each ported file names its source path
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: the Keystore bridge and the opt-in store run only on Android (CI compiles them; device checks HV-G13-1)
