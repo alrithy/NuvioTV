@@ -203,17 +203,24 @@ values: official's Modern home with frosted chrome floating over the full-bleed 
 a known non-LOW_RAM tier and the per-profile Lightweight effects switch off, otherwise an opaque tint;
 Back / long-press Back as the other top menus; never over the player. 193, 197, 200 implemented;
 HV-G12-3 MANUAL-PENDING. Local JVM harness: 337 tests PASS.
-G12c (#80, open; D061): Cinematic Glass is a fifth Navigation style, Glass with official's Modern
+G12c merged as #80 (`783973f`; exact head `c81156f`, run 36863863735: 2213 tests, 15 known failures,
+0 new, 1 skipped; APK artifact 11162099759; D061): Cinematic Glass is a fifth Navigation style, Glass with official's Modern
 full-screen hero backdrop shown through `LocalCinematicGlass` (one line in `ModernHomeContent`; the
 official preference is never written; the hero trailer keeps following official's settings); Reshaped's
 AGSL liquid-glass lens (shader + backdrop recorder FILE_PORT) under the Glass pills as a third effect
 level, LIQUID only on Android 13+ in the STANDARD tier with Lightweight effects off; the recorder runs
 only while the chrome shows. 194, 199 implemented; HV-G12-4 MANUAL-PENDING. Local JVM harness: 338
-tests PASS. Remaining G12: screensaver (292, G12d), then the G12 closeout. Slices: sync, G12a (196–200, 204, 205), G12b (193,
+tests PASS.
+G12d (#81, open; D062): the optional screensaver, Cxsmo's controller as a pure `ScreensaverMachine`
+plus overlay; per profile, off by default, under Appearance (start after 1–30 min, darkness
+50 / 70 / 85 %); never while playing or buffering, waits while a dialog has focus, the waking press is
+swallowed, hero trailers do not start under it. One-line hooks in MainActivity (1 Hz check, key
+dispatch, window focus, overlay), PlayerViewModel (playing state) and TrailerPlayerPool (acquire).
+292 implemented; HV-G12-5 MANUAL-PENDING. Local JVM harness: 344 tests PASS. Then the G12 closeout. Slices: sync, G12a (196–200, 204, 205), G12b (193,
 194), G12c (292). Legacy PR #1 / #2 stay reference-only. Next G13 Experimental AI & MAT.
 ## Exact next action
-1. Wait for #80 (G12c) exact-head CI and squash with the expected head; then the screensaver (292,
-   G12d) and the G12 closeout.
+1. Wait for #81 (G12d) exact-head CI and squash with the expected head; then the G12 closeout
+   (`docs/audits/G12_CLOSEOUT.md`, G12 CODE-COMPLETE, activate G13 Experimental AI & MAT).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G12→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.

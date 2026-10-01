@@ -117,6 +117,7 @@ import androidx.core.os.ConfigurationCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.metrics.performance.JankStats
 import androidx.metrics.performance.PerformanceMetricsState
 import androidx.navigation.NavHostController
@@ -206,6 +207,7 @@ import java.util.Locale
 import javax.inject.Inject
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -372,6 +374,22 @@ open class MainActivity : ComponentActivity() {
         externalPlaybackTracker.activityLauncher = externalPlayerLauncher
 
         PluginRuntimeHooks.onActivityCreate(this)
+
+        // Superfork G12d (292): the idle screensaver's 1 Hz check while started; off unless the profile turned it on.
+        lifecycleScope.launch {
+            repeatOnLifecycle(androidx.lifecycle.Lifecycle.State.STARTED) {
+                val screensaver = com.nuvio.tv.fork.uistyle.Screensaver.machine
+                combine(uiStyleSettings.screensaverEnabled, uiStyleSettings.screensaverTimeoutMinutes) { on, minutes -> on to minutes }
+                    .collectLatest { (on, minutes) ->
+                        screensaver.wake()
+                        if (!on) return@collectLatest
+                        while (true) {
+                            delay(com.nuvio.tv.fork.uistyle.ScreensaverRules.TICK_MS)
+                            if (screensaver.maybeEngage(com.nuvio.tv.fork.uistyle.ScreensaverRules.timeoutMs(minutes))) trailerPlayerPool.stop()
+                        }
+                    }
+            }
+        }
 
         window?.decorView?.post {
             val snapshot = com.nuvio.tv.core.player.DisplayCapabilities.detect(this)
@@ -733,6 +751,12 @@ open class MainActivity : ComponentActivity() {
                     Box(modifier = Modifier.fillMaxSize()) {
                     // Superfork G9f (206): above every screen, the player included; takes no input.
                     com.nuvio.tv.ui.components.AppDimmerOverlay(dimPercent = appDimPercent)
+                    // Superfork G12d (292): the screensaver's scrim, above the dimmer.
+                    val screensaverVisible by com.nuvio.tv.fork.uistyle.Screensaver.machine.visible.collectAsState()
+                    val screensaverDim by uiStyleSettings.screensaverDimPercent.collectAsState(
+                        initial = com.nuvio.tv.fork.uistyle.ScreensaverRules.DEFAULT_DIM_PERCENT
+                    )
+                    com.nuvio.tv.ui.screens.uistyle.ScreensaverOverlay(visible = screensaverVisible, dimPercent = screensaverDim)
 
                     var startupDestination = StartupDestination.Loading
                     val surfaceContentReady = hasSeenAuthQrOnFirstLaunch != null &&
@@ -1413,6 +1437,12 @@ open class MainActivity : ComponentActivity() {
     val longPressBackHeld = mutableStateOf(false)
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Superfork G12d (292): the press that wakes the screensaver, up to its release, does nothing else.
+        if (com.nuvio.tv.fork.uistyle.Screensaver.machine.onKey(
+                down = event.action == KeyEvent.ACTION_DOWN,
+                up = event.action == KeyEvent.ACTION_UP
+            )
+        ) return true
         if (event.keyCode == KeyEvent.KEYCODE_BACK) {
             if (longPressBackHeld.value) {
                 if (event.action == KeyEvent.ACTION_UP) longPressBackHeld.value = false
@@ -1429,6 +1459,12 @@ open class MainActivity : ComponentActivity() {
             return true
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        // Superfork G12d (292): dialogs are their own windows, so the screensaver waits while one has focus.
+        com.nuvio.tv.fork.uistyle.Screensaver.machine.setWindowFocused(hasFocus)
     }
 
     override fun onStart() {

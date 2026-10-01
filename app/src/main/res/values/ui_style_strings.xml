@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- G12a–G12c UI styles (D058, D060, D061): top menu choice, Glass, Cinematic Glass, clock and profile access. -->
+<!-- G12a–G12d UI styles (D058, D060, D061): top menu choice, Glass, Cinematic Glass, clock, profile access and screensaver. -->
 <resources>
     <string name="settings_navigation_style_title">Navigation style</string>
     <string name="settings_navigation_style_description">Where the main menu sits: the sidebar, a bar across the top, a floating pill, Glass (frosted, over the Modern home) or Cinematic Glass (Glass with the artwork full screen); with other layouts both Glass styles show the pill. The sidebar is the default.</string>
@@ -13,4 +13,13 @@
     <string name="settings_top_menu_clock_title">Clock in the top menu</string>
     <string name="settings_top_menu_clock_description">Shows the time beside the top menu, in this device\'s 12- or 24-hour format.</string>
     <string name="top_menu_switch_profile">%1$s · switch profile</string>
+    <string name="screensaver_title">Screensaver</string>
+    <string name="screensaver_subtitle">Dims the screen when nothing is pressed for a while. Never during playback.</string>
+    <string name="screensaver_enabled">Screensaver</string>
+    <string name="screensaver_enabled_subtitle">Off by default. Any button wakes the screen without doing anything else.</string>
+    <string name="screensaver_timeout">Start after</string>
+    <string name="screensaver_timeout_subtitle">How long without a button press before the screen dims.</string>
+    <string name="screensaver_timeout_value">%1$d min</string>
+    <string name="screensaver_dim">Darkness</string>
+    <string name="screensaver_dim_subtitle">How dark the screen gets.</string>
 </resources>

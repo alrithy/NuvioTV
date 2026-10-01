@@ -894,3 +894,19 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 fork of official; the shader keeps Reshaped's notes and is attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: AGSL cost and visual quality on real Android 13+ boxes, video holes under the lens, the full-screen backdrop on 1080p vs 4K TVs are device checks (HV-G12-4)
+
+### G12d — UI styles: optional screensaver (292)
+- Roadmap gate: G12
+- Source repository: Cxsmo-ai/NuvioTV-Custom (`main` @ 3e0d0fad60a2721adec133b88640b49c0183883f)
+- Source file(s): `core/player/ScreensaverController.kt`, `ui/components/ScreensaverOverlay.kt`, the ticker / `dispatchKeyEvent` / `onWindowFocusChanged` hooks in `MainActivity.kt`, the playback-active collector in `PlayerViewModel.kt`, `TrailerPlayerPool.setScreensaverSuppressed`, the Appearance settings rows
+- Import mode: ALGORITHM_PORT (controller as a pure `ScreensaverMachine` with an injected clock, key swallowing moved into it); FILE_PORT (overlay)
+- Current official equivalent: none (the App Dimmer from G9f is a constant level, not an idle screensaver)
+- What already existed upstream: `TrailerPlayerPool`, the player's `isPlaying` / `isBuffering` state, the activity's `dispatchKeyEvent`
+- What was imported: idle check once a second while started; dims after the timeout with no input; blocked while playing or buffering, woken by resume, clock restarted by pause; waits while a dialog window has focus; the waking press (down, repeats, up) is swallowed; trailers stopped on engage and not started while it shows; 1.4 s fade in, 0.25 s fade out
+- What was intentionally not imported: Cxsmo's on-by-default; its ThemeDataStore keys (the settings live per profile in `fork_ui_style`); the suppression flag inside the trailer pool (the pool asks the machine)
+- Local adaptations: off by default, per profile, hidden while UI_STYLES is OFF; options start after 1 / 2 / 5 / 10 / 15 / 30 min and darkness 50 / 70 / 85 % with unknown stored values falling back to 5 min / 70 %; the overlay is drawn above the App Dimmer; one `Screensaver` instance shared by the hooks (D062)
+- Feature flag / fallback: FeatureId.UI_STYLES (AUTO); OFF or the profile switch off means the overlay never shows and every key passes through unchanged
+- Tests ported/added: ScreensaverMachineTest (6: timeout, input restarts the clock, waking press swallowed to its release, never during playback and pause restarts the clock, waits while a dialog has focus, options and fallbacks)
+- License / attribution notes: GPL-3.0 fork of official; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: remotes that send only key-up or long-press codes, MediaSession resumes from the system, and OLED retention are device checks (HV-G12-5)

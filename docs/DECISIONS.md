@@ -474,3 +474,15 @@ playback targets and data use. The liquid-glass effect (199) is Reshaped `0ccf04
 STANDARD tier with Lightweight effects off, BLUR on other Android 12+ non-LOW_RAM devices, FLAT
 otherwise. The recorder runs only while the chrome is shown and drops its recording when it hides; no
 second RAM probe and no app-wide preference are imported.
+
+## D062 — One optional screensaver, off by default, decided by a pure state machine
+The screensaver (292) is Cxsmo `3e0d0fa`'s controller ported as `ScreensaverMachine` in
+`fork/uistyle` (ALGORITHM_PORT) with an injected clock, so every transition is JVM-tested, and one
+`Screensaver` instance shared by the hooks. It is per profile in `fork_ui_style` and off by default
+(Cxsmo had it on); while UI_STYLES is OFF it is always off and its settings are hidden. It dims only
+after the chosen idle time (1–30 min) with no key reaching the activity; never while the player is
+playing or buffering (resume wakes it, pause restarts the clock); it waits while a dialog window has
+focus; the waking press is swallowed up to its release; hero trailers do not start under it and the
+playing one is stopped. Official is touched only through one-line hooks: the activity's key dispatch
+and window focus, a 1 Hz check while started, the root overlay above the App Dimmer, the player's
+playing state and the trailer pool's `acquire`.

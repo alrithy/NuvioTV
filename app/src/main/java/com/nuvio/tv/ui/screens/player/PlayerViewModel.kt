@@ -164,6 +164,16 @@ class PlayerViewModel @Inject constructor(
         scope = viewModelScope
     )
 
+    init {
+        // Superfork G12d (292): no screensaver while playing or buffering; resuming wakes it.
+        viewModelScope.launch {
+            controller.uiState
+                .map { it.isPlaying || it.isBuffering }
+                .distinctUntilChanged()
+                .collect { com.nuvio.tv.fork.uistyle.Screensaver.machine.setPlaybackActive(it) }
+        }
+    }
+
     /** Superfork G7a: seek-preview thumbnails (see fork/seek, D052). */
     val seekPreview = com.nuvio.tv.fork.seek.SeekPreviewState(viewModelScope, controller)
     /** Superfork G9f (207): the App dimmer picker opened from the player controls. */
@@ -305,6 +315,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     override fun onCleared() {
+        com.nuvio.tv.fork.uistyle.Screensaver.machine.setPlaybackActive(false) // Superfork G12d
         postPlayRecommendationController.stop()
         controller.onCleared()
         // Allow the trailer player to be re-created when returning to home screen.
