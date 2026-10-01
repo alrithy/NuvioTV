@@ -28,3 +28,9 @@ Record:
 
 ## Dependency removal
 A feature flag is not enough if disabling an experimental provider still initializes expensive/untrusted runtime code. Experimental architecture should allow the behavior/provider to be absent or inert.
+
+## Reviewed dependencies (G14 accounting)
+- `tv.seekr:seekr-android:0.2.0` (G7a): seek-preview thumbnails from Seekr for the
+  bounded fallback. Apache-2.0, source at github.com/AKhalil609/seekr-android-sdk. Network: Seekr's API
+  only with the user's own key (per profile, KeystoreCipher), only when local keyframes cannot serve;
+  removal path: the local keyframe engine keeps working without it (SEEK_INTELLIGENCE gates it).

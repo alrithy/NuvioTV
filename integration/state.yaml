@@ -11,14 +11,15 @@ active_gate: G14
 active_gate_name: Hardening Release Upstream
 active_branch: chore/release-hardening
 active_task_packet: tasks/G14_HARDENING_RELEASE.md
-active_status: IN_PROGRESS
-active_pr: 92
+active_status: BLOCKED
+blocker: 'G14 code is merged (audit #88, sync #89, G14a #90, G14b #91, G14c #92, accounting #93): 318 of 320 rows terminal, 3 and 320 blocked. What remains needs the maintainer: (1) the consolidated hardware campaign in docs/HARDWARE_VALIDATION_TCL_C6K.md (75 MANUAL-PENDING cases (HV-G1-1 … HV-G14-3) plus the G4 same-file A/B; order in docs/audits/G14_ACCOUNTING.md), results recorded as PASS / FAIL in docs/MANUAL_TEST_LOG.md; (2) GITHUB_ADMIN_CHECKLIST A-D (default branch, protection, required checks, release signing secrets, first fork release, application-id choice). Next step: the maintainer shares device evidence; Claude records it, fixes any FAIL, then closes 3 and 320 and G14.'
+active_pr: 93
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 78235f0311f844a9d497c74dc2b3bb2a1d2ce0af
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36916054114 ; G14b
-  PR #91 exact head, squash-merged as bf939fb95a31802c7d5eaaaf1721906fbce0d68a; fullDebug APK 11190935543.
+last_green_commit: d5832b8eac101e8b6adec917f42308d31f520e20
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36917962782 ; G14c
+  PR #92 exact head, squash-merged as dc676bfcc7077cbb3a92ff54d7290d5238dca940; fullDebug APK 11190309840.
 last_green_scope: Full suite guard (2373 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
@@ -91,6 +92,8 @@ validation_pending_gates:
   evidence: 'Audit #76, upstream sync #77 and slices #78-#81 merged; HV-G12-1, HV-G12-2, HV-G12-3, HV-G12-4, HV-G12-5 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G12_CLOSEOUT.md.'
 - gate: G13
   evidence: 'Audit #83 and slices #84-#86 merged; HV-G13-1, HV-G13-2, HV-G13-3 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G13_CLOSEOUT.md.'
+- gate: G14
+  evidence: 'Audit #88, sync #89, slices #90-#92 and accounting #93 merged; HV-G14-1, HV-G14-2, HV-G14-3 and every earlier MANUAL-PENDING case remain for the campaign in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; plan docs/audits/G14_ACCOUNTING.md.'
 governance_status: READY
 upstream_observation:
   checked_at: '2026-10-01T16:40:00Z'
