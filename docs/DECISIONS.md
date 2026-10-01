@@ -499,3 +499,25 @@ ships an engine; no AI engine is written from scratch. AI keys use the ported AA
 client falls back to trust-all). Nothing in G13 turns on by itself: a Settings → Experimental
 screen holds one OFF-by-default switch per experimental group, read into the feature registry's
 override seam on the next app start; OFF keeps every entry point hidden and every hook inert.
+
+## D064 — G14 keeps official's server, profile and subtitle protections and closes four gaps
+Official `5c1d9b0` already ships self-hosted server discovery with trust confirmation and a return to
+official (293–298), profile-scoped credential cleanup (300), on-device AutoSync (301), subtitle header
+scoping (302) and ABI splits (307); the fork keeps them as shipped. G14 closes the gaps, each in one
+owner: `fork/security` adds a per-session key exchanged for a `SameSite=Strict` cookie plus an
+Origin check to official's five local configuration servers (one-line hooks; official pages
+untouched) and makes `urlForLog` host-only (299, 303–305); `fork/distribution` points the `full`
+updater at the fork's own releases, refuses an APK whose SHA-256 does not match GitHub's asset
+digest, keeps official's stable / beta channels, and makes the release workflow run the full suite
+and publish checksums (306, 308–310, 312); a read-only scheduled workflow reports official `dev`
+movement (316). Official's Trakt, debrid and MDBList DataStores are not rewritten (app-private,
+`allowBackup` false); encrypting them is proposed upstream. 320 closes with the full accounting and
+the hardware campaign, which only the maintainer can run; Stable stays forbidden until it passes.
+
+## D065 — Adopt official dev aeb6ee8 before G14 code
+Official `dev` `aeb6ee8` changed the player error path (libmpv failure causes, startup watchdog),
+Back after a binge skip, stream-screen focus and strings. G14 hardens the release, so the sync lands
+before G14 code (UPSTREAM_SYNC; D059 pattern), with a merge commit so official stays a parent, and
+becomes the accepted baseline once the clean replays of official `aeb6ee8` and the integration merge
+show no new debt and no lost or newly skipped test. Any debt growth or reduced coverage needs
+exact-head maintainer approval (never self-approved).

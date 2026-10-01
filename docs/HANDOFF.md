@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G14 — Hardening Release Upstream
 - Active branch: `chore/release-hardening`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G14_HARDENING_RELEASE.md`
 - Accepted official baseline: `5c1d9b0e2669199114a12ade38027da132303eb3`
 - Governance: READY
@@ -266,10 +266,25 @@ carried to G14 (`validation_pending_gates`, MANUAL_TEST_LOG). No Android/device 
 G14 Hardening / Distribution / Upstream READY on `chore/release-hardening`
 (`tasks/G14_HARDENING_RELEASE.md`, IDs 293–310, 312, 316, 320), owner Claude (sequential; no lease),
 after this closeout merges. It is the last gate. Legacy PR #1 / #2 stay reference-only.
+G13 closeout merged as #87 (`4a7115a`; exact head `7980995`, run 36887451146: 2330 tests, 15 known
+failures, 0 new, 1 skipped; APK artifact 11175173134).
+
+G14 Hardening / Distribution / Upstream IN_PROGRESS on `chore/release-hardening`, task
+`tasks/G14_HARDENING_RELEASE.md`, owner Claude (sequential; no lease). Audit (#88, open; D064, D065)
+`docs/audits/G14_HARDENING_AUDIT.md`: official `5c1d9b0` already ships self-hosted server discovery,
+switching, trust confirmation and return to official (293–298), profile-scoped credential cleanup
+(300), on-device AutoSync (301), subtitle header scoping (302) and ABI splits (307), all
+verified_official. Gaps: official's five local QR configuration servers have no session token or
+Origin check and expose add-on URLs; `urlForLog` is an identity and several official sites log raw
+add-on / stream URLs; the `full` updater points at official's releases and never checks a digest;
+the release workflow runs only the updater tests and publishes no checksums; nothing watches official
+`dev`. Official `dev` `aeb6ee8` (eleven commits, player error path) merges cleanly; a sync PR precedes
+G14 code (D065). Slices: sync, G14a (299, 303–305 `fork/security`), G14b (306, 308–310, 312
+`fork/distribution`), G14c (316 upstream watch), then the 320-row accounting and the hardware
+campaign (72 HV cases plus the G4 A/B), which only the maintainer can run.
 ## Exact next action
-1. Start G14 with an official-first audit (`docs/audits/G14_HARDENING_AUDIT.md`): the 320-row
-   accounting, IMPORT_LEDGER / license / dependency / sensitive-log audits, release CI and artifacts,
-   and the hardware-certification plan for every MANUAL-PENDING check from G1–G13.
+1. Wait for #88 (G14 audit) exact-head CI and squash with the expected head; then the upstream sync
+   to official `dev` `aeb6ee8` with `[baseline-audit]` replays (D065), then G14a.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Hardware results are recorded only as real PASS / FAIL; a FAIL reopens the affected gate / feature.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
