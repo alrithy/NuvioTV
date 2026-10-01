@@ -147,9 +147,9 @@ android {
         buildConfigField("String", "SPONSOR_NAMES", buildConfigString(sponsorNames))
         buildConfigField("String", "SENTRY_DSN", buildConfigString(sentryDsn))
 
-        // In-app updater (GitHub Releases)
-        buildConfigField("String", "GITHUB_OWNER", "\"NuvioMedia\"")
-        buildConfigField("String", "GITHUB_REPO", "\"NuvioTV\"")
+        // In-app updater (GitHub Releases). Superfork G14b (D064): the fork's own releases, never official's.
+        buildConfigField("String", "GITHUB_OWNER", buildConfigString(localProperties.getProperty("FORK_UPDATE_OWNER", "alrithy")))
+        buildConfigField("String", "GITHUB_REPO", buildConfigString(localProperties.getProperty("FORK_UPDATE_REPO", "NuvioTV")))
     }
 
     flavorDimensions += "distribution"

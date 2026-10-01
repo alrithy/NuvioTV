@@ -974,3 +974,19 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 fork of official; fork-owned code
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: phone browsers that block all cookies cannot open the QR pages; very old browsers that send neither Origin nor Referer are allowed only with the session cookie
+
+### G14b — Fork distribution: update source, digest-checked install, tested release (306, 308, 309, 310, 312 implemented)
+- Roadmap gate: G14
+- Source repository: none (source group `official+project`; fork hardening of official code)
+- Source file(s): official `app/build.gradle.kts` (`GITHUB_OWNER` / `GITHUB_REPO`), `data/remote/dto/GitHubReleaseDto.kt`, `full/.../updater/{UpdateRepository,ApkDownloader,UpdateViewModel,model/AppUpdate}.kt`, `.github/workflows/android-release.yml`
+- Import mode: REWRITE (fork-owned `fork/distribution/ReleaseDigest`), ADAPTER (one field / one argument in official updater files, build properties, workflow steps)
+- Current official equivalent: the updater offers official's NuvioMedia releases and installs without a digest check; the release workflow runs only the updater tests
+- What already existed upstream: GitHub release lookup, stable / beta channels, ABI asset selection, PackageInstaller-based install
+- What was imported: nothing
+- What was intentionally not imported: no change to the application id, signing or release-notes tooling; no own checksum download (GitHub's per-asset digest is used)
+- Local adaptations: build properties `FORK_UPDATE_OWNER` / `FORK_UPDATE_REPO` (default this repository); `GitHubAssetDto.digest` and `AppUpdate.assetSha256`; `ApkDownloader` hashes while streaming and refuses a missing or different digest; the workflow adds governance and full-suite steps before the build and a `SHA256SUMS.txt` step after it
+- Feature flag / fallback: none (the `full` flavour's updater; `playstore` has none)
+- Tests ported/added: ReleaseDigestTest (2), ApkDownloaderDigestTest (3, MockWebServer)
+- License / attribution notes: GPL-3.0 fork of official; fork-owned code
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: releases published before GitHub reported asset digests cannot be installed in-app; the first fork release and its signing secrets are maintainer actions (GITHUB_ADMIN_CHECKLIST D); keeping `com.nuvio.tv` means a fork build cannot update over an official install signed by another key

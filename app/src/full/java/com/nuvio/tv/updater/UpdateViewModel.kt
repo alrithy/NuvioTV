@@ -235,7 +235,7 @@ class UpdateViewModel @Inject constructor(
             val safeName = update.assetName.replace(Regex("[^a-zA-Z0-9._-]"), "_")
             val destination = File(File(context.cacheDir, "updates"), safeName)
             val result = withContext(Dispatchers.IO) {
-                apkDownloader.download(update.assetUrl, destination) { downloaded, total ->
+                apkDownloader.download(update.assetUrl, destination, update.assetSha256) { downloaded, total ->
                     val progress = if (total != null && total > 0) {
                         (downloaded.toFloat() / total.toFloat()).coerceIn(0f, 1f)
                     } else {

@@ -19,5 +19,7 @@ data class GitHubAssetDto(
     val name: String,
     @Json(name = "browser_download_url") val browserDownloadUrl: String,
     val size: Long? = null,
-    @Json(name = "content_type") val contentType: String? = null
+    @Json(name = "content_type") val contentType: String? = null,
+    /** G14b (D064): GitHub's `sha256:<hex>` for the asset; the updater refuses an APK without it. */
+    val digest: String? = null
 )

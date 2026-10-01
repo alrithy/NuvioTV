@@ -29,6 +29,11 @@ After the final governance workflows are merged and have run at least once, requ
 
 Do not guess check names in GitHub settings; select the actual checks emitted by Actions.
 
+### D. Fork releases (G14b, D064)
+- [ ] Add the release signing secrets the release workflow reads (`NUVIO_RELEASE_KEYSTORE_BASE64`, `NUVIO_RELEASE_KEY_ALIAS`, `NUVIO_RELEASE_KEY_PASSWORD`, `NUVIO_RELEASE_STORE_PASSWORD`) and the `LOCAL_PROPERTIES_BASE64` / `LOCAL_DEV_PROPERTIES_BASE64` build configuration; keep the keystore offline as well.
+- [ ] Run "Build Android TV Release" in `dry-run`, then `draft`, and publish the first fork release; its assets must show a `sha256:` digest in the GitHub release API.
+- [ ] Decide the distribution identity: keep `com.nuvio.tv` (replaces official; installs need official removed because the signers differ) or a fork application id (installs beside official).
+
 ## Recommended before high-risk gates
 - [ ] Require at least one review for playback/audio/security/release PRs if another reviewer is available.
 - [ ] Require CODEOWNERS review where practical.
