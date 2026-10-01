@@ -12,14 +12,14 @@ active_gate_name: Watch Party
 active_branch: feat/watch-party
 active_task_packet: tasks/G11_WATCH_PARTY.md
 active_status: IN_PROGRESS
-active_pr: 73
+active_pr: 74
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: c507bc8ff1a201fa3eae53849a92b24e6d531145
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36835101903 ; G11a
-  PR #72 exact head, squash-merged as 74ee62ff3f5a143735b91140107c19e6684ed216; fullDebug APK 11148704473.
-last_green_scope: Full suite guard (2197 tests, 15 known failures, 0 new failures, 1 skipped), governance
+last_green_commit: c4e3a953a80d68c7da2d872d4094eeccbf1bd2dc
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36836494526 ; G11b
+  PR #73 exact head, squash-merged as 1002530090c25c6ad41f4826afe730ffe267f258; fullDebug APK 11149093802.
+last_green_scope: Full suite guard (2198 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
