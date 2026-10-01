@@ -270,7 +270,8 @@ G13 closeout merged as #87 (`4a7115a`; exact head `7980995`, run 36887451146: 23
 failures, 0 new, 1 skipped; APK artifact 11175173134).
 
 G14 Hardening / Distribution / Upstream IN_PROGRESS on `chore/release-hardening`, task
-`tasks/G14_HARDENING_RELEASE.md`, owner Claude (sequential; no lease). Audit (#88, open; D064, D065)
+`tasks/G14_HARDENING_RELEASE.md`, owner Claude (sequential; no lease). Audit merged as #88 (`45a798a`; exact head `fc7b6be`, run 36889863343: 2330 tests, 15 known
+failures, 0 new, 1 skipped; APK artifact 11176657814; D064, D065)
 `docs/audits/G14_HARDENING_AUDIT.md`: official `5c1d9b0` already ships self-hosted server discovery,
 switching, trust confirmation and return to official (293–298), profile-scoped credential cleanup
 (300), on-device AutoSync (301), subtitle header scoping (302) and ABI splits (307), all
@@ -279,12 +280,13 @@ Origin check and expose add-on URLs; `urlForLog` is an identity and several offi
 add-on / stream URLs; the `full` updater points at official's releases and never checks a digest;
 the release workflow runs only the updater tests and publishes no checksums; nothing watches official
 `dev`. Official `dev` `aeb6ee8` (eleven commits, player error path) merges cleanly; a sync PR precedes
-G14 code (D065). Slices: sync, G14a (299, 303–305 `fork/security`), G14b (306, 308–310, 312
+G14 code (D065): #89 (`chore/upstream-sync-2026-10-01-g14`, open) merges it with no conflicts
+(integration merge `ed62c7b`); clean `[baseline-audit]` replays pending. Slices: sync, G14a (299, 303–305 `fork/security`), G14b (306, 308–310, 312
 `fork/distribution`), G14c (316 upstream watch), then the 320-row accounting and the hardware
 campaign (72 HV cases plus the G4 A/B), which only the maintainer can run.
 ## Exact next action
-1. Wait for #88 (G14 audit) exact-head CI and squash with the expected head; then the upstream sync
-   to official `dev` `aeb6ee8` with `[baseline-audit]` replays (D065), then G14a.
+1. Wait for #89's clean replays and exact-head CI; record the replay inventory, re-anchor the baseline
+   on `aeb6ee8` if no new debt, merge with a merge commit; then G14a (`wip/g14a-security`).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Hardware results are recorded only as real PASS / FAIL; a FAIL reopens the affected gate / feature.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
