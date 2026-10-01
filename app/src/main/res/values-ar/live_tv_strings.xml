@@ -91,4 +91,17 @@
     <string name="settings_live_tv_previews_description">تشغيل صورة صغيرة للقناة التي تقف عليها في قائمة البث المباشر</string>
     <string name="settings_live_tv_preview_sound_title">صوت المعاينة</string>
     <string name="settings_live_tv_preview_sound_description">سماع صوت القناة في المعاينة. يرتفع تدريجيًا ويتوقف عند مغادرة القائمة</string>
+    <!-- G10g -->
+    <string name="live_tv_phone_instruction">امسح الرمز بهاتفك للصق رابط أو كتابة بيانات الدخول أو إرسال ملف M3U.</string>
+    <string name="live_tv_web_title">البث المباشر على تلفازك</string>
+    <string name="live_tv_web_subtitle">اختر الطريقة التي يقدّم بها مزوّدك القنوات. يحمّلها التلفاز فور الإرسال.</string>
+    <string name="live_tv_web_m3u_link">رابط قائمة التشغيل</string>
+    <string name="live_tv_web_m3u_file">ملف قائمة التشغيل</string>
+    <string name="live_tv_web_send">إرسال إلى التلفاز</string>
+    <string name="live_tv_web_sending">جارٍ الإرسال…</string>
+    <string name="live_tv_web_sent">تم الإرسال. يحمّل التلفاز قنواتك الآن.</string>
+    <string name="live_tv_web_choose_file">اختر ملف .m3u أولًا.</string>
+    <string name="live_tv_web_too_large">الملف كبير جدًا.</string>
+    <string name="live_tv_web_failed">تعذّر على التلفاز قبول ذلك. تحقّق من الحقول.</string>
+    <string name="live_tv_web_connection_error">تعذّر الوصول إلى التلفاز. هل ما زال على شاشة إعداد البث المباشر؟</string>
 </resources>

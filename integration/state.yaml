@@ -12,14 +12,14 @@ active_gate_name: Live TV
 active_branch: feat/live-tv
 active_task_packet: tasks/G10_LIVE_TV.md
 active_status: IN_PROGRESS
-active_pr: 68
+active_pr: 69
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: dc0dfb321454465f8e4faaadaa1a3a8a47cd6082
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36828493852 ; G10e
-  PR #67 exact head, squash-merged as 55c7b037926490aaa07ea20ab9b9a147b53c96af; fullDebug APK 11146921479.
-last_green_scope: Full suite guard (2177 tests, 15 known failures, 0 new failures, 1 skipped), governance
+last_green_commit: 6a7fe12d86b09354ea1ca6b44f2996a173afc964
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36829761290 ; G10f
+  PR #68 exact head, squash-merged as f374ccf81eea7c7eb26d9b9589ab2499145fbe62; fullDebug APK 11147038290.
+last_green_scope: Full suite guard (2181 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3

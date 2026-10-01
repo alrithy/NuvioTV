@@ -118,20 +118,24 @@ failures, 0 new, 1 skipped; APK artifact 11146921479): Live TV inside the offici
 228–232): ▲▼ / CH+/CH- zapping inside the picked list with the ExoPlayer kept across Live TV zaps,
 banner, ◀ channel list and categories, OK Now/Next card; inert unless the playing URL is registered
 as Live TV. HV-G10-6 MANUAL-PENDING.
-G10f (#68, open): channel preview in the Live TV list (226, 227): one preview player for the focused
-channel after 400 ms on Live TV's own HTTP client, no disk cache, lowest adaptive bitrate, sound faded
-in only when on, released on play / leaving / background; Stalker not previewed. AdaptiveResources
-`liveTvPreviewBudget`: 720p and a small buffer on constrained boxes, 1080p otherwise, off by default
-on low-RAM boxes. Per-profile Channel previews / Preview sound settings. HV-G10-7 MANUAL-PENDING.
-Owner: Claude, sequential writer, no lease. Local standalone JVM harness: 306 tests PASS (fork
-packages; Android seams stubbed); UI compiles only in CI. No Android/device run claimed. #68
-requires exact-head CI.
+G10f merged as #68 (`f374ccf`; exact head `6a7fe12`, run 36829761290: 2181 tests, 15 known
+failures, 0 new, 1 skipped; APK artifact 11147038290): channel preview in the Live TV list (226,
+227) sized by AdaptiveResources `liveTvPreviewBudget` (720p on constrained boxes, off by default on
+low-RAM boxes), per-profile Channel previews / Preview sound. HV-G10-7 MANUAL-PENDING.
+G10g (#69, open): set up Live TV from a phone (213): while the sources dialog is open and the app is
+in the foreground, a LAN page on a random 128-bit token path (QR code beside the add-source form)
+takes an M3U link or .m3u file, Xtream login or Stalker portal and loads it like a typed source,
+encrypted per profile; Origin check, 16 KiB form / 64 MiB playlist caps before reading, nothing
+logged (`LiveTvSetupPolicy`, `LiveTvSetupServer`, `LiveTvRepository.importPlaylist`). HV-G10-8
+MANUAL-PENDING. Owner: Claude, sequential writer, no lease. Local standalone JVM harness: 311 tests
+PASS (fork packages; Android seams stubbed); the server and dialog compile only in CI. No
+Android/device run claimed. #69 requires exact-head CI; with it every G10 ID (208–236) is terminal.
 Next gate: G11 Watch Party.
 
 ## Exact next action
-1. Wait for #68 exact-head fullDebug/governance/policy success, resolve verified review threads,
-   squash with expected head, fetch integration and safely merge it into feat/live-tv. Then slice
-   G10g (QR setup; 213), then the G10 closeout.
+1. Wait for #69 exact-head fullDebug/governance/policy success, resolve verified review threads,
+   squash with expected head, then the G10 closeout (state to G11 Watch Party, D055 summary,
+   `validation_pending_gates` G10 entry for HV-G10-1..HV-G10-8).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G10→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
