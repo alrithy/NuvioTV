@@ -461,3 +461,16 @@ layout preferences are never written. The glass is a live Haze blur only on Andr
 LOW_RAM tier (AdaptiveResources) and without the per-profile "Lightweight effects" switch; otherwise an
 opaque tint. The chrome is only on root screens, never over the player. Cinematic Glass (194) and the
 AGSL liquid-glass refraction (199) build on the same style next.
+
+## D061 — Cinematic Glass and liquid glass build on the Glass style
+Cinematic Glass (194) is a fifth Navigation style: Glass with official's Modern full-screen hero
+backdrop shown whatever that setting says. It is provided to the home through a CompositionLocal that
+one line in `ModernHomeContent` reads, so official's `modern_hero_full_screen_backdrop` preference is
+never written and switching back restores the user's own choice. The hero trailer is not forced on: it
+keeps following official's trailer settings, since forcing it would change official's focused-poster
+playback targets and data use. The liquid-glass effect (199) is Reshaped `0ccf049`'s AGSL lens
+(FILE_PORT of `PillGlassShader` and the backdrop recorder) drawn under the Glass pills, chosen by
+`UiStyleRules.glassEffect` as a third effect level: LIQUID only on Android 13+ in the AdaptiveResources
+STANDARD tier with Lightweight effects off, BLUR on other Android 12+ non-LOW_RAM devices, FLAT
+otherwise. The recorder runs only while the chrome is shown and drops its recording when it hides; no
+second RAM probe and no app-wide preference are imported.

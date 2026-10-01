@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- G12a / G12b UI styles (D058, D060): top menu choice, Glass, clock and profile access. -->
+<!-- G12a–G12c UI styles (D058, D060, D061): top menu choice, Glass, Cinematic Glass, clock and profile access. -->
 <resources>
     <string name="settings_navigation_style_title">Navigation style</string>
-    <string name="settings_navigation_style_description">Where the main menu sits: the sidebar, a bar across the top, a floating pill, or Glass (frosted, over the Modern home; Pill with other layouts). The sidebar is the default.</string>
+    <string name="settings_navigation_style_description">Where the main menu sits: the sidebar, a bar across the top, a floating pill, Glass (frosted, over the Modern home) or Cinematic Glass (Glass with the artwork full screen); with other layouts both Glass styles show the pill. The sidebar is the default.</string>
     <string name="navigation_style_sidebar">Sidebar</string>
     <string name="navigation_style_top_bar">Top bar</string>
     <string name="navigation_style_pill">Pill</string>
     <string name="navigation_style_glass">Glass</string>
+    <string name="navigation_style_cinematic_glass">Cinematic Glass</string>
     <string name="settings_lightweight_effects_title">Lightweight effects</string>
-    <string name="settings_lightweight_effects_description">Draws the Glass menu without live blur. Devices with little memory or older than Android 12 always do.</string>
+    <string name="settings_lightweight_effects_description">Draws the Glass menu without live blur or liquid glass. Devices with little memory or older than Android 12 always do; liquid glass needs Android 13 and memory to spare.</string>
     <string name="settings_top_menu_clock_title">Clock in the top menu</string>
     <string name="settings_top_menu_clock_description">Shows the time beside the top menu, in this device\'s 12- or 24-hour format.</string>
     <string name="top_menu_switch_profile">%1$s · switch profile</string>

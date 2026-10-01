@@ -12,14 +12,14 @@ active_gate_name: UI Styles
 active_branch: feat/ui-styles
 active_task_packet: tasks/G12_UI_STYLES.md
 active_status: IN_PROGRESS
-active_pr: 79
+active_pr: 80
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 362dd4582f775026ea167a2988aad0ee32c8f93a
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36855538291 ; G12a
-  PR #78 exact head, squash-merged as 14a3353b0811b59e0e23292ff9ecd354d616ac74; fullDebug APK 11159113616.
-last_green_scope: Full suite guard (2209 tests, 15 known failures, 0 new failures, 1 skipped), governance
+last_green_commit: ec93e48f45b1ed6e52fbd444977458294ef51d36
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36858515752 ; G12b
+  PR #79 exact head, squash-merged as c98dc01d7fa2919db1d17eb878b8a6ae58021caf; fullDebug APK 11160717187.
+last_green_scope: Full suite guard (2212 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3

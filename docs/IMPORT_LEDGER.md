@@ -878,3 +878,19 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 fork of official; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: blur cost on 2 GB boxes and over the hero trailer, D-pad reveal and RTL on real TVs are device checks (HV-G12-3); Cinematic Glass (194) and liquid glass (199) next
+
+### G12c — UI styles: Cinematic Glass and AGSL liquid glass (194, 199)
+- Roadmap gate: G12
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped (`subtitle-autosync` @ 0ccf049d2789600835f3f7a75423e9149ea416ba, `ui/reshaped/pillnav`); xnucade/NuvioGlass (`dev` @ 84098b7de222fb599e30d12f7a6f5b9b1e347fee) for the Glass chrome it draws on; Cinema View ideas from legacy PR #1 (reference only, no code)
+- Source file(s): Reshaped `PillGlassShader.kt` (AGSL, verbatim), `PillGlassBackdrop.kt` (backdrop recorder), the `LiquidPillGlass` draw in `PillNavigationBar.kt`
+- Import mode: FILE_PORT (shader, recorder, lens draw); local WRITE (Cinematic Glass style, LIQUID effect level, the `LocalCinematicGlass` hook)
+- Current official equivalent: Modern full-screen hero backdrop setting (`modern_hero_full_screen_backdrop`) and hero trailer; Haze blur on the modern sidebar
+- What already existed upstream: Compose `GraphicsLayer` recording, `RenderEffect.createRuntimeShaderEffect` (Android 13), the Modern hero's full-screen mode
+- What was imported: the capsule lens (circular rim profile, ordered dispersion, vibrancy, specular rim lit from the top left), a display-list backdrop recorded once per content frame and replayed under each pill, redraw every frame for 1.5 s after a key press and once a second when idle
+- What was intentionally not imported: Reshaped's own pill bar and app-wide SharedPreferences flag; its second RAM probe (`pillLensSupported`); the sliding item lens (the Glass menu keeps its indicator); forcing official's hero trailer on; legacy PR #1 code
+- Local adaptations: LIQUID is a third `GlassEffect` level chosen by `UiStyleRules.glassEffect` (API 33 + AdaptiveResources STANDARD tier + Lightweight effects off); the lens is a Modifier under both Glass pills; the recorder runs only while the chrome is shown and is cleared when it hides; Cinematic Glass is a Navigation style that shows the full-screen hero backdrop through a CompositionLocal without writing the official preference (D061)
+- Feature flag / fallback: FeatureId.UI_STYLES (AUTO); OFF shows official's sidebar; LocalCinematicGlass is false outside Cinematic Glass, so the Modern home follows its own setting
+- Tests ported/added: UiStyleRulesTest (+1: liquid glass only on API 33+ STANDARD tier without Lightweight effects; Cinematic Glass cycle, fallback to Pill off Modern and to Sidebar with the flag off, isGlass)
+- License / attribution notes: GPL-3.0 fork of official; the shader keeps Reshaped's notes and is attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: AGSL cost and visual quality on real Android 13+ boxes, video holes under the lens, the full-screen backdrop on 1080p vs 4K TVs are device checks (HV-G12-4)
