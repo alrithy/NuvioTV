@@ -39,6 +39,7 @@ class FeatureRegistryTest {
                 FeatureId.STREAM_INTELLIGENCE to FeatureMode.AUTO, // D053
                 FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS to FeatureMode.AUTO, // D054
                 FeatureId.LIVE_TV to FeatureMode.AUTO, // D055
+                FeatureId.WATCH_PARTY to FeatureMode.AUTO, // D056
             ),
             FeatureRegistry.DECIDED_DEFAULTS,
         )
@@ -52,6 +53,7 @@ class FeatureRegistryTest {
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.STREAM_INTELLIGENCE))
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.DISCOVERY_SKIP_RECOMMENDATIONS))
         assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.LIVE_TV))
+        assertEquals(FeatureMode.AUTO, FeatureRegistry().mode(FeatureId.WATCH_PARTY))
     }
 
     @Test
@@ -95,12 +97,12 @@ class FeatureRegistryTest {
 
     @Test
     fun registryIsIsolatedFromLaterChangesToOverrideSource() {
-        val source = mutableMapOf(FeatureId.WATCH_PARTY to FeatureMode.ON)
+        val source = mutableMapOf(FeatureId.UI_STYLES to FeatureMode.ON)
         val registry = FeatureRegistry(source)
-        source[FeatureId.WATCH_PARTY] = FeatureMode.OFF
+        source[FeatureId.UI_STYLES] = FeatureMode.OFF
         source[FeatureId.AI_MEDIA] = FeatureMode.ON
-        assertEquals(FeatureMode.ON, registry.mode(FeatureId.WATCH_PARTY))
+        assertEquals(FeatureMode.ON, registry.mode(FeatureId.UI_STYLES))
         assertEquals(FeatureMode.OFF, registry.mode(FeatureId.AI_MEDIA))
-        assertEquals(FeatureMode.OFF, FeatureRegistry().mode(FeatureId.WATCH_PARTY))
+        assertEquals(FeatureMode.OFF, FeatureRegistry().mode(FeatureId.UI_STYLES))
     }
 }

@@ -790,3 +790,23 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: phone browsers, LAN isolation on guest Wi-Fi and large files need real devices (HV-G10-8, G14)
+
+### G11a — Watch Party core: protocol, sync engine, share policy, VDO.Ninja transport (237–249, UI in G11b)
+- Roadmap gate: G11
+- Source repository: AntoninoScardina/NuvioTV
+- Source branch: watchparty
+- Pinned source SHA: ff597b12bc7834b07dedda92c88e0d574c0aad81
+- Source commit(s): 58530279d10f3378c237c248ce3ca7bdde5e13cd (the whole feature)
+- Source file(s): watchparty/WatchPartyProtocol.kt, WatchPartySession.kt, WatchPartyTransport.kt, WebViewWatchPartyTransport.kt, WatchPartyModule.kt; assets/watchparty/watchparty-bridge.js
+- Third-party file: VDO.Ninja SDK v1.6.1 by Steve Seguin (MPL-2.0) from its upstream npm release `@vdoninja/sdk@1.6.1` (github.com/steveseguin/ninjasdk), Source Code Form `vdoninja-sdk.js` (SHA-256 88f623ac8b6dcf2ab66b4bddc70b66f1a2d7d04198f143a6efe1b0d4c89c440c), unmodified, with LICENSE-vdoninja-sdk.txt; the fork's minified copy is byte-identical to the same release
+- Import mode: FILE_PORT (protocol, session / sync engine, transport, bridge, module); local WRITE (WatchPartySharePolicy)
+- Current official equivalent: none (no Watch Party in official 56aaba2 or dev 5c1d9b0); the player controls it drives exist and are reused in G11b
+- What already existed upstream: `PlayerRuntimeController` position / play intent / seek / pause / pitch-kept speed / duration
+- What was imported: protocol v1 (unchanged wire format, alphabet, room and password derivation, for the phone build), host-authority sync with CMD / STATE every 2 s and on change, polling detection of local actions, soft speed correction (±10 %) and hard seek with a learned lead, settle / suppress windows, the hidden WebView data-channel transport and bridge
+- What was intentionally not imported: unconditional sharing of the open link with every header; WebView console logging and raw error text; `String.random()` codes; the fork's nightly-release workflow, README and screenshots
+- Local adaptations: room creation requires the host's consent and MEDIA is never sent without it; WatchPartySharePolicy (header allowlist; credential headers, user-info links, torrents, loopback and Live TV not shareable; received media validated and bounded); SecureRandom codes; fixed error codes; no console logging, no file / content access and no navigation in the WebView; scope and clock injectable for tests; WATCH_PARTY AUTO (D056)
+- Feature flag / fallback: FeatureId.WATCH_PARTY (AUTO); no entry point exists until G11b, and OFF will hide every entry and never create a WebView
+- Tests ported/added: WatchPartySharePolicyTest (5: codes and room derivation, header allowlist and credentials, unshareable sources, received media, no-print / names), WatchPartySessionTest (6: consent gate, received media, soft drift and hard seek, host follows CMD and guests follow pause, guest CMD, lifecycle and stale transport); FeatureRegistryTest updated (D056)
+- License / attribution notes: Antonino port GPL-3.0 (fork of official); SDK MPL-2.0, file-level, recorded in LICENSE_AND_ATTRIBUTION; the SDK license grants no right to VDO.Ninja's hosted signaling / STUN / TURN (their terms apply) and no trademark use
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: availability and terms of the hosted signaling / TURN service; WebView WebRTC support on TV boxes; NAT traversal and phone interop are device checks (G14)
