@@ -24,7 +24,7 @@ import com.nuvio.tv.ui.screens.settings.SettingsToggleRow
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 /**
- * Settings → Advanced → Experimental (G13b, D063): the only place an experimental group is turned on.
+ * Settings → Advanced → Experimental (G13b / G13c, D063): the only place an experimental group is turned on.
  * Each switch is off by default and applies on the next app start, so the running app never changes
  * under the user; while AI media providers are active, their Provider Center opens from here.
  */
@@ -35,6 +35,8 @@ fun ExperimentalSettingsCard() {
     var showProviders by remember { mutableStateOf(false) }
     val aiStored = FeatureId.AI_MEDIA.name in stored
     val aiActive = FeatureId.AI_MEDIA in ExperimentalOptIn.enabled
+    val matStored = FeatureId.MAT_AUDIO.name in stored
+    val matActive = FeatureId.MAT_AUDIO in ExperimentalOptIn.enabled
 
     SettingsGroupCard(
         modifier = Modifier.fillMaxWidth(),
@@ -51,6 +53,20 @@ fun ExperimentalSettingsCard() {
             checked = aiStored,
             onToggle = {
                 ExperimentalOptInStore.setOptedIn(context, FeatureId.AI_MEDIA, !aiStored)
+                stored = ExperimentalOptInStore.stored(context)
+            },
+        )
+        // G13c (45): app-side TrueHD -> MAT for eARC receivers; the audio path is official's while off.
+        SettingsToggleRow(
+            title = stringResource(R.string.experimental_mat_title),
+            subtitle = if (matStored != matActive) {
+                stringResource(R.string.experimental_restart_pending)
+            } else {
+                stringResource(R.string.experimental_mat_description)
+            },
+            checked = matStored,
+            onToggle = {
+                ExperimentalOptInStore.setOptedIn(context, FeatureId.MAT_AUDIO, !matStored)
                 stored = ExperimentalOptInStore.stored(context)
             },
         )

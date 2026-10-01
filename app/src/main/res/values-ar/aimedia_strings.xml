@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- G13b AI media providers (D063): Provider Center (Fornace/nuvio-ai @ 518af71 strings) and the Experimental screen. -->
+<!-- G13b / G13c (D063): Provider Center (Fornace/nuvio-ai @ 518af71 strings), the Experimental screen and MAT. -->
 <resources>
     <string name="provider_center_add_key">إضافة مفتاح API</string>
     <string name="provider_center_cancel_install">إلغاء</string>
@@ -62,4 +62,6 @@
     <string name="experimental_ai_media_description">ثبّت تطبيقات مزوّدي الذكاء الاصطناعي الموقّعة واحتفظ بمفاتيح API الخاصة بك مشفّرة لكل ملف شخصي. معاينة: لا يولّد المزوّدون ترجمات أو صوتًا بعد.</string>
     <string name="experimental_restart_pending">أعد تشغيل Nuvio للتطبيق</string>
     <string name="experimental_open_providers">فتح مزوّدي الوسائط بالذكاء الاصطناعي</string>
+    <string name="experimental_mat_title">تمرير MAT لصوت Dolby TrueHD</string>
+    <string name="experimental_mat_description">يغلّف صوت TrueHD بصيغة MAT داخل التطبيق لأجهزة الاستقبال التي تدعم eARC ولا تعرض Atmos أو TrueHD إلا بهذه الطريقة. لم يُختبر على معظم أجهزة التلفاز؛ أوقفه إذا انقطع الصوت.</string>
 </resources>
