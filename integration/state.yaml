@@ -7,19 +7,19 @@ current_official_baseline_sha: 5c1d9b0e2669199114a12ade38027da132303eb3
 integration_upstream_sync_commit: 89b46c4dfa4327a0eaaa212e2c05bad3c9c6b766
 integration_branch: superfork/integration
 legacy_default_branch: dev
-active_gate: G13
-active_gate_name: Experimental AI & MAT
-active_branch: experimental/media
-active_task_packet: tasks/G13_EXPERIMENTAL.md
-active_status: IN_PROGRESS
-active_pr: 86
+active_gate: G14
+active_gate_name: Hardening Release Upstream
+active_branch: chore/release-hardening
+active_task_packet: tasks/G14_HARDENING_RELEASE.md
+active_status: READY
+active_pr: null
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: ebe2e4944e501951cb0e125b24aa495f9f33b66d
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36882099635 ; G13b
-  PR #85 exact head, squash-merged as a4f66f51e3a54819de884bf205028dd27491f6b1; fullDebug APK 11173800583.
-last_green_scope: Full suite guard (2323 tests, 15 known failures, 0 new failures, 1 skipped), governance
+last_green_commit: a8eeb15782a3708b692b3d8ca3be365e09e59952
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36885503149 ; G13c
+  PR #86 exact head, squash-merged as 746c82aa49b299ab77ac1a5541b6b516b5e01121; fullDebug APK 11174408183.
+last_green_scope: Full suite guard (2330 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3
@@ -28,9 +28,9 @@ bootstrap:
   hardening_pr: 6
   hardening_branch: chore/governance-hardening
   hardening_merge_commit: de1c8bfbc9926ef12ba0f4e5f20fc5ab7301f798
-next_gate: G14
-next_gate_name: Hardening Release Upstream
-next_branch: chore/release-hardening
+next_gate: null
+next_gate_name: Stable release (after G14 certification)
+next_branch: null
 known_operational_risks:
 - id: R001
   severity: high
@@ -89,6 +89,8 @@ validation_pending_gates:
   evidence: 'Audit #71, slices #72-#73 and review corrections #74 merged; HV-G11-1, HV-G11-2, HV-G11-3, HV-G11-4 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G11_CLOSEOUT.md.'
 - gate: G12
   evidence: 'Audit #76, upstream sync #77 and slices #78-#81 merged; HV-G12-1, HV-G12-2, HV-G12-3, HV-G12-4, HV-G12-5 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G12_CLOSEOUT.md.'
+- gate: G13
+  evidence: 'Audit #83 and slices #84-#86 merged; HV-G13-1, HV-G13-2, HV-G13-3 remain MANUAL-PENDING for G14 in docs/HARDWARE_VALIDATION_TCL_C6K.md and docs/MANUAL_TEST_LOG.md; closeout docs/audits/G13_CLOSEOUT.md.'
 governance_status: READY
 upstream_observation:
   checked_at: '2026-10-01T14:45:00Z'
@@ -224,3 +226,15 @@ completed_gates:
     fullDebug APK; per-slice exact-head runs 36855538291 (2209), 36858515752 (2212), 36863863735 (2213);
     docs/audits/G12_CLOSEOUT.md; D047, D058-D062; HV-G12-1..HV-G12-5 MANUAL-PENDING for G14.'
   deferred_features: []
+- gate: G13
+  name: Experimental AI & MAT
+  status: CODE-COMPLETE
+  pr: [83, 84, 85, 86]
+  head_sha: a8eeb15782a3708b692b3d8ca3be365e09e59952
+  merge_sha: 746c82aa49b299ab77ac1a5541b6b516b5e01121
+  slice_merges: [a62ce1d78109237868b7d798357f86c187ad71e8, b5da99514949ed2df5128b96bf9652626e53a12e,
+    a4f66f51e3a54819de884bf205028dd27491f6b1, 746c82aa49b299ab77ac1a5541b6b516b5e01121]
+  evidence: 'G13c PR #86 exact-head CI run 36885503149: 2330 tests, 15 known failures, 0 new, 1 skipped,
+    fullDebug APK; per-slice exact-head runs 36877526195 (2219), 36879784424 (2290), 36882099635 (2323);
+    docs/audits/G13_CLOSEOUT.md; D047, D063; 9 IDs experimental (OFF unless opted in); HV-G13-1..HV-G13-3 MANUAL-PENDING for G14.'
+  deferred_features: [251, 252, 253, 254]

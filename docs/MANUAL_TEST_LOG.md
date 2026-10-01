@@ -72,3 +72,14 @@ G14 is the planned single hardware-certification stop: execute the accumulated c
 - Result: MANUAL-PENDING for every listed case.
 - Follow-up: execute all five during G14 on an Android 13+ 3 GB+ box, a 2 GB box and an Android 11 box, in English and Arabic, attach real evidence, reopen affected features on FAIL.
 - Automated evidence is separate: docs/audits/G12_CLOSEOUT.md (2219 tests, 15 known failures, 0 new, APK).
+
+## 2026-10-01 — G13 carry-forward to G14
+- Gate / Feature IDs: G13, 45 and 250–261 (device checks for 45, 250, 255–261; 251–254 deferred).
+- Commit: final squash 746c82aa49b299ab77ac1a5541b6b516b5e01121 (PR #86).
+- Test cases: HV-G13-1, HV-G13-2, HV-G13-3.
+- Device / Android / display / network / media: not run; to be captured in G14.
+- Expected: exact procedures and expected results in docs/HARDWARE_VALIDATION_TCL_C6K.md §4j.
+- Actual: no hardware execution or diagnostics captured.
+- Result: MANUAL-PENDING for every listed case.
+- Follow-up: execute all three during G14 with the experimental switches on (provider install and signer checks, BYOK across two profiles, MAT through an eARC receiver), attach real evidence, reopen affected features on FAIL.
+- Automated evidence is separate: docs/audits/G13_CLOSEOUT.md (2330 tests, 15 known failures, 0 new, APK).
