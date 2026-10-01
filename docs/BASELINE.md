@@ -7,14 +7,15 @@
 - The pre-G0 refresh happened before feature implementation.
 - Post-G0 sync (PR #9, D040): `71632b9271e8bce6783e415d64f34cfa4e8b894c`; integration merge `898bc83abfc8e59cf1664699980942d3bd6718f6`.
 - Pre-G6 sync (D050): `56aaba20b7d01746d616a2c8517adcf442950b90`; integration merge `5c24805f82b2bb7092b9acafc00903a32fe5045c`.
-- Pre-G12 sync (D059): `5c1d9b0e2669199114a12ade38027da132303eb3`; integration merge `89b46c4dfa4327a0eaaa212e2c05bad3c9c6b766`. This is the current implementation baseline.
+- Pre-G12 sync (D059): `5c1d9b0e2669199114a12ade38027da132303eb3`; integration merge `89b46c4dfa4327a0eaaa212e2c05bad3c9c6b766`.
+- Pre-G14 sync (D065): `aeb6ee8591c55424256fdd1f35f426618297378d`; integration merge `ed62c7bbb9a6c1065c5f6368048232293f8d235e`. This is the current implementation baseline.
 
 ## Official upstream
 - Repository: NuvioMedia/NuvioTV
 - Branch: dev
-- Pinned baseline: 5c1d9b0e2669199114a12ade38027da132303eb3
+- Pinned baseline: aeb6ee8591c55424256fdd1f35f426618297378d
 - Verified: 2026-10-01
-- Commit: Merge pull request #3784 (fix(detail): keep hero trailer controls reachable after overlay focus wrap)
+- Commit: Merge pull request #3796 (fix/mpv-error-diagnostics)
 
 ## Fork branches
 - superfork/integration: canonical reviewed integration branch.

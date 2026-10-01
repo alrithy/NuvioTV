@@ -1,11 +1,12 @@
 # Baseline test debt — policy and evidence
 
-The accepted baseline is `5c1d9b0e2669199114a12ade38027da132303eb3` (D059; previously `56aaba20b7d01746d616a2c8517adcf442950b90`
-(D050), `71632b9271e8bce6783e415d64f34cfa4e8b894c` (D040) and `fd7973d91dd75d790c5f9b3d68dae652655e92c4`). Integration sync merge
-`89b46c4dfa4327a0eaaa212e2c05bad3c9c6b766` carries Superfork features G0–G11 on top of it, so it is not
+The accepted baseline is `aeb6ee8591c55424256fdd1f35f426618297378d` (D065; previously `5c1d9b0e2669199114a12ade38027da132303eb3`
+(D059), `56aaba20b7d01746d616a2c8517adcf442950b90` (D050), `71632b9271e8bce6783e415d64f34cfa4e8b894c` (D040) and `fd7973d91dd75d790c5f9b3d68dae652655e92c4`). Integration sync merge
+`ed62c7bbb9a6c1065c5f6368048232293f8d235e` carries Superfork features G0–G13 on top of it, so it is not
 byte-identical application code. The reviewed inventory in `integration/evidence/baseline-suite.json`
-is the clean official `5c1d9b0` replay (run 36848159277: 1,796 tests, 18 failed, 1 skipped), identical
-test by test to the `56aaba2` inventory (run 36670841979). Its 3 `new_failures` are official's stale
+is the clean official `aeb6ee8` replay (run 36891605846: 1,824 tests, 18 failed, 1 skipped): every test of
+the `5c1d9b0` inventory (run 36848159277, 1,796 tests) with an identical outcome, plus 28 new official
+tests, all passing; the minimum test count rises to 1,824. Its 3 `new_failures` are official's stale
 `NuvioExoPlayerPerformanceHelperTest` expectations that G2b (#15) corrected on integration; they are
 not debt.
 
