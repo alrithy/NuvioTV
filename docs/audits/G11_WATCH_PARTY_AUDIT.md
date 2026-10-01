@@ -30,7 +30,7 @@ About 1.2k lines of Kotlin plus a bundled SDK.
 |---|---|
 | Room | `WatchPartyProtocol`: six-character code from a 31-symbol alphabet without look-alikes; room `nuviowatchparty<code>`, password `nuvio-wp-<code>`; `normalizeCode` accepts spaces / lower case |
 | Transport | `WebViewWatchPartyTransport`: a hidden WebView with an https base origin (secure context for `crypto.subtle`) runs the bundled VDO.Ninja SDK and `watchparty-bridge.js`; data channel only (no audio / video); a `@JavascriptInterface` bridge posts events to the main thread; leave waits 1.5 s so peers get BYE |
-| SDK | `assets/watchparty/vdoninja-sdk.min.js` VDO.Ninja SDK v1.6.1 (MPL-2.0, Steve Seguin), 131 759 bytes, SHA-256 `aef88ddd93f0f8a6a2c020b751029998d2dc984b64cb03d32c69b606fd3b3f12`, with `LICENSE-vdoninja-sdk.txt`. Signaling `wss://wss.vdo.ninja` (encrypted with the room password, AES-CBC), STUN Cloudflare / Google, TURN relays `turn-*.vdo.ninja` / `turn.obs.ninja`; peer data over the WebRTC data channel (DTLS) |
+| SDK | `assets/watchparty/vdoninja-sdk.min.js` VDO.Ninja SDK v1.6.1 (MPL-2.0, Steve Seguin), 131 759 bytes, SHA-256 `aef88ddd93f0f8a6a2c020b751029998d2dc984b64cb03d32c69b606fd3b3f12` — byte-identical to the upstream npm release `@vdoninja/sdk@1.6.1` — with `LICENSE-vdoninja-sdk.txt`. Signaling `wss://wss.vdo.ninja` (encrypted with the room password, AES-CBC), STUN Cloudflare / Google, TURN relays `turn-*.vdo.ninja` / `turn.obs.ninja`; peer data over the WebRTC data channel (DTLS) |
 | Protocol | one JSON message type: HELLO (name, host), MEDIA (host → guest: URL, headers, metadata, position, playing), STATE (periodic and on change), REQUEST_STATE, CMD (guest → host: play / pause / seek), BYE |
 | Sync | host is the authority; guests' play / pause / seek go to the host as CMD and come back as STATE; state every 2 s and on change; local actions detected by polling (500 ms, engine-independent); drift > 3 s → seek (with a learned lead for the seek's own delay, up to 8 s), 0.4–3 s while playing → speed change of up to ±10 % (stops under 0.12 s), settle / suppress windows against echo |
 | Shareable | HTTP(S) only; torrent, local proxy (`127.0.0.1` / `localhost`) refused |
@@ -87,9 +87,11 @@ About 1.2k lines of Kotlin plus a bundled SDK.
   buffers or a seek settles.
 - **Flag:** `WATCH_PARTY` becomes AUTO with the first code slice; OFF hides the player button and
   the Settings entry and never creates a WebView.
-- **License:** the SDK keeps its MPL-2.0 header unmodified and its license text ships beside it;
-  `docs/LICENSE_AND_ATTRIBUTION.md` and IMPORT_LEDGER name it (file-level MPL, unmodified, larger
-  work GPL-3.0).
+- **License:** the SDK is taken from its upstream release (`@vdoninja/sdk@1.6.1`, not from the
+  fork) in Source Code Form (`vdoninja-sdk.js`, which satisfies MPL-2.0's source requirement directly),
+  unmodified, MPL-2.0 header kept, license text beside it; `docs/LICENSE_AND_ATTRIBUTION.md` and
+  IMPORT_LEDGER name it (file-level MPL, larger work GPL-3.0). Its license grants no right to the
+  hosted signaling / STUN / TURN services (VDO.Ninja's terms apply) and no trademark use.
 
 ## Feature map
 
