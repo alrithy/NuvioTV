@@ -195,18 +195,25 @@ the device 12 / 24-hour format; profile button opens profile selection; UI_STYLE
 204, 205 implemented; HV-G12-1, HV-G12-2 MANUAL-PENDING. Slice plan adjusted: the effect policy, liquid
 glass (199) and lightweight fallback (200) land with the overlaid Glass chrome in G12b, where they have
 a backdrop to work on. Local JVM harness: 334 tests PASS (UI compiles only in CI).
-G12b (#79, open; D060 amends D058): Glass is a fourth Navigation style rather than new `HomeLayout`
+G12b merged as #79 (`c98dc01`; exact head `ec93e48`, run 36858515752: 2212 tests, 15 known failures,
+0 new, 1 skipped; APK artifact 11160717187; D060 amends D058): Glass is a fourth Navigation style rather than new `HomeLayout`
 values: official's Modern home with frosted chrome floating over the full-bleed hero (NuvioGlass
 `GlassScaffold` / `GlassSurface` FILE_PORT), auto-hiding on Home and revealed by Up from the first row
 (one hook in `ModernHomeRowsList`); Pill with Classic / Grid; live Haze blur only on Android 12+ with
 a known non-LOW_RAM tier and the per-profile Lightweight effects switch off, otherwise an opaque tint;
 Back / long-press Back as the other top menus; never over the player. 193, 197, 200 implemented;
-HV-G12-3 MANUAL-PENDING. Local JVM harness: 337 tests PASS. Remaining G12: Cinematic Glass (194),
-liquid glass (199), screensaver (292). Slices: sync, G12a (196–200, 204, 205), G12b (193,
+HV-G12-3 MANUAL-PENDING. Local JVM harness: 337 tests PASS.
+G12c (#80, open; D061): Cinematic Glass is a fifth Navigation style, Glass with official's Modern
+full-screen hero backdrop shown through `LocalCinematicGlass` (one line in `ModernHomeContent`; the
+official preference is never written; the hero trailer keeps following official's settings); Reshaped's
+AGSL liquid-glass lens (shader + backdrop recorder FILE_PORT) under the Glass pills as a third effect
+level, LIQUID only on Android 13+ in the STANDARD tier with Lightweight effects off; the recorder runs
+only while the chrome shows. 194, 199 implemented; HV-G12-4 MANUAL-PENDING. Local JVM harness: 338
+tests PASS. Remaining G12: screensaver (292, G12d), then the G12 closeout. Slices: sync, G12a (196–200, 204, 205), G12b (193,
 194), G12c (292). Legacy PR #1 / #2 stay reference-only. Next G13 Experimental AI & MAT.
 ## Exact next action
-1. Wait for #79 (G12b) exact-head CI and squash with the expected head; then Cinematic Glass (194)
-   and AGSL liquid glass (199) on the Glass style, then the screensaver (292) and the G12 closeout.
+1. Wait for #80 (G12c) exact-head CI and squash with the expected head; then the screensaver (292,
+   G12d) and the G12 closeout.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G12→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
