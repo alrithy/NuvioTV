@@ -67,9 +67,9 @@ import com.nuvio.tv.fork.uistyle.NavigationStyle
 import com.nuvio.tv.fork.uistyle.TopChromeBack
 import com.nuvio.tv.fork.uistyle.UiStyleRules
 import com.nuvio.tv.navigateToDrawerRoute
-import com.nuvio.tv.rememberRawSvgPainter
 import com.nuvio.tv.ui.components.ProfileAvatarCircle
 import com.nuvio.tv.ui.navigation.NuvioNavHost
+import com.nuvio.tv.ui.screens.settings.rememberRawSvgPainter
 import com.nuvio.tv.ui.theme.NuvioTheme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -345,7 +345,7 @@ private fun TopMenuItem(
         val iconModifier = Modifier.size(NuvioTheme.sizes.icons.md)
         when {
             item.iconRes != null -> Icon(
-                painter = rememberRawSvgPainter(item.iconRes),
+                painter = rememberRawSvgPainter(item.iconRes, NuvioTheme.sizes.icons.md),
                 contentDescription = null,
                 tint = contentColor,
                 modifier = iconModifier,
