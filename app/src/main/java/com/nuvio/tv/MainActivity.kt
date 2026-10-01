@@ -1192,7 +1192,7 @@ open class MainActivity : ComponentActivity() {
                             hasSelectedProfileThisSession = false
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
-                            // Superfork G12a / G12b hook (D058, D060): a profile's top menu or Glass chrome replaces official's sidebar.
+                            // Superfork G12a–G12c hook (D058, D060, D061): a profile's top menu or Glass chrome replaces official's sidebar.
                             val storedNavigationStyle by uiStyleSettings.navigationStyle.collectAsState(initial = com.nuvio.tv.fork.uistyle.NavigationStyle.SIDEBAR)
                             val topMenuClock by uiStyleSettings.clockEnabled.collectAsState(initial = false)
                             val lightweightEffects by uiStyleSettings.lightweightEffects.collectAsState(initial = true)
@@ -1201,13 +1201,14 @@ open class MainActivity : ComponentActivity() {
                                 storedNavigationStyle,
                                 modernLayout = homeLayout == com.nuvio.tv.domain.model.HomeLayout.MODERN
                             )
-                            if (navigationStyle == com.nuvio.tv.fork.uistyle.NavigationStyle.GLASS) {
+                            if (navigationStyle.isGlass) {
                                 com.nuvio.tv.ui.screens.uistyle.GlassChromeScaffold(
                                     effect = com.nuvio.tv.fork.uistyle.UiStyleRules.glassEffect(
                                         android.os.Build.VERSION.SDK_INT,
                                         com.nuvio.tv.fork.resource.AdaptiveResources.detectedTier,
                                         lightweightEffects
                                     ),
+                                    cinematic = navigationStyle == com.nuvio.tv.fork.uistyle.NavigationStyle.CINEMATIC_GLASS,
                                     clockEnabled = topMenuClock,
                                     longPressBackHeld = longPressBackHeld,
                                     navController = navController,
