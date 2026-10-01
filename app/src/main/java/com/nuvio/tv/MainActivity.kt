@@ -324,6 +324,9 @@ open class MainActivity : ComponentActivity() {
     @Inject
     lateinit var liveTvRepository: com.nuvio.tv.fork.livetv.LiveTvRepository // Superfork G10b
 
+    @Inject
+    lateinit var uiStyleSettings: com.nuvio.tv.fork.uistyle.UiStyleSettings // Superfork G12a
+
     private val pendingDeepLinkUrl = MutableStateFlow<String?>(null)
     private val pendingLaunchIntent = MutableStateFlow<Intent?>(null)
 
@@ -1189,7 +1192,29 @@ open class MainActivity : ComponentActivity() {
                             hasSelectedProfileThisSession = false
                         }
                         Box(modifier = Modifier.fillMaxSize()) {
-                            if (modernSidebarEnabled) {
+                            // Superfork G12a hook (D058): a profile's top menu replaces official's sidebar.
+                            val navigationStyle by uiStyleSettings.navigationStyle.collectAsState(initial = com.nuvio.tv.fork.uistyle.NavigationStyle.SIDEBAR)
+                            val topMenuClock by uiStyleSettings.clockEnabled.collectAsState(initial = false)
+                            if (navigationStyle != com.nuvio.tv.fork.uistyle.NavigationStyle.SIDEBAR) {
+                                com.nuvio.tv.ui.screens.uistyle.TopChromeScaffold(
+                                    style = navigationStyle,
+                                    clockEnabled = topMenuClock,
+                                    longPressBackHeld = longPressBackHeld,
+                                    navController = navController,
+                                    startDestination = startDestination,
+                                    currentRoute = currentRoute,
+                                    rootRoutes = rootRoutes,
+                                    drawerItems = drawerItems,
+                                    selectedDrawerRoute = selectedDrawerRoute,
+                                    activeProfileName = activeProfile?.name ?: "",
+                                    activeProfileColorHex = activeProfile?.avatarColorHex ?: "#1E88E5",
+                                    activeProfileAvatarImageUrl = activeProfileAvatarImageUrl,
+                                    showProfileSelector = profiles.size > 1,
+                                    onSwitchProfile = handleSwitchProfile,
+                                    onNavigate = { optimisticRoute = it },
+                                    onExitApp = handleExitApp
+                                )
+                            } else if (modernSidebarEnabled) {
                                 ModernSidebarScaffold(
                                     longPressBackHeld = longPressBackHeld,
                                     navController = navController,
@@ -2348,7 +2373,7 @@ private fun CollapsedSidebarPill(
     }
 }
 
-private fun navigateToDrawerRoute(
+internal fun navigateToDrawerRoute( // Superfork G12a: shared with the top menu
     navController: NavHostController,
     currentRoute: String?,
     targetRoute: String
@@ -2428,7 +2453,7 @@ private fun DrawerItemIcon(
 }
 
 @Composable
-private fun rememberRawSvgPainter(rawIconRes: Int): Painter {
+internal fun rememberRawSvgPainter(rawIconRes: Int): Painter { // Superfork G12a: shared with the top menu
     val density = androidx.compose.ui.platform.LocalDensity.current
     val sizePx = with(density) { NuvioTheme.spacing.xl.roundToPx() }
     return rememberAsyncImagePainter(

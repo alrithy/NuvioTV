@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- G12a UI styles (D058): top menu choice, clock and profile access. -->
+<resources>
+    <string name="settings_navigation_style_title">نمط التنقل</string>
+    <string name="settings_navigation_style_description">مكان القائمة الرئيسية: الشريط الجانبي، أو شريط في أعلى الشاشة، أو كبسولة عائمة. الشريط الجانبي هو الافتراضي.</string>
+    <string name="navigation_style_sidebar">الشريط الجانبي</string>
+    <string name="navigation_style_top_bar">شريط علوي</string>
+    <string name="navigation_style_pill">كبسولة</string>
+    <string name="settings_top_menu_clock_title">الساعة في القائمة العلوية</string>
+    <string name="settings_top_menu_clock_description">تعرض الوقت بجانب القائمة العلوية بتنسيق 12 أو 24 ساعة حسب إعداد هذا الجهاز.</string>
+    <string name="top_menu_switch_profile">%1$s · تبديل الملف الشخصي</string>
+</resources>

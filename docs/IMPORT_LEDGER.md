@@ -846,3 +846,19 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0, unchanged; the SDK file is unchanged
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: redirect and DNS-rebinding paths inside the player; the controller-level pause bookkeeping and Android saved-state behaviour compile only in CI and need device checks (HV-G11-3)
+
+### G12a — UI styles: top menu (bar / pill), clock and profile access (196, 198, 204, 205)
+- Roadmap gate: G12
+- Source repository: xnucade/NuvioGlass (`dev` @ 84098b7de222fb599e30d12f7a6f5b9b1e347fee, commit 09ade4547a071f2182c0d4df762cf695bb85a4b5); Cxsmo-ai/NuvioTV-Custom (`main` @ 3e0d0fad60a2721adec133b88640b49c0183883f, `TopNavigation.kt`); DavidVamaiotu/NuvioTV-Reshaped (`subtitle-autosync` @ 0ccf049d2789600835f3f7a75423e9149ea416ba, `ui/reshaped/pillnav`)
+- Source file(s): NuvioGlass `GlassScaffold.kt`, `ui/components/glass/GlassNavPill.kt`, `GlassClockPill.kt`; Cxsmo `TopNavigation.kt` (profile access); Reshaped `PillNavScaffold.kt` / `PillNavigationBar.kt` (pill menu replacing the sidebar)
+- Import mode: FILE_PORT (NuvioGlass scaffold, sliding-indicator menu, minute-tick clock); ALGORITHM_PORT (Cxsmo top-bar profile access, Reshaped pill look) on the same scaffold; local WRITE (UiStyleRules, UiStyleSettings)
+- Current official equivalent: official legacy and modern sidebars (kept as the default); `NuvioTopBar` is unused
+- What already existed upstream: `DrawerItem`, `navigateToDrawerRoute`, `LocalContentFocusRequester`, the sidebar profile row and `ProfileAvatarCircle`
+- What was imported: a top menu with one indicator sliding between destinations, a clock that redraws on the minute, a profile button, Back / long-press Back that behave like the sidebar's
+- What was intentionally not imported: NuvioGlass Calendar tab and fork identity; Reshaped app-wide SharedPreferences flag and its AGSL lens (liquid glass lands with the overlaid Glass chrome, G12b); a second or third top bar
+- Local adaptations: one `TopChromeScaffold` with BAR and PILL looks instead of three bars; the menu sits above the content (no auto-hide over a hero), so focus traversal reaches it with Up from the top row; per-profile choice in `fork_ui_style` (Navigation style: Sidebar default / Top bar / Pill; clock switch); official navigation through `navigateToDrawerRoute` (made internal) and raw icons through `rememberRawSvgPainter` (made internal); RTL-safe indicator (absolute positions); UI_STYLES AUTO (D058)
+- Feature flag / fallback: FeatureId.UI_STYLES (AUTO); OFF hides the setting and always shows official's sidebar; an unknown stored style is the sidebar
+- Tests ported/added: UiStyleRulesTest (4: default and flag-off fallback, style cycle, Back contract, clock format and minute tick); FeatureRegistryTest updated (UI_STYLES AUTO; the isolation example now uses MAT_AUDIO)
+- License / attribution notes: GPL-3.0 forks of official; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: D-pad focus between menu and every root screen, RTL and the clock on real TVs are device checks (HV-G12-1, HV-G12-2)
