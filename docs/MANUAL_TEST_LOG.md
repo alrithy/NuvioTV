@@ -39,3 +39,14 @@ G14 is the planned single hardware-certification stop: execute the accumulated c
 - Result: MANUAL-PENDING for every listed case.
 - Follow-up: execute all seven during G14, attach real evidence, reopen affected features on FAIL.
 - Automated evidence is separate: docs/audits/G9_CLOSEOUT.md (2098 tests, 15 known failures, 0 new, APK).
+
+## 2026-10-01 — G10 carry-forward to G14
+- Gate / Feature IDs: G10, 208–236.
+- Commit: final squash 5aba4715367d7a44ae7de1b4414393bca1989f17 (PR #69).
+- Test cases: HV-G10-1, HV-G10-2, HV-G10-3, HV-G10-4, HV-G10-5, HV-G10-6, HV-G10-7, HV-G10-8.
+- Device / Android / display / network / media: not run; to be captured in G14.
+- Expected: exact procedures and expected results in docs/HARDWARE_VALIDATION_TCL_C6K.md §4g.
+- Actual: no hardware execution or diagnostics captured.
+- Result: MANUAL-PENDING for every listed case.
+- Follow-up: execute all eight during G14 with real M3U / Xtream / Stalker providers, attach real evidence, reopen affected features on FAIL.
+- Automated evidence is separate: docs/audits/G10_CLOSEOUT.md (2186 tests, 15 known failures, 0 new, APK).
