@@ -756,6 +756,11 @@ fun AdvancedSettingsContent(
             com.nuvio.tv.fork.playback.PlaybackStrategyCard()
         }
 
+        item(key = "experimental") {
+            // Superfork G13b (D063): the opt-in for experimental groups; everything in it starts off.
+            com.nuvio.tv.ui.screens.aimedia.ExperimentalSettingsCard()
+        }
+
         item(key = "clear_cw_cache") {
             SettingsGroupCard(
                 modifier = Modifier.fillMaxWidth(),
