@@ -521,3 +521,6 @@ before G14 code (UPSTREAM_SYNC; D059 pattern), with a merge commit so official s
 becomes the accepted baseline once the clean replays of official `aeb6ee8` and the integration merge
 show no new debt and no lost or newly skipped test. Any debt growth or reduced coverage needs
 exact-head maintainer approval (never self-approved).
+Outcome (#89): merged without conflicts (integration merge `ed62c7b`); clean replays run 36891605846
+kept every `5c1d9b0` test with an identical outcome and added 28 passing official tests, so the
+baseline moved to `aeb6ee8` with debt unchanged and the minimum test count raised to 1,824.
