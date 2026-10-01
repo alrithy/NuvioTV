@@ -9,8 +9,10 @@ import com.nuvio.tv.core.profile.ProfileManager
 import com.nuvio.tv.fork.livetv.LiveTvChannel
 import com.nuvio.tv.fork.livetv.LiveTvLibrary
 import com.nuvio.tv.fork.livetv.LiveTvOrganisation
+import com.nuvio.tv.fork.livetv.LiveTvPlaybackRegistry
 import com.nuvio.tv.fork.livetv.LiveTvRepository
 import com.nuvio.tv.ui.navigation.Screen
+import com.nuvio.tv.ui.screens.player.PlayerMediaSourceFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
@@ -65,6 +67,10 @@ class LiveTvViewModel @Inject constructor(
      */
     suspend fun playerRoute(channel: LiveTvChannel): String {
         val playback = repository.playableChannel(channel)
+        // G10d: the player's live-only rules apply to exactly these URLs; it keys on the URL it plays,
+        // which moves a user:password@ part into a header.
+        LiveTvPlaybackRegistry.register(playback.streamUrl, channel.key)
+        LiveTvPlaybackRegistry.register(PlayerMediaSourceFactory.normalizePlaybackRequest(playback.streamUrl, playback.headers).url, channel.key)
         repository.recordRecentChannel(channel)
         val state = repository.state.value
         val group = LiveTvOrganisation.customName(channel.group, state.library.groupNames) ?: channel.group

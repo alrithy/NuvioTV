@@ -146,14 +146,15 @@ object PlaybackThroughput {
     /** ExoPlayer tick: bytes since the last tick, gated on whether the player is loading. */
     @Synchronized
     fun onExoTick(context: Context, streamUrl: String?, isLoading: Boolean) {
-        if (!StreamIntelligence.enabled) return
+        // G10d: a Live TV channel arrives at real time and would teach a false low speed.
+        if (!StreamIntelligence.enabled || com.nuvio.tv.fork.livetv.LiveTvPlaybackRegistry.isLiveTv(streamUrl)) return
         samplerFor(context, streamUrl ?: return).onBytesTick(networkBytes.getAndSet(0L), isLoading)
     }
 
     /** mpv tick: its own download rate (`cache-speed`), gated on the demuxer still reading. */
     @Synchronized
     fun onMpvTick(context: Context, streamUrl: String?, bytesPerSecond: Long, isFetching: Boolean) {
-        if (!StreamIntelligence.enabled) return
+        if (!StreamIntelligence.enabled || com.nuvio.tv.fork.livetv.LiveTvPlaybackRegistry.isLiveTv(streamUrl)) return
         samplerFor(context, streamUrl ?: return).onRateTick(bytesPerSecond, isFetching)
     }
 

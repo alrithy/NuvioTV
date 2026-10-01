@@ -714,3 +714,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - AdaptiveResources supplies compressed/disk and inflated byte caps (64/256 MiB constrained, 128/512 MiB standard) and a 5-minute total download timeout; 120-second idle timeout remains. Streaming limits reject chunked oversize or gzip expansion before old-file replacement. No app dependency added.
 - Added/adapted tests: duplicate IDs/aliases/logos; source namespaces and per-guide requests; hash-collision pair Aa/BB; parser incomplete-tail signal; immediate cancellation when invisible; partial display without complete caching and 30-minute re-download/recovery; failed-source Refresh; chunked/expanded oversize preserving old file; total call timeout; resource-tier budgets. Local standalone JVM harness: 85 tests PASS, Android seams stubbed; exact-head Android/fullDebug CI required.
 - Feature 216 stays in_progress: next-programme API exists but display is G10e. HV-G10-4 remains MANUAL-PENDING for G14.
+
+### G10d — Live-only playback rules and live-aware AFR (233–236)
+- Roadmap gate: G10
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: main
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): reshaped/livetv/LiveTvPlaybackRegistry.kt, LiveTvLoadErrors.kt, LiveTvTsFlags.kt, LiveEdgeRecovery.kt; ui/reshaped/livetv/LiveTvFrameRate.kt; the hooks in PlayerMediaSourceFactory, PlayerRuntimeControllerInitialization, PlayerRuntimeControllerAfrPreflight, PlayerRuntimeControllerTracks, PlayerRuntimeControllerAutomaticSubtitleSync and PlaybackThroughput
+- Import mode: FILE_PORT (registry, retry schedule, TS flag, live-edge rejoin, frame meter); ALGORITHM_PORT (median frame rate); ADAPTER (live branch on the G5e AFR owner)
+- Current official equivalent: `LivePlaybackUiPolicy`, BEHIND_LIVE_WINDOW / HLS probe-and-reinit in `PlayerRuntimeControllerErrorRecovery`, G4 dead-source failover, the AFR preflight
+- What already existed upstream: all of the above stay in place and still run for Live TV once the live-only step gives up
+- What was imported: the playback registry (memory only, latest 16 URLs, list entry by channel key); HTTP refusals retried at 0.7 / 1.4 / 2.1 s for Live TV loads; FLAG_ALLOW_NON_IDR_KEYFRAMES for Live TV TS; live-edge rejoin (seekToDefaultPosition + prepare, three per minute); no VOD disk cache, speed learning, seek preview or AutoSync for Live TV; AFR preflight skipped for Live TV; frame rate measured from 48 frame timestamps (median gap) for tracks that report none
+- What was intentionally not imported: Reshaped's separate AFR switcher (`LiveTvFrameRateMatch` / `matchDisplayToLiveTrack`): the decision stays with G5e `TrackAfrPolicy`, which gains `liveTv` and `RUN_LIVE` (switch once without a hold when the rate came after playback started); `keepPlayerForLiveTvZap` (G10e, with zapping); Reshaped's `SeekReadAhead` hook (that component does not exist here)
+- Local adaptations: decisions are plain functions (`LiveTvPlaybackRules`) with the media3 glue in `LiveTvPlaybackHooks` and the controller glue in `PlayerRuntimeControllerLiveTv`; official files get one-line, registry-gated hooks; the frame meter is per stream generation (weak map), so no official field is added; the live display switch is not cached (the rate belongs to what is on now); the registry keys URLs to channel keys, not list links
+- Feature flag / fallback: FeatureId.LIVE_TV (AUTO, D055); a URL Live TV did not register takes every official path unchanged; OFF means nothing is ever registered
+- Tests ported/added: LiveTvPlaybackTest (5: registry scope and bound, retry schedule, rejoin limit, median frame rate with dropped frames / jumps / NTSC / implausible rates), TrackAfrPolicyTest (+1: live branch)
+- License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: display switching and TS start-up need real channels and a display (HV-G10-5, G14); a mid-stream mode switch blanks the picture briefly, accepted for live only
