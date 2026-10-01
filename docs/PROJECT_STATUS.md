@@ -1,10 +1,10 @@
 # Project status
 
 <!-- canonical-state:start -->
-- Active gate: G12 — UI Styles
-- Active branch: `feat/ui-styles`
-- Status: IN_PROGRESS
-- Task: `tasks/G12_UI_STYLES.md`
+- Active gate: G13 — Experimental AI & MAT
+- Active branch: `experimental/media`
+- Status: READY
+- Task: `tasks/G13_EXPERIMENTAL.md`
 - Accepted official baseline: `5c1d9b0e2669199114a12ade38027da132303eb3`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
@@ -14,13 +14,13 @@ This view's header is generated from state; use `state_view.py` after state chan
 
 ## Work boundary
 G0 DONE (PR #7). G1 Unified Diagnostics & Add-on Health DONE (PRs #10, #11, #12; 289 deferred to
-G8). G2 Adaptive Resource Manager DONE (PRs #14, #15, #16; 276 deferred, 279 → G7, 280 → G3). G3 Playback Strategy Framework DONE (PR #18). G4 REMUX / Network Performance is code-complete with all slices merged; its TCL C6K checks/A-B are VALIDATION-PENDING and intentionally batched to G14. G5 Audio / DV / HDR / AFR CODE-COMPLETE (PRs #31–#36; device checks VALIDATION-PENDING, batched to G14). G6 Subtitle Intelligence CODE-COMPLETE (PRs #39, #41, #42 after upstream sync #40 to official 56aaba2, D050; SUBTITLE_INTELLIGENCE AUTO, D051; device checks VALIDATION-PENDING, batched to G14). G7 Seek Intelligence CODE-COMPLETE (PRs #44–#46; D052; SEEK_INTELLIGENCE AUTO; 279 closed; device checks VALIDATION-PENDING, batched to G14). G8 Stream Intelligence CODE-COMPLETE (PRs #48–#51; D053; STREAM_INTELLIGENCE AUTO; 289 closed; device checks VALIDATION-PENDING, batched to G14). G9 Skip / Recommendations / Discovery CODE-COMPLETE (audit #53, slices #54–#59, closeout corrections #61; final squash 7552ef8; 51 IDs terminal, 40 implemented + 11 verified_official; D054; DISCOVERY_SKIP_RECOMMENDATIONS AUTO; HV-G9-1..HV-G9-7 MANUAL-PENDING for G14). G10 Live TV CODE-COMPLETE (audit #62, slices #63–#69, final squash 5aba471; 29 IDs implemented; D055; LIVE_TV AUTO, menu off until enabled per profile; HV-G10-1..HV-G10-8 MANUAL-PENDING for G14). G11 Watch Party CODE-COMPLETE (audit #71, slices #72–#73, review corrections #74, final squash 65e1c57; 13 IDs implemented; D056, D057; WATCH_PARTY AUTO; HV-G11-1..HV-G11-4 MANUAL-PENDING for G14). G12 UI Styles IN_PROGRESS on feat/ui-styles (Claude, sequential; audit #76 merged, upstream sync #77 to official dev 5c1d9b0 merged (D059), G12a #78 top menu bar / pill with clock and profile merged, G12b #79 Glass chrome with blur / flat and Lightweight effects merged (D060), G12c #80 Cinematic Glass and AGSL liquid glass merged (D061), G12d #81 optional screensaver (D062), D058: one `fork/uistyle` owner, official layouts and sidebars kept, verified_official 188–192, 195, 201–203; upstream sync to official dev 5c1d9b0 first; slices G12a–G12c), then G13 Experimental AI & MAT. Legacy PR #1/#2 stay reference-only.
+G8). G2 Adaptive Resource Manager DONE (PRs #14, #15, #16; 276 deferred, 279 → G7, 280 → G3). G3 Playback Strategy Framework DONE (PR #18). G4 REMUX / Network Performance is code-complete with all slices merged; its TCL C6K checks/A-B are VALIDATION-PENDING and intentionally batched to G14. G5 Audio / DV / HDR / AFR CODE-COMPLETE (PRs #31–#36; device checks VALIDATION-PENDING, batched to G14). G6 Subtitle Intelligence CODE-COMPLETE (PRs #39, #41, #42 after upstream sync #40 to official 56aaba2, D050; SUBTITLE_INTELLIGENCE AUTO, D051; device checks VALIDATION-PENDING, batched to G14). G7 Seek Intelligence CODE-COMPLETE (PRs #44–#46; D052; SEEK_INTELLIGENCE AUTO; 279 closed; device checks VALIDATION-PENDING, batched to G14). G8 Stream Intelligence CODE-COMPLETE (PRs #48–#51; D053; STREAM_INTELLIGENCE AUTO; 289 closed; device checks VALIDATION-PENDING, batched to G14). G9 Skip / Recommendations / Discovery CODE-COMPLETE (audit #53, slices #54–#59, closeout corrections #61; final squash 7552ef8; 51 IDs terminal, 40 implemented + 11 verified_official; D054; DISCOVERY_SKIP_RECOMMENDATIONS AUTO; HV-G9-1..HV-G9-7 MANUAL-PENDING for G14). G10 Live TV CODE-COMPLETE (audit #62, slices #63–#69, final squash 5aba471; 29 IDs implemented; D055; LIVE_TV AUTO, menu off until enabled per profile; HV-G10-1..HV-G10-8 MANUAL-PENDING for G14). G11 Watch Party CODE-COMPLETE (audit #71, slices #72–#73, review corrections #74, final squash 65e1c57; 13 IDs implemented; D056, D057; WATCH_PARTY AUTO; HV-G11-1..HV-G11-4 MANUAL-PENDING for G14). G12 UI Styles CODE-COMPLETE (audit #76, upstream sync #77 to official dev 5c1d9b0 (D059), slices #78–#81, final squash 4d640fc; 19 IDs terminal, 10 implemented + 9 verified_official; D058, D060–D062; UI_STYLES AUTO, official sidebar default; HV-G12-1..HV-G12-5 MANUAL-PENDING for G14). G13 Experimental AI & MAT READY on experimental/media (Claude, sequential; everything default OFF), then G14. Legacy PR #1/#2 stay reference-only.
 
 ## CI and baseline
-Latest green feature evidence: G12c PR #80 exact head
-`c81156fd2ffb1ce7e7247abdbb09d44339af0c9b`, run https://github.com/alrithy/NuvioTV/actions/runs/36863863735:
-2213 tests, 15 known failures, 0 new, 1 skipped; fullDebug APK artifact 11162099759; squash-merged as
-`783973f`. G12d PR #81 requires exact-head CI.
+Latest green feature evidence: G12d PR #81 exact head
+`b4c92e4cbab119f6b75cf8b0ad65379ab7d1e94e`, run https://github.com/alrithy/NuvioTV/actions/runs/36865550286:
+2219 tests, 15 known failures, 0 new, 1 skipped; fullDebug APK artifact 11163438418; squash-merged as
+`4d640fc` (G12 final).
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
 A no-new-regressions PASS is not an all-tests-pass claim. Reviewed inventory: clean official
 `56aaba2` replay (D050), 1,796 tests, 18 failed (15 registered + official's 3 stale RAM-tier tests
