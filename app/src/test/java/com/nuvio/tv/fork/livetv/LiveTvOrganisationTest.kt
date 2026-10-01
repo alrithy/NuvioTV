@@ -122,4 +122,27 @@ class LiveTvOrganisationTest {
         store.menus.getValue(1).value = true
         assertFalse(LiveTvRepository(store, store, http, MutableStateFlow(1), false).menuEnabled.first())
     }
+
+    @Test
+    fun zappingWrapsAroundInTheListTheChannelCameFrom() {
+        val list = listOf(news1, news2, sport)
+        assertEquals(sport, LiveTvOrganisation.neighbour(list, news1.key, -1))
+        assertEquals(news1, LiveTvOrganisation.neighbour(list, sport.key, 1))
+        assertEquals(news2, LiveTvOrganisation.neighbour(list, news1.key, 1))
+        assertEquals(news1, LiveTvOrganisation.neighbour(list, other.key, 1))
+        assertNull(LiveTvOrganisation.neighbour(emptyList(), news1.key, 1))
+    }
+
+    @Test
+    fun theZapListFallsBackToShownChannels() = runBlocking {
+        val store = MemoryLiveTvStore(mapOf(1 to listOf(LiveTvSource("a", LiveTvSourceType.M3u, "http://list.example/a.m3u"))))
+        val http = FakeLiveTvFetcher { "#EXTM3U\n#EXTINF:-1 group-title=\"News\",One\nhttp://s/1\n#EXTINF:-1,Two\nhttp://s/2" }
+        val repository = LiveTvRepository(store, store, http, MutableStateFlow(1), true)
+        repository.ensureLoaded()
+        val state = withTimeout(5_000) { repository.state.first { it.shownChannels.size == 2 } }
+        val (one, two) = state.channels
+        repository.setZapList(listOf(two), folderKey = "")
+        assertEquals(listOf(two) to "", repository.zapTarget(two.key))
+        assertEquals(state.shownChannels to LiveTvFilterKeys.ALL, repository.zapTarget(one.key))
+    }
 }

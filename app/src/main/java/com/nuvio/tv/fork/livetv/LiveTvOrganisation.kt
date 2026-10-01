@@ -74,6 +74,16 @@ internal object LiveTvOrganisation {
         return ArrayList(groups).apply { add(to, removeAt(from)) }
     }
 
+    /**
+     * The channel [step] places from the one keyed [currentKey] in [channels], wrapping around
+     * (G10e, features 228, 229); the first one when the current channel is not in the list.
+     */
+    fun neighbour(channels: List<LiveTvChannel>, currentKey: Long?, step: Int): LiveTvChannel? {
+        if (channels.isEmpty()) return null
+        val index = channels.indexOfFirst { it.key == currentKey }
+        return channels[if (index < 0) 0 else Math.floorMod(index + step, channels.size)]
+    }
+
     /** The name the viewer gave [group], or null. */
     fun customName(group: String, names: Map<String, String>): String? = names[group]?.trim()?.takeIf(String::isNotEmpty)
 }

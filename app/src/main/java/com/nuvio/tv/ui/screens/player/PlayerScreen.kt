@@ -182,6 +182,7 @@ fun PlayerScreen(
     val context = LocalContext.current
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val containerFocusRequester = remember { FocusRequester() }
+    val liveTvPlayer = com.nuvio.tv.ui.screens.livetv.rememberLiveTvPlayer(viewModel.controller, containerFocusRequester) // Superfork G10e hook
     val playPauseFocusRequester = remember { FocusRequester() }
     val progressBarFocusRequester = remember { FocusRequester() }
     val episodesFocusRequester = remember { FocusRequester() }
@@ -576,6 +577,7 @@ fun PlayerScreen(
             .focusRequester(containerFocusRequester)
             .focusable(enabled = uiState.error == null)
             .onPreviewKeyEvent { keyEvent ->
+                if (liveTvPlayer.onPreviewKey(keyEvent.nativeKeyEvent, uiState)) return@onPreviewKeyEvent true // Superfork G10e hook
                 // Consume the confirm KEY_UP that opened the subtitle timing dialog before
                 // the newly focused "Sync" button can treat it as a second click. Preview
                 // is required: after open, focus moves into the dialog so onKeyEvent on
@@ -749,7 +751,8 @@ fun PlayerScreen(
                         shouldConfirmNextEpisodeOnEnd ||
                         uiState.postPlayMode is PostPlayMode.StillWatching ||
                         postPlayRecommendationState.isVisible ||
-                        uiState.error != null
+                        uiState.error != null ||
+                        liveTvPlayer.panelOpen // Superfork G10e hook: Live TV channel list
                 if (panelOrDialogOpen) return@onKeyEvent false
 
                 if (keyEvent.nativeKeyEvent.action == KeyEvent.ACTION_UP) {
@@ -1719,6 +1722,8 @@ fun PlayerScreen(
                 }
             )
         }
+
+        com.nuvio.tv.ui.screens.livetv.LiveTvPlayerOverlay(liveTvPlayer, uiState) // Superfork G10e hook
 
         if (uiState.showSpeedDialog) {
             SpeedSelectionDialog(

@@ -733,3 +733,22 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: display switching and TS start-up need real channels and a display (HV-G10-5, G14); a mid-stream mode switch blanks the picture briefly, accepted for live only
+
+### G10e — Live TV inside the player: zapping, channel list, categories, Now/Next card (216, 228–232)
+- Roadmap gate: G10
+- Source repository: DavidVamaiotu/NuvioTV-Reshaped
+- Source branch: main
+- Pinned source SHA: 0ccf049d2789600835f3f7a75423e9149ea416ba
+- Source commit(s): tree at the pinned SHA (file-level diff)
+- Source file(s): ui/reshaped/livetv/LiveTvPlayerOverlay.kt (LiveTvPlayerState, banner, info card, channel panel, folder column), ui/reshaped/livetv/LiveTvStreamDetails.kt, the zap hooks in PlayerScreen and PlayerRuntimeControllerStreams (`keepPlayerForLiveTvZap`), LiveTvRepository zap list
+- Import mode: FILE_PORT (player state, overlay composables, stream details, keep-player zap); ALGORITHM_PORT (wrap-around neighbour); ADAPTER (Hilt entry point instead of a player view-model field)
+- Current official equivalent: none (official has no channel concept in the player); official `switchToSourceStream` reuses an existing ExoPlayer when one is kept
+- What already existed upstream: the player key handler, controls, stream-info data (`buildStreamInfoData`), source switching
+- What was imported: ▲▼ on the bare picture and CH+/CH- switch channel inside the list it was picked from (wrapping, 350 ms settle so quick presses land once), the ExoPlayer kept across Live TV zaps, a banner after each switch, ◀ channel list with now / progress / time left and its categories column, OK Now/Next card with picture and sound details and the next programme (216), ▶ opens the controls; strings en + ar
+- What was intentionally not imported: Reshaped's full-screen guide grid (no feature in scope; the guide shows on every row) and its `▶ Guide` hint; any URL-keyed state (zap list and current channel are channel keys)
+- Local adaptations: the state lives beside the official player through `rememberLiveTvPlayer` (Hilt `LiveTvPlayerEntryPoint`, no new view model); every key returns false unless the playing URL is in the Live TV playback registry, so VOD keys, panels and dialogs are unchanged; overlay collects the repository only while a channel plays; four one-line hooks in PlayerScreen and one in PlayerRuntimeControllerStreams
+- Feature flag / fallback: FeatureId.LIVE_TV (AUTO, D055); with nothing registered the overlay and keys are inert; mpv engine and non-Live-TV switches release the player as before
+- Tests ported/added: LiveTvOrganisationTest (+2: neighbour wraps both ways, falls back to the first channel; empty list)
+- License / attribution notes: GPL-3.0 (Reshaped is a GPL-3.0 fork of official); attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: key routing, focus and zap timing need a remote and real channels (HV-G10-6, G14)

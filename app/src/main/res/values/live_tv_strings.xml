@@ -75,4 +75,13 @@
     <string name="live_tv_error_xtream_invalid_url">Enter a valid HTTP or HTTPS Xtream server URL.</string>
     <string name="live_tv_error_xtream_no_channels">No playable channels were found for this Xtream login.</string>
     <string name="live_tv_error_xtream_failed">The Xtream provider could not be loaded.</string>
+    <!-- G10e: in-player channel list and info card (Reshaped 0ccf049; no guide grid here) -->
+    <string name="live_tv_categories">Categories</string>
+    <string name="live_tv_player_channels">Channels</string>
+    <string name="live_tv_player_categories_hint">◀ Categories</string>
+    <string name="live_tv_player_hint">▲▼ Switch channel  ·  ◀ Channel list  ·  OK Info</string>
+    <string name="live_tv_info_hint">OK Controls  ·  ◀ Channel list  ·  ▲▼ Switch channel</string>
+    <string name="live_tv_info_now">Now</string>
+    <string name="live_tv_info_next">Next · %1$s</string>
+    <string name="live_tv_info_no_guide">No guide for this channel</string>
 </resources>
