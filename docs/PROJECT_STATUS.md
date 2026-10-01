@@ -5,7 +5,7 @@
 - Active branch: `chore/release-hardening`
 - Status: IN_PROGRESS
 - Task: `tasks/G14_HARDENING_RELEASE.md`
-- Accepted official baseline: `5c1d9b0e2669199114a12ade38027da132303eb3`
+- Accepted official baseline: `aeb6ee8591c55424256fdd1f35f426618297378d`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
 <!-- canonical-state:end -->

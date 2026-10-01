@@ -5,7 +5,7 @@
 - Active branch: `chore/release-hardening`
 - Status: IN_PROGRESS
 - Task: `tasks/G14_HARDENING_RELEASE.md`
-- Accepted official baseline: `5c1d9b0e2669199114a12ade38027da132303eb3`
+- Accepted official baseline: `aeb6ee8591c55424256fdd1f35f426618297378d`
 - Governance: READY
 - Owner of these fields: `integration/state.yaml`; regenerate with `state_view.py`.
 <!-- canonical-state:end -->
@@ -281,12 +281,14 @@ add-on / stream URLs; the `full` updater points at official's releases and never
 the release workflow runs only the updater tests and publishes no checksums; nothing watches official
 `dev`. Official `dev` `aeb6ee8` (eleven commits, player error path) merges cleanly; a sync PR precedes
 G14 code (D065): #89 (`chore/upstream-sync-2026-10-01-g14`, open) merges it with no conflicts
-(integration merge `ed62c7b`); clean `[baseline-audit]` replays pending. Slices: sync, G14a (299, 303–305 `fork/security`), G14b (306, 308–310, 312
+(integration merge `ed62c7b`); clean replays (run 36891605846): official `aeb6ee8` 1,824 tests (the 1,796
+of `5c1d9b0` identical, 28 new passing), integration 2,358 tests, 15 known, 0 new; baseline re-anchored
+on `aeb6ee8` with debt unchanged and the minimum test count raised to 1,824 (D065). Slices: sync, G14a (299, 303–305 `fork/security`), G14b (306, 308–310, 312
 `fork/distribution`), G14c (316 upstream watch), then the 320-row accounting and the hardware
 campaign (72 HV cases plus the G4 A/B), which only the maintainer can run.
 ## Exact next action
-1. Wait for #89's clean replays and exact-head CI; record the replay inventory, re-anchor the baseline
-   on `aeb6ee8` if no new debt, merge with a merge commit; then G14a (`wip/g14a-security`).
+1. Wait for #89 exact-head CI and merge it with a merge commit (official stays a parent); then G14a
+   (`wip/g14a-security`), G14b (`wip/g14b-distribution`) and G14c (`wip/g14c-upstream-watch`).
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Hardware results are recorded only as real PASS / FAIL; a FAIL reopens the affected gate / feature.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
