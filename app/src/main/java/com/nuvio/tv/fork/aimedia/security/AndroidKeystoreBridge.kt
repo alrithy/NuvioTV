@@ -1,0 +1,122 @@
+package com.nuvio.tv.fork.aimedia.security
+
+// G13a (D063): FILE_PORT of Fornace/nuvio-ai @ 518af71 `app/src/main/…/core/media/provider/security/KeystoreBridge.kt`; package renamed.
+
+import android.security.keystore.KeyGenParameterSpec
+import android.security.keystore.KeyProperties
+import java.security.KeyStore
+import java.security.SecureRandom
+import javax.crypto.Cipher
+import javax.crypto.KeyGenerator
+import javax.crypto.SecretKey
+import javax.crypto.spec.GCMParameterSpec
+
+/**
+ * Production bridge over the Android Keystore. One AES-256-GCM key is created
+ * per profile generation + provider + record key alias and never leaves the Keystore.
+ *
+ * This class is intentionally thin: the Android Keystore cannot be exercised in
+ * JVM unit tests, so every decision that matters (AAD binding, address
+ * derivation, overwrite/delete semantics) lives in [ProviderCredentialVault],
+ * which is tested against a pure-JVM fake of this interface. The only logic
+ * kept here is key provisioning and cipher invocation.
+ */
+class AndroidKeystoreBridge : KeystoreBridge {
+
+    private val keyStore: KeyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
+
+    @Synchronized
+    override fun encrypt(keyAlias: String, plaintext: ByteArray, aad: ByteArray): EncryptedPayload {
+        val keyExisted = keyStore.containsAlias(keyAlias)
+        val key = secretKey(keyAlias)
+        return try {
+            val cipher = Cipher.getInstance(TRANSFORMATION)
+            // Randomized encryption is required on the key, so no explicit IV is
+            // passed here; the Keystore generates a fresh one per encryption.
+            cipher.init(Cipher.ENCRYPT_MODE, key)
+            cipher.updateAAD(aad)
+            val ciphertext = cipher.doFinal(plaintext)
+            val iv = cipher.iv ?: error("Android Keystore produced no IV for $keyAlias")
+            EncryptedPayload(iv, ciphertext)
+        } catch (cause: Exception) {
+            if (!keyExisted) runCatching { keyStore.deleteEntry(keyAlias) }
+            throw cause
+        }
+    }
+
+    @Synchronized
+    override fun decrypt(keyAlias: String, payload: EncryptedPayload, aad: ByteArray): ByteArray {
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(
+            Cipher.DECRYPT_MODE,
+            existingSecretKey(keyAlias),
+            GCMParameterSpec(GCM_TAG_LENGTH_BITS, payload.iv),
+        )
+        cipher.updateAAD(aad)
+        return cipher.doFinal(payload.ciphertext)
+    }
+
+    @Synchronized
+    override fun hasKey(keyAlias: String): Boolean = keyStore.containsAlias(keyAlias)
+
+    @Synchronized
+    override fun aliases(prefix: String): Set<String> = buildSet {
+        val entries = keyStore.aliases()
+        while (entries.hasMoreElements()) {
+            entries.nextElement().takeIf { it.startsWith(prefix) }?.let(::add)
+        }
+    }
+
+    @Synchronized
+    override fun deleteKey(keyAlias: String): Boolean {
+        val existed = keyStore.containsAlias(keyAlias)
+        if (existed) {
+            keyStore.deleteEntry(keyAlias)
+        }
+        return existed
+    }
+
+    private fun secretKey(keyAlias: String): SecretKey {
+        keyStore.getEntry(keyAlias, null)?.let { entry ->
+            return (entry as? KeyStore.SecretKeyEntry)?.secretKey
+                ?: throw IllegalStateException("Keystore alias $keyAlias is not a secret key")
+        }
+        return createSecretKey(keyAlias)
+    }
+
+    private fun existingSecretKey(keyAlias: String): SecretKey {
+        val entry = keyStore.getEntry(keyAlias, null)
+            ?: throw IllegalStateException("No Android Keystore key for $keyAlias")
+        return (entry as? KeyStore.SecretKeyEntry)?.secretKey
+            ?: throw IllegalStateException("Keystore alias $keyAlias is not a secret key")
+    }
+
+    private fun createSecretKey(keyAlias: String): SecretKey {
+        val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
+        generator.init(
+            KeyGenParameterSpec.Builder(
+                keyAlias,
+                KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT,
+            )
+                .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                .setKeySize(AES_KEY_LENGTH_BITS)
+                .setRandomizedEncryptionRequired(true)
+                .build()
+        )
+        generator.generateKey()
+        return existingSecretKey(keyAlias)
+    }
+
+    companion object {
+        const val ANDROID_KEYSTORE = "AndroidKeyStore"
+        const val TRANSFORMATION = "AES/GCM/NoPadding"
+        const val AES_KEY_LENGTH_BITS = 256
+        const val GCM_TAG_LENGTH_BITS = 128
+
+        // Not used by the Keystore path (which generates its own IVs); shared
+        // here so JVM fakes in the test source set derive their parameters
+        // from the same constants.
+        val FAKE_IV_SOURCE: SecureRandom = SecureRandom()
+    }
+}
