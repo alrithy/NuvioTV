@@ -322,6 +322,7 @@ fun ThemeSettingsContent(
             }
 
             AppDimmerSettingsCard() // Superfork G9f
+            ScreensaverSettingsCard() // Superfork G12d
         }
         SettingsVerticalScrollIndicators(state = themeScrollState)
     }

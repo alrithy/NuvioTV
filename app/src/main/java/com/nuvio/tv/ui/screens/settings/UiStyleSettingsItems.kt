@@ -1,7 +1,9 @@
 package com.nuvio.tv.ui.screens.settings
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -9,6 +11,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import com.nuvio.tv.R
 import com.nuvio.tv.fork.uistyle.NavigationStyle
+import com.nuvio.tv.fork.uistyle.ScreensaverRules
 import com.nuvio.tv.fork.uistyle.UiStyleSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -40,6 +43,27 @@ class UiStyleSettingsViewModel @Inject constructor(private val settings: UiStyle
 
     fun setLightweightEffects(enabled: Boolean) {
         viewModelScope.launch { settings.setLightweightEffects(enabled) }
+    }
+
+    val screensaverEnabled: StateFlow<Boolean> =
+        settings.screensaverEnabled.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
+
+    val screensaverTimeoutMinutes: StateFlow<Int> =
+        settings.screensaverTimeoutMinutes.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ScreensaverRules.DEFAULT_TIMEOUT_MINUTES)
+
+    val screensaverDimPercent: StateFlow<Int> =
+        settings.screensaverDimPercent.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ScreensaverRules.DEFAULT_DIM_PERCENT)
+
+    fun setScreensaverEnabled(enabled: Boolean) {
+        viewModelScope.launch { settings.setScreensaverEnabled(enabled) }
+    }
+
+    fun setScreensaverTimeoutMinutes(minutes: Int) {
+        viewModelScope.launch { settings.setScreensaverTimeoutMinutes(minutes) }
+    }
+
+    fun setScreensaverDimPercent(percent: Int) {
+        viewModelScope.launch { settings.setScreensaverDimPercent(percent) }
     }
 }
 
@@ -82,4 +106,42 @@ internal fun UiStyleSettingsItems(viewModel: UiStyleSettingsViewModel = hiltView
         checked = lightweight,
         onToggle = { viewModel.setLightweightEffects(!lightweight) },
     )
+}
+
+/**
+ * Superfork G12d (292): the idle screensaver under Appearance, per profile and off by default; how
+ * long before it dims and how dark. Hidden while UI_STYLES is OFF.
+ */
+@Composable
+internal fun ScreensaverSettingsCard(viewModel: UiStyleSettingsViewModel = hiltViewModel()) {
+    if (!viewModel.featureEnabled) return
+    val enabled by viewModel.screensaverEnabled.collectAsStateWithLifecycle()
+    SettingsGroupCard(
+        modifier = Modifier.fillMaxWidth(),
+        title = stringResource(R.string.screensaver_title),
+        subtitle = stringResource(R.string.screensaver_subtitle),
+    ) {
+        SettingsToggleRow(
+            title = stringResource(R.string.screensaver_enabled),
+            subtitle = stringResource(R.string.screensaver_enabled_subtitle),
+            checked = enabled,
+            onToggle = { viewModel.setScreensaverEnabled(!enabled) },
+        )
+        if (enabled) {
+            val minutes by viewModel.screensaverTimeoutMinutes.collectAsStateWithLifecycle()
+            val dim by viewModel.screensaverDimPercent.collectAsStateWithLifecycle()
+            SettingsActionRow(
+                title = stringResource(R.string.screensaver_timeout),
+                subtitle = stringResource(R.string.screensaver_timeout_subtitle),
+                value = stringResource(R.string.screensaver_timeout_value, minutes),
+                onClick = { viewModel.setScreensaverTimeoutMinutes(ScreensaverRules.nextTimeout(minutes)) },
+            )
+            SettingsActionRow(
+                title = stringResource(R.string.screensaver_dim),
+                subtitle = stringResource(R.string.screensaver_dim_subtitle),
+                value = "$dim%",
+                onClick = { viewModel.setScreensaverDimPercent(ScreensaverRules.nextDim(dim)) },
+            )
+        }
+    }
 }
