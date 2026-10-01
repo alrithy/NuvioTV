@@ -862,3 +862,19 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: GPL-3.0 forks of official; attributed in KDoc
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: D-pad focus between menu and every root screen, RTL and the clock on real TVs are device checks (HV-G12-1, HV-G12-2)
+
+### G12b — UI styles: Glass chrome, blur or flat, lightweight effects (193, 197, 200)
+- Roadmap gate: G12
+- Source repository: xnucade/NuvioGlass (`dev` @ 84098b7de222fb599e30d12f7a6f5b9b1e347fee, commit 09ade4547a071f2182c0d4df762cf695bb85a4b5)
+- Source file(s): `GlassScaffold.kt`, `ui/components/glass/GlassSurface.kt` (incl. `LocalGlassChromeReveal`), `ui/theme/GlassTokens.kt`, the `ModernHomeRowsList.kt` first-row Up hook
+- Import mode: FILE_PORT (scaffold, surface, tokens, reveal hook); local WRITE (effect policy in UiStyleRules, Lightweight effects setting)
+- Current official equivalent: Modern home with full-bleed hero and the modern sidebar's Haze blur (API gate only)
+- What already existed upstream: Haze 1.7.2, `hideBuiltInHeaders`, `navigateToDrawerRoute`, `LocalContentFocusRequester`, the Modern rows key handler
+- What was imported: chrome kept in composition and moved off-screen with a graphicsLayer so focus traversal still reaches it only from the top row; auto-hide on Home (3.5 s on arrival, 0.25 s once used); Up from the first row reveals and focuses it; content dimmed while it has focus; scrim; glass surface (blur 24 dp at input scale 0.66, tint 0.28 live / 0.82 flat, bevelled hairline)
+- What was intentionally not imported: `HomeLayout.GLASS` and the `usesModernPipeline` edits across official layout code (D060: Glass is a navigation style instead); NuvioGlass fork identity, Calendar tab, glass badges and per-card glass; the API-only blur gate
+- Local adaptations: Glass is a per-profile Navigation style (Pill with Classic / Grid); the menu, clock and profile button are the G12a parts on glass pills; blur or flat chosen by `UiStyleRules.glassEffect` (API 31, AdaptiveResources tier, Lightweight effects); Back follows the shared top-menu contract (first Back focuses the chrome, then exits) instead of NuvioGlass's hide-on-Back; the long-press Back handler is shared with the G12a scaffold
+- Feature flag / fallback: FeatureId.UI_STYLES (AUTO); OFF shows official's sidebar and hides the settings; the reveal hook returns false outside Glass, so the Modern rows behave as official
+- Tests ported/added: UiStyleRulesTest (+3: Glass falls back to Pill off Modern and to Sidebar with the flag off; blur only on API 31+ with a known non-LOW_RAM tier and Lightweight effects off; hide delays)
+- License / attribution notes: GPL-3.0 fork of official; attributed in KDoc
+- Resulting local commit: recorded in HANDOFF after merge
+- Known risks / follow-up: blur cost on 2 GB boxes and over the hero trailer, D-pad reveal and RTL on real TVs are device checks (HV-G12-3); Cinematic Glass (194) and liquid glass (199) next
