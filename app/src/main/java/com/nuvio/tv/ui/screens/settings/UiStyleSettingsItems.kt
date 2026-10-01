@@ -44,8 +44,8 @@ class UiStyleSettingsViewModel @Inject constructor(private val settings: UiStyle
 }
 
 /**
- * "Navigation style" in the sidebar settings (G12a / G12b, D058, D060): official's sidebar (default),
- * a top bar, a pill or Glass, per profile; under a top menu, the clock beside it; under Glass, the
+ * "Navigation style" in the sidebar settings (G12a–G12c, D058, D060, D061): official's sidebar
+ * (default), a top bar, a pill, Glass or Cinematic Glass, per profile; under a top menu, the clock beside it; under Glass, the
  * "Lightweight effects" switch. Hidden while UI_STYLES is OFF.
  */
 @Composable
@@ -61,6 +61,7 @@ internal fun UiStyleSettingsItems(viewModel: UiStyleSettingsViewModel = hiltView
                 NavigationStyle.TOP_BAR -> R.string.navigation_style_top_bar
                 NavigationStyle.PILL -> R.string.navigation_style_pill
                 NavigationStyle.GLASS -> R.string.navigation_style_glass
+                NavigationStyle.CINEMATIC_GLASS -> R.string.navigation_style_cinematic_glass
             },
         ),
         onClick = { viewModel.setNavigationStyle(style.next()) },
@@ -73,7 +74,7 @@ internal fun UiStyleSettingsItems(viewModel: UiStyleSettingsViewModel = hiltView
         checked = clock,
         onToggle = { viewModel.setClockEnabled(!clock) },
     )
-    if (style != NavigationStyle.GLASS) return
+    if (!style.isGlass) return
     val lightweight by viewModel.lightweightEffects.collectAsStateWithLifecycle()
     SettingsToggleRow(
         title = stringResource(R.string.settings_lightweight_effects_title),

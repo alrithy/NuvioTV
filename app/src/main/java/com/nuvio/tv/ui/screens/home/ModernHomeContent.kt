@@ -150,7 +150,9 @@ fun ModernHomeContent(
     val lifecycleOwner = LocalLifecycleOwner.current
     val useLandscapePosters = uiState.modernLandscapePostersEnabled
     val alwaysShowLandscapeClearlogo = uiState.alwaysShowLandscapeClearlogo
-    val fullScreenBackdrop = uiState.modernHeroFullScreenBackdropEnabled
+    // Superfork G12c hook (D061): Cinematic Glass shows the full-screen hero backdrop without writing the setting.
+    val fullScreenBackdrop = uiState.modernHeroFullScreenBackdropEnabled ||
+        com.nuvio.tv.ui.screens.uistyle.LocalCinematicGlass.current
     val trailerPlaybackTarget = uiState.focusedPosterBackdropTrailerPlaybackTarget
     val effectiveAutoplayEnabled =
         uiState.focusedPosterBackdropTrailerEnabled &&

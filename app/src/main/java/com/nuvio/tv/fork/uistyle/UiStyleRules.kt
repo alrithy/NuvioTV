@@ -6,7 +6,7 @@ import com.nuvio.tv.fork.foundation.FeatureRegistry
 import com.nuvio.tv.fork.resource.MemoryTier
 
 /*
- * G12a / G12b UI styles (D058, D060; features 193, 196–198, 200, 204, 205): where the main menu sits
+ * G12a–G12c UI styles (D058, D060, D061; features 193, 194, 196–200, 204, 205): where the main menu sits
  * and how its glass is drawn. Pure, so the choices and the Back contract are JVM-tested. Official's
  * sidebars stay the default and the only option while UI_STYLES is OFF.
  */
@@ -25,7 +25,16 @@ enum class NavigationStyle {
      * NuvioGlass Glass layout @ 84098b7 (D060): official's Modern home with frosted top chrome
      * floating over its full-bleed hero, hiding itself on Home until Up from the first row.
      */
-    GLASS;
+    GLASS,
+
+    /**
+     * Glass with the focused title's artwork full screen behind everything (official's Modern
+     * full-screen hero backdrop, without changing that setting); the Cinema View idea (D061).
+     */
+    CINEMATIC_GLASS;
+
+    /** Both Glass styles float frosted chrome over official's Modern home. */
+    val isGlass: Boolean get() = this == GLASS || this == CINEMATIC_GLASS
 
     /** The next choice in Settings (Sidebar → Top bar → Pill → Glass → Sidebar). */
     fun next(): NavigationStyle = entries[(ordinal + 1) % entries.size]
@@ -36,8 +45,17 @@ enum class NavigationStyle {
     }
 }
 
-/** How the Glass chrome is drawn: a live blur of the screen behind it, or an opaque tint. */
-enum class GlassEffect { BLUR, FLAT }
+/** How the Glass chrome is drawn, from richest to cheapest. */
+enum class GlassEffect {
+    /** Reshaped's AGSL lens: the screen behind refracted at the rim, with dispersion and a specular edge. */
+    LIQUID,
+
+    /** A live blur of the screen behind. */
+    BLUR,
+
+    /** An opaque tint with the same edge. */
+    FLAT,
+}
 
 /** What Back does on a root screen while a top menu is shown (mirrors official's sidebar). */
 enum class TopChromeBack {
@@ -59,20 +77,23 @@ object UiStyleRules {
         if (featureEnabled) stored else NavigationStyle.SIDEBAR
 
     /**
-     * The style actually shown. Glass is a reskin of official's Modern home, so with Classic or Grid
-     * it falls back to the plain pill (the closest top menu without an overlay).
+     * The style actually shown. Both Glass styles reskin official's Modern home, so with Classic or
+     * Grid they fall back to the plain pill (the closest top menu without an overlay).
      */
     fun effectiveStyle(stored: NavigationStyle, modernLayout: Boolean, featureEnabled: Boolean = enabled): NavigationStyle {
         val style = navigationStyle(stored, featureEnabled)
-        return if (style == NavigationStyle.GLASS && !modernLayout) NavigationStyle.PILL else style
+        return if (style.isGlass && !modernLayout) NavigationStyle.PILL else style
     }
 
     /**
      * Live blur needs RenderEffect (Android 12, API 31) and memory to spare; 1–1.5 GB boxes, an
      * unknown tier and the user's "Lightweight effects" switch get the opaque tint (feature 200).
+     * The liquid-glass lens needs AGSL (Android 13, API 33) and the STANDARD tier, above the 2 GB
+     * class (Reshaped asks for about 3 GB); 2 GB boxes keep the blur (feature 199).
      */
     fun glassEffect(sdkInt: Int, tier: MemoryTier?, lightweight: Boolean): GlassEffect = when {
         lightweight || sdkInt < BLUR_MIN_SDK || tier == null || tier == MemoryTier.LOW_RAM -> GlassEffect.FLAT
+        sdkInt >= LIQUID_MIN_SDK && tier == MemoryTier.STANDARD -> GlassEffect.LIQUID
         else -> GlassEffect.BLUR
     }
 
@@ -96,6 +117,7 @@ object UiStyleRules {
 
     private const val MINUTE_MS = 60_000L
     private const val BLUR_MIN_SDK = 31
+    private const val LIQUID_MIN_SDK = 33
     const val GLASS_AUTO_HIDE_MS = 3_500L
     const val GLASS_DISMISS_MS = 250L
 }

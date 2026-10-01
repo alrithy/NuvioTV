@@ -34,7 +34,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.nuvio.tv.DrawerItem
@@ -54,7 +58,7 @@ import dev.chrisbanes.haze.hazeSource
 import kotlinx.coroutines.delay
 
 /*
- * G12b Glass chrome (D060; features 193, 197, 200). FILE_PORT of xnucade/NuvioGlass @ 84098b7
+ * G12b / G12c Glass chrome (D060, D061; features 193, 194, 197, 199, 200). FILE_PORT of xnucade/NuvioGlass @ 84098b7
  * (`GlassScaffold`, `GlassSurface`, `GlassTokens`, `LocalGlassChromeReveal`), adapted: the menu,
  * clock and profile button are the G12a top-menu parts; how the glass is drawn comes from
  * [UiStyleRules.glassEffect] (API level, AdaptiveResources tier, "Lightweight effects") instead of an
@@ -62,7 +66,9 @@ import kotlinx.coroutines.delay
  *
  * The chrome floats over official's Modern home and its full-bleed hero. On Home it hides itself when
  * idle and comes back on Up from the first row (the rows list calls [LocalGlassChromeReveal]). It is
- * only shown on root screens, never over the player.
+ * only shown on root screens, never over the player. Cinematic Glass also puts the focused title's
+ * artwork full screen behind everything ([LocalCinematicGlass]). On capable devices the pills are
+ * Reshaped's liquid glass ([LiquidGlassBackdrop]) instead of a blur.
  */
 
 /**
@@ -70,6 +76,12 @@ import kotlinx.coroutines.delay
  * chrome took the key. A no-op (false) everywhere else, so official layouts are unchanged.
  */
 val LocalGlassChromeReveal = staticCompositionLocalOf<() -> Boolean> { { false } }
+
+/**
+ * True under Cinematic Glass: official's Modern home then shows its full-screen hero backdrop
+ * whatever that setting says, without writing it (D061). False everywhere else.
+ */
+val LocalCinematicGlass = staticCompositionLocalOf { false }
 
 /** NuvioGlass `GlassTokens`. */
 private object GlassTokens {
@@ -93,10 +105,20 @@ private object GlassTokens {
 /**
  * Frosted surface: blur what is behind, tint it, then a hairline that is bright at the top and
  * nearly gone at the bottom, like a bevel catching light. [GlassEffect.FLAT] (or no haze state)
- * keeps the same look with an opaque tint and no blur.
+ * keeps the same look with an opaque tint and no blur. [GlassEffect.LIQUID] with a recorder draws
+ * the capsule lens instead, which brings its own rim light.
  */
 @Composable
-internal fun Modifier.glassSurface(shape: Shape, effect: GlassEffect, hazeState: HazeState?): Modifier {
+internal fun Modifier.glassSurface(
+    shape: Shape,
+    effect: GlassEffect,
+    hazeState: HazeState?,
+    liquid: LiquidGlassBackdrop? = null,
+    focus: Float = 0f,
+): Modifier {
+    if (effect == GlassEffect.LIQUID && liquid != null) {
+        return clip(shape).liquidGlassSurface(liquid, focus, NuvioTheme.colors.FocusBackground)
+    }
     val liveBlur = effect == GlassEffect.BLUR && hazeState != null
     val tint = remember(liveBlur) {
         val alpha = if (liveBlur) GlassTokens.tintAlpha else GlassTokens.tintAlphaFlat
@@ -131,6 +153,7 @@ internal fun Modifier.glassSurface(shape: Shape, effect: GlassEffect, hazeState:
 @Composable
 internal fun GlassChromeScaffold(
     effect: GlassEffect,
+    cinematic: Boolean,
     clockEnabled: Boolean,
     longPressBackHeld: MutableState<Boolean>,
     navController: NavHostController,
@@ -144,6 +167,9 @@ internal fun GlassChromeScaffold(
     onExitApp: () -> Unit,
 ) {
     val hazeState = remember(effect) { if (effect == GlassEffect.BLUR) HazeState() else null }
+    val liquid = rememberLiquidGlassBackdrop(effect == GlassEffect.LIQUID)
+    val density = LocalDensity.current
+    val layoutDirection = LocalLayoutDirection.current
     val contentFocusRequester = remember { FocusRequester() }
     val menuFocusRequester = remember { FocusRequester() }
     val onRootRoute = currentRoute in rootRoutes
@@ -164,6 +190,11 @@ internal fun GlassChromeScaffold(
         delay(80)
         runCatching { menuFocusRequester.requestFocus() }
         pendingMenuFocus = false
+    }
+    // The liquid lens follows the screen only while the chrome shows; hidden, its recording is dropped.
+    LaunchedEffect(liquid, chromeVisible, onRootRoute) {
+        if (liquid == null) return@LaunchedEffect
+        if (chromeVisible && onRootRoute) liquid.refreshWhileShown() else liquid.clear(density, layoutDirection)
     }
     LaunchedEffect(chromeVisible, chromeFocused, currentRoute) {
         if (!chromeVisible || chromeFocused || !onRootRoute || !autoHides) return@LaunchedEffect
@@ -193,6 +224,10 @@ internal fun GlassChromeScaffold(
         modifier = Modifier
             .fillMaxSize()
             .background(NuvioTheme.colors.Background)
+            .onPreviewKeyEvent { event ->
+                if (event.type == KeyEventType.KeyDown) liquid?.poke()
+                false
+            }
             .longPressBackToChrome(onRootRoute, longPressBackHeld) { revealChrome() },
     ) {
         val contentDim by animateFloatAsState(
@@ -204,12 +239,14 @@ internal fun GlassChromeScaffold(
             modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer { alpha = contentDim }
-                .then(if (hazeState != null) Modifier.hazeSource(state = hazeState) else Modifier),
+                .then(if (hazeState != null) Modifier.hazeSource(state = hazeState) else Modifier)
+                .liquidGlassSource(liquid?.takeIf { chromeVisible && onRootRoute }),
         ) {
             CompositionLocalProvider(
                 LocalSidebarExpanded provides false,
                 LocalContentFocusRequester provides contentFocusRequester,
                 LocalGlassChromeReveal provides revealChrome,
+                LocalCinematicGlass provides cinematic,
             ) {
                 NuvioNavHost(
                     navController = navController,
@@ -234,6 +271,11 @@ internal fun GlassChromeScaffold(
                 label = "glassChromeAlpha",
             )
             val pill = RoundedCornerShape(NuvioTheme.radii.full)
+            val focusFraction by animateFloatAsState(
+                targetValue = if (chromeFocused) 1f else 0f,
+                animationSpec = spring(stiffness = Spring.StiffnessMedium),
+                label = "glassChromeFocus",
+            )
             Box(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
@@ -266,7 +308,7 @@ internal fun GlassChromeScaffold(
                     TopMenu(
                         items = drawerItems,
                         selectedRoute = selectedDrawerRoute ?: currentRoute,
-                        container = Modifier.glassSurface(pill, effect, hazeState),
+                        container = Modifier.glassSurface(pill, effect, hazeState, liquid, focusFraction),
                         focusRequester = menuFocusRequester,
                         onFocusChanged = {},
                         onNavigate = { route ->
@@ -279,7 +321,7 @@ internal fun GlassChromeScaffold(
                         Row(
                             modifier = Modifier
                                 .height(52.dp)
-                                .glassSurface(pill, effect, hazeState)
+                                .glassSurface(pill, effect, hazeState, liquid, focusFraction)
                                 .padding(horizontal = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {

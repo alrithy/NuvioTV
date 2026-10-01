@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- G12a / G12b UI styles (D058, D060): top menu choice, Glass, clock and profile access. -->
+<!-- G12a–G12c UI styles (D058, D060, D061): top menu choice, Glass, Cinematic Glass, clock and profile access. -->
 <resources>
     <string name="settings_navigation_style_title">نمط التنقل</string>
-    <string name="settings_navigation_style_description">مكان القائمة الرئيسية: الشريط الجانبي، أو شريط في أعلى الشاشة، أو كبسولة عائمة، أو زجاجي (شفاف فوق الواجهة الحديثة، وكبسولة مع الواجهات الأخرى). الشريط الجانبي هو الافتراضي.</string>
+    <string name="settings_navigation_style_description">مكان القائمة الرئيسية: الشريط الجانبي، أو شريط في أعلى الشاشة، أو كبسولة عائمة، أو زجاجي (شفاف فوق الواجهة الحديثة)، أو زجاجي سينمائي (زجاجي مع صورة العمل بملء الشاشة)؛ ومع الواجهات الأخرى يظهر النمطان الزجاجيان ككبسولة. الشريط الجانبي هو الافتراضي.</string>
     <string name="navigation_style_sidebar">الشريط الجانبي</string>
     <string name="navigation_style_top_bar">شريط علوي</string>
     <string name="navigation_style_pill">كبسولة</string>
     <string name="navigation_style_glass">زجاجي</string>
+    <string name="navigation_style_cinematic_glass">زجاجي سينمائي</string>
     <string name="settings_lightweight_effects_title">تأثيرات خفيفة</string>
-    <string name="settings_lightweight_effects_description">يرسم القائمة الزجاجية دون تمويه حيّ. الأجهزة ذات الذاكرة القليلة أو الأقدم من أندرويد 12 تفعل ذلك دائمًا.</string>
+    <string name="settings_lightweight_effects_description">يرسم القائمة الزجاجية دون تمويه حيّ أو زجاج سائل. الأجهزة ذات الذاكرة القليلة أو الأقدم من أندرويد 12 تفعل ذلك دائمًا، والزجاج السائل يحتاج أندرويد 13 وذاكرة كافية.</string>
     <string name="settings_top_menu_clock_title">الساعة في القائمة العلوية</string>
     <string name="settings_top_menu_clock_description">تعرض الوقت بجانب القائمة العلوية بتنسيق 12 أو 24 ساعة حسب إعداد هذا الجهاز.</string>
     <string name="top_menu_switch_profile">%1$s · تبديل الملف الشخصي</string>
