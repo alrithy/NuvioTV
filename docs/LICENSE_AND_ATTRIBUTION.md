@@ -33,3 +33,8 @@ name or claim affiliation. The Watch Party code around it is a GPL-3.0 port of A
 
 ## Release gate
 Before stable release, audit IMPORT_LEDGER against distributed source/artifacts and verify required notices are included. This document is an engineering compliance policy, not legal advice.
+
+Reviewed (G14 accounting): `tv.seekr:seekr-android:0.2.0` (G7a) is Apache-2.0
+(github.com/AKhalil609/seekr-android-sdk), consumed as a Maven dependency, not copied; Apache-2.0 is
+compatible with the GPL-3.0 larger work; this record and the IMPORT_LEDGER G7a entry are its
+attribution.

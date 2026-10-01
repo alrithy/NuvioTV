@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G14 — Hardening Release Upstream
 - Active branch: `chore/release-hardening`
-- Status: IN_PROGRESS
+- Status: BLOCKED
 - Task: `tasks/G14_HARDENING_RELEASE.md`
 - Accepted official baseline: `aeb6ee8591c55424256fdd1f35f426618297378d`
 - Governance: READY
@@ -303,13 +303,20 @@ governance suite, validator and full unit suite with the baseline guard before b
 publishes `SHA256SUMS.txt`. 306, 308, 309, 310, 312 implemented; HV-G14-3 MANUAL-PENDING after the
 first fork release (maintainer: signing secrets, first release and the application-id choice,
 GITHUB_ADMIN_CHECKLIST D). Local JVM harness: 467 tests PASS.
-G14c (#92, open): `scripts/superfork/upstream_watch.py` + Superfork Upstream Watch: official `dev`
+G14c merged as #92 (`dc676bf`; exact head `d5832b8`, run 36917962782: 2373 tests, 15 known failures,
+0 new, 1 skipped; APK artifact 11190309840): `scripts/superfork/upstream_watch.py` + Superfork Upstream Watch: official `dev`
 commits after the accepted baseline and the fork seams they touch, as a job summary and one
 annotation, on every PR, on demand and daily once `superfork/integration` is the default branch;
 read-only, no secrets, no merges; test_upstream_watch. 316 implemented.
+Accounting (#93, open) `docs/audits/G14_ACCOUNTING.md`: 318 of 320 rows terminal with evidence, 3 (Auto network
+input: needs the A/B thresholds; the G8c estimator is ready) and 320 (Stable distribution) blocked on
+the maintainer's devices and release actions; ledger, license, dependency (Seekr recorded) and
+sensitive-log audits done; the hardware campaign order. G14 BLOCKED: nothing in code remains.
 ## Exact next action
-1. Wait for #92 (G14c) exact-head CI and squash with the expected head; then the 320-row accounting,
-   the hardware run sheet, and G14 BLOCKED on the maintainer's hardware campaign and admin actions.
+1. Wait for #93 (accounting) exact-head CI and squash it. Then G14 waits on the maintainer: the
+   hardware campaign (`docs/audits/G14_ACCOUNTING.md` order) and GITHUB_ADMIN_CHECKLIST A–D. Record
+   shared evidence as PASS / FAIL, fix any FAIL, then close 3, 320 and G14. Official upstream movement
+   is reported by Superfork Upstream Watch; sync through a dedicated PR when it touches fork seams.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Hardware results are recorded only as real PASS / FAIL; a FAIL reopens the affected gate / feature.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
