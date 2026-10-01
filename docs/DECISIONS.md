@@ -532,7 +532,7 @@ CI writes empty `local.properties` / `local.dev.properties` (no backend) and sig
 per run (no update path). `Superfork Test Build` therefore builds the full debug variant as
 `com.nuvio.tv.debug` (installs beside official and release builds), with the backend configuration
 from repository secrets (`LOCAL_PROPERTIES_BASE64` / `LOCAL_DEV_PROPERTIES_BASE64`, the names official's
-workflows use, or `SUPERFORK_SUPABASE_URL` + `SUPERFORK_SUPABASE_ANON_KEY`), signed with one fixed test
+workflows use, or the `NUVIO_SUPABASE_URL` + `NUVIO_SUPABASE_ANON_KEY` secrets other Nuvio forks use), signed with one fixed test
 key (`SUPERFORK_TEST_KEYSTORE_*`), and version code `versionCode * 100000 + run number`, so builds
 only move forward. Secrets are written to runner files only and never printed; the artifact holds
 the universal APK and its SHA-256. It runs on every push to `superfork/integration`, on demand, and on

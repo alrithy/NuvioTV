@@ -46,8 +46,9 @@ jobs:
         env:
           LOCAL_PROPERTIES_BASE64: ${{ secrets.LOCAL_PROPERTIES_BASE64 }}
           LOCAL_DEV_PROPERTIES_BASE64: ${{ secrets.LOCAL_DEV_PROPERTIES_BASE64 }}
-          SUPERFORK_SUPABASE_URL: ${{ secrets.SUPERFORK_SUPABASE_URL }}
-          SUPERFORK_SUPABASE_ANON_KEY: ${{ secrets.SUPERFORK_SUPABASE_ANON_KEY }}
+          NUVIO_SUPABASE_URL_SECRET: ${{ secrets.NUVIO_SUPABASE_URL }}
+          NUVIO_SUPABASE_ANON_KEY_SECRET: ${{ secrets.NUVIO_SUPABASE_ANON_KEY }}
+          NUVIO_SUPABASE_FALLBACK_URL_SECRET: ${{ secrets.NUVIO_SUPABASE_FALLBACK_URL }}
           SUPERFORK_TEST_KEYSTORE_BASE64: ${{ secrets.SUPERFORK_TEST_KEYSTORE_BASE64 }}
           SUPERFORK_TEST_KEYSTORE_PASSWORD: ${{ secrets.SUPERFORK_TEST_KEYSTORE_PASSWORD }}
           SUPERFORK_TEST_KEY_ALIAS: ${{ secrets.SUPERFORK_TEST_KEY_ALIAS }}
@@ -56,18 +57,18 @@ jobs:
           state() { if [ -n "${!1}" ]; then echo "present"; else echo "missing"; fi; }
           {
             echo "## Secrets (presence only)"
-            for name in LOCAL_PROPERTIES_BASE64 LOCAL_DEV_PROPERTIES_BASE64 SUPERFORK_SUPABASE_URL \
-                SUPERFORK_SUPABASE_ANON_KEY SUPERFORK_TEST_KEYSTORE_BASE64 SUPERFORK_TEST_KEYSTORE_PASSWORD \
-                SUPERFORK_TEST_KEY_ALIAS; do
-              echo "- \`$name\`: $(state "$name")"
+            for name in LOCAL_PROPERTIES_BASE64 LOCAL_DEV_PROPERTIES_BASE64 NUVIO_SUPABASE_URL_SECRET \
+                NUVIO_SUPABASE_ANON_KEY_SECRET NUVIO_SUPABASE_FALLBACK_URL_SECRET SUPERFORK_TEST_KEYSTORE_BASE64 \
+                SUPERFORK_TEST_KEYSTORE_PASSWORD SUPERFORK_TEST_KEY_ALIAS; do
+              echo "- \`${name%_SECRET}\`: $(state "$name")"
             done
           } >> "$GITHUB_STEP_SUMMARY"
           [ -n "$SUPERFORK_TEST_KEYSTORE_BASE64" ] || missing+=(SUPERFORK_TEST_KEYSTORE_BASE64)
           [ -n "$SUPERFORK_TEST_KEYSTORE_PASSWORD" ] || missing+=(SUPERFORK_TEST_KEYSTORE_PASSWORD)
           [ -n "$SUPERFORK_TEST_KEY_ALIAS" ] || missing+=(SUPERFORK_TEST_KEY_ALIAS)
           if [ -z "$LOCAL_PROPERTIES_BASE64$LOCAL_DEV_PROPERTIES_BASE64" ] && \
-             { [ -z "$SUPERFORK_SUPABASE_URL" ] || [ -z "$SUPERFORK_SUPABASE_ANON_KEY" ]; }; then
-            missing+=("LOCAL_PROPERTIES_BASE64 (or SUPERFORK_SUPABASE_URL + SUPERFORK_SUPABASE_ANON_KEY)")
+             { [ -z "$NUVIO_SUPABASE_URL_SECRET" ] || [ -z "$NUVIO_SUPABASE_ANON_KEY_SECRET" ]; }; then
+            missing+=("NUVIO_SUPABASE_URL + NUVIO_SUPABASE_ANON_KEY (or LOCAL_PROPERTIES_BASE64)")
           fi
           if [ ${#missing[@]} -gt 0 ]; then
             printf '::error title=Missing secrets::Add in Settings > Secrets and variables > Actions: %s (docs/GITHUB_ADMIN_CHECKLIST.md section E).\n' "${missing[*]}"
@@ -78,8 +79,9 @@ jobs:
         env:
           LOCAL_PROPERTIES_BASE64: ${{ secrets.LOCAL_PROPERTIES_BASE64 }}
           LOCAL_DEV_PROPERTIES_BASE64: ${{ secrets.LOCAL_DEV_PROPERTIES_BASE64 }}
-          SUPERFORK_SUPABASE_URL: ${{ secrets.SUPERFORK_SUPABASE_URL }}
-          SUPERFORK_SUPABASE_ANON_KEY: ${{ secrets.SUPERFORK_SUPABASE_ANON_KEY }}
+          NUVIO_SUPABASE_URL_SECRET: ${{ secrets.NUVIO_SUPABASE_URL }}
+          NUVIO_SUPABASE_ANON_KEY_SECRET: ${{ secrets.NUVIO_SUPABASE_ANON_KEY }}
+          NUVIO_SUPABASE_FALLBACK_URL_SECRET: ${{ secrets.NUVIO_SUPABASE_FALLBACK_URL }}
         run: |
           umask 077
           : > local.properties
@@ -87,10 +89,13 @@ jobs:
           [ -z "$LOCAL_PROPERTIES_BASE64" ] || printf '%s' "$LOCAL_PROPERTIES_BASE64" | base64 --decode > local.properties
           [ -z "$LOCAL_DEV_PROPERTIES_BASE64" ] || printf '%s' "$LOCAL_DEV_PROPERTIES_BASE64" | base64 --decode > local.dev.properties
           # Individual secrets win over the files for the backend the test build talks to.
-          if [ -n "$SUPERFORK_SUPABASE_URL" ] && [ -n "$SUPERFORK_SUPABASE_ANON_KEY" ]; then
+          if [ -n "$NUVIO_SUPABASE_URL_SECRET" ] && [ -n "$NUVIO_SUPABASE_ANON_KEY_SECRET" ]; then
             for f in local.properties local.dev.properties; do
-              sed -i '/^NUVIO_SUPABASE_URL=/d;/^NUVIO_SUPABASE_ANON_KEY=/d' "$f"
-              printf '\nNUVIO_SUPABASE_URL=%s\nNUVIO_SUPABASE_ANON_KEY=%s\n' "$SUPERFORK_SUPABASE_URL" "$SUPERFORK_SUPABASE_ANON_KEY" >> "$f"
+              sed -i '/^NUVIO_SUPABASE_URL=/d;/^NUVIO_SUPABASE_ANON_KEY=/d;/^NUVIO_SUPABASE_FALLBACK_URL=/d' "$f"
+              printf '\nNUVIO_SUPABASE_URL=%s\nNUVIO_SUPABASE_ANON_KEY=%s\nNUVIO_SUPABASE_FALLBACK_URL=%s\n' \
+                "$NUVIO_SUPABASE_URL_SECRET" "$NUVIO_SUPABASE_ANON_KEY_SECRET" "$NUVIO_SUPABASE_FALLBACK_URL_SECRET" >> "$f"
+              grep -q '^AVATAR_PUBLIC_BASE_URL=.' "$f" || \
+                printf 'AVATAR_PUBLIC_BASE_URL=%s/storage/v1/object/public/avatars\n' "${NUVIO_SUPABASE_URL_SECRET%/}" >> "$f"
             done
           fi
           # The debug build reads local.dev.properties first, then local.properties.

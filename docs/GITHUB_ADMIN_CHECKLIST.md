@@ -36,11 +36,12 @@ Do not guess check names in GitHub settings; select the actual checks emitted by
 
 ### E. Device test builds (D066)
 Repository → Settings → Secrets and variables → Actions → New repository secret:
-- [ ] Backend, one of:
-  - `LOCAL_PROPERTIES_BASE64` = `base64 -w0 local.properties` of a properties file with at least
-    `NUVIO_SUPABASE_URL` and `NUVIO_SUPABASE_ANON_KEY` (plus `TMDB_API_KEY`, `TRAKT_CLIENT_ID`,
-    `TRAKT_CLIENT_SECRET`, ... as available); optionally `LOCAL_DEV_PROPERTIES_BASE64` the same way;
-  - or just `SUPERFORK_SUPABASE_URL` and `SUPERFORK_SUPABASE_ANON_KEY`.
+- [ ] Backend (the Nuvio account the test build signs in to), one of:
+  - `NUVIO_SUPABASE_URL` and `NUVIO_SUPABASE_ANON_KEY` (optional `NUVIO_SUPABASE_FALLBACK_URL`), the
+    names other Nuvio forks use;
+  - or `LOCAL_PROPERTIES_BASE64` = `base64 -w0 local.properties` of a full properties file (those two
+    keys plus `TMDB_API_KEY`, `TRAKT_CLIENT_ID`, `TRAKT_CLIENT_SECRET`, ... as available), optionally
+    `LOCAL_DEV_PROPERTIES_BASE64` the same way.
 - [ ] Fixed test signing key, created once and kept (losing it means one uninstall):
   `keytool -genkeypair -keystore superfork-test.jks -alias superforktest -keyalg RSA -keysize 4096 -validity 10000 -dname "CN=Superfork Test"`,
   then `SUPERFORK_TEST_KEYSTORE_BASE64` = `base64 -w0 superfork-test.jks`, `SUPERFORK_TEST_KEYSTORE_PASSWORD`
