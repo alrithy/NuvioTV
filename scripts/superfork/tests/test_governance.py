@@ -89,7 +89,8 @@ class GovernanceMutationTests(unittest.TestCase):
     def test_empty_owner_rejected(self):
         self.assertTrue(self.mutate('integration/feature_traceability.csv',lambda s:s.replace('foundation,project','foundation,',1)))
     def test_blocked_requires_evidence(self):
-        self.assertTrue(self.mutate('integration/feature_traceability.csv',lambda s:s.replace(',planned,',',blocked,',1)))
+        # An implemented row has evidence but no reason / next action; marking it blocked must fail.
+        self.assertTrue(self.mutate('integration/feature_traceability.csv',lambda s:s.replace(',implemented,',',blocked,',1)))
     def test_duplicate_yaml_key_rejected(self):
         with self.assertRaises(ValueError):self.mutate('integration/state.yaml',lambda s:s+'\nactive_gate: G9\n')
     def test_stale_state_view_rejected(self):
