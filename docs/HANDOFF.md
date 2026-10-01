@@ -3,7 +3,7 @@
 <!-- canonical-state:start -->
 - Active gate: G12 — UI Styles
 - Active branch: `feat/ui-styles`
-- Status: READY
+- Status: IN_PROGRESS
 - Task: `tasks/G12_UI_STYLES.md`
 - Accepted official baseline: `56aaba20b7d01746d616a2c8517adcf442950b90`
 - Governance: READY
@@ -164,12 +164,25 @@ notice (IP-locked / local sources). Phone compatibility target pinned: AntoninoS
 `watchparty` @ `ff7a16b` (reference only). All 14 review threads on #71–#73 were answered and resolved.
 All 13 G11 IDs are `implemented`; HV-G11-1..HV-G11-4 are carried to G14 (`validation_pending_gates`,
 MANUAL_TEST_LOG). No Android/device run is claimed.
-G12 UI Styles READY on `feat/ui-styles` (`tasks/G12_UI_STYLES.md`, IDs 188–205 and 292), owner
-Claude (sequential; no lease), after this closeout merges; next G13 Experimental AI & MAT.
+G11 closeout merged as #75 (`aa0ec42`; exact head `d79e2f2`, run 36844691833: 2205 tests, 15 known
+failures, 0 new, 1 skipped; APK artifact 11153062880).
 
+G12 UI Styles IN_PROGRESS on `feat/ui-styles`, task `tasks/G12_UI_STYLES.md`, IDs 188–205 and 292,
+owner Claude (sequential; no lease). Audit (#76, open) `docs/audits/G12_UI_STYLES_AUDIT.md`: official
+`56aaba2` already has Classic / Grid / Modern per profile, both sidebars (modern with icon pill and
+Android 12+ blur), the rotating hero carousel, the Modern hero trailer and full-screen backdrop
+(verified_official 188–192, 195, 201–203); it has no top navigation, Glass layout, clock,
+screensaver or liquid glass. D058: one `fork/uistyle` owner (NuvioGlass `84098b7` surface / nav pill /
+clock / scaffold, Reshaped `0ccf049` pill and AGSL liquid glass, Cxsmo `3e0d0fa` top-bar profile
+access and screensaver); one top-chrome scaffold with BAR / PILL / GLASS looks; per-profile
+navigation style (Sidebar default); `HomeLayout.GLASS` and `CINEMATIC_GLASS` on the Modern pipeline;
+effects gated by AdaptiveResources tier and API level with a flat fallback; screensaver off by
+default; UI_STYLES AUTO with the first code slice. Official `dev` `5c1d9b0` changed the home layout
+files, so an upstream sync PR precedes G12 code. Slices: sync, G12a (196–200, 204, 205), G12b (193,
+194), G12c (292). Legacy PR #1 / #2 stay reference-only. Next G13 Experimental AI & MAT.
 ## Exact next action
-1. Start G12 UI Styles with an official-first audit (`docs/audits/G12_UI_STYLES_AUDIT.md`) against
-   official `56aaba2` / `dev` and the pinned NuvioGlass, Reshaped and Cxsmo sources.
+1. Merge the G12 audit (#76) after exact-head CI, then open the upstream sync PR to official `dev`
+   `5c1d9b0` (D050 pattern), then G12a.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Continue G12→G13 after exact-head automated DoD; device-only checks remain MANUAL-PENDING for G14.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
