@@ -220,6 +220,26 @@ class LiveTvRepository internal constructor(
         launchAdd(LiveTvSource("", LiveTvSourceType.Stalker, normalized.portalUrl, stalker = normalized))
     }
 
+    /**
+     * An .m3u file sent from the phone page (G10g): saved under its source, then loaded like any
+     * new source. False when Live TV is not loaded or the file is empty or larger than [maxBytes].
+     */
+    suspend fun importPlaylist(fileName: String, input: java.io.InputStream, maxBytes: Long): Boolean {
+        val profileId = loadedProfileId ?: return false
+        val candidate = withExistingId(LiveTvSource("", LiveTvSourceType.M3u, fileName.trim().ifBlank { LiveTvSetupPolicy.DEFAULT_PLAYLIST_NAME }))
+        val saved = try {
+            store.savePlaylist(profileId, candidate.id, input, maxBytes)
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (error: Exception) {
+            LiveTvLog.warn("Live TV playlist file not saved", null, error)
+            false
+        }
+        if (!saved || loadedProfileId != profileId) return false
+        launchAdd(candidate)
+        return true
+    }
+
     /** Removes one source and its channels; the other sources' loads carry on. */
     fun removeSource(sourceId: String) {
         val profileId = loadedProfileId ?: return
