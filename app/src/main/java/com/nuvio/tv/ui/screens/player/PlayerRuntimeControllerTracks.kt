@@ -1060,9 +1060,7 @@ internal fun PlayerRuntimeController.applyPersistedTrackPreference(
                         )
                     } else {
                         val state = _uiState.value
-                        val addonFallback = state.addonSubtitles.firstOrNull { subtitle ->
-                            PlayerSubtitleUtils.matchesLanguageCode(subtitle.lang, resolvedVariant)
-                        }
+                        val addonFallback = pickAddonSubtitle(state.addonSubtitles, resolvedVariant) // Superfork G14 hook
                         if (addonFallback != null) {
                             logSwitchTrace(
                                 stage = "restore-subtitle-internal-fallback-addon",
@@ -1693,9 +1691,7 @@ internal fun PlayerRuntimeController.tryAutoSelectPreferredSubtitleFromAvailable
         // If internal match is secondary and a primary addon match exists, prefer the addon.
         if (matchedTargetPosition > 0 && addonSubtitlesLoaded) {
             val primaryTarget = targets.first()
-            val primaryAddonMatch = state.addonSubtitles.firstOrNull { subtitle ->
-                PlayerSubtitleUtils.matchesLanguageCode(subtitle.lang, primaryTarget)
-            }
+            val primaryAddonMatch = pickAddonSubtitle(state.addonSubtitles, primaryTarget) // Superfork G14 hook
             if (primaryAddonMatch != null) {
                 autoSubtitleSelected = true
                 Log.d(
@@ -1796,9 +1792,8 @@ internal fun PlayerRuntimeController.tryAutoSelectPreferredSubtitleFromAvailable
     val addonMatch = run {
         // Try each target in priority order so primary language is preferred over secondary.
         for (target in targets) {
-            val match = state.addonSubtitles.firstOrNull { subtitle ->
-                (!useForcedSubtitles || !addonSubtitleIsForced(subtitle)) &&
-                    PlayerSubtitleUtils.matchesLanguageCode(subtitle.lang, target)
+            val match = pickAddonSubtitle(state.addonSubtitles, target) { subtitle -> // Superfork G14 hook
+                !useForcedSubtitles || !addonSubtitleIsForced(subtitle)
             }
             if (match != null) {
                 Log.d(

@@ -89,8 +89,15 @@ object StreamAutoPlaySelector {
         // a persisted binge group should auto-play without showing the picker.
         val targetBingeGroup = preferredBingeGroup?.trim().orEmpty()
         if (preferBingeGroupInSelection && targetBingeGroup.isNotEmpty()) {
-            val bingeGroupMatch = candidateStreams.firstOrNull { stream ->
+            val bingeGroupMatches = candidateStreams.filter { stream ->
                 stream.behaviorHints?.bingeGroup == targetBingeGroup && isPlayable(stream)
+            }
+            // Superfork G14 (D067): with Best quality, the best of the group as the list ranks it
+            // (official: the first one in add-on order).
+            val bingeGroupMatch = if (mode == StreamAutoPlayMode.BEST_QUALITY && StreamIntelligence.enabled) {
+                StreamRanker.best(bingeGroupMatches, rankContext)
+            } else {
+                bingeGroupMatches.firstOrNull()
             }
             if (bingeGroupMatch != null) return bingeGroupMatch
             // When bingeGroupOnly is set (MANUAL mode with only binge-group

@@ -6,7 +6,9 @@ Authorization: explicit-user-request
 Feature ID(s): 188, 189, 190, 191, 192, 195, 201, 202, 203, 205
 
 Authorized branch: `feat/netflix-theme`, based on `superfork/integration`
-`1f63418e33ac53e9ebd9428c2c30adaba974bb79`.
+`1f63418e33ac53e9ebd9428c2c30adaba974bb79`, advanced to reviewed integration
+`e07d684009bcb5b9c41d00c777b11b2318752c53` to preserve the G14 device fixes
+and instrumentation signature correction (#95–#98). No official baseline pin changed.
 
 This separate task is explicitly requested by the repository owner in this session.
 It extends the presentation seams of feature IDs 188, 189, 190, 191, 192, 195,

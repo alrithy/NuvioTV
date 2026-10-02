@@ -510,7 +510,11 @@ class StreamScreenViewModel @Inject constructor(
             val installedAddons = addonRepository.getInstalledAddons().first().enabledAddons()
             val installedAddonOrder = installedAddons.map { it.displayName }
             streamRankContext = streamRanking.contextFor(installedAddons, _uiState.value.runtime ?: runtime)
-            streamRankSession = if (streamRanking.bestQualityListOrderNow()) {
+            // G14 (D067): with Best-quality autoplay the list is ranked too, so the stream autoplay
+            // picks is the first one shown (official add-on order otherwise, unless the user sorts).
+            val bestQualityAutoPlay = playerSettings.streamAutoPlayMode == StreamAutoPlayMode.BEST_QUALITY &&
+                com.nuvio.tv.fork.streams.StreamIntelligence.enabled
+            streamRankSession = if (bestQualityAutoPlay || streamRanking.bestQualityListOrderNow()) {
                 com.nuvio.tv.fork.streams.StreamRanker.Session(streamRankContext)
             } else {
                 null
@@ -769,7 +773,8 @@ class StreamScreenViewModel @Inject constructor(
                                     selectedPlugins = playerSettings.streamAutoPlaySelectedPlugins,
                                     preferredBingeGroup = persistedBingeGroup,
                                     preferBingeGroupInSelection = true,
-                                    bingeGroupOnly = true
+                                    bingeGroupOnly = true,
+                                    rankContext = streamRankContext // Superfork G14: same ranking as the list
                                 )
                                 if (earlyMatch != null) {
                                     resolvedAutoPlayTarget = true

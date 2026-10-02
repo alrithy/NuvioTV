@@ -546,8 +546,37 @@ PRs titled `[test-build]`. The two Gradle properties it uses (`superforkTestAppI
 `superforkTestBuild`) change nothing when absent, so the regular CI build is unchanged. The test key
 is for testing only; releases keep their own key (GITHUB_ADMIN_CHECKLIST D).
 
+## D067 — Fix the G14 device findings at their root, each in its one owner
+The maintainer's TCL C6K run of Superfork Test Build #5 found three faults; each is fixed where it
+starts, in the component that owns it, with official behaviour kept wherever the fork's switch is OFF.
+- **Live TV closed the app as it opened** (P0, HV-G10-1 FAIL). `LiveTvViewModel` declared its `init`
+  block before its state. `viewModelScope` runs on `Main.immediate`, so the profile collector called
+  `ensureLoaded()` inside the constructor and wrote `visibleChannels` before its state holder existed
+  (NullPointerException, reproduced on an emulator by Superfork Device Smoke). The state is now declared
+  first; no catch hides anything. Superfork Device Smoke opens the real screen with the real storage on
+  an emulator (nothing saved, a saved source, a source that cannot load or be read), and a JVM test
+  builds the view model on an eager main dispatcher.
+- **Auto Sync picked an unsuitable subtitle.** Official picks the first add-on subtitle in provider
+  order whose language code matches, and hands AutoSync every subtitle in that order, so a subtitle
+  for another release or episode, or one labelled "Arabic" / "العربية" instead of a code, was picked
+  or skipped by position. `fork/subtitles/SubtitleCandidateRanking` (SUBTITLE_INTELLIGENCE) now decides
+  the pick and AutoSync's candidates: same language by code or name, never another season / episode,
+  the stream's own subtitle or the file hash first, then the closest release name (group, source,
+  resolution), provider order last. Timing fit and confidence stay with official AutoSync, which keeps
+  the original timing with a message when nothing fits.
+- **The Best-quality list and autoplay disagreed.** The list was ranked only with "Sort streams by
+  quality" on (default off) while Best-quality autoplay always ranked; the next episode's binge group
+  took its first stream in add-on order; and resolution / quality outranked display and decoder
+  support. With Best-quality autoplay the list is now ranked by the same G8 ranker and context, the
+  binge group takes its best stream, and a file the device cannot show as made (Dolby Vision only on a
+  display without DV, AV1 without a hardware decoder) drops within its cache tier before resolution and
+  quality count. No second scorer: the list, autoplay and the next episode use `StreamRanker`.
 
-## D067 — Explicit independent Netflix presentation task, retaining current owners
+Also: the G9d parameters of `EpisodeShuffleDialog` move after official's, so official's instrumented
+test (positional call) compiles again; production calls use names.
+
+
+## D068 — Explicit independent Netflix presentation task, retaining current owners
 The repository owner explicitly requested `feat/netflix-theme` after the G12
 closeout. This task is recorded separately from blocked G14 in
 `state.yaml:user_authorized_task` and `tasks/NETFLIX_THEME.md`. It extends the

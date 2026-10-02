@@ -35,8 +35,6 @@ internal fun EpisodeShuffleDialog(
     meta: Meta,
     shuffleSettings: EpisodeShuffleSettings,
     onSaveSettings: suspend (EpisodeShuffleSettings) -> Boolean,
-    onPicked: (Video) -> Unit = {},
-    currentSeason: Int? = null,
     watchedEpisodes: Set<Pair<Int, Int>>,
     episodeProgress: Map<Pair<Int, Int>, WatchProgress>,
     onDismiss: () -> Unit,
@@ -44,7 +42,10 @@ internal fun EpisodeShuffleDialog(
     blurUnwatchedEpisodes: Boolean = false,
     showManualPlayOption: Boolean = false,
     onPlayManually: (Video) -> Unit = onPlay,
-    onStartFromBeginning: (Video) -> Unit = onPlay
+    onStartFromBeginning: (Video) -> Unit = onPlay,
+    // Superfork G9d: last, so official's positional calls (its instrumented tests) keep their meaning.
+    onPicked: (Video) -> Unit = {},
+    currentSeason: Int? = null,
 ) {
     // Superfork G9d (171, 173–177): season scope, all-watched fallback and Mystery mode.
     val forkOptions = ShuffleRules.enabled

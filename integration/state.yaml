@@ -12,15 +12,15 @@ active_gate_name: Hardening Release Upstream
 active_branch: chore/release-hardening
 active_task_packet: tasks/G14_HARDENING_RELEASE.md
 active_status: BLOCKED
-blocker: 'G14 code is merged (audit #88, sync #89, G14a #90, G14b #91, G14c #92, accounting #93): 318 of 320 rows terminal, 3 and 320 blocked. What remains needs the maintainer: (1) the consolidated hardware campaign in docs/HARDWARE_VALIDATION_TCL_C6K.md (75 MANUAL-PENDING cases (HV-G1-1 … HV-G14-3) plus the G4 same-file A/B; order in docs/audits/G14_ACCOUNTING.md), results recorded as PASS / FAIL in docs/MANUAL_TEST_LOG.md; (2) GITHUB_ADMIN_CHECKLIST A-E (test-build secrets, default branch, protection, required checks, release signing secrets, first fork release, application-id choice). Next step: the maintainer shares device evidence; Claude records it, fixes any FAIL, then closes 3 and 320 and G14.'
-active_pr: 94
+blocker: 'G14 device findings fixed in #96 (D067; Live TV crash, Auto Sync choice, Best-quality list vs autoplay), re-tests HV-G10-1 and HV-G14-4..6 on the TV. Otherwise unchanged: 318 of 320 rows terminal, 3 and 320 blocked. What remains needs the maintainer: (1) the consolidated hardware campaign in docs/HARDWARE_VALIDATION_TCL_C6K.md (MANUAL-PENDING cases HV-G1-1 … HV-G14-6 plus the G4 same-file A/B; order in docs/audits/G14_ACCOUNTING.md), results recorded as PASS / FAIL in docs/MANUAL_TEST_LOG.md; (2) GITHUB_ADMIN_CHECKLIST A-D (default branch, protection, required checks, release signing secrets, first fork release, application-id choice). Next step: the maintainer shares device evidence; Claude records it, fixes any FAIL, then closes 3 and 320 and G14.'
+active_pr: 98
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true
-last_green_commit: 87eefebd74ad014ac135f967d77131783940591e
-last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36920589024 ; G14
-  accounting PR #93 exact head, squash-merged as 15a98c9b765d085cf8406b51d6be1a5a360247e9; fullDebug APK 11192301846.
-last_green_scope: Full suite guard (2373 tests, 15 known failures, 0 new failures, 1 skipped), governance
+last_green_commit: 091db57119c382712f6aeca6abf8c50f4c156a73
+last_green_note: https://github.com/alrithy/NuvioTV/actions/runs/36963783109 ; G14
+  device-findings PR #96 exact head, squash-merged as bd5d61a7744ae15a58420c5635703dcc9eb65dfe; Device Smoke run 36963783132 (4/4 on an emulator); Test Build run 36963783129 (artifact 11208723592).
+last_green_scope: Full suite guard (2391 tests, 15 known failures, 0 new failures, 1 skipped), governance
   validator, fullDebug APK
 bootstrap:
   initial_governance_pr: 3

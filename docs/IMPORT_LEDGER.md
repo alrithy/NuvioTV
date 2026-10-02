@@ -1008,7 +1008,7 @@ Every imported feature must add an entry before its PR is considered complete.
 - Known risks / follow-up: scheduled runs start only once `superfork/integration` is the default branch (GITHUB_ADMIN_CHECKLIST A); until then the report runs on PRs and on demand
 
 
-## Independent Netflix theme (D067, tasks/NETFLIX_THEME.md)
+## Independent Netflix theme (D068, tasks/NETFLIX_THEME.md)
 - Mode: REUSE current Nuvio presentation/data owners plus original authored UI deltas.
 - Base: `alrithy/NuvioTV` `superfork/integration` @ `1f63418e33ac53e9ebd9428c2c30adaba974bb79`.
 - Reused: ThemeDataStore/profile settings sync; Modern home/enrichment/continue-watching;

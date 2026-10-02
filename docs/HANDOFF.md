@@ -313,7 +313,8 @@ failures, 0 new, 1 skipped; APK artifact 11192301846) `docs/audits/G14_ACCOUNTIN
 input: needs the A/B thresholds; the G8c estimator is ready) and 320 (Stable distribution) blocked on
 the maintainer's devices and release actions; ledger, license, dependency (Seekr recorded) and
 sensitive-log audits done; the hardware campaign order. G14 BLOCKED: nothing in code remains.
-Device test build (#94, open; D066): the maintainer's first device run had no TV QR login (the CI APK
+Device test build merged as #94 (`1f63418`; exact head `e2ddc48`, Full Debug run 36934443259: 2373
+tests, 15 known failures, 0 new; Superfork Test Build run 36934443043 green, artifact 11197556626; D066): the maintainer's first device run had no TV QR login (the CI APK
 has an empty backend configuration and a per-run signing key). `Superfork Test Build` builds
 `com.nuvio.tv.debug` with the real backend configuration from secrets, one fixed test key and version
 code `versionCode * 100000 + run`, verifies package / signature / configuration presence, and
@@ -322,13 +323,33 @@ public client configuration (anon key only) from official's latest release APK o
 session's egress cannot reach official's releases), and the built APK must create a TV QR login
 session. Needs only the two test-key secrets in GITHUB_ADMIN_CHECKLIST E (certificate pinned in the
 workflow).
+G14 device findings (maintainer, TCL C6K, Superfork Test Build #5): Live TV closes the app as it
+opens (P0); Auto Sync picks an unsuitable subtitle or fails; the Best-quality list and autoplay do
+not pick the same best stream. Positive observations (large files, seek, HDR / DV, audio, Arabic
+subtitles, Arabic cinema preset, navigation styles) are notes only, recorded in MANUAL_TEST_LOG; the
+HARDWARE_VALIDATION evidence is still owed, so those cases stay MANUAL-PENDING.
+Device findings merged as #96 (`bd5d61a`; exact head `091db57`, Full Debug run 36963783109: 2391 tests,
+15 known failures, 0 new, 1 skipped; Superfork Device Smoke run 36963783132: 4/4 Live TV cases on an
+emulator; Superfork Test Build run 36963783129, artifact 11208723592; D067), each fixed at its root:
+- Live TV (P0, HV-G10-1 FAIL): `LiveTvViewModel` declared `init` before its state; viewModelScope runs
+  on Main.immediate, so `ensureLoaded()` ran inside the constructor and wrote `visibleChannels` before
+  it existed (NullPointerException, reproduced on an emulator by Superfork Device Smoke). State first.
+- Auto Sync: official picked the first add-on subtitle in provider order with a matching language code;
+  `SubtitleCandidateRanking` now ranks the pick and AutoSync's candidates (language by code or name,
+  episode, same file, release); official AutoSync keeps timing fit and confidence.
+- Best quality: the list is ranked whenever Best-quality autoplay is on, the binge group takes its best
+  stream, and files the device cannot show drop within their cache tier; one ranker for all three.
+After #97, `superfork/integration` CI went red twice on test races, not on app code (#98):
+`LiveTvOrganisationTest#choicesArePublishedAndSavedPerProfile` read the state before the asynchronous
+zapping-list refilter after a hiding change (it now waits for it), and Superfork Device Smoke lost the
+test activity on a just-booted emulator ("No compose hierarchies found"; the run now waits for boot,
+unlocks and closes system dialogs, and prints the activity / ANR lines when it fails).
 ## Exact next action
-1. Wait for #94 (test build) exact-head CI and squash it; once the maintainer adds the secrets in
-   GITHUB_ADMIN_CHECKLIST E, check the first Superfork Test Build run (package, signature, backend
-   configuration present) and hand over its artifact. Then G14 waits on the maintainer: the
-   hardware campaign (`docs/audits/G14_ACCOUNTING.md` order) and GITHUB_ADMIN_CHECKLIST A–D. Record
-   shared evidence as PASS / FAIL, fix any FAIL, then close 3, 320 and G14. Official upstream movement
-   is reported by Superfork Upstream Watch; sync through a dedicated PR when it touches fork seams.
+1. G14 is BLOCKED on the maintainer: re-run HV-G10-1 and HV-G14-4..6 on the TCL C6K with the latest
+   Superfork Test Build from `superfork/integration`, then the hardware campaign
+   (`docs/audits/G14_ACCOUNTING.md` order) and GITHUB_ADMIN_CHECKLIST A–D. Record shared evidence as
+   PASS / FAIL, fix any FAIL, then close 3, 320 and G14. Official upstream movement is reported by
+   Superfork Upstream Watch; sync through a dedicated PR when it touches fork seams.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Hardware results are recorded only as real PASS / FAIL; a FAIL reopens the affected gate / feature.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
