@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -23,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -40,6 +42,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
@@ -47,6 +50,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -63,6 +67,11 @@ import com.nuvio.tv.ui.theme.netflixPresentationPolicy
 import com.nuvio.tv.ui.util.contentTextDirection
 import com.nuvio.tv.ui.util.localizedGenreLabel
 import com.nuvio.tv.ui.components.TrailerPlayer
+import com.nuvio.tv.LocalContentFocusRequester
+import com.nuvio.tv.domain.model.CatalogRow
+import com.nuvio.tv.domain.model.MetaPreview
+import com.nuvio.tv.fork.resource.AdaptiveResources
+import kotlin.math.roundToInt
 
 /** Presentation policy reads the one installed resource owner; it performs no device probing. */
 internal fun netflixHomePreviewPolicy(tier: MemoryTier): NetflixPresentationPolicy = netflixPresentationPolicy(tier)
@@ -81,11 +90,12 @@ internal fun NetflixHeroTitleContent(
     val tokens = NetflixThemeTokens
     val context = LocalContext.current
     val density = LocalDensity.current
-    val logoModel = remember(context, preview.logo, density) {
+    val screenWidthDp = LocalConfiguration.current.screenWidthDp
+    val logoWidthPx = with(density) { (screenWidthDp.dp * tokens.heroMetadataWidthFraction).roundToPx() }
+    val logoModel = remember(context, preview.logo, density, logoWidthPx) {
         preview.logo?.let { url ->
             ImageRequest.Builder(context).data(url)
-                .size(with(density) { (tokens.landscapeCardWidth * tokens.expandedScale).roundToPx() },
-                    with(density) { tokens.logoHeight.roundToPx() })
+                .size(logoWidthPx, with(density) { tokens.logoHeight.roundToPx() })
                 .build()
         }
     }
@@ -151,6 +161,58 @@ internal fun NetflixHeroTitleContent(
                 onDownToRows = onDownToRows
             )
         }
+    }
+}
+
+/** Hero-only catalogs still use the existing Modern backdrop owner and the same genuine actions. */
+@Composable
+internal fun NetflixHeroOnlyContent(
+    item: MetaPreview,
+    onPlay: (String, String, String) -> Unit,
+    onMoreInfo: (String, String, String) -> Unit,
+    onItemFocus: (MetaPreview) -> Unit,
+    showImdbRatings: Boolean
+) {
+    val tokens = NetflixThemeTokens
+    val context = LocalContext.current
+    val density = LocalDensity.current
+    val policy = netflixHomePreviewPolicy(AdaptiveResources.policy.tier)
+    val focusRequester = LocalContentFocusRequester.current
+    val movieLabel = stringResource(R.string.type_movie)
+    val seriesLabel = stringResource(R.string.type_series)
+    val carouselItem = remember(item, movieLabel, seriesLabel) {
+        val origin = item.sourceAddonBaseUrl.orEmpty()
+        val source = CatalogRow("netflix_hero", "", origin, "hero", "", item.type,
+            rawType = item.apiType, items = emptyList(), hasMore = false)
+        buildCatalogItem(item, source, true, 0, movieLabel, seriesLabel)
+    }
+    val scene = rememberUpdatedState(ModernHeroSceneState(
+        heroBackdrop = item.backdropUrl,
+        preview = carouselItem.heroPreview,
+        enrichmentActive = false,
+        shouldPlayTrailer = false,
+        trailerFirstFrameRendered = false,
+        trailerUrl = null,
+        trailerAudioUrl = null,
+        trailerPlaybackKey = null,
+        trailerMuted = true,
+        fullScreenBackdrop = true
+    ))
+    val sceneProvider = remember { { scene.value } }
+    BoxWithConstraints(Modifier.fillMaxSize().background(tokens.background)) {
+        val requestWidth = with(density) { maxWidth.roundToPx() }.coerceAtMost(policy.heroMaxWidthPx)
+        val requestHeight = (requestWidth / tokens.landscapeAspectRatio).roundToInt()
+        ModernHeroScene(sceneProvider, { true }, tokens.background, Modifier.fillMaxSize(),
+            requestWidth, requestHeight, onTrailerEnded = {}, onFirstFrameRendered = {})
+        NetflixHeroTitleContent(carouselItem.heroPreview,
+            onPlay = { onPlay(item.id, item.apiType, item.sourceAddonBaseUrl.orEmpty()) },
+            onMoreInfo = { onMoreInfo(item.id, item.apiType, item.sourceAddonBaseUrl.orEmpty()) },
+            playFocusRequester = focusRequester,
+            showImdbRatings = showImdbRatings,
+            modifier = Modifier.align(Alignment.CenterStart)
+                .padding(start = tokens.safeMargin, end = tokens.safeMargin)
+                .fillMaxWidth(tokens.heroMetadataWidthFraction)
+                .onFocusChanged { if (it.hasFocus) onItemFocus(item) })
     }
 }
 

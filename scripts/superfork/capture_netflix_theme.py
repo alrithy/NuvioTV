@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import struct
 import subprocess
 import time
@@ -31,6 +32,19 @@ SCREENS = (
     "11-player-controls",
 )
 TEST_CLASS = "com.nuvio.tv.ui.theme.NetflixThemeTvTest"
+
+
+def instrumentation_succeeded(result: subprocess.CompletedProcess[str]) -> bool:
+    """adb can exit zero after a runner crash; require the runner's success receipt."""
+    output = result.stdout
+    if result.returncode or any(marker in output for marker in (
+        "FAILURES!!!", "INSTRUMENTATION_FAILED", "shortMsg=Process crashed",
+        "INSTRUMENTATION_ABORTED", "INSTRUMENTATION_RESULT: shortMsg=",
+    )):
+        return False
+    receipts = re.findall(r"^INSTRUMENTATION_CODE:\s*(-?\d+)\s*$", output, re.MULTILINE)
+    return (receipts == ["-1"] and
+            re.search(r"^OK \([1-9]\d* tests?\)\s*$", output, re.MULTILINE) is not None)
 
 
 def main() -> int:
@@ -84,6 +98,8 @@ def main() -> int:
     sha = subprocess.run(["git", "rev-parse", "HEAD"], text=True, capture_output=True, check=True).stdout.strip()
     dirty = subprocess.run(["git", "status", "--porcelain"], text=True, capture_output=True, check=True).stdout.strip()
     missing = [screen for screen in SCREENS if not any(f["file"].startswith(screen) for f in files)]
+    expected_dimensions = (1920, 1080) if args.resolution == "1080p" else (3840, 2160)
+    unexpected_dimensions = [f["file"] for f in files if (f["width"], f["height"]) != expected_dimensions]
     manifest = {
         "source_commit": sha, "source_tree_dirty": bool(dirty),
         "captured_at_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -91,15 +107,18 @@ def main() -> int:
         "fixture_locale": args.locale,
         "device_fingerprint": adb("shell", "getprop", "ro.build.fingerprint").stdout.strip(),
         "screenshots": files, "missing_required_screens": missing,
+        "unexpected_dimensions": unexpected_dimensions,
+        "instrumentation_status": ("PASS" if instrumentation_succeeded(test_result) else "FAIL")
+            if test_result is not None else "NOT_RUN_CAPTURE_ONLY",
         "visual_review_status": "PENDING", "netflix_reference_comparison_status": "PENDING",
         "hardware_performance_status": "MANUAL-PENDING",
         "scope": "Actual production Compose components with offline deterministic fixtures; no backend or playback-engine certification.",
     }
     (args.output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    print(f"Collected {len(files)} screenshots; missing required screens: {len(missing)}")
-    if test_result and (test_result.returncode or "FAILURES!!!" in test_result.stdout or "INSTRUMENTATION_FAILED" in test_result.stdout):
+    print(f"Collected {len(files)} screenshots; missing required screens: {len(missing)}; unexpected dimensions: {len(unexpected_dimensions)}")
+    if test_result and not instrumentation_succeeded(test_result):
         return 1
-    return 1 if missing else 0
+    return 1 if missing or unexpected_dimensions else 0
 
 
 if __name__ == "__main__":

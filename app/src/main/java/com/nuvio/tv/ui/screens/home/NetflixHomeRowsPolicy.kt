@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.onStart
 
 private const val MY_LIST_ITEM_LIMIT = 24
 private const val RECOMMENDATION_SETTLE_MS = 650L
+private val RECOMMENDATION_TYPES = setOf("movie", "series", "tv")
 
 @Immutable
 internal data class NetflixRecommendationSeed(
@@ -68,7 +69,7 @@ internal fun netflixRecommendationSeed(
             .map { Triple(it.contentId, it.contentType, it.name) to it.lastWatched }
     val latest = candidates.filter { (item, _) ->
         item.first.isNotBlank() && item.third.isNotBlank() &&
-            item.second.lowercase() in setOf("movie", "series", "tv")
+            item.second.lowercase() in RECOMMENDATION_TYPES
     }.maxByOrNull { it.second }?.first ?: return null
     return NetflixRecommendationSeed(
         contentId = latest.first,
@@ -93,7 +94,7 @@ internal fun netflixHomeSourcesFlow(
     return themeEnabled.distinctUntilChanged().flatMapLatest { enabled ->
         if (!enabled) return@flatMapLatest flowOf(NetflixHomeSources())
         val recommendations: Flow<NetflixRecommendations?> = seeds.distinctUntilChanged().flatMapLatest { seed ->
-            flow {
+            flow<NetflixRecommendations?> {
                 emit(null)
                 if (seed == null) return@flow
                 val cached = memo?.takeIf { it.seed == seed }

@@ -193,6 +193,11 @@ fun ModernHomeContent(
 
     if (carouselRows.list.isEmpty()) {
         if (uiState.heroSectionEnabled && uiState.heroItems.isNotEmpty()) {
+            if (isNetflix) {
+                NetflixHeroOnlyContent(uiState.heroItems.first(), onPlayClick, onNavigateToDetail,
+                    onItemFocus, uiState.homeImdbRatingsVisibility.showRatings)
+                return
+            }
             Box(modifier = Modifier.fillMaxSize()) {
                 com.nuvio.tv.ui.components.HeroCarousel(
                     items = uiState.heroItems.asStable(),

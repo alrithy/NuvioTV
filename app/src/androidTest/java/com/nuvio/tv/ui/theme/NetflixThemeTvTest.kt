@@ -60,6 +60,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.isFocused
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -214,6 +215,50 @@ class NetflixThemeTvTest {
         compose.runOnIdle { assertEquals(0, played); assertEquals(1, listed); assertEquals(1, informed) }
     }
 
+    @Test fun homeDwellPreviewRestoresItsAnchorAndAllowsRepeatedRemoteNavigation() {
+        var played = 0
+        var listed = 0
+        var informed = 0
+        setContent { FullHome(onPlay = { played++ }, onLibrary = { listed++ }) { informed++ } }
+        compose.onNodeWithTag("netflix_hero_play").requestFocus()
+        press(KeyEvent.KEYCODE_DPAD_DOWN)
+        press(KeyEvent.KEYCODE_DPAD_DOWN)
+        val firstAnchor = "netflix_home_card_focus_trending:fixture:0"
+        compose.onNodeWithTag(firstAnchor).requestFocus()
+        waitForHomePreview()
+        compose.onNodeWithTag("netflix_card_play").assertIsFocused()
+        capture("04-expanded-card-in-home")
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(1, played) }
+        val towardNext = if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+        press(towardNext)
+        compose.onNodeWithTag("netflix_card_library").assertIsFocused()
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(1, listed) }
+        compose.waitUntil(15_000) {
+            compose.onAllNodes(hasTestTag(firstAnchor).and(isFocused())).fetchSemanticsNodes().size == 1
+        }
+        compose.onNodeWithTag("netflix_expanded_card").assertDoesNotExist()
+        press(towardNext)
+        waitForHomePreview()
+        compose.onNodeWithTag("netflix_card_play").assertIsFocused()
+        press(towardNext)
+        press(towardNext)
+        compose.onNodeWithTag("netflix_card_more_info").assertIsFocused()
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(1, informed) }
+        press(KeyEvent.KEYCODE_BACK)
+        val secondAnchor = "netflix_home_card_focus_trending:fixture:1"
+        compose.waitUntil(15_000) {
+            compose.onAllNodes(hasTestTag(secondAnchor).and(isFocused())).fetchSemanticsNodes().size == 1
+        }
+        // Three remote presses before a new dwell; a Popup must not trap row movement.
+        repeat(3) { instrumentation.sendKeyDownUpSync(towardNext) }
+        compose.waitForIdle()
+        compose.onNodeWithTag("netflix_home_card_focus_trending:fixture:4").assertIsFocused()
+        compose.onAllNodes(isFocused()).assertCountEquals(1)
+    }
+
     @Test fun movieDetailsRetainPlayAndLibraryActions() {
         var played = 0
         var listed = 0
@@ -242,9 +287,10 @@ class NetflixThemeTvTest {
         setContent {
             val seasonFocus = remember { FocusRequester() }
             val episodeFocus = remember { mutableMapOf<String, FocusRequester>() }
-            Column(Modifier.fillMaxSize().padding(horizontal = NetflixThemeTokens.safeMargin,
-                vertical = NetflixThemeTokens.safeVerticalMargin), verticalArrangement = Arrangement.spacedBy(NetflixThemeTokens.rowGap)) {
-                Text(text("Episodes", "الحلقات"), style = MaterialTheme.typography.headlineMedium)
+            Column(Modifier.fillMaxSize().padding(vertical = NetflixThemeTokens.safeVerticalMargin),
+                verticalArrangement = Arrangement.spacedBy(NetflixThemeTokens.rowGap)) {
+                Text(text("Episodes", "الحلقات"), style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(horizontal = NetflixThemeTokens.safeMargin))
                 SeasonTabs(listOf(1, 2, 3), 1, {}, selectedTabFocusRequester = seasonFocus)
                 EpisodesRow(episodes, episodeProgressMap = mapOf((1 to 2) to progress(episodes[1])),
                     watchedEpisodes = setOf(1 to 1), onEpisodeClick = { played = it.id }, onToggleEpisodeWatched = {},
@@ -295,6 +341,30 @@ class NetflixThemeTvTest {
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertTrue(selectedIndex >= 60) }
         capture("17-search-deep-grid-reentry")
+    }
+
+    @Test fun savedSearchFocusWaitsForResultsAndKeepsTheKeyboardAvailableDuringAnError() {
+        var restored = 0
+        var state by mutableStateOf(SearchUiState(query = "light", submittedQuery = "light",
+            isSearching = false, error = text("Network unavailable", "الشبكة غير متاحة")))
+        setContent {
+            NetflixSearchContent(state, initialFocusedIndex = 8, restoreFocus = true,
+                onEvent = {}, onNavigateToDetail = { _, _, _ -> }, onFocusRestored = { restored++ })
+        }
+        val initialKey = if (arabic) "ا" else "a"
+        compose.waitUntil(15_000) {
+            compose.onAllNodes(isFocused()).fetchSemanticsNodes().size == 1
+        }
+        compose.onNodeWithText(initialKey).assertIsFocused()
+        compose.runOnIdle {
+            assertEquals(0, restored)
+            state = state.copy(catalogRows = listOf(catalog()), error = null)
+        }
+        compose.waitUntil(15_000) {
+            compose.onAllNodes(hasTestTag("netflix_search_result_8").and(isFocused())).fetchSemanticsNodes().size == 1
+        }
+        compose.runOnIdle { assertEquals(1, restored) }
+        capture("18-search-async-focus-restore")
     }
 
     @Test fun navigationShowsCollapsedAndExpandedStatesWithSingleRemoteActivation() {
@@ -449,7 +519,7 @@ class NetflixThemeTvTest {
         }
     }
 
-    @Composable private fun FullHome(onOpen: () -> Unit) {
+    @Composable private fun FullHome(onPlay: (() -> Unit)? = null, onLibrary: () -> Unit = {}, onOpen: () -> Unit) {
         val catalogs = listOf(catalog(), catalog("popular", text("Popular", "الأكثر شعبية")),
             catalog("movies", text("Movies", "الأفلام")), catalog("series", text("TV Shows", "المسلسلات")))
         val resume = ContinueWatchingItem.InProgress(progress(episodes()[1]))
@@ -462,7 +532,9 @@ class NetflixThemeTvTest {
             layoutPreferencesReady = true, installedAddonsCount = 1, modernLandscapePostersEnabled = true,
             heroItems = items, posterLabelsEnabled = false, catalogAddonNameEnabled = false, catalogTypeSuffixEnabled = false),
             modernPresentation = presentation, focusState = HomeScreenFocusState(),
-            onNavigateToDetail = { _, _, _ -> onOpen() }, onContinueWatchingClick = { onOpen() },
+            onNavigateToDetail = { _, _, _ -> onOpen() },
+            onPlayClick = { _, _, _ -> if (onPlay != null) onPlay() else onOpen() },
+            onCatalogLibraryAction = { _, _ -> onLibrary() }, onContinueWatchingClick = { onOpen() },
             onRequestTrailerPreview = { _, _, _, _ -> }, onLoadMoreCatalog = { _, _, _ -> },
             onRemoveContinueWatching = { _, _, _, _ -> }, onSaveFocusState = { _, _, _, _, _, _, _, _ -> })
     }
@@ -548,6 +620,11 @@ class NetflixThemeTvTest {
     private fun press(keyCode: Int) {
         instrumentation.sendKeyDownUpSync(keyCode)
         compose.waitForIdle()
+    }
+    private fun waitForHomePreview() {
+        compose.waitUntil(15_000) {
+            compose.onAllNodes(hasTestTag("netflix_expanded_card")).fetchSemanticsNodes().size == 1
+        }
     }
     private fun capture(name: String) {
         compose.waitForIdle()

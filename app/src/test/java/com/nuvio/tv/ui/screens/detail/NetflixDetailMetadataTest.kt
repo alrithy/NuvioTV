@@ -19,4 +19,17 @@ class NetflixDetailMetadataTest {
             assertNull(value, netflixDetailRuntimeMinutes(value))
         }
     }
+
+    @Test
+    fun knownReleaseDatesDisplayTheirYearWithoutLosingYearRanges() {
+        assertEquals("2023", netflixDetailReleaseLabel("2023-10-02"))
+        assertEquals("2023", netflixDetailReleaseLabel(" 2023/10/02 "))
+        assertEquals("2023", netflixDetailReleaseLabel("2023-10-02T10:15:00Z"))
+        assertEquals("٢٠٢٣", netflixDetailReleaseLabel("٢٠٢٣-١٠-٠٢"))
+        listOf("2019–2024", "2019 - 2024", "2019–", "2023", "Fall 2023", "2023-02-30").forEach { value ->
+            assertEquals(value, netflixDetailReleaseLabel(value))
+        }
+        assertNull(netflixDetailReleaseLabel(null))
+        assertNull(netflixDetailReleaseLabel(" "))
+    }
 }

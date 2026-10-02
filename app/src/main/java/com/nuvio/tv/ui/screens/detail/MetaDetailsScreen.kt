@@ -2167,6 +2167,7 @@ private fun MetaDetailsContent(
         }
     }
     val hasHeroBackdrop = !heroBackdropUrl.isNullOrBlank()
+    val animateNetflixBackdrop = netflixPresentationPolicy(AdaptiveResources.policy.tier).animate
     val seedBackdropUrl = heroBackdropUrl?.takeIf { it.isNotBlank() }
     val backdropDataUrl = meta.backdropUrl ?: meta.poster
     val shouldReuseSeedBackdrop = seedBackdropUrl != null && seedBackdropUrl == backdropDataUrl
@@ -2188,6 +2189,7 @@ private fun MetaDetailsContent(
     val backdropRequest = remember(
         localContext,
         isNetflix,
+        animateNetflixBackdrop,
         backdropDataUrl,
         shouldReuseSeedBackdrop,
         hasHeroBackdrop,
@@ -2200,7 +2202,7 @@ private fun MetaDetailsContent(
         } else {
             ImageRequest.Builder(localContext)
                 .data(backdropDataUrl)
-                .apply { if (isNetflix) crossfade(NetflixThemeTokens.heroCrossfadeMs) else if (shouldShowSeedBackdropUnderlay) crossfade(400) else if (hasHeroBackdrop) crossfade(false) else crossfade(400) }
+                .apply { if (isNetflix) crossfade(if (animateNetflixBackdrop) NetflixThemeTokens.heroCrossfadeMs else 0) else if (shouldShowSeedBackdropUnderlay) crossfade(400) else if (hasHeroBackdrop) crossfade(false) else crossfade(400) }
                 .size(width = backdropWidthPx, height = backdropHeightPx)
                 .build()
         }

@@ -356,9 +356,9 @@ internal fun HomeViewModel.observeNetflixHomeSourcesPipeline() {
     viewModelScope.launch {
         profileManager.activeProfileId.collectLatest { profileId ->
             _netflixHomeSources.value = NetflixHomeSources()
-            val seeds = combine(watchProgressRepository.watchedItems, watchProgressRepository.allProgress,
-                tmdbSettingsDataStore.settings, _currentLocaleTag) { watched, progress, settings, locale ->
-                netflixRecommendationSeed(watched, progress, settings, locale)
+            val seeds = combine(watchProgressRepository.watchedItems, _homeCompletedProgress,
+                tmdbSettingsDataStore.settings, _currentLocaleTag) { watched, completed, settings, locale ->
+                netflixRecommendationSeed(watched, completed.progressForProfile(profileId), settings, locale)
             }
             netflixHomeSourcesFlow(
                 themeEnabled = themeDataStore.observeThemeForProfile(profileId).map { it == AppTheme.NETFLIX },

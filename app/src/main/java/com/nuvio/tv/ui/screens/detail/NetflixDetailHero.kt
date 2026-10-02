@@ -125,7 +125,7 @@ internal fun NetflixDetailHero(
         tmdbRating != null -> "TMDB ${String.format(Locale.getDefault(), "%.1f", tmdbRating)}/10"
         else -> null
     }
-    val year = meta.releaseInfo?.trim()?.takeIf { it.isNotBlank() }
+    val year = remember(meta.releaseInfo) { netflixDetailReleaseLabel(meta.releaseInfo) }
 
     Column(
         modifier = Modifier.fillMaxWidth()

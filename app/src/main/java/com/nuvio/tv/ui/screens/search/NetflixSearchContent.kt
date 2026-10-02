@@ -229,7 +229,8 @@ internal fun NetflixSearchContent(
     val latestOnFocusRestored by rememberUpdatedState(onFocusRestored)
     LaunchedEffect(Unit) {
         repeat(2) { withFrameNanos { } }
-        if (!restoreFocus) runCatching { keyboardRequester.requestFocus() }
+        // Keep the keyboard usable while an asynchronous saved-result restoration is pending.
+        runCatching { keyboardRequester.requestFocus() }
     }
     // Results may arrive after the screen resumes; retire the restoration only after a cell owns focus.
     LaunchedEffect(restoreFocus, results.size, initialFocusedIndex) {

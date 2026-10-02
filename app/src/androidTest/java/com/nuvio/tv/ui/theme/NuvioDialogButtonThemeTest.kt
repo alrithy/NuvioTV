@@ -99,7 +99,10 @@ class NuvioDialogButtonThemeTest {
         }
         val original = compose.onNodeWithTag("original")
         val adapted = compose.onNodeWithTag("adapted")
-        assertEquals(original.getUnclippedBoundsInRoot().size, adapted.getUnclippedBoundsInRoot().size)
+        val originalBounds = original.getUnclippedBoundsInRoot()
+        val adaptedBounds = adapted.getUnclippedBoundsInRoot()
+        assertEquals(originalBounds.width, adaptedBounds.width)
+        assertEquals(originalBounds.height, adaptedBounds.height)
         val expected = original.captureToImage().toPixelMap()
         val actual = adapted.captureToImage().toPixelMap()
         assertEquals(Color.Magenta, actual[0, 0])

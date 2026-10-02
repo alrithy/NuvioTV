@@ -126,6 +126,7 @@ class HomeViewModel @Inject constructor(
 
     internal val _modernHomePresentation = MutableStateFlow(ModernHomePresentationState())
     internal val _netflixHomeSources = MutableStateFlow(NetflixHomeSources())
+    internal val _homeCompletedProgress = MutableStateFlow<HomeCompletedProgressSnapshot?>(null)
     val modernHomePresentation: StateFlow<ModernHomePresentationState> = _modernHomePresentation.asStateFlow()
 
     internal val _movieWatchedStatus = MutableStateFlow<Map<String, Boolean>>(emptyMap())
@@ -387,6 +388,7 @@ class HomeViewModel @Inject constructor(
                 if (newId != previousProfileId) {
                     previousProfileId = newId
                     _netflixHomeSources.value = NetflixHomeSources()
+                    _homeCompletedProgress.value = null
                     // Cancel old pipeline — prevents racing writes from stale coroutines.
                     cwPipelineJob?.cancel()
                     cwPipelineJob = null
