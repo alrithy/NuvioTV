@@ -38,7 +38,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
-import androidx.tv.material3.Button
+import com.nuvio.tv.ui.components.NuvioDialogButton as Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
@@ -49,6 +49,7 @@ import com.nuvio.tv.R
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.screens.detail.requestFocusAfterFrames
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.updater.model.AppUpdate
 import kotlinx.coroutines.launch
 
@@ -61,7 +62,7 @@ internal fun UpdateReleaseNotesDialog(
     val scrollState = rememberScrollState()
     val coroutineScope = rememberCoroutineScope()
     var isFocused by remember { mutableStateOf(false) }
-    val shape = RoundedCornerShape(NuvioTheme.radii.md)
+    val shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.radii.md)
     val focusRingColor = NuvioTheme.colors.FocusRing
 
     LaunchedEffect(update.tag) {

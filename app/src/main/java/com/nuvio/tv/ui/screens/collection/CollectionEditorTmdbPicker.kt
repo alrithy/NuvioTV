@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.screens.collection
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -738,8 +739,8 @@ fun TmdbActionButton(
         colors = ButtonDefaults.colors(
             containerColor = if (primary) NuvioTheme.colors.Secondary else NuvioTheme.colors.BackgroundCard,
             contentColor = if (primary) NuvioTheme.colors.OnSecondary else NuvioTheme.colors.TextSecondary,
-            focusedContainerColor = if (primary) NuvioTheme.colors.SecondaryVariant else NuvioTheme.colors.FocusBackground,
-            focusedContentColor = if (primary) NuvioTheme.colors.OnSecondaryVariant else NuvioTheme.colors.Primary
+            focusedContainerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focus else if (primary) NuvioTheme.colors.SecondaryVariant else NuvioTheme.colors.FocusBackground,
+            focusedContentColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focusContent else if (primary) NuvioTheme.colors.OnSecondaryVariant else NuvioTheme.colors.Primary
         ),
         border = ButtonDefaults.border(
             focusedBorder = Border(
@@ -748,11 +749,11 @@ fun TmdbActionButton(
                 } else {
                     NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs)
                 },
-                shape = RoundedCornerShape(NuvioTheme.radii.md)
+                shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.radii.md)
             )
         ),
-        shape = ButtonDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md)),
-        scale = ButtonDefaults.scale(focusedScale = 1f)
+        shape = ButtonDefaults.shape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.radii.md)),
+        scale = ButtonDefaults.scale(focusedScale = if (NuvioTheme.isNetflix) NetflixThemeTokens.episodeFocusScale else 1f)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             content()

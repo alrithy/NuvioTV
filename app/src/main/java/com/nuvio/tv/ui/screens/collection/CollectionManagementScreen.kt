@@ -88,7 +88,7 @@ private fun NuvioButton(
         colors = ButtonDefaults.colors(
             containerColor = NuvioTheme.colors.BackgroundCard,
             contentColor = NuvioTheme.colors.TextPrimary,
-            focusedContainerColor = NuvioTheme.colors.FocusBackground,
+            focusedContainerColor = if (NuvioTheme.isNetflix) com.nuvio.tv.ui.theme.NetflixThemeTokens.focus else NuvioTheme.colors.FocusBackground,
             focusedContentColor = if (NuvioTheme.isNetflix) com.nuvio.tv.ui.theme.NetflixThemeTokens.focusContent else NuvioTheme.colors.Primary
         ),
         border = ButtonDefaults.border(

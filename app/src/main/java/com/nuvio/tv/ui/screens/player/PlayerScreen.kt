@@ -3866,7 +3866,7 @@ internal fun DialogButton(
         colors = ButtonDefaults.colors(
             containerColor = if (isPrimary) NuvioTheme.colors.Secondary else NuvioTheme.colors.BackgroundCard,
             contentColor = if (isPrimary) NuvioTheme.colors.OnSecondary else NuvioTheme.colors.TextSecondary,
-            focusedContainerColor = if (isPrimary) NuvioTheme.colors.SecondaryVariant else NuvioTheme.colors.FocusBackground,
+            focusedContainerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focus else if (isPrimary) NuvioTheme.colors.SecondaryVariant else NuvioTheme.colors.FocusBackground,
             focusedContentColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focusContent else if (isPrimary) NuvioTheme.colors.OnSecondaryVariant else NuvioTheme.colors.Primary
         ),
         border = ButtonDefaults.border(

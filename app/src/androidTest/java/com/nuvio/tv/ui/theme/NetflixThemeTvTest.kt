@@ -47,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -56,6 +57,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotFocused
@@ -486,11 +488,14 @@ class NetflixThemeTvTest {
     @Test fun errorStateOffersAnExistingRetryCallback() {
         var retried = 0
         setContent { ErrorState(text("Network unavailable", "الشبكة غير متاحة"), { retried++ }) }
-        capture("15-network-error")
         val localized = context.createConfigurationContext(Configuration(context.resources.configuration).apply {
             setLocales(LocaleList(Locale.forLanguageTag(localeTag)))
         })
-        compose.onNodeWithText(localized.getString(com.nuvio.tv.R.string.action_retry)).requestFocus()
+        val retry = compose.onNodeWithText(localized.getString(com.nuvio.tv.R.string.action_retry))
+        retry.requestFocus().assertIsFocused()
+        val pixels = retry.captureToImage().toPixelMap()
+        assertEquals(NetflixThemeTokens.focus, pixels[8, pixels.height / 2])
+        capture("15-network-error")
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals(1, retried) }
     }

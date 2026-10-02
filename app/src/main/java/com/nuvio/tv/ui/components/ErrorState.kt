@@ -63,10 +63,11 @@ fun ErrorState(
             colors = ButtonDefaults.colors(
                 containerColor = NuvioTheme.colors.BackgroundCard,
                 contentColor = NuvioTheme.colors.TextPrimary,
-                focusedContainerColor = NuvioTheme.colors.FocusBackground,
+                focusedContainerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focus else NuvioTheme.colors.FocusBackground,
                 focusedContentColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focusContent else NuvioTheme.colors.Primary
             ),
-            shape = ButtonDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md))
+            shape = ButtonDefaults.shape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.radii.md)),
+            scale = if (NuvioTheme.isNetflix) ButtonDefaults.scale(focusedScale = NetflixThemeTokens.episodeFocusScale) else ButtonDefaults.scale()
         ) {
             Text(stringResource(R.string.action_retry))
         }

@@ -14,10 +14,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class NetflixThemeProfilePersistenceTest {
-    private val activeProfile = MutableStateFlow(1)
+    private val activeProfileIdFlow = MutableStateFlow(1)
     private val stores = mutableMapOf<Int, MemoryPreferences>()
     private val profileManager = mockk<ProfileManager> {
-        every { activeProfileId } returns activeProfile
+        every { activeProfileId } returns activeProfileIdFlow
     }
     private val factory = mockk<ProfileDataStoreFactory> {
         every { get(any(), "theme_settings") } answers {
@@ -29,17 +29,17 @@ class NetflixThemeProfilePersistenceTest {
     fun switchingProfilesRestoresNetflixWithoutChangingOtherProfile() = runTest {
         val settings = ThemeDataStore(factory, profileManager)
         settings.setTheme(AppTheme.NETFLIX)
-        activeProfile.value = 2
+        activeProfileIdFlow.value = 2
         settings.setTheme(AppTheme.OCEAN)
         assertEquals(AppTheme.OCEAN, settings.themeSelection.first().theme)
-        activeProfile.value = 1
+        activeProfileIdFlow.value = 1
         assertEquals(AppTheme.NETFLIX, settings.themeSelection.first().theme)
         assertEquals(AppTheme.OCEAN, settings.getThemeForProfile(2))
     }
 
     @Test
     fun netflixSelectionSurvivesSettingsRecreationAndProfileObservation() = runTest {
-        activeProfile.value = 3
+        activeProfileIdFlow.value = 3
         ThemeDataStore(factory, profileManager).setTheme(AppTheme.NETFLIX)
         val restored = ThemeDataStore(factory, profileManager)
         assertEquals(AppTheme.NETFLIX, restored.getThemeForProfile(3))
