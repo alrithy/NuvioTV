@@ -4,6 +4,7 @@ import androidx.tv.material3.MaterialTheme
 import com.nuvio.tv.ui.util.contentTextDirection
 import com.nuvio.tv.ui.theme.NuvioMotion
 
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.ui.theme.ThemeColors
 import com.nuvio.tv.ui.theme.brandWordmarkResource
@@ -811,6 +812,10 @@ private fun ProfileSelectionBackground(
     focusedAvatarColor: Color,
     profileBackground: ProfileBackgroundArtwork?
 ) {
+    if (NuvioTheme.isNetflix) {
+        Box(modifier = Modifier.fillMaxSize().background(NetflixThemeTokens.background))
+        return
+    }
     val animatedAvatarColor by animateColorAsState(
         targetValue = focusedAvatarColor,
         animationSpec = tween(durationMillis = 520),
@@ -882,7 +887,7 @@ private fun ProfileSelectionBackground(
 }
 
 @Composable
-private fun ProfileSelectionMainContent(
+internal fun ProfileSelectionMainContent(
     screenTitle: String,
     screenSubtitle: String,
     screenHint: String,
@@ -899,41 +904,44 @@ private fun ProfileSelectionMainContent(
     onProfileLongPress: (UserProfile) -> Unit,
     onAddProfileClick: () -> Unit
 ) {
+    val netflix = NuvioTheme.isNetflix
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(
-                horizontal = ProfileSelectionSpacing.ScreenPaddingHorizontal,
-                vertical = ProfileSelectionSpacing.ScreenPaddingVertical
+                horizontal = if (netflix) NetflixThemeTokens.safeMargin else ProfileSelectionSpacing.ScreenPaddingHorizontal,
+                vertical = if (netflix) NetflixThemeTokens.safeVerticalMargin else ProfileSelectionSpacing.ScreenPaddingVertical
             ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        MemberBrandWordmark(
+        if (!netflix) MemberBrandWordmark(
             height = ProfileSelectionSpacing.LogoHeight,
             contentDescription = stringResource(R.string.cd_nuvio_logo),
             drawableOverride = brandWordmarkRes
         )
 
-        Spacer(modifier = Modifier.height(ProfileSelectionSpacing.LogoToHeading))
+        if (netflix) Spacer(modifier = Modifier.weight(1f))
+        else Spacer(modifier = Modifier.height(ProfileSelectionSpacing.LogoToHeading))
 
         Text(
             text = screenTitle,
             color = NuvioTheme.colors.TextPrimary,
-            fontSize = 44.sp,
-            fontWeight = FontWeight.Bold,
+            fontSize = if (netflix) NetflixThemeTokens.profileHeadingSize else 44.sp,
+            fontWeight = if (netflix) FontWeight.Normal else FontWeight.Bold,
             letterSpacing = (-0.5).sp
         )
 
         Spacer(modifier = Modifier.height(ProfileSelectionSpacing.HeadingToSubheading))
 
-        Text(
+        if (!netflix || isManagementMode) Text(
             text = screenSubtitle,
             color = NuvioTheme.colors.TextSecondary,
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium
         )
 
-        Spacer(modifier = Modifier.weight(1f, fill = true))
+        if (netflix) Spacer(modifier = Modifier.height(NetflixThemeTokens.profileGap))
+        else Spacer(modifier = Modifier.weight(1f, fill = true))
 
         ProfileGrid(
             profiles = profiles,
@@ -974,6 +982,9 @@ private fun ProfileGrid(
     onProfileLongPress: (UserProfile) -> Unit,
     onAddProfileClick: () -> Unit
 ) {
+    val netflix = NuvioTheme.isNetflix
+    val regularCardWidth = if (netflix) NetflixThemeTokens.profileCardWidth else ProfileSelectionSpacing.CardWidth
+    val regularGap = if (netflix) NetflixThemeTokens.profileGap else ProfileSelectionSpacing.GridItemGap
     val totalItems = profiles.size + if (canAddProfile) 1 else 0
     val initialFocusIndex = remember(profiles, activeProfileId, canAddProfile) {
         profiles.indexOfFirst { it.id == activeProfileId }
@@ -1005,19 +1016,19 @@ private fun ProfileGrid(
         ) {
             val defaultGridWidth = profileGridWidth(
                 itemCount = totalItems,
-                cardWidth = ProfileSelectionSpacing.CardWidth,
-                itemGap = ProfileSelectionSpacing.GridItemGap
+                cardWidth = regularCardWidth,
+                itemGap = regularGap
             )
             val fullSizeTightGridWidth = profileGridWidth(
                 itemCount = totalItems,
-                cardWidth = ProfileSelectionSpacing.CardWidth,
+                cardWidth = regularCardWidth,
                 itemGap = ProfileSelectionSpacing.CompactGridItemGap
             )
             val useCompactCards = defaultGridWidth > maxWidth && fullSizeTightGridWidth > maxWidth
             val gridItemGap = if (defaultGridWidth > maxWidth) {
                 ProfileSelectionSpacing.CompactGridItemGap
             } else {
-                ProfileSelectionSpacing.GridItemGap
+                regularGap
             }
 
             Row(
@@ -1071,13 +1082,18 @@ private fun ProfileCard(
     onClick: () -> Unit,
     onLongPress: () -> Unit
 ) {
+    val netflix = NuvioTheme.isNetflix
+    val avatarShape = if (netflix) RoundedCornerShape(NetflixThemeTokens.profileRadius) else CircleShape
+    val avatarContainer = if (netflix) {
+        if (compact) NetflixThemeTokens.profileAvatarCompactSize else NetflixThemeTokens.profileAvatarSize
+    } else if (compact) ProfileSelectionSpacing.CompactAvatarContainer else ProfileSelectionSpacing.AvatarContainer
     var isFocused by remember { mutableStateOf(false) }
     var longPressTriggered by remember { mutableStateOf(false) }
     val longPressKeyTracker = rememberLongPressKeyTracker()
     val interactionSource = remember { MutableInteractionSource() }
     val focusProgress by animateFloatAsState(
         targetValue = if (isFocused) 1f else 0f,
-        animationSpec = tween(durationMillis = 210, easing = ProfileCardFocusEasing),
+        animationSpec = tween(durationMillis = if (netflix) NetflixThemeTokens.focusDurationMillis else 210, easing = ProfileCardFocusEasing),
         label = "profileFocusProgress"
     )
     val profileFocusRing = remember(profileTheme) {
@@ -1085,15 +1101,15 @@ private fun ProfileCard(
             createFocusRingStyle(ThemeColors.getColorPalette(it))
         }
     }
-    val itemScale = 1f + (0.04f * focusProgress)
+    val itemScale = 1f + ((if (netflix) NetflixThemeTokens.focusScale - 1f else 0.04f) * focusProgress)
     val avatarSize = androidx.compose.ui.unit.lerp(
-        if (compact) ProfileSelectionSpacing.CompactAvatarSize else 96.dp,
-        if (compact) ProfileSelectionSpacing.CompactFocusedAvatarSize else 102.dp,
+        if (netflix) avatarContainer else if (compact) ProfileSelectionSpacing.CompactAvatarSize else 96.dp,
+        if (netflix) avatarContainer else if (compact) ProfileSelectionSpacing.CompactFocusedAvatarSize else 102.dp,
         focusProgress
     )
     val outerAvatarSize = androidx.compose.ui.unit.lerp(
-        if (compact) ProfileSelectionSpacing.CompactOuterAvatarSize else 114.dp,
-        if (compact) ProfileSelectionSpacing.CompactFocusedOuterAvatarSize else 122.dp,
+        if (netflix) avatarContainer else if (compact) ProfileSelectionSpacing.CompactOuterAvatarSize else 114.dp,
+        if (netflix) avatarContainer else if (compact) ProfileSelectionSpacing.CompactFocusedOuterAvatarSize else 122.dp,
         focusProgress
     )
     val ringWidth = androidx.compose.ui.unit.lerp(NuvioTheme.spacing.hairline, 3.dp, focusProgress)
@@ -1107,7 +1123,9 @@ private fun ProfileCard(
     Column(
         modifier = Modifier
             .width(
-                if (compact) ProfileSelectionSpacing.CompactCardWidth
+                if (netflix) {
+                    if (compact) NetflixThemeTokens.profileCardCompactWidth else NetflixThemeTokens.profileCardWidth
+                } else if (compact) ProfileSelectionSpacing.CompactCardWidth
                 else ProfileSelectionSpacing.CardWidth
             )
             .graphicsLayer {
@@ -1160,23 +1178,22 @@ private fun ProfileCard(
     ) {
         Box(
             modifier = Modifier.size(
-                if (compact) ProfileSelectionSpacing.CompactAvatarContainer
-                else ProfileSelectionSpacing.AvatarContainer
+                avatarContainer
             ),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
                     .size(outerAvatarSize)
-                    .clip(CircleShape)
+                    .clip(avatarShape)
                     .border(
                         width = NuvioTheme.spacing.hairline,
                         color = NuvioTheme.colors.Border.copy(alpha = 0.75f),
-                        shape = CircleShape
+                        shape = avatarShape
                     )
                     .border(
-                        border = (profileFocusRing ?: NuvioTheme.focusRing).border(ringWidth, focusProgress),
-                        shape = CircleShape
+                        border = (if (netflix) NuvioTheme.focusRing else profileFocusRing ?: NuvioTheme.focusRing).border(ringWidth, focusProgress),
+                        shape = avatarShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -1184,22 +1201,23 @@ private fun ProfileCard(
                     name = profile.name,
                     colorHex = profile.avatarColorHex,
                     size = avatarSize,
-                    avatarImageUrl = avatarImageUrl
+                    avatarImageUrl = avatarImageUrl,
+                    avatarShape = avatarShape
                 )
             }
 
-            if (profile.isPrimary) {
+            if (profile.isPrimary && !netflix) {
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .offset(x = NuvioTheme.spacing.xxs, y = NuvioTheme.spacing.hairline)
                         .size(if (compact) 22.dp else 26.dp)
-                        .clip(CircleShape)
+                        .clip(avatarShape)
                         .background(Color(0xFFFFB300), CircleShape)
                         .border(
                             width = NuvioTheme.spacing.xxs,
                             color = NuvioTheme.colors.Background,
-                            shape = CircleShape
+                            shape = avatarShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -1227,7 +1245,7 @@ private fun ProfileCard(
                 textDirection = profile.name.contentTextDirection()
             ),
             color = nameColor,
-            fontSize = if (compact) 15.sp else 17.sp,
+            fontSize = if (netflix) NetflixThemeTokens.profileNameSize else if (compact) 15.sp else 17.sp,
             fontWeight = nameWeight,
             textAlign = TextAlign.Center,
             maxLines = 1,
@@ -1240,7 +1258,7 @@ private fun ProfileCard(
             modifier = Modifier.height(ProfileSelectionSpacing.MetaSlotHeight),
             contentAlignment = Alignment.TopCenter
         ) {
-            if (profile.isPrimary) {
+            if (profile.isPrimary && !netflix) {
                 Text(
                     text = stringResource(R.string.profile_selection_primary_badge),
                     color = Color(0xFFFFB300),
@@ -1265,17 +1283,22 @@ private fun AddProfileCard(
     onFocused: () -> Unit,
     onClick: () -> Unit
 ) {
+    val netflix = NuvioTheme.isNetflix
+    val avatarShape = if (netflix) RoundedCornerShape(NetflixThemeTokens.profileRadius) else CircleShape
+    val avatarContainer = if (netflix) {
+        if (compact) NetflixThemeTokens.profileAvatarCompactSize else NetflixThemeTokens.profileAvatarSize
+    } else if (compact) ProfileSelectionSpacing.CompactAvatarContainer else ProfileSelectionSpacing.AvatarContainer
     var isFocused by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val focusProgress by animateFloatAsState(
         targetValue = if (isFocused) 1f else 0f,
-        animationSpec = tween(durationMillis = 210, easing = ProfileCardFocusEasing),
+        animationSpec = tween(durationMillis = if (netflix) NetflixThemeTokens.focusDurationMillis else 210, easing = ProfileCardFocusEasing),
         label = "addFocusProgress"
     )
-    val itemScale = 1f + (0.04f * focusProgress)
+    val itemScale = 1f + ((if (netflix) NetflixThemeTokens.focusScale - 1f else 0.04f) * focusProgress)
     val outerAvatarSize = androidx.compose.ui.unit.lerp(
-        if (compact) ProfileSelectionSpacing.CompactOuterAvatarSize else 114.dp,
-        if (compact) ProfileSelectionSpacing.CompactFocusedOuterAvatarSize else 122.dp,
+        if (netflix) avatarContainer else if (compact) ProfileSelectionSpacing.CompactOuterAvatarSize else 114.dp,
+        if (netflix) avatarContainer else if (compact) ProfileSelectionSpacing.CompactFocusedOuterAvatarSize else 122.dp,
         focusProgress
     )
     val ringWidth = androidx.compose.ui.unit.lerp(NuvioTheme.spacing.hairline, 3.dp, focusProgress)
@@ -1298,7 +1321,9 @@ private fun AddProfileCard(
     Column(
         modifier = Modifier
             .width(
-                if (compact) ProfileSelectionSpacing.CompactCardWidth
+                if (netflix) {
+                    if (compact) NetflixThemeTokens.profileCardCompactWidth else NetflixThemeTokens.profileCardWidth
+                } else if (compact) ProfileSelectionSpacing.CompactCardWidth
                 else ProfileSelectionSpacing.CardWidth
             )
             .graphicsLayer {
@@ -1323,25 +1348,24 @@ private fun AddProfileCard(
     ) {
         Box(
             modifier = Modifier.size(
-                if (compact) ProfileSelectionSpacing.CompactAvatarContainer
-                else ProfileSelectionSpacing.AvatarContainer
+                avatarContainer
             ),
             contentAlignment = Alignment.Center
         ) {
             Box(
                 modifier = Modifier
                     .size(outerAvatarSize)
-                    .clip(CircleShape)
+                    .clip(avatarShape)
                     .border(
                         width = NuvioTheme.spacing.hairline,
                         color = NuvioTheme.colors.Border.copy(alpha = 0.5f),
-                        shape = CircleShape
+                        shape = avatarShape
                     )
                     .border(
                         border = NuvioTheme.focusRing.border(ringWidth, focusProgress),
-                        shape = CircleShape
+                        shape = avatarShape
                     )
-                    .background(addBackgroundColor, CircleShape),
+                    .background(addBackgroundColor, avatarShape),
                 contentAlignment = Alignment.Center
             ) {
                 Box(
@@ -1376,7 +1400,7 @@ private fun AddProfileCard(
         Text(
             text = stringResource(R.string.profile_add_new),
             color = nameColor,
-            fontSize = if (compact) 15.sp else 17.sp,
+            fontSize = if (netflix) NetflixThemeTokens.profileNameSize else if (compact) 15.sp else 17.sp,
             fontWeight = if (isFocused) FontWeight.SemiBold else FontWeight.Medium,
             textAlign = TextAlign.Center,
             maxLines = 1,

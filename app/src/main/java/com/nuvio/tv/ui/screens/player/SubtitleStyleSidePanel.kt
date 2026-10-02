@@ -3,6 +3,7 @@
 package com.nuvio.tv.ui.screens.player
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.alpha
@@ -288,7 +289,7 @@ internal fun SubtitleStyleSidePanel(
                             containerColor = Color.White.copy(alpha = 0.1f),
                             focusedContainerColor = Color.White.copy(alpha = 0.2f)
                         ),
-                        shape = CardDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md))
+                        shape = CardDefaults.shape(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md))
                     ) {
                         Text(
                             text = stringResource(R.string.subtitle_style_reset),
@@ -312,7 +313,7 @@ private fun SubtitleStyleSection(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else 14.dp))
             .background(Color.White.copy(alpha = 0.06f))
             .padding(NuvioTheme.spacing.md)
     ) {

@@ -69,8 +69,8 @@ class EpisodeShuffleTvTest {
         var settings by mutableStateOf(EpisodeShuffleSettings(false, true))
         var played: Video? = null
         setContent {
-            EpisodeShuffleDialog(meta, settings, { settings = it; true }, setOf(1 to 1, 1 to 3), emptyMap(),
-                {}, { played = it })
+            EpisodeShuffleDialog(meta, settings, { settings = it; true }, watchedEpisodes = setOf(1 to 1, 1 to 3),
+                episodeProgress = emptyMap(), onDismiss = {}, onPlay = { played = it })
         }
         compose.onNodeWithText("All episodes").assertIsFocused().assertIsDisplayed()
         capture("shuffle-choices")
@@ -117,7 +117,7 @@ class EpisodeShuffleTvTest {
         val onlyEpisode = videos.first()
         setContent {
             EpisodeShuffleDialog(meta.copy(videos = listOf(onlyEpisode)), settings, { settings = it; true },
-                setOf(1 to 1), emptyMap(), {}, { played = it })
+                watchedEpisodes = setOf(1 to 1), episodeProgress = emptyMap(), onDismiss = {}, onPlay = { played = it })
         }
         compose.onNodeWithText("Unwatched episodes").assertIsNotEnabled()
         compose.onNodeWithText("All episodes").assertIsFocused().assertIsDisplayed()
@@ -151,7 +151,7 @@ class EpisodeShuffleTvTest {
                 saved.await()
                 settings = it
                 true
-            }, watched, emptyMap(), { dismissals++ }, { played = it })
+            }, watchedEpisodes = watched, episodeProgress = emptyMap(), onDismiss = { dismissals++ }, onPlay = { played = it })
         }
         compose.onNodeWithText("Unwatched episodes").assertIsFocused()
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
@@ -184,7 +184,7 @@ class EpisodeShuffleTvTest {
             EpisodeShuffleDialog(meta, settings, {
                 if (allowSave) settings = it
                 allowSave
-            }, emptySet(), emptyMap(), {}, { played = it })
+            }, watchedEpisodes = emptySet(), episodeProgress = emptyMap(), onDismiss = {}, onPlay = { played = it })
         }
         compose.onNodeWithText("All episodes").assertIsFocused()
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
@@ -204,8 +204,8 @@ class EpisodeShuffleTvTest {
         var dismissals = 0
         var plays = 0
         setContent {
-            EpisodeShuffleDialog(meta, EpisodeShuffleSettings(), { saves++; true }, emptySet(), emptyMap(),
-                { dismissals++ }, { plays++ })
+            EpisodeShuffleDialog(meta, EpisodeShuffleSettings(), { saves++; true }, watchedEpisodes = emptySet(),
+                episodeProgress = emptyMap(), onDismiss = { dismissals++ }, onPlay = { plays++ })
         }
         compose.onNodeWithText("Unwatched episodes").assertIsFocused()
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_DOWN)
@@ -233,8 +233,8 @@ class EpisodeShuffleTvTest {
         var saves = 0
         var plays = 0
         setContent {
-            EpisodeShuffleDialog(meta, EpisodeShuffleSettings(), { saves++; true }, watched, emptyMap(),
-                {}, { plays++ })
+            EpisodeShuffleDialog(meta, EpisodeShuffleSettings(), { saves++; true }, watchedEpisodes = watched,
+                episodeProgress = emptyMap(), onDismiss = {}, onPlay = { plays++ })
         }
         compose.onNodeWithText("Unwatched episodes").assertIsFocused()
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
@@ -250,8 +250,8 @@ class EpisodeShuffleTvTest {
     fun previewPreservesTheEpisodeWhenMetadataRefreshesAndHidesUnwatchedArtwork() {
         var currentMeta by mutableStateOf(meta)
         setContent {
-            EpisodeShuffleDialog(currentMeta, EpisodeShuffleSettings(), { true }, emptySet(), emptyMap(),
-                {}, {}, blurUnwatchedEpisodes = true)
+            EpisodeShuffleDialog(currentMeta, EpisodeShuffleSettings(), { true }, watchedEpisodes = emptySet(),
+                episodeProgress = emptyMap(), onDismiss = {}, onPlay = {}, blurUnwatchedEpisodes = true)
         }
         compose.onNodeWithText("Unwatched episodes").assertIsFocused()
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_DPAD_CENTER)
@@ -277,7 +277,8 @@ class EpisodeShuffleTvTest {
         var saves = 0
         var dismissals = 0
         setContent {
-            EpisodeShuffleDialog(meta, settings, { saves++; true }, emptySet(), emptyMap(), { dismissals++ }, {})
+            EpisodeShuffleDialog(meta, settings, { saves++; true }, watchedEpisodes = emptySet(),
+                episodeProgress = emptyMap(), onDismiss = { dismissals++ }, onPlay = {})
         }
         compose.onNodeWithText("All episodes").assertIsFocused()
         instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACK)
@@ -289,7 +290,7 @@ class EpisodeShuffleTvTest {
         var dismissals = 0
         setContent {
             EpisodeShuffleDialog(meta.copy(videos = emptyList()), EpisodeShuffleSettings(), { true },
-                emptySet(), emptyMap(), { dismissals++ }, {})
+                watchedEpisodes = emptySet(), episodeProgress = emptyMap(), onDismiss = { dismissals++ }, onPlay = {})
         }
         compose.onNodeWithText("No episodes are available to shuffle.").assertIsDisplayed()
         compose.onNodeWithText("Close").assertIsFocused()

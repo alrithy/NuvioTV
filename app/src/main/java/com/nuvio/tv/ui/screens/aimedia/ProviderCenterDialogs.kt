@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
-import androidx.tv.material3.Button
-import androidx.tv.material3.OutlinedButton
+import com.nuvio.tv.ui.components.NuvioDialogButton as Button
+import com.nuvio.tv.ui.components.NuvioDialogOutlinedButton as OutlinedButton
 import androidx.tv.material3.Text
 import com.nuvio.tv.R
 import com.nuvio.tv.fork.aimedia.ProviderCenterError

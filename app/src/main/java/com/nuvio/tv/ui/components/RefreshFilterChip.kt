@@ -26,6 +26,7 @@ import androidx.tv.material3.FilterChipDefaults
 import androidx.tv.material3.Icon
 import com.nuvio.tv.R
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import kotlinx.coroutines.delay as coroutineDelay
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -95,14 +96,14 @@ fun RefreshFilterChip(
         border = FilterChipDefaults.border(
             border = Border(
                 border = BorderStroke(NuvioTheme.spacing.hairline, NuvioTheme.colors.Border),
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else 20.dp)
             ),
             focusedBorder = Border(
                 border = BorderStroke(NuvioTheme.spacing.xxs, NuvioTheme.colors.FocusRing),
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else 20.dp)
             )
         ),
-        shape = FilterChipDefaults.shape(shape = RoundedCornerShape(20.dp))
+        shape = FilterChipDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else 20.dp))
     ) {
         Icon(
             imageVector = Icons.Rounded.Refresh,

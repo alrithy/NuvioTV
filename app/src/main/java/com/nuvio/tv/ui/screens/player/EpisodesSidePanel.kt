@@ -62,6 +62,7 @@ import androidx.tv.material3.CardDefaults
 import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.domain.model.Video
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.components.LoadingIndicator
 import com.nuvio.tv.ui.components.SourceChipStatus
 import com.nuvio.tv.ui.screens.detail.formatReleaseDate
@@ -114,7 +115,7 @@ internal fun EpisodesSidePanel(
         modifier = modifier
             .fillMaxHeight()
             .width(520.dp)
-            .clip(RoundedCornerShape(topStart = NuvioTheme.spacing.lg, bottomStart = NuvioTheme.spacing.lg))
+            .clip(if (NuvioTheme.isNetflix) NetflixThemeTokens.cardShape else RoundedCornerShape(topStart = NuvioTheme.spacing.lg, bottomStart = NuvioTheme.spacing.lg))
             .background(NuvioTheme.colors.BackgroundElevated)
     ) {
         Column(modifier = Modifier.padding(NuvioTheme.spacing.xl)) {
@@ -656,7 +657,7 @@ private fun EpisodesSeasonTabs(
                 modifier = Modifier
                     .then(if (isSelected) Modifier.focusRequester(selectedTabFocusRequester) else Modifier)
                     .onFocusChanged { isFocused = it.isFocused },
-                shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.spacing.xl)),
+                shape = CardDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.spacing.xl)),
                 colors = CardDefaults.colors(
                     containerColor = if (isSelected) Color(0xFFF5F5F5) else NuvioTheme.colors.BackgroundCard,
                     focusedContainerColor = if (isSelected) Color.White else NuvioTheme.colors.Secondary
@@ -664,11 +665,11 @@ private fun EpisodesSeasonTabs(
                 border = CardDefaults.border(
                     border = Border(
                         border = BorderStroke(NuvioTheme.spacing.hairline, if (isSelected) Color.Transparent else NuvioTheme.colors.Border),
-                        shape = RoundedCornerShape(NuvioTheme.spacing.xl)
+                        shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.spacing.xl)
                     ),
                     focusedBorder = Border(
                         border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                        shape = RoundedCornerShape(NuvioTheme.spacing.xl)
+                        shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.spacing.xl)
                     )
                 ),
                 scale = CardDefaults.scale(focusedScale = 1.0f)
@@ -764,16 +765,16 @@ private fun EpisodeItem(
             },
         colors = CardDefaults.colors(
             containerColor = NuvioTheme.colors.BackgroundCard,
-            focusedContainerColor = NuvioTheme.colors.FocusBackground
+            focusedContainerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.surfaceRaised else NuvioTheme.colors.FocusBackground
         ),
         border = CardDefaults.border(
             focusedBorder = Border(
                 border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                shape = RoundedCornerShape(NuvioTheme.radii.xl)
+                shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.xl)
             )
         ),
         scale = CardDefaults.scale(focusedScale = 1.01f),
-        shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.xl))
+        shape = CardDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.xl))
     ) {
         Row(
             modifier = Modifier
@@ -786,8 +787,8 @@ private fun EpisodeItem(
             Box(
                 modifier = Modifier
                     .width(130.dp)
-                    .height(90.dp)
-                    .clip(RoundedCornerShape(NuvioTheme.radii.md))
+                    .height(if (NuvioTheme.isNetflix) 130.dp / NetflixThemeTokens.landscapeAspectRatio else 90.dp)
+                    .clip(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md))
                     .background(NuvioTheme.colors.SurfaceVariant)
             ) {
                 AsyncImage(

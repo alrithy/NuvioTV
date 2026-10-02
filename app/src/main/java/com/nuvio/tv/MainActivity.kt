@@ -31,6 +31,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -51,6 +52,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Search
@@ -77,6 +80,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusRestorer
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.BlendMode
@@ -892,7 +896,11 @@ open class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     var optimisticRoute by remember { mutableStateOf<String?>(null) }
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val actualRoute = navBackStackEntry?.destination?.route
+                    val netflixThemeEnabled = NuvioTheme.isNetflix
+                    val destinationRoute = navBackStackEntry?.destination?.route
+                    val actualRoute = if (destinationRoute == Screen.Discover.routePattern) {
+                        Screen.Discover.createRoute(if (netflixThemeEnabled) navBackStackEntry?.arguments?.getString("type") else null)
+                    } else destinationRoute
                     val currentRoute = optimisticRoute ?: actualRoute
                     startupDestination = startupDestinationForRoute(actualRoute ?: startDestination)
 
@@ -1053,7 +1061,7 @@ open class MainActivity : ComponentActivity() {
                         if (discoverLocation == null) return@LaunchedEffect
                         val onDiscoverRoute = currentRoute == Screen.Discover.route ||
                             currentRoute?.startsWith("${Screen.Discover.route}/") == true
-                        if (discoverLocation == DiscoverLocation.OFF && onDiscoverRoute) {
+                        if (!netflixThemeEnabled && discoverLocation == DiscoverLocation.OFF && onDiscoverRoute) {
                             navController.navigate(Screen.Home.route) {
                                 popUpTo(navController.graph.startDestinationId) { saveState = false }
                                 launchSingleTop = true
@@ -1073,7 +1081,7 @@ open class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                    val rootRoutes = remember(discoverLocation, liveTvEnabled) {
+                    val rootRoutes = remember(discoverLocation, liveTvEnabled, netflixThemeEnabled) {
                         buildSet {
                             add(Screen.Home.route)
                             if (calendarEnabled) add(Screen.Calendar.route)
@@ -1081,7 +1089,11 @@ open class MainActivity : ComponentActivity() {
                             add(Screen.Search.route)
                             add(Screen.Library.route)
                             add(Screen.Settings.route)
-                            if (discoverLocation == DiscoverLocation.IN_SIDEBAR) {
+                            if (netflixThemeEnabled) {
+                                add(Screen.Discover.route)
+                                add(Screen.Discover.createRoute("movie"))
+                                add(Screen.Discover.createRoute("series"))
+                            } else if (discoverLocation == DiscoverLocation.IN_SIDEBAR) {
                                 add(Screen.Discover.route)
                             }
                         }
@@ -1089,6 +1101,8 @@ open class MainActivity : ComponentActivity() {
 
                     val strNavHome = stringResource(R.string.nav_home)
                     val strNavDiscover = stringResource(R.string.nav_discover)
+                    val strNavMovies = stringResource(R.string.nav_movies)
+                    val strNavSeries = stringResource(R.string.nav_series)
                     val strNavSearch = stringResource(R.string.nav_search)
                     val strNavLibrary = stringResource(R.string.nav_library)
                     val strNavSettings = stringResource(R.string.nav_settings)
@@ -1103,9 +1117,23 @@ open class MainActivity : ComponentActivity() {
                         strNavSearch,
                         strNavLibrary,
                         strNavSettings,
-                        discoverLocation
+                        discoverLocation,
+                        netflixThemeEnabled,
+                        strNavMovies,
+                        strNavSeries
                     ) {
                         buildList {
+                            if (netflixThemeEnabled) {
+                                add(DrawerItem(Screen.Home.route, strNavHome, icon = Icons.Default.Home))
+                                add(DrawerItem(Screen.Search.route, strNavSearch, iconRes = R.raw.sidebar_search))
+                                add(DrawerItem(Screen.Discover.createRoute("movie"), strNavMovies, icon = Icons.Default.Movie))
+                                add(DrawerItem(Screen.Discover.createRoute("series"), strNavSeries, icon = Icons.Default.Tv))
+                                add(DrawerItem(Screen.Library.route, strNavLibrary, iconRes = R.raw.sidebar_library))
+                                if (calendarEnabled) add(DrawerItem(Screen.Calendar.route, strNavCalendar, icon = Icons.Default.DateRange))
+                                if (liveTvEnabled) add(DrawerItem(Screen.LiveTv.route, strNavLiveTv, icon = Icons.Default.LiveTv))
+                                add(DrawerItem(Screen.Settings.route, strNavSettings, iconRes = R.raw.sidebar_settings))
+                                return@buildList
+                            }
                             add(
                                 DrawerItem(
                                     route = Screen.Home.route,
@@ -1225,7 +1253,7 @@ open class MainActivity : ComponentActivity() {
                                 storedNavigationStyle,
                                 modernLayout = homeLayout == com.nuvio.tv.domain.model.HomeLayout.MODERN
                             )
-                            if (navigationStyle.isGlass) {
+                            if (!NuvioTheme.isNetflix && navigationStyle.isGlass) {
                                 com.nuvio.tv.ui.screens.uistyle.GlassChromeScaffold(
                                     effect = com.nuvio.tv.fork.uistyle.UiStyleRules.glassEffect(
                                         android.os.Build.VERSION.SDK_INT,
@@ -1254,7 +1282,7 @@ open class MainActivity : ComponentActivity() {
                                     onNavigate = { optimisticRoute = it },
                                     onExitApp = handleExitApp
                                 )
-                            } else if (navigationStyle != com.nuvio.tv.fork.uistyle.NavigationStyle.SIDEBAR) {
+                            } else if (!NuvioTheme.isNetflix && navigationStyle != com.nuvio.tv.fork.uistyle.NavigationStyle.SIDEBAR) {
                                 com.nuvio.tv.ui.screens.uistyle.TopChromeScaffold(
                                     style = navigationStyle,
                                     clockEnabled = topMenuClock,
@@ -1273,7 +1301,7 @@ open class MainActivity : ComponentActivity() {
                                     onNavigate = { optimisticRoute = it },
                                     onExitApp = handleExitApp
                                 )
-                            } else if (modernSidebarEnabled) {
+                            } else if (NuvioTheme.isNetflix || modernSidebarEnabled) {
                                 ModernSidebarScaffold(
                                     longPressBackHeld = longPressBackHeld,
                                     navController = navController,
@@ -1929,10 +1957,13 @@ private fun ModernSidebarScaffold(
     onNavigate: (String) -> Unit,
     onExitApp: () -> Unit
 ) {
+    val netflix = NuvioTheme.isNetflix
+    val netflixTokens = com.nuvio.tv.ui.theme.NetflixThemeTokens
+    val effectiveSidebarCollapsed = sidebarCollapsed && !netflix
     val showSidebar = currentRoute in rootRoutes
     val sidebarTokens = NuvioComponents.tokens.sidebar
-    val collapsedSidebarWidth = if (sidebarCollapsed) NuvioTheme.spacing.none else sidebarTokens.collapsedWidth
-    val openSidebarWidth = sidebarTokens.expandedWidth
+    val collapsedSidebarWidth = if (effectiveSidebarCollapsed) NuvioTheme.spacing.none else if (netflix) netflixTokens.navigationCollapsedWidth else sidebarTokens.collapsedWidth
+    val openSidebarWidth = if (netflix) netflixTokens.navigationExpandedWidth else sidebarTokens.expandedWidth
 
     val focusManager = LocalFocusManager.current
     val isRtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
@@ -2023,7 +2054,7 @@ private fun ModernSidebarScaffold(
         isFloatingPillIconOnly = true
     }
 
-    val sidebarVisible = showSidebar && (isSidebarExpanded || !sidebarCollapsed)
+    val sidebarVisible = showSidebar && (isSidebarExpanded || !effectiveSidebarCollapsed)
     val sidebarHazeState = remember { HazeState() }
     // Panel is always laid out at full expanded width; open/close is
     // purely a graphicsLayer transform (scale + alpha) so Compose never
@@ -2035,10 +2066,10 @@ private fun ModernSidebarScaffold(
     val sidebarSlideX = NuvioTheme.spacing.none
     val sidebarSurfaceAlpha by animateFloatAsState(
         targetValue = if (isSidebarExpanded) 1f else 0f,
-        animationSpec = tween(durationMillis = if (isSidebarExpanded) 280 else 200, easing = animationEasing),
+        animationSpec = tween(durationMillis = if (netflix) netflixTokens.navigationDurationMillis else if (isSidebarExpanded) 280 else 200, easing = animationEasing),
         label = "sidebarSurfaceAlpha"
     )
-    val shouldApplySidebarHaze = showSidebar && modernSidebarBlurEnabled
+    val shouldApplySidebarHaze = showSidebar && modernSidebarBlurEnabled && !netflix
     val sidebarTransition = updateTransition(
         targetState = isSidebarExpanded,
         label = "sidebarTransition"
@@ -2049,9 +2080,9 @@ private fun ModernSidebarScaffold(
     val sidebarExpandProgress by sidebarTransition.animateFloat(
         transitionSpec = {
             if (targetState) {
-                tween(durationMillis = NuvioMotion.tokens.durations.sidebarPanelIn, easing = FastOutSlowInEasing)
+                tween(durationMillis = if (netflix) netflixTokens.navigationDurationMillis else NuvioMotion.tokens.durations.sidebarPanelIn, easing = FastOutSlowInEasing)
             } else {
-                tween(durationMillis = NuvioMotion.tokens.durations.sidebarPanelOut, easing = LinearOutSlowInEasing)
+                tween(durationMillis = if (netflix) netflixTokens.navigationDurationMillis else NuvioMotion.tokens.durations.sidebarPanelOut, easing = LinearOutSlowInEasing)
             }
         },
         label = "sidebarExpandProgress"
@@ -2118,6 +2149,8 @@ private fun ModernSidebarScaffold(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(start = if (netflix && showSidebar) collapsedSidebarWidth else NuvioTheme.spacing.none)
+                .then(if (netflix) Modifier.focusRequester(contentFocusRequester).focusRestorer().focusGroup() else Modifier)
                 .then(
                     if (shouldApplySidebarHaze) Modifier.hazeSource(state = sidebarHazeState)
                     else Modifier
@@ -2202,21 +2235,26 @@ private fun ModernSidebarScaffold(
         }
 
         if (showSidebar && (sidebarVisible || sidebarShowExpandedPanel)) {
-            val panelShape = RoundedCornerShape(sidebarTokens.panelRadius)
+            val panelShape = RoundedCornerShape(if (netflix) NuvioTheme.spacing.none else sidebarTokens.panelRadius)
             val showExpandedPanel = isSidebarExpanded || sidebarShowExpandedPanel
 
             Box(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .width(openSidebarWidth)
-                    .padding(start = NuvioTheme.spacing.lg - NuvioTheme.spacing.xxs, top = NuvioTheme.spacing.lg, bottom = NuvioTheme.spacing.md, end = NuvioTheme.spacing.sm)
+                    .padding(
+                        start = if (netflix) NuvioTheme.spacing.none else NuvioTheme.spacing.lg - NuvioTheme.spacing.xxs,
+                        top = if (netflix) NuvioTheme.spacing.none else NuvioTheme.spacing.lg,
+                        bottom = if (netflix) NuvioTheme.spacing.none else NuvioTheme.spacing.md,
+                        end = if (netflix) NuvioTheme.spacing.none else NuvioTheme.spacing.sm
+                    )
                     .graphicsLayer {
                         val progress = sidebarExpandProgress
                         alpha = sidebarSurfaceAlpha
-                        val s = 0.92f + 0.08f * progress
+                        val s = if (netflix) 1f else 0.92f + 0.08f * progress
                         scaleX = s
                         scaleY = s
-                        transformOrigin = TransformOrigin(0f, 0f)
+                        transformOrigin = TransformOrigin(if (isRtl) 1f else 0f, 0f)
                     }
                     .selectableGroup()
                     .onPreviewKeyEvent { keyEvent ->
@@ -2256,7 +2294,7 @@ private fun ModernSidebarScaffold(
                             Key.DirectionRight, Key.DirectionLeft -> {
                                 val collapseKey = if (isRtl) Key.DirectionLeft else Key.DirectionRight
                                 if (keyEvent.key == collapseKey) {
-                                    pendingContentFocusTransfer = false
+                                    pendingContentFocusTransfer = netflix
                                     sidebarCollapsePending = true
                                     true
                                 } else {
@@ -2278,7 +2316,7 @@ private fun ModernSidebarScaffold(
                         sidebarExpandProgress = sidebarExpandProgress,
                         isSidebarExpanded = isSidebarExpanded,
                         sidebarCollapsePending = sidebarCollapsePending,
-                        blurEnabled = modernSidebarBlurEnabled,
+                        blurEnabled = modernSidebarBlurEnabled && !netflix,
                         sidebarHazeState = sidebarHazeState,
                         panelShape = panelShape,
                         drawerItemFocusRequesters = drawerItemFocusRequesters,
@@ -2305,7 +2343,19 @@ private fun ModernSidebarScaffold(
                 }
             }
 
-            if (
+            if (netflix && sidebarShowCollapsedPill) {
+                NetflixSidebarRail(
+                    items = drawerItems,
+                    selectedRoute = selectedDrawerRoute,
+                    modifier = Modifier.align(Alignment.CenterStart)
+                        .graphicsLayer { alpha = 1f - sidebarExpandProgress },
+                    onExpand = {
+                        isSidebarExpanded = true
+                        sidebarCollapsePending = false
+                        pendingSidebarFocusRequest = true
+                    }
+                )
+            } else if (
                 !sidebarCollapsed &&
                 sidebarShowCollapsedPill &&
                 selectedDrawerRoute != Screen.Search.route
@@ -2339,6 +2389,43 @@ private fun ModernSidebarScaffold(
                         pendingSidebarFocusRequest = true
                     }
                 )
+            }
+        }
+    }
+}
+
+@Composable
+internal fun NetflixSidebarRail(
+    items: List<DrawerItem>,
+    selectedRoute: String?,
+    modifier: Modifier = Modifier,
+    onExpand: () -> Unit
+) {
+    val tokens = com.nuvio.tv.ui.theme.NetflixThemeTokens
+    Column(
+        modifier = modifier.width(tokens.navigationCollapsedWidth).fillMaxHeight()
+            .background(NuvioTheme.colors.Background.copy(alpha = 0.94f)),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        items.forEach { item ->
+            Box(
+                modifier = Modifier.size(tokens.navigationItemHeight)
+                    .focusProperties { canFocus = false }
+                    .clickable(onClick = onExpand),
+                contentAlignment = Alignment.Center
+            ) {
+                DrawerItemIcon(
+                    iconRes = item.iconRes,
+                    icon = item.icon,
+                    tint = if (selectedRoute == item.route) NuvioTheme.colors.TextPrimary else NuvioTheme.colors.TextSecondary,
+                    modifier = Modifier.size(tokens.navigationIconSize)
+                )
+                if (selectedRoute == item.route) {
+                    Box(Modifier.align(Alignment.BottomCenter)
+                        .width(tokens.navigationIconSize).height(tokens.progressHeight)
+                        .background(tokens.progress))
+                }
             }
         }
     }
@@ -2469,7 +2556,9 @@ internal fun navigateToDrawerRoute( // Superfork G12a: shared with the top menu
                 saveState = true
             }
             launchSingleTop = true
-            restoreState = true
+            // Movies and Series share the Discover destination; restoring the previous category
+            // would also restore its old type argument and select the wrong menu item.
+            restoreState = !targetRoute.startsWith("${Screen.Discover.route}?type=")
         }
     } catch (e: IllegalArgumentException) {
         Log.w("NuvioNavigation", "Route not found in nav graph: $targetRoute", e)

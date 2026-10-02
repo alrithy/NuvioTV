@@ -99,6 +99,7 @@ import com.nuvio.tv.ui.components.StreamsSkeletonList
 import com.nuvio.tv.ui.screens.player.LoadingOverlay
 import com.nuvio.tv.ui.screens.player.AddonFilterChips
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.navigation.sourceSelectionRestoreTarget
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -962,6 +963,10 @@ private fun ErrorState(
     message: String,
     onRetry: () -> Unit
 ) {
+    if (NuvioTheme.isNetflix) {
+        com.nuvio.tv.ui.components.ErrorState(message = message, onRetry = onRetry)
+        return
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -1014,6 +1019,13 @@ private fun ErrorState(
 
 @Composable
 private fun EmptyState() {
+    if (NuvioTheme.isNetflix) {
+        com.nuvio.tv.ui.components.EmptyScreenState(
+            title = stringResource(R.string.stream_no_streams),
+            subtitle = stringResource(R.string.stream_no_streams_hint)
+        )
+        return
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -1416,7 +1428,7 @@ internal fun PlayerChoiceDialog(
     com.nuvio.tv.ui.components.AppDimmedDialog(onDismissRequest = onDismiss) {
         Box(
             modifier = Modifier
-                .clip(RoundedCornerShape(NuvioTheme.radii.xl))
+                .clip(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.xl))
                 .background(NuvioTheme.colors.BackgroundCard)
         ) {
             Column(
@@ -1452,10 +1464,10 @@ internal fun PlayerChoiceDialog(
                         border = CardDefaults.border(
                             focusedBorder = Border(
                                 border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                                shape = RoundedCornerShape(NuvioTheme.radii.md)
+                                shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.md)
                             )
                         ),
-                        shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.md)),
+                        shape = CardDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.md)),
                         scale = CardDefaults.scale(focusedScale = 1.05f)
                     ) {
                         Text(
@@ -1482,10 +1494,10 @@ internal fun PlayerChoiceDialog(
                         border = CardDefaults.border(
                             focusedBorder = Border(
                                 border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                                shape = RoundedCornerShape(NuvioTheme.radii.md)
+                                shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.md)
                             )
                         ),
-                        shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.md)),
+                        shape = CardDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.md)),
                         scale = CardDefaults.scale(focusedScale = 1.05f)
                     ) {
                         Text(

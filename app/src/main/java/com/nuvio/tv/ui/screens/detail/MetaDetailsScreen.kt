@@ -7,6 +7,9 @@ import android.widget.Toast
 
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.ui.theme.NuvioMotion
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.ui.theme.netflixPresentationPolicy
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 import android.view.KeyEvent
 import android.os.SystemClock
@@ -67,6 +70,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -109,6 +113,7 @@ import coil3.request.crossfade
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextOverflow
 import com.nuvio.tv.domain.model.ContentType
 import com.nuvio.tv.domain.model.DetailImdbRatingsVisibility
@@ -458,6 +463,10 @@ fun MetaDetailsScreen(
 ) {
     val playbackAvailability = LocalPlaybackAvailability.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val allowAutomaticTrailer = !NuvioTheme.isNetflix || netflixPresentationPolicy(AdaptiveResources.policy.tier).allowVideo
+    LaunchedEffect(allowAutomaticTrailer) {
+        if (!allowAutomaticTrailer) viewModel.onEvent(MetaDetailsEvent.OnUserInteraction)
+    }
     val posterCardCornerRadiusDp by viewModel.posterCardCornerRadiusDp.collectAsStateWithLifecycle()
     val effectiveAutoplayEnabled by viewModel.effectiveAutoplayEnabled.collectAsStateWithLifecycle(
         initialValue = false
@@ -936,7 +945,9 @@ fun MetaDetailsScreen(
                         )
                     },
                     showManualPlayOption = effectiveAutoplayEnabled,
-                    onPlayButtonFocused = { viewModel.onEvent(MetaDetailsEvent.OnPlayButtonFocused) },
+                    onPlayButtonFocused = {
+                        if (allowAutomaticTrailer) viewModel.onEvent(MetaDetailsEvent.OnPlayButtonFocused)
+                    },
                     onToggleLibrary = { viewModel.onEvent(MetaDetailsEvent.OnToggleLibrary) },
                     onLibraryLongPress = { viewModel.onEvent(MetaDetailsEvent.OnLibraryLongPress) },
                     onToggleMovieWatched = { viewModel.onEvent(MetaDetailsEvent.OnToggleMovieWatched) },
@@ -1832,7 +1843,8 @@ private fun MetaDetailsContent(
             meta.type == ContentType.TV ||
             meta.apiType in listOf("series", "tv")
     }
-    val hasCastSection = directorWriterMembers.isNotEmpty() || normalCastMembers.isNotEmpty()
+    val hasActualCast = directorWriterMembers.isNotEmpty() || normalCastMembers.isNotEmpty()
+    val hasCastSection = hasActualCast || NuvioTheme.isNetflix
     val hasMoreLikeThisSection = moreLikeThis.isNotEmpty()
     val hasTrailerSection = remember(meta.trailers) { meta.trailers.any { !it.ytId.isNullOrBlank() } }
     val showEpisodeImdbRatings = detailImdbRatingsVisibility.showEpisodeRatings
@@ -1852,10 +1864,10 @@ private fun MetaDetailsContent(
         .showStandardDetailRatings(isMdbListRatingsActive)
     val visibleMdbListRatings = mdbListRatings.takeIf { isMdbListRatingsActive }
     val hasRatingsSection = isTvShow && showEpisodeImdbRatings
-    val strTabCast = stringResource(R.string.detail_tab_cast)
+    val strTabCast = stringResource(if (NuvioTheme.isNetflix) R.string.netflix_details else R.string.detail_tab_cast)
     val strTabRatings = stringResource(R.string.detail_tab_ratings)
     val strTabMoreLikeThis = stringResource(R.string.detail_tab_more_like_this)
-    val strTabTrailer = stringResource(R.string.detail_tab_trailer)
+    val strTabTrailer = stringResource(if (NuvioTheme.isNetflix) R.string.netflix_trailers_more else R.string.detail_tab_trailer)
     val strTabCollection = stringResource(R.string.tmdb_collections_title)
     val moreLikeThisSourceLabel = when (moreLikeThisSource) {
         MoreLikeThisSource.TMDB -> stringResource(R.string.detail_more_like_this_powered_by_tmdb)
@@ -1863,7 +1875,9 @@ private fun MetaDetailsContent(
         MoreLikeThisSource.SIMKL -> stringResource(R.string.detail_more_like_this_powered_by_simkl)
         null -> null
     }
+    val isNetflix = NuvioTheme.isNetflix
     val peopleTabItems = remember(
+        isNetflix,
         hasCastSection,
         hasMoreLikeThisSection,
         hasTrailerSection,
@@ -1874,7 +1888,8 @@ private fun MetaDetailsContent(
         moreLikeTabFocusRequester,
         trailerTabFocusRequester,
         collectionTabFocusRequester,
-        collectionName
+        collectionName,
+        strTabCast, strTabRatings, strTabMoreLikeThis, strTabTrailer, strTabCollection
     ) {
         buildList {
             if (hasCastSection) {
@@ -1922,6 +1937,16 @@ private fun MetaDetailsContent(
                     )
                 )
             }
+        }.let { items ->
+            if (isNetflix) items.sortedBy { item ->
+                when (item.tab) {
+                    PeopleSectionTab.MORE_LIKE_THIS -> 0
+                    PeopleSectionTab.TRAILER -> 1
+                    PeopleSectionTab.CAST -> 2
+                    PeopleSectionTab.RATINGS -> 3
+                    PeopleSectionTab.COLLECTION -> 4
+                }
+            } else items
         }
     }
     val availablePeopleTabs = remember(peopleTabItems) { peopleTabItems.map { it.tab } }
@@ -1946,7 +1971,7 @@ private fun MetaDetailsContent(
         index
     }
     val initialPeopleTab = when {
-        availablePeopleTabs.contains(PeopleSectionTab.CAST) -> PeopleSectionTab.CAST
+        !isNetflix && availablePeopleTabs.contains(PeopleSectionTab.CAST) -> PeopleSectionTab.CAST
         availablePeopleTabs.isNotEmpty() -> availablePeopleTabs.first()
         else -> PeopleSectionTab.RATINGS
     }
@@ -2131,11 +2156,15 @@ private fun MetaDetailsContent(
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val screenWidthDp = remember(configuration) { configuration.screenWidthDp.dp }
     val screenHeightDp = remember(configuration) { configuration.screenHeightDp.dp }
-    val backdropWidthPx = remember(screenWidthDp, localDensity) {
-        with(localDensity) { screenWidthDp.roundToPx() }
+    val backdropWidthPx = remember(screenWidthDp, localDensity, isNetflix) {
+        with(localDensity) { screenWidthDp.roundToPx() }.let { width ->
+            if (isNetflix) width.coerceAtMost(netflixPresentationPolicy(AdaptiveResources.policy.tier).maxBackdropWidthPx) else width
+        }
     }
-    val backdropHeightPx = remember(screenHeightDp, localDensity) {
-        with(localDensity) { screenHeightDp.roundToPx() }
+    val backdropHeightPx = remember(screenHeightDp, localDensity, isNetflix) {
+        with(localDensity) { screenHeightDp.roundToPx() }.let { height ->
+            if (isNetflix) height.coerceAtMost(netflixPresentationPolicy(AdaptiveResources.policy.tier).maxBackdropHeightPx) else height
+        }
     }
     val hasHeroBackdrop = !heroBackdropUrl.isNullOrBlank()
     val seedBackdropUrl = heroBackdropUrl?.takeIf { it.isNotBlank() }
@@ -2158,6 +2187,7 @@ private fun MetaDetailsContent(
     }
     val backdropRequest = remember(
         localContext,
+        isNetflix,
         backdropDataUrl,
         shouldReuseSeedBackdrop,
         hasHeroBackdrop,
@@ -2170,7 +2200,7 @@ private fun MetaDetailsContent(
         } else {
             ImageRequest.Builder(localContext)
                 .data(backdropDataUrl)
-                .apply { if (shouldShowSeedBackdropUnderlay) crossfade(400) else if (hasHeroBackdrop) crossfade(false) else crossfade(400) }
+                .apply { if (isNetflix) crossfade(NetflixThemeTokens.heroCrossfadeMs) else if (shouldShowSeedBackdropUnderlay) crossfade(400) else if (hasHeroBackdrop) crossfade(false) else crossfade(400) }
                 .size(width = backdropWidthPx, height = backdropHeightPx)
                 .build()
         }
@@ -2493,7 +2523,8 @@ private fun MetaDetailsContent(
                             clearPendingRestore()
                         },
                         onShowFullDescription = { showSynopsisOverlay = true },
-                        onTruncationChanged = { synopsisTruncated = it }
+                        onTruncationChanged = { synopsisTruncated = it },
+                        onPlayFromBeginning = if (nextToWatch?.isResume == true && isPlayEnabled) heroPlayStartFromBeginningClick else null
                     )
                 }
             }
@@ -2657,6 +2688,15 @@ private fun MetaDetailsContent(
                     ) { section ->
                         when (section) {
                             PeopleSectionTab.CAST -> {
+                                Column {
+                                if (isNetflix) {
+                                    NetflixDetailFacts(
+                                        meta = meta,
+                                        focusRequester = if (hasActualCast) null else castSectionFocusRequester,
+                                        upFocusRequester = if (hasVisiblePeopleTabs) castTabFocusRequester else seasonDownFocusRequester ?: heroPlayFocusRequester,
+                                        onShowFullDescription = { showSynopsisOverlay = true }
+                                    )
+                                }
                                 CastSection(
                                     cast = normalCastMembers,
                                     listState = castRowListState,
@@ -2688,6 +2728,7 @@ private fun MetaDetailsContent(
                                     },
                                     modifier = Modifier.onSizeChanged { castSectionHeightPx = it.height }
                                 )
+                                }
                             }
 
                             PeopleSectionTab.MORE_LIKE_THIS -> {
@@ -3183,17 +3224,19 @@ private fun BackdropLayer(
     leftGradient: ImageBitmap,
     bottomGradient: ImageBitmap,
 ) {
+    val isNetflix = NuvioTheme.isNetflix
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     var showHeroBackdropUnderlay by remember(heroBackdropRequest, backdropRequest) {
         mutableStateOf(heroBackdropRequest != null)
     }
     val backdropAlphaState = animateFloatAsState(
         targetValue = if (isTrailerPlaying) 0f else if (isScrolledPastHero) 0.15f else 1f,
-        animationSpec = tween(durationMillis = if (isScrolledPastHero) 300 else 800),
+        animationSpec = tween(durationMillis = if (isNetflix) NetflixThemeTokens.heroCrossfadeMs else if (isScrolledPastHero) 300 else 800),
         label = "backdropFade"
     )
     val gradientAlphaState = animateFloatAsState(
         targetValue = if (isTrailerPlaying || isScrolledPastHero) 0f else 1f,
-        animationSpec = tween(durationMillis = if (isScrolledPastHero) 300 else 800),
+        animationSpec = tween(durationMillis = if (isNetflix) NetflixThemeTokens.heroCrossfadeMs else if (isScrolledPastHero) 300 else 800),
         label = "gradientFade"
     )
     Box(modifier = Modifier.fillMaxSize()) {
@@ -3234,14 +3277,24 @@ private fun BackdropLayer(
             modifier = Modifier
                 .fillMaxSize()
                 .drawWithCache {
+                    val sideBrush = if (isNetflix) NetflixThemeTokens.heroSideGradient(isRtl) else null
+                    val floorBrush = if (isNetflix) Brush.verticalGradient(
+                        colorStops = NetflixThemeTokens.heroBottomStops,
+                        endY = size.height
+                    ) else null
                     onDrawBehind {
                         if (gradientAlphaState.value > 0f) {
+                            if (sideBrush != null && floorBrush != null) {
+                                drawRect(sideBrush, alpha = gradientAlphaState.value)
+                                drawRect(floorBrush, alpha = gradientAlphaState.value)
+                            } else {
                             drawImage(
                                 leftGradient,
                                 dstSize = androidx.compose.ui.unit.IntSize(size.width.toInt(), size.height.toInt()),
                                 alpha = gradientAlphaState.value,
                                 filterQuality = androidx.compose.ui.graphics.FilterQuality.Low
                             )
+                            }
                         }
                     }
                 }
@@ -3265,13 +3318,16 @@ private fun PeopleSectionTabs(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 20.dp, start = NuvioTheme.spacing.xxxl, end = NuvioTheme.spacing.xxxl),
+            .padding(top = if (NuvioTheme.isNetflix) NetflixThemeTokens.actionGap else 20.dp,
+                start = if (NuvioTheme.isNetflix) NetflixThemeTokens.safeMargin else NuvioTheme.spacing.xxxl,
+                end = if (NuvioTheme.isNetflix) NetflixThemeTokens.safeMargin else NuvioTheme.spacing.xxxl)
+            .then(if (NuvioTheme.isNetflix) Modifier.testTag("netflix_detail_sections") else Modifier),
         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm)
     ) {
         @Composable
         fun androidx.compose.foundation.layout.RowScope.renderTabs(items: List<PeopleTabItem>) {
             items.forEachIndexed { index, item ->
-                if (index > 0) {
+                if (index > 0 && !NuvioTheme.isNetflix) {
                     Text(
                         text = "|",
                         style = MaterialTheme.typography.titleLarge,
@@ -3295,6 +3351,7 @@ private fun PeopleSectionTabs(
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = if (NuvioTheme.isNetflix) Arrangement.spacedBy(NetflixThemeTokens.rowGap) else Arrangement.Start
         ) {
             renderTabs(tabs)
         }
@@ -3351,17 +3408,22 @@ private fun PeopleSectionTabButton(
                 shape = RoundedCornerShape(NuvioTheme.radii.xl)
             )
         ),
-        scale = CardDefaults.scale(focusedScale = 1.03f)
+        scale = CardDefaults.scale(focusedScale = if (NuvioTheme.isNetflix) 1f else 1.03f)
     ) {
         Text(
             text = label,
-            style = MaterialTheme.typography.titleLarge,
+            style = if (NuvioTheme.isNetflix) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
             color = when {
                 isFocused -> NuvioTheme.colors.TextPrimary
                 selected -> NuvioTheme.colors.TextPrimary.copy(alpha = 0.92f)
                 else -> NuvioTheme.colors.TextPrimary.copy(alpha = 0.55f)
             },
             modifier = Modifier.padding(horizontal = NuvioTheme.spacing.xxs, vertical = NuvioTheme.spacing.xxs)
+                .then(if (NuvioTheme.isNetflix) Modifier.drawBehind {
+                    if (selected || isFocused) drawRect(NetflixThemeTokens.focus,
+                        topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - NetflixThemeTokens.focusedBorderWidth.toPx()),
+                        size = androidx.compose.ui.geometry.Size(size.width, NetflixThemeTokens.focusedBorderWidth.toPx()))
+                } else Modifier)
         )
     }
 }

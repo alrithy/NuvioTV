@@ -53,6 +53,7 @@ import com.nuvio.tv.domain.model.Stream
 import com.nuvio.tv.ui.components.LoadingIndicator
 import com.nuvio.tv.ui.components.SourceChipStatus
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import androidx.compose.ui.res.stringResource
 import com.nuvio.tv.R
 import com.nuvio.tv.ui.util.localizeEpisodeTitle
@@ -211,7 +212,7 @@ internal fun StreamSourcesSidePanel(
         modifier = modifier
             .fillMaxHeight()
             .width(520.dp)
-            .clip(RoundedCornerShape(topStart = NuvioTheme.spacing.lg, bottomStart = NuvioTheme.spacing.lg))
+            .clip(if (NuvioTheme.isNetflix) NetflixThemeTokens.cardShape else RoundedCornerShape(topStart = NuvioTheme.spacing.lg, bottomStart = NuvioTheme.spacing.lg))
             .background(NuvioTheme.colors.BackgroundElevated)
     ) {
         Column(modifier = Modifier.padding(NuvioTheme.spacing.xl)) {

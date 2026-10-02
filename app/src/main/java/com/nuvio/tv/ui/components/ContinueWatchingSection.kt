@@ -72,6 +72,11 @@ import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.Text
 import com.nuvio.tv.ui.screens.home.ContinueWatchingItem
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.fork.resource.AdaptiveResources
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.platform.LocalContext
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -448,27 +453,35 @@ fun ContinueWatchingCard(
     cornerRadius: Dp = NuvioTheme.radii.md,
     posterTitleOverride: TextStyle? = null
 ) {
-    val isPosterStyle = cardStyle == ContinueWatchingCardStyle.POSTER
-    val isWideStyle = cardStyle == ContinueWatchingCardStyle.WIDE
+    val isNetflix = NuvioTheme.isNetflix
+    val effectiveCardStyle = if (isNetflix) ContinueWatchingCardStyle.CARD else cardStyle
+    val isPosterStyle = effectiveCardStyle == ContinueWatchingCardStyle.POSTER
+    val isWideStyle = effectiveCardStyle == ContinueWatchingCardStyle.WIDE
     val effectiveEpisodeThumbnails =
-        continueWatchingUsesEpisodeThumbnails(cardStyle, useEpisodeThumbnails)
+        continueWatchingUsesEpisodeThumbnails(effectiveCardStyle, useEpisodeThumbnails)
     // The wide card shows its art in a poster shaped strip, so it resolves artwork the same way a poster card does.
     val usePosterArtwork = isPosterStyle || isWideStyle
     // Poster cards put their title under the artwork like the mobile app, the landscape card keeps it on top.
-    val textBelowArtwork = isPosterStyle
+    val textBelowArtwork = isNetflix || isPosterStyle
 
     // Follow the user's poster corner radius so these cards match the catalog rows.
-    val cwCardShape = remember(cornerRadius) { RoundedCornerShape(cornerRadius) }
-    val cwClipShape = remember(cornerRadius, textBelowArtwork) {
+    val effectiveRadius = if (isNetflix) NetflixThemeTokens.cardRadius else cornerRadius
+    val cwCardShape = remember(effectiveRadius) { RoundedCornerShape(effectiveRadius) }
+    val cwClipShape = remember(effectiveRadius, textBelowArtwork) {
         if (textBelowArtwork) {
-            RoundedCornerShape(cornerRadius)
+            RoundedCornerShape(effectiveRadius)
         } else {
-            RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius)
+            RoundedCornerShape(topStart = effectiveRadius, topEnd = effectiveRadius)
         }
     }
     var longPressTriggered by remember { mutableStateOf(false) }
     val cardDepthStyle = LocalCardDepthStyle.current
     val longPressKeyTracker = rememberLongPressKeyTracker()
+    val netflixFocusScale by animateFloatAsState(
+        targetValue = if (isNetflix && isFocused) NetflixThemeTokens.focusScale else 1f,
+        animationSpec = tween(if (AdaptiveResources.policy.isLowRam) 0 else NetflixThemeTokens.focusDurationMs),
+        label = "netflixContinueWatchingFocus"
+    )
 
     val progress = remember(item) { (item as? ContinueWatchingItem.InProgress)?.progress }
     val nextUp = remember(item) { (item as? ContinueWatchingItem.NextUp)?.info }
@@ -635,6 +648,12 @@ fun ContinueWatchingCard(
         },
         modifier = modifier
             .width(cardWidth)
+            .then(if (isNetflix) Modifier.zIndex(if (isFocused) 1f else 0f).graphicsLayer {
+                scaleX = netflixFocusScale
+                scaleY = netflixFocusScale
+                shadowElevation = if (isFocused && !AdaptiveResources.policy.isLowRam) NetflixThemeTokens.focusElevation.toPx() else 0f
+                shape = cwCardShape
+            } else Modifier)
             .recompositionHighlighter()
             .onPreviewKeyEvent { event ->
                 val native = event.nativeKeyEvent
@@ -764,7 +783,7 @@ fun ContinueWatchingCard(
                             .fillMaxSize()
                             .graphicsLayer {
                                 compositingStrategy =
-                                    CompositingStrategy.Offscreen
+                                    if (isNetflix) CompositingStrategy.Auto else CompositingStrategy.Offscreen
                             }
                             .clip(cwClipShape)
 
@@ -827,7 +846,7 @@ fun ContinueWatchingCard(
 
                 // Remaining time badge - hide progress labels in poster style (only show next-up/new episode badges)
                 val showBadgeInPoster = progress == null
-                if (!isPosterStyle || showBadgeInPoster) {
+                if ((!isPosterStyle || showBadgeInPoster) && (!isNetflix || progress == null || isFocused)) {
                     Box(
                         modifier = Modifier
                             .align(Alignment.TopEnd)
@@ -851,7 +870,8 @@ fun ContinueWatchingCard(
                     Box(
                         modifier = Modifier
                             .align(Alignment.BottomStart)
-                            .padding(horizontal = 10.dp, vertical = barInset)
+                            .padding(horizontal = if (isNetflix) NuvioTheme.spacing.none else 10.dp,
+                                vertical = if (isNetflix) NuvioTheme.spacing.none else barInset)
                             .fillMaxWidth()
                             .then(
                                 if (isPosterStyle) {
@@ -868,15 +888,15 @@ fun ContinueWatchingCard(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(1.5.dp))
-                                .height(3.dp)
-                                .background(Color.Black.copy(alpha = 0.3f))
+                                .height(if (isNetflix) NetflixThemeTokens.progressHeight else 3.dp)
+                                .background(if (isNetflix) NetflixThemeTokens.surfaceMuted else Color.Black.copy(alpha = 0.3f))
                         ) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth(progressFraction)
                                     .clip(RoundedCornerShape(1.5.dp))
-                                    .height(3.dp)
-                                    .background(NuvioTheme.colors.Secondary)
+                                    .height(if (isNetflix) NetflixThemeTokens.progressHeight else 3.dp)
+                                    .background(if (isNetflix) NetflixThemeTokens.progress else NuvioTheme.colors.Secondary)
                             )
                         }
                     }
@@ -886,7 +906,8 @@ fun ContinueWatchingCard(
             if (textBelowArtwork) {
                 // The title wraps to two lines beside the episode code like the mobile poster card, and the
                 // row height is fixed so a one line title does not make its card shorter than the rest.
-                val titleBlockHeight = if (posterTitleOverride != null) 46.dp else POSTER_TITLE_BLOCK_HEIGHT
+                val titleBlockHeight = if (isNetflix) NetflixThemeTokens.buttonHeight else
+                    if (posterTitleOverride != null) 46.dp else POSTER_TITLE_BLOCK_HEIGHT
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()

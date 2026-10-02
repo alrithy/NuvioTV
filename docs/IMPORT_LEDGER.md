@@ -1006,3 +1006,17 @@ Every imported feature must add an entry before its PR is considered complete.
 - License / attribution notes: fork-owned
 - Resulting local commit: recorded in HANDOFF after merge
 - Known risks / follow-up: scheduled runs start only once `superfork/integration` is the default branch (GITHUB_ADMIN_CHECKLIST A); until then the report runs on PRs and on demand
+
+
+## Independent Netflix theme (D067, tasks/NETFLIX_THEME.md)
+- Mode: REUSE current Nuvio presentation/data owners plus original authored UI deltas.
+- Base: `alrithy/NuvioTV` `superfork/integration` @ `1f63418e33ac53e9ebd9428c2c30adaba974bb79`.
+- Reused: ThemeDataStore/profile settings sync; Modern home/enrichment/continue-watching;
+  sidebar/router; detail/playOnLoad/episodes; search VM/history; profile manager;
+  current player presentation callbacks; AdaptiveResources.
+- No Netflix client code/files, proprietary logos/assets/fonts, catalog data or
+  external fork code were imported. Content artwork stays TMDB/add-on supplied;
+  application branding stays Nuvio. Platform sans uses Android's Arabic fallback.
+- Dependencies/license: no dependency or font binary added; repository license applies.
+- Tests/evidence: docs/NETFLIX_THEME_VISUAL_VERIFICATION.md; build/unit/CI results
+  recorded when executed. No hardware pass or numerical fidelity claim inferred.

@@ -2,12 +2,15 @@ package com.nuvio.tv.ui.components
 
 import com.nuvio.tv.ui.theme.NuvioPrimitives
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text as CoreText
 import androidx.compose.runtime.Composable
@@ -48,7 +51,11 @@ fun ErrorState(
             text = displayMessage,
             style = MaterialTheme.typography.bodyLarge,
             color = NuvioTheme.colors.TextSecondary,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = if (NuvioTheme.isNetflix) {
+                Modifier.widthIn(max = NetflixThemeTokens.State.maxTextWidth)
+                    .padding(horizontal = NetflixThemeTokens.safeVerticalMargin)
+            } else Modifier
         )
         Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
         Button(
@@ -57,7 +64,7 @@ fun ErrorState(
                 containerColor = NuvioTheme.colors.BackgroundCard,
                 contentColor = NuvioTheme.colors.TextPrimary,
                 focusedContainerColor = NuvioTheme.colors.FocusBackground,
-                focusedContentColor = NuvioTheme.colors.Primary
+                focusedContentColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focusContent else NuvioTheme.colors.Primary
             ),
             shape = ButtonDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md))
         ) {

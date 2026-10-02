@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.components
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.util.contentTextDirection
 
 import android.os.SystemClock
@@ -44,23 +45,25 @@ fun NuvioDialog(
     onDismiss: () -> Unit,
     title: String,
     subtitle: String? = null,
-    width: Dp = 520.dp,
+    width: Dp = if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.width else 520.dp,
     titleTextAlign: TextAlign = TextAlign.Start,
     suppressFirstKeyUp: Boolean = true,
     usePlatformDefaultWidth: Boolean = true,
     containerBrush: Brush? = null,
     containerBorderColor: Color? = null,
-    containerBorderWidth: Dp = NuvioTheme.spacing.hairline,
-    containerCornerRadius: Dp = NuvioTheme.radii.xl,
-    contentPadding: Dp = NuvioTheme.spacing.xl,
-    contentSpacing: Dp = NuvioTheme.spacing.lg,
+    containerBorderWidth: Dp = if (NuvioTheme.isNetflix) 0.dp else NuvioTheme.spacing.hairline,
+    containerCornerRadius: Dp = if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.xl,
+    contentPadding: Dp = if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.padding else NuvioTheme.spacing.xl,
+    contentSpacing: Dp = if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.gap else NuvioTheme.spacing.lg,
     backgroundContent: @Composable BoxScope.() -> Unit = {},
     content: @Composable ColumnScope.() -> Unit
 ) {
     var isReady by remember { mutableStateOf(!suppressFirstKeyUp) }
     val maxDialogHeight = (LocalConfiguration.current.screenHeightDp.dp - NuvioTheme.spacing.xxxl).coerceAtLeast(320.dp)
     val containerShape = RoundedCornerShape(containerCornerRadius)
-    val backgroundModifier = if (containerBrush == null) {
+    val backgroundModifier = if (NuvioTheme.isNetflix) {
+        Modifier.background(NetflixThemeTokens.surface, containerShape)
+    } else if (containerBrush == null) {
         Modifier.background(NuvioTheme.colors.BackgroundElevated, containerShape)
     } else {
         Modifier.background(containerBrush, containerShape)
@@ -74,7 +77,7 @@ fun NuvioDialog(
             modifier = Modifier
                 .width(width)
                 .heightIn(max = maxDialogHeight)
-                .clip(containerShape)
+                .then(if (NuvioTheme.isNetflix) Modifier else Modifier.clip(containerShape))
                 .then(backgroundModifier)
                 .border(
                     containerBorderWidth,
@@ -104,7 +107,7 @@ fun NuvioDialog(
                 if (title.isNotBlank()) {
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.titleLarge.copy(
+                        style = (if (NuvioTheme.isNetflix) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge).copy(
                             textDirection = title.contentTextDirection()
                         ),
                         color = NuvioTheme.colors.TextPrimary,
@@ -118,7 +121,7 @@ fun NuvioDialog(
                 if (subtitle != null) {
                     Text(
                         text = subtitle,
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium.copy(textDirection = subtitle.contentTextDirection()),
                         color = NuvioTheme.colors.TextSecondary
                     )
                 }

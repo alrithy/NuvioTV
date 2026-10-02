@@ -32,6 +32,7 @@ data class SearchUiState(
     val discoverInitialized: Boolean = false,
     val discoverLoading: Boolean = false,
     val discoverLoadingMore: Boolean = false,
+    val discoverError: String? = null,
     val discoverCatalogs: List<DiscoverCatalog> = emptyList(),
     val selectedDiscoverType: String = "movie",
     val selectedDiscoverCatalogKey: String? = null,

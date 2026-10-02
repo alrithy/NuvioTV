@@ -74,6 +74,9 @@ private fun PlaybackNavHost(
     startDestination: String,
     hideBuiltInHeaders: Boolean
 ) {
+    val screenTransitionDuration = if (com.nuvio.tv.ui.theme.NuvioTheme.isNetflix) {
+        com.nuvio.tv.ui.theme.NetflixThemeTokens.screenTransitionMillis
+    } else NuvioMotion.tokens.durations.medium
     val playbackAvailability = LocalPlaybackAvailability.current
     val context = LocalContext.current
     fun isStreamToPlayer(from: String, to: String): Boolean {
@@ -98,7 +101,7 @@ private fun PlaybackNavHost(
             if (isStreamToPlayer(from, to) && isAutoPlayNav) {
                 EnterTransition.None
             } else {
-                fadeIn(animationSpec = tween(NuvioMotion.tokens.durations.medium))
+                fadeIn(animationSpec = tween(screenTransitionDuration))
             }
         },
         exitTransition = {
@@ -110,7 +113,7 @@ private fun PlaybackNavHost(
             if (isStreamToPlayer(from, to) && isAutoPlayNav) {
                 ExitTransition.None
             } else {
-                fadeOut(animationSpec = tween(NuvioMotion.tokens.durations.medium))
+                fadeOut(animationSpec = tween(screenTransitionDuration))
             }
         },
         popEnterTransition = {
@@ -122,7 +125,7 @@ private fun PlaybackNavHost(
             if (isPlayerToStream(from, to) && isAutoPlayNav) {
                 EnterTransition.None
             } else {
-                fadeIn(animationSpec = tween(NuvioMotion.tokens.durations.medium))
+                fadeIn(animationSpec = tween(screenTransitionDuration))
             }
         },
         popExitTransition = {
@@ -134,7 +137,7 @@ private fun PlaybackNavHost(
             if (isPlayerToStream(from, to) && isAutoPlayNav) {
                 ExitTransition.None
             } else {
-                fadeOut(animationSpec = tween(NuvioMotion.tokens.durations.medium))
+                fadeOut(animationSpec = tween(screenTransitionDuration))
             }
         }
     ) {
@@ -224,6 +227,16 @@ private fun PlaybackNavHost(
                             itemType = itemType,
                             addonBaseUrl = addonBaseUrl,
                             heroBackdropUrl = heroBackdrop
+                        )
+                    )
+                },
+                onPlayClick = { itemId, itemType, addonBaseUrl ->
+                    navController.navigate(
+                        homePlaybackRoute(
+                            itemId = itemId,
+                            itemType = itemType,
+                            addonBaseUrl = addonBaseUrl,
+                            heroBackdropUrl = HeroBackdropState.consumeAndClear()
                         )
                     )
                 },
@@ -378,6 +391,7 @@ private fun PlaybackNavHost(
                             contentName = title,
                             runtime = runtime,
                             returnToDetailOnBack = contentType.equals("series", ignoreCase = true),
+                            returnToHomeOnBack = returnToHomeOnBack,
                             contentLanguage = contentLanguage
                         )
                     )
@@ -401,6 +415,7 @@ private fun PlaybackNavHost(
                             runtime = runtime,
                             manualSelection = true,
                             returnToDetailOnBack = contentType.equals("series", ignoreCase = true),
+                            returnToHomeOnBack = returnToHomeOnBack,
                             contentLanguage = contentLanguage
                         )
                     )
@@ -424,6 +439,7 @@ private fun PlaybackNavHost(
                             runtime = runtime,
                             startFromBeginning = true,
                             returnToDetailOnBack = contentType.equals("series", ignoreCase = true),
+                            returnToHomeOnBack = returnToHomeOnBack,
                             contentLanguage = contentLanguage
                         )
                     )
@@ -1146,8 +1162,12 @@ private fun PlaybackNavHost(
             )
         }
 
-        composable(Screen.Discover.route) {
+        composable(
+            route = Screen.Discover.routePattern,
+            arguments = listOf(navArgument("type") { type = NavType.StringType; defaultValue = "" })
+        ) { entry ->
             DiscoverScreen(
+                initialType = entry.arguments?.getString("type"),
                 showBuiltInHeader = !hideBuiltInHeaders,
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
                     val heroBackdrop = HeroBackdropState.consumeAndClear()

@@ -7,6 +7,8 @@
 package com.nuvio.tv.ui.screens.home
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.AnimationSpec
@@ -124,6 +126,8 @@ fun ModernHomeContent(
     trailerPreviewUrls: Map<String, String> = emptyMap(),
     trailerPreviewAudioUrls: Map<String, String> = emptyMap(),
     onNavigateToDetail: (String, String, String) -> Unit,
+    onPlayClick: (String, String, String) -> Unit = onNavigateToDetail,
+    onCatalogLibraryAction: (MetaPreview, String) -> Unit = { _, _ -> },
     onContinueWatchingClick: (ContinueWatchingItem) -> Unit,
     onContinueWatchingStartFromBeginning: (ContinueWatchingItem) -> Unit = {},
     onContinueWatchingPlayManually: (ContinueWatchingItem) -> Unit = {},
@@ -143,25 +147,30 @@ fun ModernHomeContent(
     onRowItemFocusedCallback: (String, Int, Boolean) -> Unit = { _, _, _ -> },
     blockLeftOnFirstExpandedItem: Boolean = false
 ) {
+    val isNetflix = NuvioTheme.isNetflix
+    val netflixPreviewPolicy = netflixHomePreviewPolicy(AdaptiveResources.policy.tier)
+    val netflixHeroPlayRequester = remember { FocusRequester() }
     val onRowItemFocusedPassedDown = rememberUpdatedState(onRowItemFocusedCallback)
     val defaultBringIntoViewSpec = LocalBringIntoViewSpec.current
     val sidebarExpanded = LocalSidebarExpanded.current
     val isSidebarExpanded = remember(sidebarExpanded) { derivedStateOf { sidebarExpanded } }
     val lifecycleOwner = LocalLifecycleOwner.current
-    val useLandscapePosters = uiState.modernLandscapePostersEnabled
+    val useLandscapePosters = isNetflix || uiState.modernLandscapePostersEnabled
     val alwaysShowLandscapeClearlogo = uiState.alwaysShowLandscapeClearlogo
     // Superfork G12c hook (D061): Cinematic Glass shows the full-screen hero backdrop without writing the setting.
-    val fullScreenBackdrop = uiState.modernHeroFullScreenBackdropEnabled ||
+    val fullScreenBackdrop = isNetflix || uiState.modernHeroFullScreenBackdropEnabled ||
         com.nuvio.tv.ui.screens.uistyle.LocalCinematicGlass.current
-    val trailerPlaybackTarget = uiState.focusedPosterBackdropTrailerPlaybackTarget
+    val trailerPlaybackTarget = if (isNetflix) FocusedPosterTrailerPlaybackTarget.EXPANDED_CARD
+        else uiState.focusedPosterBackdropTrailerPlaybackTarget
     val effectiveAutoplayEnabled =
         uiState.focusedPosterBackdropTrailerEnabled &&
+            (!isNetflix || netflixPreviewPolicy.allowVideo) &&
             (useLandscapePosters || uiState.focusedPosterBackdropExpandEnabled)
     val landscapeExpandedCardMode =
         useLandscapePosters &&
             effectiveAutoplayEnabled &&
             trailerPlaybackTarget == FocusedPosterTrailerPlaybackTarget.EXPANDED_CARD
-    val effectiveExpandEnabled =
+    val effectiveExpandEnabled = isNetflix ||
         (uiState.focusedPosterBackdropExpandEnabled && !useLandscapePosters) ||
             landscapeExpandedCardMode
     val shouldActivateFocusedPosterFlow =
@@ -330,7 +339,8 @@ fun ModernHomeContent(
         if (verticalRowListState.isScrollInProgress) return@LaunchedEffect
         val selection = focusedCatalogSelection.value ?: return@LaunchedEffect
         if (selection.payload !is ModernPayload.Catalog) return@LaunchedEffect
-        val expansionDelayMs = (uiState.focusedPosterBackdropExpandDelaySeconds.coerceAtLeast(0) * 1000L).coerceAtLeast(150L)
+        val expansionDelayMs = if (isNetflix) NetflixThemeTokens.previewDelayMs else
+            (uiState.focusedPosterBackdropExpandDelaySeconds.coerceAtLeast(0) * 1000L).coerceAtLeast(150L)
         delay(expansionDelayMs)
         if (!lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@LaunchedEffect
         if (shouldActivateFocusedPosterFlow &&
@@ -652,16 +662,17 @@ fun ModernHomeContent(
     val landscapeModernPosterScale = 1.34f
     val portraitCatalogCardWidth = portraitBaseWidth * 0.84f * portraitModernPosterScale
     val portraitCatalogCardHeight = portraitBaseHeight * 0.84f * portraitModernPosterScale
-    val landscapeCatalogCardWidth = portraitBaseWidth * 1.24f * landscapeModernPosterScale
+    val landscapeCatalogCardWidth = if (isNetflix) NetflixThemeTokens.landscapeCardWidth else
+        portraitBaseWidth * 1.24f * landscapeModernPosterScale
     val landscapeCatalogCardHeight = landscapeCatalogCardWidth / 1.77f
     // Poster style reuses the portrait catalog dimensions so its artwork matches the catalogs below it.
-    val continueWatchingStyle = uiState.continueWatchingCardStyle
+    val continueWatchingStyle = if (isNetflix) ContinueWatchingCardStyle.CARD else uiState.continueWatchingCardStyle
     val continueWatchingScale = 1.34f
     val continueWatchingCardWidth = when (continueWatchingStyle) {
         ContinueWatchingCardStyle.POSTER -> portraitCatalogCardWidth
         // Wide still scales with the poster width setting so it matches the rest of the row.
         ContinueWatchingCardStyle.WIDE -> portraitBaseWidth * 2.1f
-        ContinueWatchingCardStyle.CARD -> portraitBaseWidth * 1.24f * continueWatchingScale
+        ContinueWatchingCardStyle.CARD -> if (isNetflix) landscapeCatalogCardWidth else portraitBaseWidth * 1.24f * continueWatchingScale
     }
     val continueWatchingCardHeight = when (continueWatchingStyle) {
         ContinueWatchingCardStyle.POSTER -> portraitCatalogCardHeight
@@ -674,8 +685,8 @@ fun ModernHomeContent(
     val screenHeight = localConfiguration.screenHeightDp.dp
 
     Box(modifier = Modifier.fillMaxSize().background(NuvioTheme.colors.Background)) {
-            val posterCardCornerRadius = remember(uiState.posterCardCornerRadiusDp) { uiState.posterCardCornerRadiusDp.dp }
-            val rowHorizontalPadding = 52.dp
+            val posterCardCornerRadius = if (isNetflix) NetflixThemeTokens.cardRadius else uiState.posterCardCornerRadiusDp.dp
+            val rowHorizontalPadding = if (isNetflix) NetflixThemeTokens.safeMargin else 52.dp
 
             val activeCarouselItemState = remember(carouselRows, rowByKey) {
                 derivedStateOf {
@@ -709,6 +720,7 @@ fun ModernHomeContent(
                                 ?: activeCarouselItem?.heroPreview?.yearText,
                             runtimeText = formatHeroRuntime(enrichedItem.runtime)
                                 ?: activeCarouselItem?.heroPreview?.runtimeText,
+                            seasonCount = enrichedItem.seasonCount ?: activeCarouselItem?.heroPreview?.seasonCount,
                             imdbText = enrichedItem.imdbRating
                                 ?.let { String.format(java.util.Locale.US, "%.1f", it) },
                             ageRatingText = enrichedItem.ageRating,
@@ -756,7 +768,8 @@ fun ModernHomeContent(
                         activeRowFallbackBackdrop
                     )
                     
-                    Triple(heroBackdrop, resolvedHero, effectiveEnrichmentActive)
+                    Triple(heroBackdrop, if (isNetflix) resolvedHero?.copy(actionPayload = activeCarouselItem?.payload)
+                        else resolvedHero, effectiveEnrichmentActive)
                 }
             }
 
@@ -987,7 +1000,8 @@ fun ModernHomeContent(
             }
 
             val localDensity = LocalDensity.current
-            val rowsViewportHeightFraction = if (useLandscapePosters) 0.49f else 0.52f
+            val rowsViewportHeightFraction = if (isNetflix) NetflixThemeTokens.rowsViewportFraction else
+                if (useLandscapePosters) 0.49f else 0.52f
             val rowsViewportHeight = remember(screenHeight, rowsViewportHeightFraction) { screenHeight * rowsViewportHeightFraction }
             val rowTitleLineHeight = MaterialTheme.typography.titleMedium.lineHeight
             val rowTitleHeight = remember(rowTitleLineHeight, localDensity) {
@@ -997,8 +1011,10 @@ fun ModernHomeContent(
                 }
             }
             val heroBackdropHeight = remember(screenHeight, rowsViewportHeight, rowTitleHeight) { (screenHeight - rowsViewportHeight + rowTitleHeight + 14.dp).coerceAtMost(screenHeight) }
-            val verticalRowBringIntoViewSpec = remember(localDensity, defaultBringIntoViewSpec) {
-                val topInsetPx = with(localDensity) { MODERN_ROW_HEADER_FOCUS_INSET.toPx() }
+            val verticalRowBringIntoViewSpec = remember(localDensity, defaultBringIntoViewSpec, isNetflix) {
+                val topInsetPx = with(localDensity) {
+                    (if (isNetflix) NetflixThemeTokens.focusEdgeReserve else MODERN_ROW_HEADER_FOCUS_INSET).toPx()
+                }
                 @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
                 object : BringIntoViewSpec {
                     override val scrollAnimationSpec: AnimationSpec<Float> = defaultBringIntoViewSpec.scrollAnimationSpec
@@ -1012,15 +1028,19 @@ fun ModernHomeContent(
                 }
             }
             val contentFocusRequester = LocalContentFocusRequester.current
-            val heroMediaWidthPx = remember(screenWidth, localDensity, fullScreenBackdrop) {
+            val heroMediaWidthPx = remember(screenWidth, localDensity, fullScreenBackdrop, isNetflix, netflixPreviewPolicy) {
                 with(localDensity) {
-                    if (fullScreenBackdrop) screenWidth.roundToPx()
+                    if (fullScreenBackdrop) screenWidth.roundToPx().let {
+                        if (isNetflix) it.coerceAtMost(netflixPreviewPolicy.heroMaxWidthPx) else it
+                    }
                     else (screenWidth * MODERN_HERO_MEDIA_WIDTH_FRACTION).roundToPx()
                 }.coerceAtLeast(1)
             }
-            val heroMediaHeightPx = remember(heroBackdropHeight, screenHeight, localDensity, fullScreenBackdrop) {
+            val heroMediaHeightPx = remember(heroBackdropHeight, screenHeight, localDensity, fullScreenBackdrop, isNetflix, netflixPreviewPolicy) {
                 with(localDensity) {
-                    if (fullScreenBackdrop) screenHeight.roundToPx()
+                    if (fullScreenBackdrop) screenHeight.roundToPx().let {
+                        if (isNetflix) it.coerceAtMost((netflixPreviewPolicy.heroMaxWidthPx / NetflixThemeTokens.landscapeAspectRatio).roundToInt()) else it
+                    }
                     else heroBackdropHeight.roundToPx()
                 }.coerceAtLeast(1)
             }
@@ -1070,14 +1090,33 @@ fun ModernHomeContent(
             val shouldPlayTrailerLambda = remember { { shouldPlayCatalogHeroTrailerUpdated || shouldPlayCollectionHeroVideoUpdated } }
             val heroTrailerRenderedLambda = remember { { heroTrailerFirstFrameRenderedUpdated } }
 
-            val heroMetadataModifier = remember(rowHorizontalPadding, rowsViewportHeight) {
+            val heroMetadataModifier = remember(rowHorizontalPadding, rowsViewportHeight, isNetflix) {
                 Modifier
                     .align(Alignment.BottomStart)
-                    .padding(start = rowHorizontalPadding, end = NuvioTheme.spacing.xxxl, bottom = NuvioTheme.spacing.none + rowsViewportHeight + NuvioTheme.spacing.lg)
+                    .padding(start = rowHorizontalPadding, end = NuvioTheme.spacing.xxxl,
+                        bottom = rowsViewportHeight + if (isNetflix) NetflixThemeTokens.rowTitleGap else NuvioTheme.spacing.lg)
                     .fillMaxWidth(MODERN_HERO_TEXT_WIDTH_FRACTION)
             }
 
             HeroTitleBlock(
+                netflixPlayFocusRequester = netflixHeroPlayRequester,
+                onNetflixDownToRows = { runCatching { contentFocusRequester.requestFocus() }; Unit },
+                onNetflixPlay = { displayedPreview ->
+                    when (val payload = displayedPreview.actionPayload) {
+                        is ModernPayload.Catalog -> onPlayClick(payload.itemId, payload.itemType, payload.addonBaseUrl)
+                        is ModernPayload.ContinueWatching -> onContinueWatchingClick(payload.item)
+                        is ModernPayload.CollectionFolder -> onNavigateToFolderDetail(payload.collectionId, payload.folderId)
+                        null -> Unit
+                    }
+                },
+                onNetflixMoreInfo = { displayedPreview ->
+                    when (val payload = displayedPreview.actionPayload) {
+                        is ModernPayload.Catalog -> onNavigateToDetail(payload.itemId, payload.itemType, payload.addonBaseUrl)
+                        is ModernPayload.ContinueWatching -> onNavigateToDetail(payload.item.contentId(), payload.item.contentType(), "")
+                        is ModernPayload.CollectionFolder -> onNavigateToFolderDetail(payload.collectionId, payload.folderId)
+                        null -> Unit
+                    }
+                },
                 previewProvider = {
                     val state = heroSceneStateLambda()
                     if (isRapidHorizontalNav.value || state.enrichmentActive) null
@@ -1165,6 +1204,11 @@ fun ModernHomeContent(
                 verticalRowBringIntoViewSpec = verticalRowBringIntoViewSpec,
                 onRowItemFocusedInternal = onRowItemFocusedInternalLambda,
                 onNavigateToDetail = onNavigateToDetail,
+                onPlayClick = onPlayClick,
+                onCatalogLibraryAction = onCatalogLibraryAction,
+                posterLibraryMembership = uiState.posterLibraryMembership,
+                posterLibraryPending = uiState.posterLibraryPending,
+                netflixHeroPlayRequester = netflixHeroPlayRequester,
                 onNavigateToFolderDetail = onNavigateToFolderDetail,
                 onLoadMoreCatalog = onLoadMoreCatalog,
                 onContinueWatchingClick = onContinueWatchingClick,
@@ -1181,7 +1225,7 @@ fun ModernHomeContent(
                 trailerPreviewAudioUrls = stableTrailerPreviewAudioUrls,
                 useLandscapePosters = useLandscapePosters,
                 alwaysShowLandscapeClearlogo = alwaysShowLandscapeClearlogo,
-                showLabels = uiState.posterLabelsEnabled,
+                showLabels = !isNetflix && uiState.posterLabelsEnabled,
                 posterCardCornerRadius = posterCardCornerRadius,
                 focusedPosterBackdropTrailerMuted = uiState.focusedPosterBackdropTrailerMuted,
                 effectiveExpandEnabled = effectiveExpandEnabled,
@@ -1199,7 +1243,7 @@ fun ModernHomeContent(
                 blurUnwatchedEpisodes = uiState.blurUnwatchedEpisodes,
                 useEpisodeThumbnails = uiState.useEpisodeThumbnailsInCw,
                 continueWatchingCardStyle = continueWatchingStyle,
-                continueWatchingCornerRadius = uiState.posterCardCornerRadiusDp.dp,
+                continueWatchingCornerRadius = posterCardCornerRadius,
                 pendingRowFocusKey = pendingRowFocusKey,
                 pendingRowFocusIndex = pendingRowFocusIndex,
                 pendingRowFocusNonce = pendingRowFocusNonce,

@@ -33,7 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.nuvio.tv.ui.components.AppDimmedDialog as Dialog
-import androidx.tv.material3.Button
+import com.nuvio.tv.ui.components.NuvioDialogButton as Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.MaterialTheme
@@ -44,6 +44,7 @@ import kotlinx.coroutines.delay
 import com.nuvio.tv.domain.model.localizedTitle
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDirection
 import com.nuvio.tv.R
@@ -82,10 +83,13 @@ internal fun ManageListsDialog(
         Box(
             modifier = Modifier
                 .width(620.dp)
-                .background(NuvioTheme.colors.BackgroundElevated, RoundedCornerShape(NuvioTheme.radii.xl))
-                .padding(NuvioTheme.spacing.xl)
+                .background(
+                    NuvioTheme.colors.BackgroundElevated,
+                    RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.xl)
+                )
+                .padding(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.padding else NuvioTheme.spacing.xl)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.gap else 14.dp)) {
                 Text(
                     text = stringResource(R.string.library_manage_lists),
                     style = MaterialTheme.typography.titleLarge,

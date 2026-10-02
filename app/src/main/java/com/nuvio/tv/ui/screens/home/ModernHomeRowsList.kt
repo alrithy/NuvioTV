@@ -2,6 +2,8 @@ package com.nuvio.tv.ui.screens.home
 
 import com.nuvio.tv.domain.model.catalogRowLegacyKey
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import androidx.compose.ui.platform.testTag
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.BringIntoViewSpec
@@ -146,8 +148,14 @@ internal fun ModernHomeRowsList(
     onFocusedHeroMediaNonceChange: (Int) -> Unit,
     onExpansionInteractionNonceChange: (Int) -> Unit,
     blockLeftOnFirstExpandedItem: Boolean = false,
+    onPlayClick: (String, String, String) -> Unit = onNavigateToDetail,
+    onCatalogLibraryAction: (MetaPreview, String) -> Unit = { _, _ -> },
+    posterLibraryMembership: Map<String, Boolean> = emptyMap(),
+    posterLibraryPending: Set<String> = emptySet(),
+    netflixHeroPlayRequester: FocusRequester? = null,
     modifier: Modifier = Modifier
 ) {
+    val isNetflix = NuvioTheme.isNetflix
     // Unwrap StableRef wrappers for internal use (not passed to child composables)
     val focusedItemByRowMap = focusedItemByRow.value
     val rowListStatesMap = rowListStates.value
@@ -287,6 +295,7 @@ internal fun ModernHomeRowsList(
             modifier = modifier
                 .fillMaxWidth()
                 .recompositionHighlighter()
+                .then(if (isNetflix) Modifier.testTag("netflix_home_rows") else Modifier)
                 .height(rowsViewportHeight)
                 .padding(bottom = catalogBottomPadding)
                 .clipToBounds()
@@ -295,6 +304,14 @@ internal fun ModernHomeRowsList(
                 .focusRestorer { focusRestorerRequester() }
                 .onPreviewKeyEvent { event ->
                     val firstRowKey = carouselRows.list.firstOrNull()?.key
+                    if (isNetflix && event.type == KeyEventType.KeyDown && event.key == Key.DirectionUp &&
+                        activeRowKey.value == firstRowKey && netflixHeroPlayRequester != null
+                    ) {
+                        onExpandedCatalogFocusKeyChange(null)
+                        if (runCatching { netflixHeroPlayRequester.requestFocus() }.getOrDefault(false)) {
+                            return@onPreviewKeyEvent true
+                        }
+                    }
                     if (event.type == KeyEventType.KeyDown &&
                         event.key == Key.DirectionUp &&
                         activeRowKey.value == firstRowKey &&
@@ -371,7 +388,7 @@ internal fun ModernHomeRowsList(
                     },
                 ),
             contentPadding = PaddingValues(bottom = rowsViewportHeight),
-            verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xl)
+            verticalArrangement = Arrangement.spacedBy(if (isNetflix) NetflixThemeTokens.rowGap else NuvioTheme.spacing.xl)
         ) {
             itemsIndexed(
                 items = carouselRows.list,
@@ -434,7 +451,7 @@ internal fun ModernHomeRowsList(
                     row = row,
                     isActiveRow = isActiveRowLambda,
                     rowFocusRequester = rowFocusRequesters.getOrPut(row.key) { FocusRequester() },
-                    rowTitleBottom = 14.dp, // rowTitleBottom
+                    rowTitleBottom = if (isNetflix) NetflixThemeTokens.rowTitleGap else 14.dp,
                     defaultBringIntoViewSpec = defaultBringIntoViewSpec,
                     focusStateCatalogRowScrollIndex = focusState.catalogRowScrollStates[row.key] ?: 0,
                     focusStateCatalogRowScrollAnchor = focusState.catalogRowScrollAnchors[row.key],
@@ -476,6 +493,10 @@ internal fun ModernHomeRowsList(
                     enrichedPreviews = enrichedPreviews,
                     onCatalogSelectionFocused = stableOnCatalogSelectionFocused,
                     onNavigateToDetail = onNavigateToDetail,
+                    onPlayClick = onPlayClick,
+                    onCatalogLibraryAction = onCatalogLibraryAction,
+                    posterLibraryMembership = posterLibraryMembership,
+                    posterLibraryPending = posterLibraryPending,
                     onNavigateToFolderDetail = onNavigateToFolderDetail,
                     onLoadMoreCatalog = onLoadMoreCatalog,
                     onBackdropInteraction = onBackdropInteraction,

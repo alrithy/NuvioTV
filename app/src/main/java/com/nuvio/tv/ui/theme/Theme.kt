@@ -71,7 +71,10 @@ fun NuvioTheme(
         amoledMode = amoledMode,
         amoledSurfacesMode = amoledSurfacesMode
     )
-    val typography = buildNuvioTypography(getFontFamily(appFont))
+    val typography = androidx.compose.runtime.remember(appTheme, appFont) {
+        if (appTheme == AppTheme.NETFLIX) buildNetflixTypography()
+        else buildNuvioTypography(getFontFamily(appFont))
+    }
     val textStyles = buildNuvioTextStyles(typography)
 
     val materialColorScheme = darkColorScheme(
@@ -104,7 +107,7 @@ fun NuvioTheme(
         LocalNuvioTextStyles provides textStyles,
         LocalAppTheme provides appTheme,
         LocalThemePalette provides palette,
-        LocalSettingsUiStyle provides settingsUiStyle,
+        LocalSettingsUiStyle provides if (appTheme == AppTheme.NETFLIX) SettingsUiStyle.HORIZON else settingsUiStyle,
         LocalNuvioFocusRingStyle provides focusRingStyle
     ) {
         MaterialTheme(
@@ -116,6 +119,11 @@ fun NuvioTheme(
 }
 
 object NuvioTheme {
+    val isNetflix: Boolean
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalAppTheme.current == AppTheme.NETFLIX
+
     val palette: ThemeColorPalette
         @Composable
         @ReadOnlyComposable

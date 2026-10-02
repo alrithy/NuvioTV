@@ -3,6 +3,9 @@ package com.nuvio.tv.ui.screens.home
 import com.nuvio.tv.ui.theme.NuvioMotion
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.fork.resource.AdaptiveResources
+import androidx.compose.ui.focus.FocusRequester
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -125,6 +128,8 @@ internal fun ModernHeroMediaLayer(
     requestWidthPx: Int,
     requestHeightPx: Int
 ) {
+    val isNetflix = NuvioTheme.isNetflix
+    val netflixPolicy = netflixHomePreviewPolicy(AdaptiveResources.policy.tier)
     val shouldPlay by remember { derivedStateOf { shouldPlayHeroTrailer() } }
     val trailerRendered by remember { derivedStateOf { heroTrailerFirstFrameRendered() } }
     val transitionProgressState = animateFloatAsState(
@@ -163,7 +168,9 @@ internal fun ModernHeroMediaLayer(
     Box(modifier = modifier) {
         androidx.compose.animation.Crossfade(
             targetState = imageModel,
-            animationSpec = tween(durationMillis = NuvioMotion.tokens.durations.overlay),
+            animationSpec = tween(durationMillis = if (isNetflix) {
+                if (netflixPolicy.animate) NetflixThemeTokens.heroCrossfadeMs else 0
+            } else NuvioMotion.tokens.durations.overlay),
             label = "heroBackdropCrossfade"
         ) { model ->
             AsyncImage(
@@ -172,7 +179,7 @@ internal fun ModernHeroMediaLayer(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        compositingStrategy = CompositingStrategy.Offscreen
+                        compositingStrategy = if (isNetflix) CompositingStrategy.Auto else CompositingStrategy.Offscreen
                         alpha = 1f - transitionProgressState.value
                     },
                 contentScale = ContentScale.Crop,
@@ -213,13 +220,26 @@ internal fun ModernHeroGradientLayer(
     modifier: Modifier
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val isNetflix = NuvioTheme.isNetflix
     Box(
         modifier = modifier
             .graphicsLayer {
-                compositingStrategy = CompositingStrategy.Offscreen
+                compositingStrategy = if (isNetflix) CompositingStrategy.Auto else CompositingStrategy.Offscreen
                 alpha = if (isTrailerPlayingFullScreen()) 0f else 1f
             }
             .drawWithCache {
+                if (isNetflix) {
+                    val sideScrim = NetflixThemeTokens.heroSideGradient(isRtl)
+                    val bottomScrim = Brush.verticalGradient(
+                        colorStops = NetflixThemeTokens.heroBottomStops,
+                        startY = size.height * (1f - NetflixThemeTokens.heroHeightFraction),
+                        endY = size.height * NetflixThemeTokens.heroHeightFraction
+                    )
+                    return@drawWithCache onDrawBehind {
+                        drawRect(sideScrim)
+                        drawRect(bottomScrim)
+                    }
+                }
                 val fullScreen = isFullScreen()
                 val horizontalFadeEndX = size.width * if (fullScreen) 0.65f else 0.45f
                 val colorStops = if (fullScreen) {
@@ -303,18 +323,23 @@ internal fun HeroTitleBlock(
     mdbListShowOnHero: Boolean = false,
     mdbListRatingOrder: List<String> = com.nuvio.tv.domain.model.MDBListSettings.DEFAULT_RATING_ORDER,
     trailerPlaying: () -> Boolean = { false },
+    onNetflixPlay: (HeroPreview) -> Unit = {},
+    onNetflixMoreInfo: (HeroPreview) -> Unit = {},
+    netflixPlayFocusRequester: FocusRequester? = null,
+    onNetflixDownToRows: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
+    val isNetflix = NuvioTheme.isNetflix
     val currentPreview = previewProvider()
     val isEnriching = enrichmentActive()
     
     var stablePreview by remember { mutableStateOf<HeroPreview?>(null) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isNetflix) {
         snapshotFlow { Pair(previewProvider(), enrichmentActive()) }.collect { (p, e) ->
             if (!e && p != null) {
                 if (stablePreview != p) stablePreview = p
-            } else if (e) {
+            } else if (e && !isNetflix) {
                 if (stablePreview != null) stablePreview = null
             }
         }
@@ -327,6 +352,17 @@ internal fun HeroTitleBlock(
         modifier = modifier,
         contentAlignment = Alignment.BottomStart
     ) {
+        if (isNetflix) {
+            NetflixHeroTitleContent(
+                preview = displayPreview,
+                onPlay = { onNetflixPlay(displayPreview) },
+                onMoreInfo = { onNetflixMoreInfo(displayPreview) },
+                playFocusRequester = netflixPlayFocusRequester,
+                onDownToRows = onNetflixDownToRows,
+                showImdbRatings = showImdbRatings
+            )
+            return@Box
+        }
         HeroTitleContent(
             previewProvider = { displayPreview },
             portraitMode = portraitMode,

@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.screens.detail
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
@@ -106,13 +107,14 @@ fun MoreLikeThisSection(
         Modifier
     }
 
-    val landscapeStyle = remember(posterCardCornerRadius) {
+    val isNetflix = NuvioTheme.isNetflix
+    val landscapeStyle = remember(posterCardCornerRadius, isNetflix) {
         PosterCardStyle(
-            width = 260.dp,
-            height = 146.dp,
-            cornerRadius = posterCardCornerRadius,
+            width = if (isNetflix) NetflixThemeTokens.episodeCardWidth else 260.dp,
+            height = if (isNetflix) NetflixThemeTokens.episodeCardWidth / NetflixThemeTokens.landscapeAspectRatio else 146.dp,
+            cornerRadius = if (isNetflix) NetflixThemeTokens.cardRadius else posterCardCornerRadius,
             focusedBorderWidth = NuvioTheme.spacing.xxs,
-            focusedScale = 1.02f
+            focusedScale = if (isNetflix) NetflixThemeTokens.episodeFocusScale else 1.02f
         )
     }
 
@@ -134,8 +136,9 @@ fun MoreLikeThisSection(
                     }
                 }
                 .focusGroup(),
-            contentPadding = PaddingValues(horizontal = NuvioTheme.spacing.xxxl, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
+            contentPadding = PaddingValues(horizontal = if (isNetflix) NetflixThemeTokens.safeMargin else NuvioTheme.spacing.xxxl,
+                vertical = if (isNetflix) NetflixThemeTokens.actionGap else 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(if (isNetflix) NetflixThemeTokens.actionGap else NuvioTheme.spacing.md)
         ) {
             itemsIndexed(
                 items = items,

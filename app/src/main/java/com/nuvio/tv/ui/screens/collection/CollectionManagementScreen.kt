@@ -89,7 +89,7 @@ private fun NuvioButton(
             containerColor = NuvioTheme.colors.BackgroundCard,
             contentColor = NuvioTheme.colors.TextPrimary,
             focusedContainerColor = NuvioTheme.colors.FocusBackground,
-            focusedContentColor = NuvioTheme.colors.Primary
+            focusedContentColor = if (NuvioTheme.isNetflix) com.nuvio.tv.ui.theme.NetflixThemeTokens.focusContent else NuvioTheme.colors.Primary
         ),
         border = ButtonDefaults.border(
             focusedBorder = Border(
@@ -97,7 +97,7 @@ private fun NuvioButton(
                 shape = RoundedCornerShape(NuvioTheme.radii.md)
             )
         ),
-        shape = ButtonDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md)),
+        shape = ButtonDefaults.shape(if (NuvioTheme.isNetflix) com.nuvio.tv.ui.theme.NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.radii.md)),
         content = { content() }
     )
 }

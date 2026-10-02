@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.components
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
@@ -30,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
@@ -401,7 +403,7 @@ fun SkeletonBar(
         modifier = Modifier
             .width(width)
             .height(height)
-            .clip(RoundedCornerShape(cornerRadius))
+            .clip(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.State.skeletonRadius else cornerRadius))
             .background(brush)
     )
 }
@@ -417,7 +419,7 @@ fun SkeletonBar(
         modifier = Modifier
             .fillMaxWidth(width)
             .height(height)
-            .clip(RoundedCornerShape(cornerRadius))
+            .clip(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.State.skeletonRadius else cornerRadius))
             .background(brush)
     )
 }
@@ -432,13 +434,15 @@ fun SkeletonPill(
         modifier = Modifier
             .width(width)
             .height(height)
-            .clip(RoundedCornerShape(NuvioTheme.spacing.xxl))
+            .clip(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.spacing.xxl))
             .background(brush)
     )
 }
 
 @Composable
 fun rememberShimmerBrush(backdropAware: Boolean = false): Brush {
+    // Static Netflix placeholders avoid an infinite animation/recomposition per visible tile.
+    if (NuvioTheme.isNetflix) return SolidColor(NetflixThemeTokens.surfaceRaised)
     val shimmerColors = if (backdropAware) {
         listOf(
             NuvioTheme.colors.TextPrimary.copy(alpha = 0.08f),

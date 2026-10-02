@@ -3,6 +3,7 @@
 package com.nuvio.tv.ui.screens.player
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import android.util.Log
 import androidx.compose.animation.core.Animatable
@@ -407,7 +408,10 @@ internal fun SubtitleSelectionOverlay(
         onDismiss = onDismiss,
         modifier = modifier,
         captureKeys = false,
-        contentPadding = PaddingValues(start = 52.dp, end = 52.dp, top = 36.dp, bottom = 76.dp)
+        contentPadding = if (NuvioTheme.isNetflix) PaddingValues(
+            start = NetflixThemeTokens.Player.safeMargin, end = NetflixThemeTokens.Player.safeMargin,
+            top = NetflixThemeTokens.safeVerticalMargin, bottom = NetflixThemeTokens.Player.bottomMargin
+        ) else PaddingValues(start = 52.dp, end = 52.dp, top = 36.dp, bottom = 76.dp)
     ) {
         LaunchedEffect(visible) {
             if (!visible) return@LaunchedEffect
@@ -843,7 +847,7 @@ private fun SubtitleStyleRail(
                 Card(
                     onClick = { dispatchStyleEvent(PlayerEvent.OnShowSubtitleDelayOverlay) },
                     colors = overlayCardColors(selected = false),
-                    shape = CardDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md)),
+                    shape = CardDefaults.shape(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md)),
                     modifier = Modifier
                         .fillMaxWidth()
                         .then(styleCardModifier)
@@ -1021,7 +1025,7 @@ private fun SubtitleStyleRail(
                 Card(
                     onClick = { dispatchStyleEvent(PlayerEvent.OnResetSubtitleDefaults) },
                     colors = overlayCardColors(selected = false),
-                    shape = CardDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md)),
+                    shape = CardDefaults.shape(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md)),
                     modifier = Modifier
                         .then(styleCardModifier)
                         .focusRequester(requireNotNull(focusRequesters[StyleFocusKey.Reset]))
@@ -1123,7 +1127,7 @@ private fun SubtitleLanguageCard(
                 }
             },
         colors = overlayCardColors(selected = isSelected),
-        shape = CardDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md)),
+        shape = CardDefaults.shape(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md)),
         border = overlayCardBorder(),
         scale = CardDefaults.scale(focusedScale = 1f, pressedScale = 1f)
     ) {
@@ -1215,7 +1219,7 @@ private fun SubtitleOptionCard(
                 }
             },
         colors = overlayCardColors(selected = item.isSelected),
-        shape = CardDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md)),
+        shape = CardDefaults.shape(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md)),
         border = overlayCardBorder(),
         scale = CardDefaults.scale(focusedScale = 1f, pressedScale = 1f)
     ) {
@@ -1407,7 +1411,7 @@ private fun StepperRow(
         Box(
             modifier = Modifier
                 .width(valueWidth)
-                .background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(NuvioTheme.radii.md))
+                .background(Color.White.copy(alpha = 0.06f), RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md))
                 .padding(horizontal = NuvioTheme.spacing.md, vertical = NuvioTheme.spacing.sm),
             contentAlignment = Alignment.Center
         ) {
@@ -1467,7 +1471,7 @@ private fun StepperButton(
                 if (isFocused) {
                     Modifier.border(
                         NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                        RoundedCornerShape(NuvioTheme.radii.md)
+                        RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md)
                     )
                 } else {
                     Modifier
@@ -1485,7 +1489,7 @@ private fun StepperButton(
             contentColor = Color.White,
             focusedContentColor = Color.White
         ),
-        shape = IconButtonDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.md)),
+        shape = IconButtonDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md)),
         scale = IconButtonDefaults.scale(focusedScale = 1f, pressedScale = 1f)
     ) {
         Icon(imageVector = icon, contentDescription = null)
@@ -1555,7 +1559,7 @@ private fun ToggleChip(
                 }
         },
         colors = overlayCardColors(selected = isEnabled),
-        shape = CardDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md)),
+        shape = CardDefaults.shape(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md)),
         scale = CardDefaults.scale(focusedScale = 1f, pressedScale = 1f)
     ) {
         Text(
@@ -1659,18 +1663,18 @@ private fun ColorChip(
 @Composable
 private fun overlayCardColors(selected: Boolean) = CardDefaults.colors(
     containerColor = if (selected) NuvioTheme.colors.Secondary else Color.Transparent,
-    focusedContainerColor = if (selected) NuvioTheme.colors.Secondary else Color.Transparent
+    focusedContainerColor = if (selected) NuvioTheme.colors.Secondary else if (NuvioTheme.isNetflix) NetflixThemeTokens.surfaceRaised else Color.Transparent
 )
 
 @Composable
 private fun overlayCardBorder() = CardDefaults.border(
     border = Border(
         border = BorderStroke(NuvioTheme.spacing.xxs, Color.Transparent),
-        shape = RoundedCornerShape(NuvioTheme.radii.md)
+        shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md)
     ),
     focusedBorder = Border(
         border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-        shape = RoundedCornerShape(NuvioTheme.radii.md)
+        shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.md)
     )
 )
 

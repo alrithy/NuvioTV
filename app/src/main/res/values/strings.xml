@@ -1,4 +1,23 @@
 <resources>
+    <string name="theme_netflix">Netflix</string>
+    <string name="appearance_theme">Theme</string>
+    <string name="theme_netflix_description">Cinematic TV experience with a full-screen hero, compact rows and remote-friendly previews.</string>
+    <string name="netflix_more_info">More Info</string>
+    <string name="netflix_add_to_list">My List</string>
+    <string name="netflix_my_list">My List</string>
+    <string name="netflix_because_you_watched">Because you watched %1$s</string>
+    <string name="netflix_season_count">%1$d seasons</string>
+    <string name="netflix_details">Details</string>
+    <string name="netflix_trailers_more">Trailers &amp; More</string>
+    <string name="netflix_cast">Cast: %1$s</string>
+    <string name="netflix_search_space">Space</string>
+    <string name="netflix_search_delete">Delete character</string>
+    <string name="netflix_search_system_keyboard">System keyboard</string>
+    <string name="netflix_runtime_minutes">%1$d min</string>
+    <plurals name="netflix_seasons">
+        <item quantity="one">%1$d season</item>
+        <item quantity="other">%1$d seasons</item>
+    </plurals>
     <string name="app_name">Nuvio</string>
     <string name="tv_channel_continue_watching">Continue Watching</string>
     <string name="type_movie">Movie</string>

@@ -39,8 +39,10 @@ import kotlin.math.roundToInt
 fun DiscoverScreen(
     viewModel: SearchViewModel = hiltViewModel(),
     showBuiltInHeader: Boolean = true,
+    initialType: String? = null,
     onNavigateToDetail: (String, String, String) -> Unit
 ) {
+    val netflix = NuvioTheme.isNetflix
     val uiState by viewModel.uiState.collectAsState()
     val watchedMovieIds by viewModel.watchedMovieIds.collectAsState()
     val watchedSeriesIds by viewModel.watchedSeriesIds.collectAsState()
@@ -50,7 +52,14 @@ fun DiscoverScreen(
     var restoreDiscoverFocus by rememberSaveable { mutableStateOf(false) }
     var pendingDiscoverRestoreOnResume by rememberSaveable { mutableStateOf(false) }
 
-    val posterCardStyle = remember(uiState.posterCardWidthDp, uiState.posterCardCornerRadiusDp) {
+    val posterCardStyle = remember(uiState.posterCardWidthDp, uiState.posterCardCornerRadiusDp, netflix) {
+        if (netflix) return@remember PosterCardStyle(
+            width = com.nuvio.tv.ui.theme.NetflixThemeTokens.landscapeCardWidth,
+            height = com.nuvio.tv.ui.theme.NetflixThemeTokens.landscapeCardWidth / com.nuvio.tv.ui.theme.NetflixThemeTokens.landscapeAspectRatio,
+            cornerRadius = com.nuvio.tv.ui.theme.NetflixThemeTokens.cardRadius,
+            focusedBorderWidth = com.nuvio.tv.ui.theme.NetflixThemeTokens.focusedBorderWidth,
+            focusedScale = com.nuvio.tv.ui.theme.NetflixThemeTokens.focusScale
+        )
         val computedHeightDp = (uiState.posterCardWidthDp * 1.5f).roundToInt()
         PosterCardStyle(
             width = uiState.posterCardWidthDp.dp,
@@ -61,9 +70,20 @@ fun DiscoverScreen(
         )
     }
 
-    LaunchedEffect(uiState.discoverLocation) {
-        if (uiState.discoverLocation != DiscoverLocation.OFF) {
+    DisposableEffect(viewModel, netflix, initialType) {
+        viewModel.setDiscoverSessionEnabled(netflix, initialType)
+        onDispose { viewModel.setDiscoverSessionEnabled(false, keepLoadedResults = netflix) }
+    }
+    LaunchedEffect(uiState.discoverLocation, netflix, initialType) {
+        viewModel.setDiscoverSessionEnabled(netflix, initialType)
+        if (netflix || uiState.discoverLocation != DiscoverLocation.OFF) {
             viewModel.ensureDiscoverLoaded()
+        }
+    }
+
+    LaunchedEffect(initialType, uiState.discoverInitialized) {
+        if (initialType in listOf("movie", "series") && uiState.discoverInitialized && uiState.selectedDiscoverType != initialType) {
+            viewModel.onEvent(SearchEvent.SelectDiscoverType(initialType!!))
         }
     }
 
@@ -84,20 +104,24 @@ fun DiscoverScreen(
             .fillMaxSize()
             .background(NuvioTheme.colors.Background)
     ) {
-        if (uiState.discoverLocation == DiscoverLocation.OFF) {
+        if (uiState.discoverLocation == DiscoverLocation.OFF && !netflix) {
             EmptyScreenState(
                 title = stringResource(R.string.discover_disabled_title),
                 subtitle = stringResource(R.string.discover_disabled_subtitle),
                 icon = Icons.Default.Search
             )
         } else {
+            androidx.compose.runtime.CompositionLocalProvider(
+                com.nuvio.tv.ui.components.LocalLandscapePosterMode provides (netflix || com.nuvio.tv.ui.components.LocalLandscapePosterMode.current)
+            ) {
             DiscoverSection(
                 uiState = uiState,
                 posterCardStyle = posterCardStyle,
                 watchedMovieIds = watchedMovieIds,
                 watchedSeriesIds = watchedSeriesIds,
                 focusResults = false,
-                showBuiltInHeader = showBuiltInHeader,
+                showBuiltInHeader = showBuiltInHeader || netflix,
+                fixedType = if (netflix) initialType else null,
                 firstItemFocusRequester = discoverFirstItemFocusRequester,
                 focusedItemIndex = discoverFocusedItemIndex,
                 shouldRestoreFocusedItem = restoreDiscoverFocus,
@@ -126,11 +150,13 @@ fun DiscoverScreen(
                     viewModel.onEvent(SearchEvent.SelectDiscoverGenre(it))
                 },
                 onLoadMore = { viewModel.onEvent(SearchEvent.LoadNextDiscoverResults) },
+                onRetry = { viewModel.onEvent(SearchEvent.RetryDiscover) },
                 onItemLongPress = { item, addonBaseUrl ->
                     viewModel.posterOptions.show(item, addonBaseUrl)
                 },
                 modifier = Modifier.padding(top = NuvioTheme.spacing.lg)
             )
+            }
         }
 
         val posterOptionsState by viewModel.posterOptions.state.collectAsState()

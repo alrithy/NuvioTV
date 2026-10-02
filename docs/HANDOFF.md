@@ -348,3 +348,18 @@ and strip-path SEI, DV stream info, display output, 23.976/24 matching, track-fo
 ## Ownership / unfinished work
 Sequential writer, no lease. Admin actions (default branch, protection) remain in
 GITHUB_ADMIN_CHECKLIST; connector access to those settings is not available.
+
+## Independent user-requested Netflix theme
+
+`feat/netflix-theme` is an explicit-user-request extension, recorded separately
+as `user_authorized_task` in state.yaml and `tasks/NETFLIX_THEME.md`. G14 remains
+BLOCKED; its canonical gate/branch/task/owner and hardware campaign are unchanged.
+Theme implementation and verification are IN_PROGRESS. Existing content, focus,
+navigation, profile persistence and playback owners are reused. No Netflix assets
+or proprietary font/code are included. Verification evidence and remaining gaps
+are tracked in `docs/NETFLIX_THEME_VISUAL_VERIFICATION.md`.
+
+Next action for this task: complete implementation, run the full baseline-guarded
+unit/build/CI checks, review all eleven screens at TV sizes in LTR/Arabic RTL,
+and provide a signed Test Build. Do not merge or call it Done before visual
+verification. Existing G14 hardware checks retain their real pending status.

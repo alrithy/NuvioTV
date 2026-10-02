@@ -23,7 +23,8 @@ internal data class ModernHomePresentationInput(
     val showCatalogTypeSuffix: Boolean,
     val showFullReleaseDate: Boolean,
     val showImdbRatings: Boolean,
-    val localeTag: String
+    val localeTag: String,
+    val netflixSources: NetflixHomeSources = NetflixHomeSources()
 )
 
 internal fun buildModernHomePresentation(
@@ -125,6 +126,10 @@ internal fun buildModernHomePresentation(
             cache.upcomingItems = emptyList()
             cache.upcomingRow = null
         }
+
+        val netflixRows = buildNetflixSourceRows(input.netflixSources, localizedContext,
+            input.showFullReleaseDate, input.showImdbRatings)
+        netflixRows.firstOrNull { it.key == "netflix_my_list" }?.let(::add)
 
         visibleHomeRows.forEachIndexed { index, homeRow ->
             when (homeRow) {
@@ -322,6 +327,7 @@ internal fun buildModernHomePresentation(
         cache.catalogRows.keys.retainAll(activeCatalogKeys)
         cache.catalogItemCache.keys.retainAll(activeCatalogKeys)
         cache.collectionRows.keys.retainAll(activeCollectionKeys)
+        netflixRows.firstOrNull { it.key == "netflix_because_you_watched" }?.let(::add)
     }
 
     val lookups = buildCarouselRowLookups(rows)

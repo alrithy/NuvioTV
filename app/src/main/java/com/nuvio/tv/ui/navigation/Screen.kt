@@ -136,7 +136,13 @@ sealed class Screen(val route: String) {
         }
     }
     data object Search : Screen("search")
-    data object Discover : Screen("discover")
+    data object Discover : Screen("discover") {
+        const val routePattern = "discover?type={type}"
+        fun createRoute(type: String? = null): String = when (type) {
+            "movie", "series" -> "$route?type=$type"
+            else -> route
+        }
+    }
     data object Library : Screen("library")
     data object Calendar : Screen("calendar") // Superfork G9e
     data object LiveTv : Screen("live_tv") // Superfork G10b

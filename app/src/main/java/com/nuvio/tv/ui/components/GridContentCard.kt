@@ -1,9 +1,14 @@
 package com.nuvio.tv.ui.components
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.fork.resource.AdaptiveResources
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.zIndex
 
 import android.view.KeyEvent as AndroidKeyEvent
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -28,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
@@ -43,7 +47,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import com.nuvio.tv.R
 import androidx.tv.material3.Border
 import androidx.tv.material3.Card
@@ -79,10 +82,13 @@ fun GridContentCard(
     onLongPress: (() -> Unit)? = null,
     onFocused: () -> Unit = {}
 ) {
-    val cardShape = remember(posterCardStyle.cornerRadius) { RoundedCornerShape(posterCardStyle.cornerRadius) }
+    val isNetflix = NuvioTheme.isNetflix
+    val cardShape = remember(posterCardStyle.cornerRadius, isNetflix) {
+        RoundedCornerShape(if (isNetflix) NetflixThemeTokens.cardRadius else posterCardStyle.cornerRadius)
+    }
     val cardDepthStyle = LocalCardDepthStyle.current
     val density = LocalDensity.current
-    val globalLandscape = LocalLandscapePosterMode.current
+    val globalLandscape = isNetflix || LocalLandscapePosterMode.current
     val effectivePosterShape = if (globalLandscape) PosterShape.LANDSCAPE else item.posterShape
 
     // Derive card height from item's posterShape aspect ratio while keeping width from posterCardStyle.
@@ -93,17 +99,28 @@ fun GridContentCard(
         PosterShape.SQUARE -> posterCardStyle.width
     }
 
-    val requestCardWidth = if (globalLandscape) posterCardStyle.height else posterCardStyle.width
+    val requestCardWidth = if (globalLandscape && !isNetflix) posterCardStyle.height else posterCardStyle.width
     val requestWidthPx = remember(density, requestCardWidth) { with(density) { requestCardWidth.roundToPx() }.coerceAtLeast(1) }
     val requestHeightPx = remember(density, cardHeight) { with(density) { cardHeight.roundToPx() }.coerceAtLeast(1) }
     var isFocused by remember { mutableStateOf(false) }
     var longPressTriggered by remember { mutableStateOf(false) }
     val longPressKeyTracker = rememberLongPressKeyTracker()
+    val netflixFocusScale by animateFloatAsState(
+        targetValue = if (isNetflix && isFocused) NetflixThemeTokens.focusScale else 1f,
+        animationSpec = tween(if (AdaptiveResources.policy.isLowRam) 0 else NetflixThemeTokens.focusDurationMs),
+        label = "netflixGridCardFocus"
+    )
 
 
     Column(
         modifier = modifier
             .then(if (globalLandscape) Modifier.fillMaxWidth() else Modifier.width(posterCardStyle.width))
+            .then(if (isNetflix) Modifier.zIndex(if (isFocused) 1f else 0f).graphicsLayer {
+                scaleX = netflixFocusScale
+                scaleY = netflixFocusScale
+                shadowElevation = if (isFocused && !AdaptiveResources.policy.isLowRam) NetflixThemeTokens.focusElevation.toPx() else 0f
+                shape = cardShape
+            } else Modifier)
             .recompositionHighlighter()
     ) {
         Card(
@@ -177,11 +194,11 @@ fun GridContentCard(
             ),
             border = CardDefaults.border(
                 focusedBorder = Border(
-                    border = NuvioTheme.focusRing.border(posterCardStyle.focusedBorderWidth),
+                    border = NuvioTheme.focusRing.border(if (isNetflix) NetflixThemeTokens.focusedBorderWidth else posterCardStyle.focusedBorderWidth),
                     shape = cardShape
                 )
             ),
-            scale = CardDefaults.scale(focusedScale = posterCardStyle.focusedScale)
+            scale = CardDefaults.scale(focusedScale = if (isNetflix) 1f else posterCardStyle.focusedScale)
         ) {
             Box(
                 modifier = Modifier

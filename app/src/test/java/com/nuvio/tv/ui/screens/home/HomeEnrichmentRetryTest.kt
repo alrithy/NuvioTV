@@ -452,6 +452,7 @@ class HomeEnrichmentRetryTest {
             metaRepository = metaRepository,
             collectionsDataStore = mockk(relaxed = true),
             layoutPreferenceDataStore = mockk(relaxed = true),
+            themeDataStore = mockk(relaxed = true),
             playerSettingsDataStore = mockk(relaxed = true),
             tmdbSettingsDataStore = mockk(relaxed = true),
             mdbListSettingsDataStore = mockk(relaxed = true),

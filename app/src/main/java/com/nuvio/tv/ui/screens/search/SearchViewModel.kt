@@ -37,6 +37,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -88,6 +89,7 @@ class SearchViewModel @Inject constructor(
     private var activeSearchQuery: String? = null
     private var searchGeneration = 0L
     private var discoverJob: Job? = null
+    private var discoverCatalogJob: Job? = null
     private var catalogRowsUpdateJob: Job? = null
     private var suggestionJob: Job? = null
     private var liveSearchJob: Job? = null
@@ -124,25 +126,8 @@ class SearchViewModel @Inject constructor(
         viewModelScope.launch {
             layoutPreferenceDataStore.discoverLocation.distinctUntilChanged().collectLatest { location ->
                 _uiState.update { it.copy(discoverLocation = location) }
-                if (location == DiscoverLocation.OFF) {
-                    discoverJob?.cancel()
-                    discoverJob = null
-                    revealBatchAfterNextDiscoverFetch = false
-                    _uiState.update {
-                        it.copy(
-                            discoverInitialized = false,
-                            discoverLoading = false,
-                            discoverLoadingMore = false,
-                            discoverCatalogs = emptyList(),
-                            selectedDiscoverType = "movie",
-                            selectedDiscoverCatalogKey = null,
-                            selectedDiscoverGenre = null,
-                            discoverResults = emptyList(),
-                            pendingDiscoverResults = emptyList(),
-                            discoverHasMore = true,
-                            discoverPage = 1
-                        )
-                    }
+                if (location == DiscoverLocation.OFF && !discoverSessionEnabled) {
+                    clearDisabledDiscoverSession()
                 }
             }
         }
@@ -194,11 +179,59 @@ class SearchViewModel @Inject constructor(
         val cornerRadiusDp: Int
     )
 
+    // Netflix Movies/Series reuse Discover even when its optional entry is hidden in other themes.
+    // This is scoped to this screen's ViewModel and never writes the profile's discovery preference.
+    private var discoverSessionEnabled = false
+    private var discoverSessionType: String? = null
+
+    fun setDiscoverSessionEnabled(
+        enabled: Boolean,
+        preferredType: String? = null,
+        keepLoadedResults: Boolean = false
+    ) {
+        discoverSessionEnabled = enabled
+        discoverSessionType = preferredType?.takeIf { enabled && (it == "movie" || it == "series") }
+        if (!enabled && _uiState.value.discoverLocation == DiscoverLocation.OFF) {
+            if (keepLoadedResults) {
+                // A details round-trip keeps the catalog and its scrolled results in this ViewModel.
+                discoverJob?.cancel()
+                discoverCatalogJob?.cancel()
+                discoverJob = null
+                discoverCatalogJob = null
+                _uiState.update { it.copy(discoverLoading = false, discoverLoadingMore = false) }
+            } else clearDisabledDiscoverSession()
+        }
+    }
+
+    private fun clearDisabledDiscoverSession() {
+        discoverJob?.cancel()
+        discoverCatalogJob?.cancel()
+        discoverJob = null
+        discoverCatalogJob = null
+        revealBatchAfterNextDiscoverFetch = false
+        _uiState.update {
+            it.copy(
+                discoverInitialized = false,
+                discoverLoading = false,
+                discoverLoadingMore = false,
+                discoverError = null,
+                discoverCatalogs = emptyList(),
+                selectedDiscoverType = "movie",
+                selectedDiscoverCatalogKey = null,
+                selectedDiscoverGenre = null,
+                discoverResults = emptyList(),
+                pendingDiscoverResults = emptyList(),
+                discoverHasMore = true,
+                discoverPage = 1
+            )
+        }
+    }
+
     fun ensureDiscoverLoaded() {
         val state = _uiState.value
-        if (state.discoverLocation == DiscoverLocation.OFF) return
-        if (state.discoverInitialized || state.discoverLoading) return
-        viewModelScope.launch { loadDiscoverCatalogs() }
+        if (state.discoverLocation == DiscoverLocation.OFF && !discoverSessionEnabled) return
+        if (state.discoverInitialized || state.discoverLoading || discoverCatalogJob?.isActive == true) return
+        discoverCatalogJob = viewModelScope.launch { loadDiscoverCatalogs() }
     }
 
     private val metaPrefetchedIds: MutableSet<String> = java.util.concurrent.ConcurrentHashMap.newKeySet()
@@ -245,6 +278,13 @@ class SearchViewModel @Inject constructor(
             is SearchEvent.SelectDiscoverCatalog -> selectDiscoverCatalog(event.catalogKey)
             is SearchEvent.SelectDiscoverGenre -> selectDiscoverGenre(event.genre)
             SearchEvent.LoadNextDiscoverResults -> loadNextDiscoverResults()
+            SearchEvent.RetryDiscover -> {
+                if (_uiState.value.selectedDiscoverCatalogKey != null) fetchDiscoverContent(reset = true)
+                else {
+                    discoverCatalogJob?.cancel()
+                    discoverCatalogJob = viewModelScope.launch { loadDiscoverCatalogs() }
+                }
+            }
             SearchEvent.Retry -> {
                 // An explicit retry must refetch even though nothing about the request changed.
                 lastRequestKey = null
@@ -895,12 +935,17 @@ class SearchViewModel @Inject constructor(
     }
 
     private suspend fun loadDiscoverCatalogs() {
-        if (_uiState.value.discoverLocation == DiscoverLocation.OFF) return
-        _uiState.update { it.copy(discoverLoading = true) }
+        if (_uiState.value.discoverLocation == DiscoverLocation.OFF && !discoverSessionEnabled) return
+        _uiState.update { it.copy(discoverLoading = true, discoverError = null) }
         val addons = try {
             addonRepository.getInstalledAddons().first().enabledAddons()
-        } catch (_: Exception) {
-            _uiState.update { it.copy(discoverInitialized = true, discoverLoading = false) }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: Exception) {
+            _uiState.update {
+                it.copy(discoverInitialized = true, discoverLoading = false,
+                    discoverError = error.message ?: context.getString(R.string.search_error_failed))
+            }
             return
         }
 
@@ -930,12 +975,17 @@ class SearchViewModel @Inject constructor(
                 }
         }
 
-        val selectedCatalog = resolveDiscoverCatalog(
+        val preferredCatalogKey = discoverSelectionDataStore.getSelectedCatalogKey()
+        if (_uiState.value.discoverLocation == DiscoverLocation.OFF && !discoverSessionEnabled) return
+        val requestedType = discoverSessionType
+        val selectedCatalog = if (requestedType != null) {
+            pickDiscoverCatalog(discoverCatalogs, requestedType, preferredCatalogKey)
+        } else resolveDiscoverCatalog(
             catalogs = discoverCatalogs,
-            preferredKey = discoverSelectionDataStore.getSelectedCatalogKey(),
+            preferredKey = preferredCatalogKey,
             currentKey = _uiState.value.selectedDiscoverCatalogKey
         )
-        val selectedType = selectedCatalog?.type ?: "movie"
+        val selectedType = requestedType ?: selectedCatalog?.type ?: "movie"
         val selectedGenre: String? = null
 
         _uiState.update {
@@ -947,6 +997,7 @@ class SearchViewModel @Inject constructor(
                 selectedDiscoverGenre = selectedGenre,
                 discoverInitialized = true,
                 discoverLoading = false,
+                discoverError = null,
                 discoverResults = emptyList(),
                 pendingDiscoverResults = emptyList(),
                 discoverHasMore = true,
@@ -954,9 +1005,7 @@ class SearchViewModel @Inject constructor(
             )
         }
         selectedCatalog?.let { catalog ->
-            viewModelScope.launch {
-                discoverSelectionDataStore.setSelectedCatalogKey(catalog.key)
-            }
+            rememberDiscoverCatalogSelection(catalog.key)
         }
         fetchDiscoverContent(reset = true)
     }
@@ -974,6 +1023,7 @@ class SearchViewModel @Inject constructor(
                 selectedDiscoverType = type,
                 selectedDiscoverCatalogKey = selectedCatalog?.key,
                 selectedDiscoverGenre = selectedGenre,
+                discoverError = null,
                 discoverResults = emptyList(),
                 pendingDiscoverResults = emptyList(),
                 discoverPage = 1,
@@ -981,9 +1031,7 @@ class SearchViewModel @Inject constructor(
             )
         }
         selectedCatalog?.let { catalog ->
-            viewModelScope.launch {
-                discoverSelectionDataStore.setSelectedCatalogKey(catalog.key)
-            }
+            rememberDiscoverCatalogSelection(catalog.key)
         }
         fetchDiscoverContent(reset = true)
     }
@@ -995,22 +1043,28 @@ class SearchViewModel @Inject constructor(
                 selectedDiscoverCatalogKey = catalog.key,
                 selectedDiscoverType = catalog.type,
                 selectedDiscoverGenre = null,
+                discoverError = null,
                 discoverResults = emptyList(),
                 pendingDiscoverResults = emptyList(),
                 discoverPage = 1,
                 discoverHasMore = true
             )
         }
-        viewModelScope.launch {
-            discoverSelectionDataStore.setSelectedCatalogKey(catalog.key)
-        }
+        rememberDiscoverCatalogSelection(catalog.key)
         fetchDiscoverContent(reset = true)
+    }
+
+    private fun rememberDiscoverCatalogSelection(catalogKey: String) {
+        // Netflix's fixed Movies/Series destinations must not overwrite the saved Discover catalog.
+        if (discoverSessionEnabled) return
+        viewModelScope.launch { discoverSelectionDataStore.setSelectedCatalogKey(catalogKey) }
     }
 
     private fun selectDiscoverGenre(genre: String?) {
         _uiState.update {
             it.copy(
                 selectedDiscoverGenre = genre,
+                discoverError = null,
                 discoverResults = emptyList(),
                 pendingDiscoverResults = emptyList(),
                 discoverPage = 1,
@@ -1062,6 +1116,7 @@ class SearchViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(
                         discoverLoading = true,
+                        discoverError = null,
                         discoverResults = emptyList(),
                         pendingDiscoverResults = emptyList(),
                         discoverPage = 1,
@@ -1091,8 +1146,11 @@ class SearchViewModel @Inject constructor(
                 extraArgs = extraArgs,
                 supportsSkip = selectedCatalog.supportsSkip,
                 posterScreen = com.nuvio.tv.core.poster.CustomPosterScreen.SEARCH
-            ).collect { result ->
-                if (_uiState.value.discoverLocation == DiscoverLocation.OFF) return@collect
+            ).catch { error ->
+                if (error is CancellationException) throw error
+                emit(NetworkResult.Error(error.message ?: context.getString(R.string.search_error_failed)))
+            }.collect { result ->
+                if (_uiState.value.discoverLocation == DiscoverLocation.OFF && !discoverSessionEnabled) return@collect
                 when (result) {
                     is NetworkResult.Success -> {
                         val incoming = result.data.items
@@ -1131,6 +1189,7 @@ class SearchViewModel @Inject constructor(
                             it.copy(
                                 discoverLoading = false,
                                 discoverLoadingMore = false,
+                                discoverError = null,
                                 discoverResults = visible,
                                 pendingDiscoverResults = pending,
                                 discoverHasMore = if (shouldStopPagination) false else result.data.hasMore,
@@ -1145,6 +1204,7 @@ class SearchViewModel @Inject constructor(
                             it.copy(
                                 discoverLoading = false,
                                 discoverLoadingMore = false,
+                                discoverError = result.message,
                                 discoverHasMore = false
                             )
                         }

@@ -24,6 +24,10 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.ui.theme.NuvioTheme
 
 @Composable
 internal fun PlayerOverlayScaffold(
@@ -38,10 +42,12 @@ internal fun PlayerOverlayScaffold(
     topEndContent: (@Composable () -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val isNetflix = NuvioTheme.isNetflix
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(animationSpec = tween(250)),
-        exit = fadeOut(animationSpec = tween(200)),
+        enter = fadeIn(animationSpec = tween(if (isNetflix) NetflixThemeTokens.screenTransitionMillis else 250)),
+        exit = fadeOut(animationSpec = tween(if (isNetflix) NetflixThemeTokens.focusDurationMillis else 200)),
         modifier = modifier
     ) {
         val focusRequester = remember { FocusRequester() }
@@ -106,11 +112,12 @@ internal fun PlayerOverlayScaffold(
                 modifier = Modifier
                     .fillMaxSize()
                     .drawWithCache {
+                        val horizontalColors = listOf(
+                            Color.Black.copy(alpha = if (isNetflix) NetflixThemeTokens.Player.panelScrimAlpha else 0.88f),
+                            Color.Transparent
+                        )
                         val horizontalGradient = Brush.horizontalGradient(
-                            colors = listOf(
-                                Color.Black.copy(alpha = 0.88f),
-                                Color.Transparent
-                            )
+                            colors = if (isNetflix && isRtl) horizontalColors.reversed() else horizontalColors
                         )
                         val verticalGradient = Brush.verticalGradient(
                             colorStops = arrayOf(

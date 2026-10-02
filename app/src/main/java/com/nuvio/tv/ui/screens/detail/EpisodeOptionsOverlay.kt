@@ -3,6 +3,7 @@ package com.nuvio.tv.ui.screens.detail
 import android.content.Context
 import android.view.KeyEvent as AndroidKeyEvent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
@@ -68,6 +69,9 @@ import com.nuvio.tv.domain.model.EpisodeOptionsOverlayStyle
 import com.nuvio.tv.domain.model.Video
 import com.nuvio.tv.ui.components.ImdbRatingSourceLabel
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.ui.theme.netflixPresentationPolicy
+import com.nuvio.tv.fork.resource.AdaptiveResources
 import com.nuvio.tv.ui.util.BlurTransformation
 import com.nuvio.tv.ui.util.contentTextDirection
 import com.nuvio.tv.ui.util.localizeEpisodeTitle
@@ -106,10 +110,11 @@ internal fun EpisodeOptionsOverlay(
     onMarkSeasonUnwatched: () -> Unit = {},
     onMarkPreviousEpisodesWatched: () -> Unit = {}
 ) {
+    val isNetflix = NuvioTheme.isNetflix
     val context = LocalContext.current
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
-    val overlayColor = Color(0xFF050505)
+    val overlayColor = if (isNetflix) NetflixThemeTokens.background else Color(0xFF050505)
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     val primaryFocusRequester = remember { FocusRequester() }
     val detailsFocusRequester = remember { FocusRequester() }
@@ -118,12 +123,12 @@ internal fun EpisodeOptionsOverlay(
     val title = episode.title.localizeEpisodeTitle(context)
     val description = episode.overview?.trim().orEmpty()
     val titleStyle = episodeOverlayTitleStyle(title.length)
-    val descriptionStyle = episodeOverlayDescriptionStyle(description.length)
+    val descriptionStyle = if (isNetflix) MaterialTheme.typography.bodyLarge else episodeOverlayDescriptionStyle(description.length)
     val isNoneStyle = !shouldShowEpisodeOverlayBackdrop(style)
     val isCompactLayout = configuration.screenWidthDp < 1200 || configuration.screenHeightDp < 700
-    val horizontalPadding = if (isNoneStyle || !isCompactLayout) 64.dp else 32.dp
-    val verticalPadding = if (isNoneStyle || !isCompactLayout) 48.dp else 24.dp
-    val contentSpacing = if (isNoneStyle || !isCompactLayout) 72.dp else 40.dp
+    val horizontalPadding = if (isNetflix) NetflixThemeTokens.safeMargin else if (isNoneStyle || !isCompactLayout) 64.dp else 32.dp
+    val verticalPadding = if (isNetflix) NetflixThemeTokens.safeVerticalMargin else if (isNoneStyle || !isCompactLayout) 48.dp else 24.dp
+    val contentSpacing = if (isNetflix) NetflixThemeTokens.rowGap else if (isNoneStyle || !isCompactLayout) 72.dp else 40.dp
     val actionsWidth = if (isNoneStyle || !isCompactLayout) 360.dp else 320.dp
     val blurBackdrop = shouldBlurEpisodeOverlayBackdrop(
         style = style,
@@ -137,11 +142,15 @@ internal fun EpisodeOptionsOverlay(
             else -> episodeOverlayBackdropUrl(episode.thumbnail)
         }
     }
-    val backdropWidthPx = remember(configuration, density) {
-        with(density) { configuration.screenWidthDp.dp.roundToPx() }
+    val backdropWidthPx = remember(configuration, density, isNetflix) {
+        with(density) { configuration.screenWidthDp.dp.roundToPx() }.let { width ->
+            if (isNetflix) width.coerceAtMost(netflixPresentationPolicy(AdaptiveResources.policy.tier).maxBackdropWidthPx) else width
+        }
     }
-    val backdropHeightPx = remember(configuration, density) {
-        with(density) { configuration.screenHeightDp.dp.roundToPx() }
+    val backdropHeightPx = remember(configuration, density, isNetflix) {
+        with(density) { configuration.screenHeightDp.dp.roundToPx() }.let { height ->
+            if (isNetflix) height.coerceAtMost(netflixPresentationPolicy(AdaptiveResources.policy.tier).maxBackdropHeightPx) else height
+        }
     }
     val thumbnailRequest = remember(
         context,
@@ -242,6 +251,11 @@ internal fun EpisodeOptionsOverlay(
                 )
             )
         }
+    }.let { items ->
+        if (isNetflix) items.toMutableList().apply {
+            // The existing Play action follows the two tracking actions and optional previous action.
+            add(0, removeAt(if (hasPreviousEpisodes) 3 else 2))
+        } else items
     }
     val initialActionIndex = actions.indexOfFirst { it.enabled }.coerceAtLeast(0)
     var acceptsSelectKey by remember { mutableStateOf(false) }
@@ -261,7 +275,9 @@ internal fun EpisodeOptionsOverlay(
             modifier = Modifier
                 .fillMaxSize()
                 .then(
-                    if (isNoneStyle) {
+                    if (isNetflix) {
+                        Modifier.background(NetflixThemeTokens.background)
+                    } else if (isNoneStyle) {
                         Modifier.background(noneBackgroundBrush)
                     } else {
                         Modifier.background(Color(0xFF050505))
@@ -385,7 +401,7 @@ internal fun EpisodeOptionsOverlay(
                         Text(
                             text = episodeLabel,
                             style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
-                            color = NuvioTheme.colors.Primary
+                            color = if (isNetflix) NetflixThemeTokens.textSecondary else NuvioTheme.colors.Primary
                         )
 
                         ratingLabel?.let { rating ->
@@ -419,7 +435,9 @@ internal fun EpisodeOptionsOverlay(
                     if (description.isNotBlank()) {
                         Text(
                             text = description,
-                            style = (if (isNoneStyle) {
+                            style = (if (isNetflix) {
+                                MaterialTheme.typography.bodyLarge
+                            } else if (isNoneStyle) {
                                 MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Normal)
                             } else {
                                 descriptionStyle
@@ -463,10 +481,17 @@ internal fun EpisodeOptionsOverlay(
                                         Modifier
                                     }
                                 ),
-                            colors = ButtonDefaults.colors(
+                            colors = if (isNetflix) ButtonDefaults.colors(
+                                containerColor = NuvioTheme.colors.BackgroundCard,
+                                contentColor = NuvioTheme.colors.TextPrimary,
+                                focusedContainerColor = NetflixThemeTokens.focus,
+                                focusedContentColor = NetflixThemeTokens.focusContent
+                            ) else ButtonDefaults.colors(
                                 containerColor = NuvioTheme.colors.BackgroundCard,
                                 contentColor = NuvioTheme.colors.TextPrimary
-                            )
+                            ),
+                            shape = if (isNetflix) ButtonDefaults.shape(shape = RoundedCornerShape(NetflixThemeTokens.buttonRadius)) else ButtonDefaults.shape(),
+                            scale = if (isNetflix) ButtonDefaults.scale(focusedScale = NetflixThemeTokens.episodeFocusScale) else ButtonDefaults.scale()
                         ) {
                             Text(action.label)
                         }
