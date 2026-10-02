@@ -13,4 +13,4 @@ G10,Live TV,feat/live-tv,G9,reshaped,tasks/G10_LIVE_TV.md
 G11,Watch Party,feat/watch-party,G10,antonino-watchparty,tasks/G11_WATCH_PARTY.md
 G12,UI Styles & Screensaver,feat/ui-styles,G11,official+nuvio-glass+reshaped+cxsmo,tasks/G12_UI_STYLES.md
 G13,Experimental AI & MAT,experimental/media,G12,fornace+ysosrs,tasks/G13_EXPERIMENTAL.md
-G14,Hardening Release Upstream,fix/g14-device-findings,G13,official+project,tasks/G14_HARDENING_RELEASE.md
+G14,Hardening Release Upstream,chore/release-hardening,G13,official+project,tasks/G14_HARDENING_RELEASE.md
