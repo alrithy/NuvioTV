@@ -29,6 +29,16 @@ class LiveTvViewModel @Inject constructor(
     private val profileManager: ProfileManager,
 ) : ViewModel() {
 
+    // Declared before `init`: viewModelScope runs on Main.immediate, so the collector below calls
+    // ensureLoaded() while the constructor is still running, and it writes these (G14 device
+    // finding: the app closed as Live TV opened, writing a state that did not exist yet).
+    var visibleChannels by mutableStateOf<List<LiveTvChannel>>(emptyList())
+        private set
+    private var filteredFor: LiveTvFilterInput? = null
+
+    /** Set when a channel starts playing: on return, focus goes back to the channel last watched. */
+    var restoreFocusOnReturn = false
+
     init {
         viewModelScope.launch {
             profileManager.activeProfileId.collectLatest { ensureLoaded() }
@@ -46,19 +56,12 @@ class LiveTvViewModel @Inject constructor(
         }
     }
 
-    var visibleChannels by mutableStateOf<List<LiveTvChannel>>(emptyList())
-        private set
-    private var filteredFor: LiveTvFilterInput? = null
-
     fun isFilteredFor(input: LiveTvFilterInput): Boolean = filteredFor?.sameAs(input) == true
 
     fun setVisible(input: LiveTvFilterInput, channels: List<LiveTvChannel>) {
         filteredFor = input
         visibleChannels = channels
     }
-
-    /** Set when a channel starts playing: on return, focus goes back to the channel last watched. */
-    var restoreFocusOnReturn = false
 
     /**
      * The official player route for [channel]: its playable link (Stalker links are made per play),

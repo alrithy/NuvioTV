@@ -23,18 +23,24 @@ data class StreamRankInput(
     val reliability: Int,
     /** G8c (165): 1 when the measured connection cannot sustain the stream's average bitrate. */
     val connection: Int = 0,
+    /** 1 when this device cannot show it as made: Dolby Vision only on a display without DV, AV1 without a decoder. */
+    val compatibility: Int = 0,
 )
 
 /**
  * The ranking chain (ALGORITHM_PORT of Cxsmo `StreamQualityRank` @ 3e0d0fa, reordered and extended
- * per D053): cache tier → connection fit (G8c) → resolution → quality → release-group tier → HDR/DV → audio (lossless
- * first) → channels → codec → size (bitrate) → source reliability. Stable: ties keep the incoming
- * add-on order, and nothing is ever dropped.
+ * per D053, D067): cache tier → device compatibility (G14) → connection fit (G8c) → resolution →
+ * quality → release-group tier → HDR/DV → audio (lossless first) → channels → codec → size
+ * (bitrate) → source reliability. Stable: ties keep the incoming add-on order, and nothing is ever
+ * dropped.
  */
 object StreamRankRules {
 
     val COMPARATOR: Comparator<StreamRankInput> =
         compareBy<StreamRankInput> { it.cacheTier }
+            // G14 (D067): a file this device cannot show as made drops within its cache tier, before
+            // resolution and quality can lift it (a DV-only REMUX on a TV without Dolby Vision).
+            .thenBy { it.compatibility }
             // G8c: heavy streams drop within their cache tier, so an uncached one never outranks them.
             .thenBy { it.connection }
             .thenByDescending { it.resolution }
@@ -67,6 +73,13 @@ object StreamRankRules {
         dv -> 5
         else -> 4
     }
+
+    /**
+     * G14 device finding (D067): 1 when the device cannot show the stream as made: Dolby Vision with
+     * no HDR base layer on a display without Dolby Vision (wrong colours), or AV1 without a decoder.
+     */
+    fun compatibility(dvOnly: Boolean, displaySupportsDv: Boolean, av1: Boolean, decodesAv1: Boolean): Int =
+        if ((dvOnly && !displaySupportsDv) || (av1 && !decodesAv1)) 1 else 0
 
     /** Feature 166: the last tiebreak; a source that failed recently ranks below one that did not. */
     fun reliability(state: AddonHealthState?): Int = when (state) {
