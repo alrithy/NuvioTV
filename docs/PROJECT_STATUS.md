@@ -20,7 +20,7 @@ G8). G2 Adaptive Resource Manager DONE (PRs #14, #15, #16; 276 deferred, 279 →
 Latest green feature evidence: G14 device-findings PR #96 exact head
 `091db57119c382712f6aeca6abf8c50f4c156a73`, run https://github.com/alrithy/NuvioTV/actions/runs/36963783109:
 2391 tests, 15 known failures, 0 new, 1 skipped; Device Smoke 4/4 (run 36963783132); Test Build run 36963783129;
-squash-merged as `bd5d61a`. G14 BLOCKED on the hardware campaign.
+squash-merged as `bd5d61a`. Test-race fixes #98 (LiveTvOrganisationTest wait, emulator settling) require exact-head CI. G14 BLOCKED on the hardware campaign.
 Full-suite evidence and remaining debt: BASELINE_TEST_DEBT and integration/evidence.
 A no-new-regressions PASS is not an all-tests-pass claim. Reviewed inventory: clean official
 `56aaba2` replay (D050), 1,796 tests, 18 failed (15 registered + official's 3 stale RAM-tier tests

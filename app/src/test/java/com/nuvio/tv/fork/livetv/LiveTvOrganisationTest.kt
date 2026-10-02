@@ -97,7 +97,9 @@ class LiveTvOrganisationTest {
         repository.moveGroup("Sports", -1)
         repository.renameGroup("News", "Headlines")
         repository.recordRecentChannel(one)
-        val state = withTimeout(5_000) { repository.state.first { it.library.recent != null } }
+        // The library changes apply at once; the channels zapping goes through are refiltered off
+        // the caller's thread after a hiding change, so wait for that too (it raced this check).
+        val state = withTimeout(5_000) { repository.state.first { it.library.recent != null && it.shownChannels == listOf(one) } }
         assertSame(loaded.channels, state.channels)
         assertEquals(setOf(one.key), state.library.favorites)
         assertEquals(listOf("Sports", "News"), state.groups)
