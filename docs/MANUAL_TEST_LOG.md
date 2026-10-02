@@ -116,3 +116,41 @@ G14 is the planned single hardware-certification stop: execute the accumulated c
   unsuitable subtitle or failed; the Best-quality list order and autoplay did not pick the same best
   stream.
 - Diagnostics captured: none from the device (no logcat); the reproduction log is the CI run above.
+
+## 2026-10-02 — Maintainer device run 2 (TCL C6K)
+- Gate / Feature IDs: G14 campaign; observations across G1–G14.
+- Commit / build: the maintainer's installed Superfork Test Build (`com.nuvio.tv.debug`); the Live TV
+  crash was seen on the older build before #96.
+- Device: TCL C6K (Google TV). Android / firmware, display mode, network type: not recorded.
+- Findings, by kind:
+  - RETEST (fixed in #96, not yet run on the TV): Live TV opening (HV-G10-1 FAIL earlier, HV-G14-4);
+    Arabic Auto Sync choice (HV-G14-5); Best-quality list and autoplay agreement across add-ons
+    (HV-G14-6). Result: MANUAL-PENDING until the latest Test Build is run on the TV.
+  - CONFIGURATION (not an app bug): Trakt says the client id / secret are missing, MDBList the same.
+    The Test Build had no `TRAKT_CLIENT_ID`, `TRAKT_CLIENT_SECRET`, `SIMKL_CLIENT_ID`,
+    `MDBLIST_CLIENT_ID`, `TMDB_API_KEY` or `PREMIUMIZE_CLIENT_ID`; the workflow now takes each from its
+    own repository secret and reports set / missing by name (GITHUB_ADMIN_CHECKLIST E). Re-test as
+    HV-G14-7 once they are added.
+  - INVESTIGATE: one sports add-on shows "Manifest Error" in Settings → Add-ons while the others are
+    Healthy. The badge covers any failed manifest request (HTTP error, unreachable host, invalid or
+    incomplete JSON); the app logs the cause with the host only:
+    `adb logcat -d | grep "Failed to fetch addon manifest"` (code = HTTP status, message = the parse
+    error). The other add-ons are not affected and nothing crashes. Needs that log line (or the add-on
+    host) to tell a dead / invalid provider from a parser problem.
+  - ENHANCEMENT (not a bug, does not block Stable): screensaver visual design (it already dims after the
+    set time, shows artwork, 50 % dim tried, wakes on any remote key).
+- Maintainer observations (notes, not results; the checklist's HUD / logcat / photo evidence was not
+  captured, so every related case stays MANUAL-PENDING):
+  - Home scrolling and opening / leaving pages are smooth; Search works; movie and series details work
+    (Play, cast, trailer, ratings); Saved / Cloud UI works.
+  - Add-on health badges show, most Healthy (HV-G1-1 related).
+  - Device assessment works; the speed test read about 181 ms latency and 255 Mbps download; the
+    stream speed assessment recommended 4 parallel connections instead of 2; Apply recommended settings
+    and Restore previous settings both work (HV-G1-3 related). These readings do not close feature 3,
+    which still needs the G4 same-file A/B (§5).
+  - App dimmer works (HV-G9-7 related); the screensaver works and wakes on the remote (HV-G12-5 related).
+  - Arabic RTL on content pages and the stream list is right; numbers and sizes are not clipped (HV-G2-3
+    related).
+  - Official, REMUX / Throughput, Auto and Seek optimized strategies were used and played; Seek
+    optimized seeks work, with a few seconds of loading after a large seek. Low memory was not tried.
+  - Large files, HDR, Dolby Vision and audio played.

@@ -170,6 +170,56 @@ jobs:
             done
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Write account-integration credentials (not printed)
+        # Trakt, SIMKL, MDBList, TMDB and Premiumize need the maintainer's own registered app
+        # credentials (official's are never reused). Each comes from its own repository secret, or from
+        # LOCAL_PROPERTIES_BASE64; values go to the runner's properties files only.
+        env:
+          TRAKT_CLIENT_ID: ${{ secrets.TRAKT_CLIENT_ID }}
+          TRAKT_CLIENT_SECRET: ${{ secrets.TRAKT_CLIENT_SECRET }}
+          SIMKL_CLIENT_ID: ${{ secrets.SIMKL_CLIENT_ID }}
+          MDBLIST_CLIENT_ID: ${{ secrets.MDBLIST_CLIENT_ID }}
+          TMDB_API_KEY: ${{ secrets.TMDB_API_KEY }}
+          PREMIUMIZE_CLIENT_ID: ${{ secrets.PREMIUMIZE_CLIENT_ID }}
+        run: |
+          set -euo pipefail
+          umask 077
+          has() { grep -Eq "^[[:space:]]*$1[[:space:]]*=[[:space:]]*[^[:space:]]" local.dev.properties local.properties; }
+          declare -A uses=(
+            [TRAKT_CLIENT_ID]="Trakt login and sync (with TRAKT_CLIENT_SECRET)"
+            [TRAKT_CLIENT_SECRET]="Trakt login and sync (with TRAKT_CLIENT_ID)"
+            [SIMKL_CLIENT_ID]="SIMKL login and sync"
+            [MDBLIST_CLIENT_ID]="MDBList login, lists and ratings"
+            [TMDB_API_KEY]="TMDB collections, companies, people and TMDB metadata"
+            [PREMIUMIZE_CLIENT_ID]="Premiumize device login"
+          )
+          set_keys=() missing=()
+          {
+            echo "## Account integrations (names only)"
+            echo "| Key | State | Needed for |"
+            echo "|---|---|---|"
+          } >> "$GITHUB_STEP_SUMMARY"
+          for key in TRAKT_CLIENT_ID TRAKT_CLIENT_SECRET SIMKL_CLIENT_ID MDBLIST_CLIENT_ID TMDB_API_KEY PREMIUMIZE_CLIENT_ID; do
+            value="${!key}"
+            if [ -n "$value" ]; then
+              for f in local.properties local.dev.properties; do
+                sed -i "/^[[:space:]]*$key[[:space:]]*=/d" "$f"
+                printf '%s=%s\n' "$key" "$value" >> "$f"
+              done
+              state="set (repository secret)"
+            elif has "$key"; then
+              state="set (properties secret)"
+            else
+              state="missing"
+            fi
+            if [ "$state" = missing ]; then missing+=("$key"); else set_keys+=("$key"); fi
+            echo "| \`$key\` | $state | ${uses[$key]} |" >> "$GITHUB_STEP_SUMMARY"
+          done
+          echo "INTEGRATION_KEYS_SET=${set_keys[*]:-}" >> "$GITHUB_ENV"
+          if [ ${#missing[@]} -gt 0 ]; then
+            printf '::warning title=Account integrations not configured::%s (add them as repository secrets; docs/GITHUB_ADMIN_CHECKLIST.md section E).\n' "${missing[*]}"
+          fi
+
       - name: Write the fixed test signing key (not printed)
         env:
           SUPERFORK_TEST_KEYSTORE_BASE64: ${{ secrets.SUPERFORK_TEST_KEYSTORE_BASE64 }}
@@ -223,6 +273,10 @@ jobs:
           for field in SUPABASE_URL SUPABASE_ANON_KEY; do
             grep -Eq "String $field = \"[^\"]+\";" "$cfg" || { echo "::error::$field is empty in BuildConfig"; exit 1; }
           done
+          # Every account credential that was provided reached the build (names only).
+          for field in ${INTEGRATION_KEYS_SET:-}; do
+            grep -Eq "String $field = \"[^\"]+\";" "$cfg" || { echo "::error::$field was provided but is empty in BuildConfig"; exit 1; }
+          done
           echo "BUILD_CONFIG=$cfg" >> "$GITHUB_ENV"
           (cd "$out" && sha256sum -- app-full-universal-debug.apk > SHA256SUMS.txt)
           {
@@ -231,6 +285,7 @@ jobs:
             echo "- Version: \`$name\` (code \`$code\`)"
             echo "- Signing certificate SHA-256: \`$cert\` (the fixed test certificate; same on every build)"
             echo "- Backend configuration in BuildConfig: SUPABASE_URL and SUPABASE_ANON_KEY set"
+            echo "- Account credentials in BuildConfig: ${INTEGRATION_KEYS_SET:-none provided}"
             echo '```'
             cat "$out/SHA256SUMS.txt"
             echo '```'

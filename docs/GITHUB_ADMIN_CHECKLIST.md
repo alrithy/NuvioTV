@@ -50,9 +50,21 @@ Repository → Settings → Secrets and variables → Actions → New repository
   (`SUPERFORK_TEST_CERT_SHA256`), so a different key fails before the build. A replacement key
   (`keytool -genkeypair -storetype PKCS12 -keystore superfork-test.p12 -alias superforktest -keyalg RSA -keysize 4096 -validity 10000`)
   needs the pin updated and one uninstall on every device.
+- [ ] Account integrations (optional, one secret each; without them the app says the service is not
+  configured). These are the maintainer's own registered apps; official's are never reused:
+  - `TRAKT_CLIENT_ID` and `TRAKT_CLIENT_SECRET`: a Trakt API app (trakt.tv → Settings → Your API
+    Apps → New application; Redirect URI `urn:ietf:wg:oauth:2.0:oob`, the device-code login).
+  - `SIMKL_CLIENT_ID`: a SIMKL developer app (simkl.com → Settings → Developer).
+  - `MDBLIST_CLIENT_ID`: an MDBList app client id (mdblist.com, the account's API / developer
+    settings).
+  - `TMDB_API_KEY`: a TMDB v3 API key (themoviedb.org → Settings → API).
+  - `PREMIUMIZE_CLIENT_ID`: a Premiumize device-login client id (from Premiumize), only for
+    Premiumize debrid login.
+  The run summary's "Account integrations" table shows each one as set or missing (names only), and
+  the APK check fails if a provided one did not reach `BuildConfig`.
 - [ ] Re-run "Superfork Test Build" (or push to `superfork/integration`); the run summary shows which
   secrets are present (names only), the official APK it read, the package, version, the
-  signing-certificate SHA-256 and the TV QR login session result.
+  signing-certificate SHA-256, the account integrations and the TV QR login session result.
 
 ## Recommended before high-risk gates
 - [ ] Require at least one review for playback/audio/security/release PRs if another reviewer is available.
