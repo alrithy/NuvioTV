@@ -21,6 +21,8 @@ data class StreamRankContext(
     val connectionMbps: Double? = null,
     /** Runtime of the title, for average bitrate; null leaves connection fit off. */
     val runtimeMinutes: Int? = null,
+    /** False only when the device is known to have no hardware AV1 decoder (G14 device finding). */
+    val decodesAv1: Boolean = true,
 ) {
     companion object {
         val NONE = StreamRankContext()
@@ -100,6 +102,12 @@ object StreamRanker {
             sizeBytes = facts.size,
             reliability = StreamRankRules.reliability(context.addonHealth[stream.addonName]),
             connection = ConnectionFitRules.connectionTier(facts.size, context.runtimeMinutes, context.connectionMbps),
+            compatibility = StreamRankRules.compatibility(
+                dvOnly = facts.visualTags.any { it in DV_TAGS } && facts.visualTags.none { it in HDR_TAGS },
+                displaySupportsDv = context.displaySupportsDv,
+                av1 = facts.encode == DebridStreamEncode.AV1,
+                decodesAv1 = context.decodesAv1,
+            ),
         )
     }
 

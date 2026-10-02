@@ -61,7 +61,18 @@ class StreamRankingPreferences @Inject constructor(
             }.toMap(),
             connectionMbps = runCatching { ConnectionSpeedEstimator.estimateMbps(context) }.getOrNull(),
             runtimeMinutes = runtimeMinutes,
+            decodesAv1 = decodesAv1,
         )
+    }
+
+    /** Whether a hardware AV1 decoder exists; unknown counts as yes, so nothing is demoted on a guess. */
+    private val decodesAv1: Boolean by lazy {
+        runCatching {
+            android.media.MediaCodecList(android.media.MediaCodecList.REGULAR_CODECS).codecInfos.any { info ->
+                !info.isEncoder && info.supportedTypes.any { it.equals("video/av01", ignoreCase = true) } &&
+                    (android.os.Build.VERSION.SDK_INT < 29 || info.isHardwareAccelerated)
+            }
+        }.getOrDefault(true)
     }
 
     /** Unknown display capabilities count as DV-capable, so nothing is demoted on a guess. */
