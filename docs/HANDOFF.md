@@ -339,6 +339,11 @@ emulator; Superfork Test Build run 36963783129, artifact 11208723592; D067), eac
   episode, same file, release); official AutoSync keeps timing fit and confidence.
 - Best quality: the list is ranked whenever Best-quality autoplay is on, the binge group takes its best
   stream, and files the device cannot show drop within their cache tier; one ranker for all three.
+After #97, `superfork/integration` CI went red twice on test races, not on app code (#98):
+`LiveTvOrganisationTest#choicesArePublishedAndSavedPerProfile` read the state before the asynchronous
+zapping-list refilter after a hiding change (it now waits for it), and Superfork Device Smoke lost the
+test activity on a just-booted emulator ("No compose hierarchies found"; the run now waits for boot,
+unlocks and closes system dialogs, and prints the activity / ANR lines when it fails).
 ## Exact next action
 1. G14 is BLOCKED on the maintainer: re-run HV-G10-1 and HV-G14-4..6 on the TCL C6K with the latest
    Superfork Test Build from `superfork/integration`, then the hardware campaign
