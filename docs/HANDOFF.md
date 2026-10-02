@@ -2,8 +2,8 @@
 
 <!-- canonical-state:start -->
 - Active gate: G14 — Hardening Release Upstream
-- Active branch: `fix/g14-device-findings`
-- Status: IN_PROGRESS
+- Active branch: `chore/release-hardening`
+- Status: BLOCKED
 - Task: `tasks/G14_HARDENING_RELEASE.md`
 - Accepted official baseline: `aeb6ee8591c55424256fdd1f35f426618297378d`
 - Governance: READY
@@ -328,7 +328,9 @@ opens (P0); Auto Sync picks an unsuitable subtitle or fails; the Best-quality li
 not pick the same best stream. Positive observations (large files, seek, HDR / DV, audio, Arabic
 subtitles, Arabic cinema preset, navigation styles) are notes only, recorded in MANUAL_TEST_LOG; the
 HARDWARE_VALIDATION evidence is still owed, so those cases stay MANUAL-PENDING.
-Device findings fixed on `fix/g14-device-findings` (#96, D067), each at its root:
+Device findings merged as #96 (`bd5d61a`; exact head `091db57`, Full Debug run 36963783109: 2391 tests,
+15 known failures, 0 new, 1 skipped; Superfork Device Smoke run 36963783132: 4/4 Live TV cases on an
+emulator; Superfork Test Build run 36963783129, artifact 11208723592; D067), each fixed at its root:
 - Live TV (P0, HV-G10-1 FAIL): `LiveTvViewModel` declared `init` before its state; viewModelScope runs
   on Main.immediate, so `ensureLoaded()` ran inside the constructor and wrote `visibleChannels` before
   it existed (NullPointerException, reproduced on an emulator by Superfork Device Smoke). State first.
@@ -338,12 +340,11 @@ Device findings fixed on `fix/g14-device-findings` (#96, D067), each at its root
 - Best quality: the list is ranked whenever Best-quality autoplay is on, the binge group takes its best
   stream, and files the device cannot show drop within their cache tier; one ranker for all three.
 ## Exact next action
-1. On `fix/g14-device-findings`: reproduce and fix the three findings with regression tests (Live
-   TV on an emulator first), full CI, a Superfork Test Build with the same key and QR login, then
-   merge. G14 then returns to BLOCKED on the hardware campaign (`docs/audits/G14_ACCOUNTING.md` order)
-   and GITHUB_ADMIN_CHECKLIST A–D. Record shared evidence as PASS / FAIL, fix any FAIL, then close 3,
-   320 and G14. Official upstream movement is reported by Superfork Upstream Watch; sync through a
-   dedicated PR when it touches fork seams.
+1. G14 is BLOCKED on the maintainer: re-run HV-G10-1 and HV-G14-4..6 on the TCL C6K with the latest
+   Superfork Test Build from `superfork/integration`, then the hardware campaign
+   (`docs/audits/G14_ACCOUNTING.md` order) and GITHUB_ADMIN_CHECKLIST A–D. Record shared evidence as
+   PASS / FAIL, fix any FAIL, then close 3, 320 and G14. Official upstream movement is reported by
+   Superfork Upstream Watch; sync through a dedicated PR when it touches fork seams.
 2. Preserve navigation/player bridges, official VOD behavior, one owner per concern and resource bounds.
 3. Hardware results are recorded only as real PASS / FAIL; a FAIL reopens the affected gate / feature.
 4. In G14 execute all accumulated hardware checks, including `docs/HARDWARE_VALIDATION_TCL_C6K.md`.
