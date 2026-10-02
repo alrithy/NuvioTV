@@ -344,6 +344,12 @@ After #97, `superfork/integration` CI went red twice on test races, not on app c
 zapping-list refilter after a hiding change (it now waits for it), and Superfork Device Smoke lost the
 test activity on a just-booted emulator ("No compose hierarchies found"; the run now waits for boot,
 unlocks and closes system dialogs, and prints the activity / ANR lines when it fails).
+Device run 2 (MANUAL_TEST_LOG 2026-10-02): the #96 fixes await their re-run on the TV (HV-G10-1,
+HV-G14-4..6); Trakt / MDBList "missing client id" is configuration: the Test Build now takes
+`TRAKT_CLIENT_ID`, `TRAKT_CLIENT_SECRET`, `SIMKL_CLIENT_ID`, `MDBLIST_CLIENT_ID`, `TMDB_API_KEY`,
+`PREMIUMIZE_CLIENT_ID` from repository secrets and lists them set / missing by name (HV-G14-7 after);
+one sports add-on's "Manifest Error" needs its logcat line to tell a provider fault from a parser one.
+Follow-up, not G14 and not blocking Stable: a screensaver visual redesign (it works today).
 ## Exact next action
 1. G14 is BLOCKED on the maintainer: re-run HV-G10-1 and HV-G14-4..6 on the TCL C6K with the latest
    Superfork Test Build from `superfork/integration`, then the hardware campaign
