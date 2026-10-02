@@ -13,7 +13,7 @@ active_branch: fix/g14-device-findings
 active_task_packet: tasks/G14_HARDENING_RELEASE.md
 active_status: IN_PROGRESS
 blocker: 'G14 device findings (maintainer, TCL C6K, Superfork Test Build #5): Live TV closes the app as it opens (P0), Auto Sync picks an unsuitable subtitle or fails, Best-quality list order and autoplay disagree. Fixed on fix/g14-device-findings, reproduced first (Live TV on an emulator). After that G14 returns to BLOCKED on the hardware campaign and GITHUB_ADMIN_CHECKLIST A-D; 3 and 320 stay blocked.'
-active_pr: null
+active_pr: 96
 active_owner: Claude (sequential; no lease)
 concurrent_writers_allowed: false
 user_visible_behavior_change_allowed: true

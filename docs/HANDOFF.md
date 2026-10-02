@@ -328,6 +328,15 @@ opens (P0); Auto Sync picks an unsuitable subtitle or fails; the Best-quality li
 not pick the same best stream. Positive observations (large files, seek, HDR / DV, audio, Arabic
 subtitles, Arabic cinema preset, navigation styles) are notes only, recorded in MANUAL_TEST_LOG; the
 HARDWARE_VALIDATION evidence is still owed, so those cases stay MANUAL-PENDING.
+Device findings fixed on `fix/g14-device-findings` (#96, D067), each at its root:
+- Live TV (P0, HV-G10-1 FAIL): `LiveTvViewModel` declared `init` before its state; viewModelScope runs
+  on Main.immediate, so `ensureLoaded()` ran inside the constructor and wrote `visibleChannels` before
+  it existed (NullPointerException, reproduced on an emulator by Superfork Device Smoke). State first.
+- Auto Sync: official picked the first add-on subtitle in provider order with a matching language code;
+  `SubtitleCandidateRanking` now ranks the pick and AutoSync's candidates (language by code or name,
+  episode, same file, release); official AutoSync keeps timing fit and confidence.
+- Best quality: the list is ranked whenever Best-quality autoplay is on, the binge group takes its best
+  stream, and files the device cannot show drop within their cache tier; one ranker for all three.
 ## Exact next action
 1. On `fix/g14-device-findings`: reproduce and fix the three findings with regression tests (Live
    TV on an emulator first), full CI, a Superfork Test Build with the same key and QR login, then
