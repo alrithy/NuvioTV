@@ -118,4 +118,19 @@ class StreamRankRulesTest {
         assertEquals("dotted group names still match", TrashReleaseGroups.LOW_QUALITY_TIER, TrashReleaseGroups.tier("YTS.MX"))
         assertEquals("Flights stays preferred (WEB Tier 02)", 10, TrashReleaseGroups.tier("Flights"))
     }
+
+    @Test
+    fun aFileTheDeviceCannotShowDropsBeforeResolutionAndQualityCount() {
+        assertEquals(1, StreamRankRules.compatibility(dvOnly = true, displaySupportsDv = false, av1 = false, decodesAv1 = true))
+        assertEquals(0, StreamRankRules.compatibility(dvOnly = true, displaySupportsDv = true, av1 = false, decodesAv1 = true))
+        assertEquals(1, StreamRankRules.compatibility(dvOnly = false, displaySupportsDv = true, av1 = true, decodesAv1 = false))
+        assertEquals(0, StreamRankRules.compatibility(dvOnly = false, displaySupportsDv = false, av1 = false, decodesAv1 = false))
+        val order = rankNames(
+            "dv-only-4k-remux" to input(resolution = 2160, quality = 0).copy(compatibility = 1),
+            "uncached-4k" to input(cacheTier = 3, resolution = 2160, quality = 0),
+            "cached-1080" to input(resolution = 1080, quality = 1),
+        )
+        // Within the cached tier the file the TV shows as made comes first; uncached stays last.
+        assertEquals(listOf("cached-1080", "dv-only-4k-remux", "uncached-4k"), order)
+    }
 }

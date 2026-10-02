@@ -94,3 +94,25 @@ G14 is the planned single hardware-certification stop: execute the accumulated c
 - Result: MANUAL-PENDING for every listed case.
 - Follow-up: the maintainer runs the campaign in docs/audits/G14_ACCOUNTING.md order and shares the evidence; HV-G14-3 waits for the first signed fork release.
 - Automated evidence is separate: docs/audits/G14_ACCOUNTING.md (2373 tests, 15 known failures, 0 new, APK).
+
+## 2026-10-02 — Maintainer device run (TCL C6K, Superfork Test Build #5)
+- Gate / Feature IDs: G14 campaign (first device run); Live TV 208; Auto Sync 82, 84, 94; Best quality 155–168.
+- Commit: Superfork Test Build #5 (`com.nuvio.tv.debug`, PR #94 head `e2ddc48`, run 36934443043).
+- Device: TCL C6K (Google TV). Android / firmware, display mode, network: not recorded.
+- Media / source characteristics: not recorded per test.
+- Maintainer observations (notes, not results; the checklist's evidence was not captured, so every
+  related case stays MANUAL-PENDING): large films played; seeking worked; HDR / Dolby Vision played;
+  audio played; Arabic subtitles looked right; the subtitle font and the Arabic cinema preset looked
+  right; the navigation styles tried looked right. Not tried yet: the five playback strategies in
+  detail, next episode, App dimmer / screensaver, Watch Party, the other QR configuration pages,
+  add-on health.
+- Test case: HV-G10-1 (open Live TV from the menu).
+- Expected: the Live TV screen opens.
+- Actual: the app closed as Live TV opened.
+- Result: FAIL. Reproduced on an emulator (Superfork Device Smoke run 36960296522:
+  NullPointerException in `LiveTvViewModel.setVisibleChannels`); root cause fixed in #96 (D067);
+  re-run as HV-G14-4 / HV-G10-1 after the fix.
+- Faults reported for fixing, re-run as HV-G14-5 and HV-G14-6 (MANUAL-PENDING): Auto Sync picked an
+  unsuitable subtitle or failed; the Best-quality list order and autoplay did not pick the same best
+  stream.
+- Diagnostics captured: none from the device (no logcat); the reproduction log is the CI run above.

@@ -105,8 +105,8 @@ internal fun PlayerRuntimeController.maybeRunAutomaticSubtitleSync(
     val sourceUrlAtStart = currentStreamUrl
     val sourceHeadersAtStart = currentHeaders.toMap()
     val selectedUrl = selectedSubtitle.url
-    val candidatesAtStart = (_uiState.value.addonSubtitles + selectedSubtitle)
-        .distinctBy { it.url }
+    // Superfork G14 hook: same-language, right-episode candidates, best first (official: all, provider order).
+    val candidatesAtStart = autoSyncCandidates((_uiState.value.addonSubtitles + selectedSubtitle).distinctBy { it.url }, selectedSubtitle)
     val candidateByUrl = candidatesAtStart.associateBy { it.url }
 
     // One download feeds both the sidecar renderer and the analysis. It completes with null
@@ -168,7 +168,7 @@ internal fun PlayerRuntimeController.maybeRunAutomaticSubtitleSync(
                     candidatesAtStart.map { subtitle ->
                         AutoSyncSubtitleCandidate(
                             url = subtitle.url,
-                            language = subtitle.lang,
+                            language = autoSyncCandidateLanguage(subtitle, selectedSubtitle),
                             name = subtitle.addonName.ifBlank { subtitle.id },
                         )
                     }
@@ -179,10 +179,10 @@ internal fun PlayerRuntimeController.maybeRunAutomaticSubtitleSync(
                     candidateScope == AutoSyncCandidateScope.STARTUP_SEARCH
                 ) {
                     {
-                        _uiState.value.addonSubtitles.map { subtitle ->
+                        autoSyncCandidates(_uiState.value.addonSubtitles, selectedSubtitle).map { subtitle ->
                             AutoSyncSubtitleCandidate(
                                 url = subtitle.url,
-                                language = subtitle.lang,
+                                language = autoSyncCandidateLanguage(subtitle, selectedSubtitle),
                                 name = subtitle.addonName.ifBlank { subtitle.id },
                             )
                         }

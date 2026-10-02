@@ -1,0 +1,76 @@
+name: Superfork Device Smoke
+
+# On-device smoke tests on an Android emulator for screens a device run found crashing (G14).
+# Instrumented Compose tests with the real storage (DataStore, Keystore, files); no secrets.
+on:
+  push:
+    branches: ["superfork/integration"]
+  pull_request:
+    branches: ["superfork/integration"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: superfork-device-smoke-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  device-smoke:
+    name: Device smoke (emulator)
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    env:
+      SMOKE_TEST_CLASSES: com.nuvio.tv.ui.screens.livetv.LiveTvScreenOpenTest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Prepare non-secret CI configuration and signing
+        run: |
+          touch local.properties local.dev.properties
+          keytool -genkeypair -keystore "$RUNNER_TEMP/ci-debug.jks" -storepass android -alias androiddebugkey \
+            -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          {
+            echo "NUVIO_RELEASE_STORE_FILE=$RUNNER_TEMP/ci-debug.jks"
+            echo "NUVIO_RELEASE_KEY_ALIAS=androiddebugkey"
+            echo "NUVIO_RELEASE_KEY_PASSWORD=android"
+            echo "NUVIO_RELEASE_STORE_PASSWORD=android"
+          } >> "$GITHUB_ENV"
+
+      - name: Build the app and its instrumented tests
+        run: ./gradlew :app:assembleFullDebug :app:assembleFullDebugAndroidTest --stacktrace
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Run the smoke tests on an emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: scripts/superfork/run_device_smoke.sh
+
+      - name: Upload test reports and device log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: superfork-device-smoke-${{ github.event.pull_request.number || github.run_id }}
+          path: |
+            app/build/reports/androidTests/connected/
+            app/build/outputs/androidTest-results/connected/
+            build/device-smoke/
+          if-no-files-found: warn
+          retention-days: 14
