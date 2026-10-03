@@ -836,10 +836,13 @@ class NetflixThemeTvTest {
         compose.waitForIdle()
     }
     private fun Bitmap.isUniform(): Boolean {
+        // Every pixel: a sparse but genuine screen (small centred text on black) must not look blank.
         val first = getPixel(0, 0)
-        val stepX = (width / 16).coerceAtLeast(1)
-        val stepY = (height / 9).coerceAtLeast(1)
-        for (y in 0 until height step stepY) for (x in 0 until width step stepX) if (getPixel(x, y) != first) return false
+        val row = IntArray(width)
+        for (y in 0 until height) {
+            getPixels(row, 0, width, 0, y, width, 1)
+            if (row.any { it != first }) return false
+        }
         return true
     }
 
