@@ -356,6 +356,10 @@ class NetflixThemeTvTest {
                 onNavigateToDetail = { _, _, index -> selectedIndex = index }
             )
         }
+        // Restoration is asynchronous (scroll, then compose the cell); wait for it, then assert.
+        compose.waitUntil(15_000) {
+            compose.onAllNodes(hasTestTag("netflix_search_result_72").and(isFocused())).fetchSemanticsNodes().size == 1
+        }
         compose.onNodeWithTag("netflix_search_result_72").assertIsFocused()
         compose.onNodeWithTag("netflix_search_result_0").assertDoesNotExist()
         press(KeyEvent.KEYCODE_BACK)

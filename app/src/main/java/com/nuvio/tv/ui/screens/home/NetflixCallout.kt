@@ -56,14 +56,14 @@ internal fun NetflixCalloutChip(callout: NetflixCallout, modifier: Modifier = Mo
     val text = if (season != null && episode != null && season > 0) "${netflixIsolate(label)} · ${netflixEpisodeToken(season, episode)}" else label
     Box(
         modifier = modifier
-            .height(tokens.Callout.height)
-            .clip(RoundedCornerShape(tokens.Callout.radius))
+            .height(NetflixThemeTokens.Callout.height)
+            .clip(RoundedCornerShape(NetflixThemeTokens.Callout.radius))
             .background(if (callout.kind == NetflixCalloutKind.IN_MY_LIST) tokens.surfaceMuted else tokens.progress)
-            .padding(horizontal = tokens.Callout.horizontalPadding)
+            .padding(horizontal = NetflixThemeTokens.Callout.horizontalPadding)
             .testTag("netflix_callout"),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.Callout.textSize, fontWeight = FontWeight.Bold),
+        Text(text, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Callout.textSize, fontWeight = FontWeight.Bold),
             color = tokens.textPrimary, maxLines = 1)
     }
 }

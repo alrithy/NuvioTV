@@ -85,7 +85,7 @@ internal fun MyNetflixHubContent(
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(tokens.background).testTag("my_netflix_hub"),
         contentPadding = PaddingValues(top = tokens.safeVerticalMargin, bottom = tokens.safeVerticalMargin * 2),
-        verticalArrangement = Arrangement.spacedBy(tokens.Hub.sectionGap),
+        verticalArrangement = Arrangement.spacedBy(NetflixThemeTokens.Hub.sectionGap),
     ) {
         item(key = "header") {
             MyNetflixHeader(profile, state.libraryCount, onOpenFullLibrary, onOpenSettings)
@@ -112,22 +112,22 @@ private fun MyNetflixHeader(
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = tokens.safeMargin),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(tokens.Hub.headerGap),
+        horizontalArrangement = Arrangement.spacedBy(NetflixThemeTokens.Hub.headerGap),
     ) {
         if (profile != null) {
-            ProfileAvatarCircle(name = profile.name, colorHex = profile.avatarColorHex, size = tokens.Hub.headerAvatarSize,
+            ProfileAvatarCircle(name = profile.name, colorHex = profile.avatarColorHex, size = NetflixThemeTokens.Hub.headerAvatarSize,
                 avatarImageUrl = profile.avatarUrl, imageCrossfade = false, avatarShape = RoundedCornerShape(tokens.profileRadius))
         }
         Column(Modifier.weight(1f)) {
             Text(
                 text = stringResource(R.string.netflix_nav_my_netflix),
-                style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.Hub.titleSize, fontWeight = FontWeight.Bold),
+                style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.titleSize, fontWeight = FontWeight.Bold),
                 color = tokens.textPrimary, maxLines = 1,
             )
             if (profile != null) {
                 Text(
                     text = profile.name,
-                    style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.Hub.subtitleSize,
+                    style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.subtitleSize,
                         textDirection = profile.name.contentTextDirection()),
                     color = tokens.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
@@ -148,7 +148,7 @@ private fun MyNetflixAction(label: String, onClick: () -> Unit, tag: String) {
     val tokens = NetflixThemeTokens
     Button(
         onClick = onClick,
-        modifier = Modifier.height(tokens.Hub.actionHeight).testTag(tag),
+        modifier = Modifier.height(NetflixThemeTokens.Hub.actionHeight).testTag(tag),
         shape = ButtonDefaults.shape(shape = tokens.buttonShape),
         colors = ButtonDefaults.colors(
             containerColor = tokens.surfaceMuted.copy(alpha = .72f), contentColor = tokens.textPrimary,
@@ -176,7 +176,7 @@ private fun MyNetflixSectionRow(
     Column(verticalArrangement = Arrangement.spacedBy(tokens.rowTitleGap)) {
         Text(
             text = title,
-            style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.Hub.rowTitleSize, fontWeight = FontWeight.Bold),
+            style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.rowTitleSize, fontWeight = FontWeight.Bold),
             color = tokens.textPrimary,
             modifier = Modifier.padding(horizontal = tokens.safeMargin),
         )
@@ -257,9 +257,9 @@ private fun MyNetflixCardView(card: MyNetflixCard, onClick: () -> Unit) {
 private fun MyNetflixEmpty(onOpenSearch: () -> Unit) {
     val tokens = NetflixThemeTokens
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = tokens.safeMargin, vertical = tokens.Hub.sectionGap),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = tokens.safeMargin, vertical = NetflixThemeTokens.Hub.sectionGap),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(tokens.Hub.headerGap),
+        verticalArrangement = Arrangement.spacedBy(NetflixThemeTokens.Hub.headerGap),
     ) {
         Text(
             stringResource(R.string.netflix_hub_empty_title),
@@ -270,7 +270,7 @@ private fun MyNetflixEmpty(onOpenSearch: () -> Unit) {
             stringResource(R.string.netflix_hub_empty_body),
             style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.description),
             color = tokens.textSecondary, textAlign = TextAlign.Center,
-            modifier = Modifier.widthIn(max = tokens.State.maxTextWidth),
+            modifier = Modifier.widthIn(max = NetflixThemeTokens.State.maxTextWidth),
         )
         MyNetflixAction(stringResource(R.string.nav_search), onOpenSearch, tag = "my_netflix_empty_search")
     }
