@@ -2,125 +2,86 @@
 
 Task: NETFLIX_THEME · Contract: docs/NETFLIX_TV_2026_PARITY_AUDIT.md §1 · Matrix: docs/NETFLIX_THEME_VISUAL_VERIFICATION.md
 
-This table compares every element visible in the maintainer's reference recording (102 s, Arabic, current
-Netflix TV) with the current Nuvio implementation. The recording and its frames are not committed and are
-not available to automated agents: the REFERENCE column records the observations written down in the
-2026-10-03 audit correction. Where an exact reference number would need a frame measurement that has not
-been made, the field is **NOT_MEASURABLE** and the element is not scored as geometrically matched.
+## Reference
+
+Maintainer-measured packet (PR #100, 2026-10-03), the authoritative reference for this table:
+
+- Recording: 102.533 s, 30 fps, 3076 frames, 910×512 H.264, current Netflix TV UI in Arabic.
+- The TV screen was perspective-corrected to the project's 960×540 dp canvas (source quadrilateral TL (90,58),
+  TR (749,91), BR (752,461), BL (79,469)).
+- Uncertainty ≈ ±4–6 dp unless a range is given.
+- The recording and its frames are not committed; only these measurements are.
+
+This packet supersedes the earlier guessed values and NOT_MEASURABLE rows; in particular, the old "focused ≈ 2–2.5×
+idle" estimate is wrong — the measured ratio is 2.73–2.84× (median 2.77×).
 
 ## Tolerances
 
 | Property | Tolerance |
 |---|---|
-| Geometry (sizes, positions) | ≤ 2 % of the 960×540 dp canvas dimension |
-| Spacing | ≤ 4 dp |
-| Proportions (aspect ratios, fractions) | ≤ 2 % |
-| Motion (durations) | ≤ 30 ms |
-| Structural differences | zero |
+| Geometry | within the measured range, or ±6 dp of the representative value |
+| Spacing | ±2–4 dp |
+| Proportions | ≤ 2 % outside the measured range |
+| Motion | inside the measured 180–230 ms band |
+| Structure | zero differences |
 
-STATUS values: **PASS** (inside tolerance, with automated evidence) · **STRUCTURE_PASS** (structure matches,
-numbers NOT_MEASURABLE against the reference) · **DIFF** (known difference) · **NOT_MEASURABLE** · **N/A**
-(the reference does not show it). CURRENT values are dp on the 960×540 canvas (1080p = 320 dpi, 4K = 640 dpi).
+## Measured table
 
-## Home structure
+CURRENT values are dp on the 960×540 canvas. Evidence = the instrumentation test that asserts the value
+(1080p and 4K, EN and AR) and the capture that shows it.
 
-| Element | REFERENCE | CURRENT | DELTA | STATUS | Evidence |
+| Area | REFERENCE (measured) | Before | CURRENT | STATUS | Evidence |
 |---|---|---|---|---|---|
-| Top state order | nav → hero card → category tiles → rows | same | none | STRUCTURE_PASS | productionScaffoldHomeShowsNavHeroCategoriesAndFirstRow, 36 |
-| Browse state | hero scrolled out, nav stays, active row main surface, facts beneath, next row peeks | same | none | STRUCTURE_PASS | productionScaffoldHomeScrolledShowsExpandedCardFactsAndNextRow, scrollingMovesHeroOut…, 37 |
-| Section gap | NOT_MEASURABLE | 20 dp | — | NOT_MEASURABLE | tokens Home.sectionGap |
-| Top 10 row | rank numbers with posters | not rendered (no factual source) | structural, intentional | DIFF (data honesty) | 32 absent |
+| Nav height | 60–64 | 64 | 64 | PASS | tokens |
+| Selected pill height | 34–37 | 36 | 36 | PASS | topNavigationHasNoPrimarySettingsGear… |
+| Profile | 30–32 | 32 | 32 | PASS | tokens |
+| Brand footprint | compact mark | long wordmark | 30 dp Nuvio mark | PASS | 09–11, 36 |
+| Nav anchors / pill / no underline / no Settings | as reference | same | same | PASS | brandAndProfileAnchors…, topNavigationHasNo… |
+| Hero size | ≈880×400 (875–885 × 395–405) | 864×300 | 880×400 | PASS | heroIsLargeRoundedCardInsideSafeMargins, 36 |
+| Hero inset / radius | x 40–45 / 12–16 | 48 / 12 | 40 / 12 | PASS | same |
+| Hero synopsis | up to ~2 lines | 1 line | 2 lines | PASS | 01 / 36 |
+| Hero actions | TV pills ≈44 | 44 | 44 | PASS | tokens |
+| Hero title | real logo, text fallback | text | logo preferred, text fallback | PASS | missingLogoAndArtwork…, 22 |
+| Top state | hero dominates, category strip only peeks | whole strip + next row visible | strip peeks | PASS | productionScaffoldHomeShowsNav…, 36 |
+| Category tile height | 82–90 | 88 | 88 | PASS | categoryStripTilesAre… |
+| Category tile width | content-driven ≈120–185 | 200 fixed | label-driven, bounded 120–185 | PASS | same, 41 |
+| Category gap | 5–7 | 12 | 6 | PASS | same |
+| Idle poster | ≈160×250 (156–162 × 245–252) | 112×168 | 160×250 | PASS | productionScaffoldHomeScrolled…, 37 |
+| Focused card | ≈440×250 (438–443 × 249–253) | 299×168 | 440×250 | PASS | same |
+| Expansion ratio | 2.73–2.84× (median 2.77×) | 2.67× | 2.75× | PASS | same |
+| Card gap | 4–7 | 10 | 6 | PASS | same |
+| Browse density | active card ≈46 % of 540; next row peeks; never two full rows | 31 % | 46 %; next row cut by the screen edge | PASS | same |
+| Comfort zone | scroll only as needed; neighbours visible; edges reachable | anchor to start | comfort zone, ½-poster peek | PASS | 6 comfort-zone tests, 38–40 |
+| Expansion motion | ≈200 ms (180–230) | 160 ms | 200 ms; latest focus wins; LOW_RAM instant | PASS (token) | expansionMotionMatchesMeasuredReference |
+| Search columns | 4 | 5 | 4 | PASS | searchUsesFourColumnsOfMeasuredPosters… |
+| Search poster | ≈150×210 (145–155 × 205–215) | ≈131×197 | 150×210 | PASS | same |
+| Search poster labels | none | title under every poster | none (semantic only) | PASS | same |
+| Search query UI | small icon + query line | 56 dp outlined field + title | icon + query line, 35 dp | PASS | searchQueryIsACompactLineNotAFormBox |
+| Search keyboard width | 190–200 | 240 | 196 | PASS | same |
+| Search keys | 30–32, 6 columns | 32 (glyphs squeezed by padding) | 31 + 2 dp gap, 6 columns | PASS | searchKeyboardGlyphsAreLegible |
+| Arabic key glyphs | clearly legible 14–16 sp | weak / near-empty | SansSerif 15 sp Medium, ink asserted | PASS | same, 42 (AR) |
+| Keyboard side | AR right / EN left | same | same | PASS | searchFullProductionScaffold… |
+| Search scroll | rows never clipped under the header | first row clipped (old 43) | explicit row-aligned scroll | PASS | searchFirstVisibleResultNeverClipsUnderHeader, 43 |
 
-## Top navigation
+## Data-limited differences (not UI defects)
 
-| Element | REFERENCE | CURRENT | DELTA | STATUS | Evidence |
-|---|---|---|---|---|---|
-| Brand anchor | far left, both languages | far left, both languages (Nuvio wordmark) | none | STRUCTURE_PASS | brandAndProfileAnchorsDoNotMirrorInArabic |
-| Profile anchor | far right | far right | none | STRUCTURE_PASS | topNavigationReaches… |
-| Selected cue | light pill, bold label, no underline | light pill (white @ .26), bold, 0 red pixels | none | PASS | topNavigationHasNoPrimarySettingsGear… |
-| Settings tab | absent | absent | none | PASS | same |
-| Bar height / item height / label size | NOT_MEASURABLE | 64 / 36 dp / 17 sp | — | NOT_MEASURABLE | TopNav tokens |
+| Reference element | Why it is absent |
+|---|---|
+| Top 10 row (≈00:77–00:80) | Nuvio has no factual ranking source; fabricating ranks is prohibited. |
+| Category artwork | No catalog owns a genuine identifying image; title posters are not used as fake category art. |
+| Original-language secondary title | No data owner provides an original title. |
 
-## Hero
+## Not verifiable on the emulator (TCL C6K, MANUAL-PENDING)
 
-| Element | REFERENCE | CURRENT | DELTA | STATUS | Evidence |
-|---|---|---|---|---|---|
-| Shape | rounded card inside safe margins | 864×300 dp, radius 12, 48 dp side margins | — | STRUCTURE_PASS | heroIsLargeRoundedCardInsideSafeMargins |
-| Height ratio | "large, dominant" | 300 / 476 dp content height ≈ 63 % | NOT_MEASURABLE | NOT_MEASURABLE | — |
-| Title | title logo | logo preferred, text while loading / on failure | none | STRUCTURE_PASS | missingLogoAndArtworkFallBack…, 22 |
-| Synopsis | not dominant | one line | none | STRUCTURE_PASS | 01 / 36 |
-| CTA sizes | NOT_MEASURABLE | 44 dp high | — | NOT_MEASURABLE | tokens buttonHeight |
+Real D-pad feel, sustained frame time during the 200 ms expansion and row scroll, 4K image memory, LOW_RAM behaviour on
+the device. The emulator uses a software GPU; no frame-rate claim is made from it.
 
-## Category strip
+## Scores
 
-| Element | REFERENCE | CURRENT | DELTA | STATUS | Evidence |
-|---|---|---|---|---|---|
-| Source | real categories | real catalog rows → existing See All owner | none | PASS | categoryShortcutsOpenTheRealCatalogThroughSeeAll |
-| Artwork | genre artwork | tonal text tiles (no catalog artwork owner) | visual | DIFF | 41 |
-| Tile size / gap | NOT_MEASURABLE | 200×88 dp, gap 12 dp, radius 12 | — | NOT_MEASURABLE (implementation verified) | categoryStripTilesAreIntentionalTonalTiles |
+**A. Implementable observable parity: see the final report for the score on the verified head.** Every row above is an
+implementable visible measurement. A row counts only when the CI run on the head asserts it in all four
+configurations. Motion is asserted as a token, not as measured frame timing, and frame timing is TCL-pending.
 
-## Browse rows and inline focus
+**B. Raw reference coverage:** all reference-visible elements except the three data-limited rows above.
 
-| Element | REFERENCE | CURRENT | DELTA | STATUS | Evidence |
-|---|---|---|---|---|---|
-| Idle card | portrait ~2:3 | 112×168 dp (2:3) | 0 % proportion | PASS | primaryRowUsesPortraitIdleCards, 29 |
-| Focused card | inline landscape ~16:9, ≈2–2.5× idle width | 299×168 dp (16:9, 2.67× idle) | ratio vs observed "2–2.5×": +7 % | DIFF (needs a frame measurement) | focusedPosterExpandsInline…, 30 |
-| Single expansion | one item | exactly one under 100 rapid moves and 20 row changes | none | PASS | stressRapidFocusAndRowChangesKeepOneExpandedCard |
-| Floating popup | none | none | none | PASS | 03 / 37 |
-| Horizontal scroll | selection stays in view without jumping | comfort zone: scroll only for overflow, ½-poster neighbour peek | none observed | STRUCTURE_PASS | the six comfort-zone tests (unit + instrumented), 38–40 |
-| Facts under the row | type · year · runtime/seasons · age | same, from real data only | none | STRUCTURE_PASS | 37 |
-| Outline | thin light | 2 dp white @ .70 | NOT_MEASURABLE | NOT_MEASURABLE | — |
-
-## Search
-
-| Element | REFERENCE | CURRENT | DELTA | STATUS | Evidence |
-|---|---|---|---|---|---|
-| Results | portrait posters | 2:3 grid, 5 columns | — | STRUCTURE_PASS | 33 / 42 |
-| Keyboard side | reading start (right in AR) | same | none | PASS | searchFullProductionScaffold…, 42 / 43 |
-| Nav visible | yes | yes | none | PASS | 42 |
-| Keyboard fraction / key size | NOT_MEASURABLE | < 45 % of width (asserted) | — | NOT_MEASURABLE | — |
-
-## RTL
-
-| Element | REFERENCE | CURRENT | DELTA | STATUS | Evidence |
-|---|---|---|---|---|---|
-| Nav anchors | brand left, profile right | same | none | PASS | brandAndProfileAnchors… |
-| Row direction | reading order from the right | same; comfort zone mirrors physically | none | PASS | rtlComfortZoneMatchesVisibleBounds (AR runs) |
-| Mixed tokens | isolated | FSI/PDI isolation | none | PASS | arabicTitleWithLatinTokens…, 24 |
-| Original-title secondary line | not observed | not shown (no data owner for an original title) | — | N/A | — |
-
-## Motion
-
-| Element | REFERENCE | CURRENT | DELTA | STATUS |
-|---|---|---|---|---|
-| Expand duration | NOT_MEASURABLE (no frame timing of the recording) | 160 ms tween, 0 on LOW_RAM | — | NOT_MEASURABLE |
-| Row scroll | NOT_MEASURABLE | 160 ms only when the comfort zone requires it | — | NOT_MEASURABLE |
-| Frame intervals | — | not measured: the emulator uses a software GPU and cannot represent TCL C6K timing | — | MANUAL-PENDING (TCL) |
-
-## Evidence (head f239d65)
-
-- Superfork Netflix Visual PR run 37139447618 and push run 37139443772: build + 1080p EN/AR + 4K EN/AR, 44/44 tests per
-  job, 42/42 required screens, no identical or blank states. Artifacts: 1080p EN 11279463444, 1080p AR 11280122596,
-  4K EN 11280251170, 4K AR 11280635314, APKs 11280082384.
-- Superfork CI 37139447654, Device Smoke 37139447691, PR Policy 37139447602: success.
-- Observed in the 36–43 previews (not a visual PASS): with the result grid scrolled, its first poster row is cropped
-  under the query label (43); keyboard key glyphs are small at 1080p (42/43).
-
-## OBSERVABLE_REFERENCE_PARITY score
-
-Points are given only for items with automated evidence; NOT_MEASURABLE geometry and motion earn nothing.
-
-| Category | Max | Score | Why points are withheld |
-|---|---|---|---|
-| Home structure | 20 | 15 | section spacing unmeasured; Top 10 not rendered (no source) |
-| Top nav | 10 | 7 | bar/item geometry unmeasured |
-| Hero | 10 | 5 | height ratio, CTA, fades and offsets unmeasured |
-| Browse rows | 20 | 13 | expanded ratio 2.67× vs observed 2–2.5×; category artwork is text tiles |
-| Inline focus | 15 | 10 | outline and comfort-zone peek unmeasured |
-| Search | 10 | 6 | keyboard/result fractions and key size unmeasured |
-| RTL | 10 | 8 | Arabic captures await maintainer review |
-| Motion | 5 | 0 | no reference timing; TCL pending |
-| **Total** | **100** | **64** | |
-
-This is not a global "100 % Netflix" claim. Raising the score requires frame measurements from the reference
-(by the maintainer), then tuning to the tolerances above. Visual review stays PENDING.
+Visual review stays PENDING for the maintainer.
