@@ -275,10 +275,11 @@ internal fun NetflixSearchContent(
     ) {
         val gridWidth = maxWidth - tokens.searchKeyboardWidth - tokens.profileGap
         val cardWidth = (gridWidth - tokens.cardGap * (tokens.searchColumns - 1)) / tokens.searchColumns
+        // Reference Search shows 2:3 poster results (audit §0); the keyboard sits on the reading-start side.
         val cardStyle = remember(cardWidth) {
             PosterCardStyle(
                 width = cardWidth,
-                height = cardWidth / tokens.landscapeAspectRatio,
+                height = cardWidth / tokens.posterAspectRatio,
                 cornerRadius = tokens.cardRadius,
                 focusedBorderWidth = tokens.focusedBorderWidth,
                 focusedScale = tokens.focusScale
@@ -401,7 +402,7 @@ internal fun NetflixSearchContent(
                         subtitle = stringResource(if (uiState.query.trim().length >= MIN_SEARCH_QUERY_LENGTH) R.string.search_no_results_subtitle else R.string.search_start_subtitle_no_discover),
                         icon = Icons.Default.Search
                     )
-                    else -> CompositionLocalProvider(LocalLandscapePosterMode provides true, LocalAlwaysBackdropWithLogo provides true) {
+                    else -> CompositionLocalProvider(com.nuvio.tv.ui.components.LocalNetflixPortraitCards provides true) {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(tokens.searchColumns), state = gridState,
                             modifier = Modifier.fillMaxSize().onFocusChanged { resultsHaveFocus = it.hasFocus }.testTag("netflix_search_results"),
@@ -409,7 +410,7 @@ internal fun NetflixSearchContent(
                             verticalArrangement = Arrangement.spacedBy(tokens.rowGap),
                             contentPadding = PaddingValues(top = tokens.metadataGap, bottom = tokens.safeVerticalMargin)
                         ) {
-                            itemsIndexed(results, key = { _, result -> result.key }, contentType = { _, _ -> "landscape_result" }) { index, result ->
+                            itemsIndexed(results, key = { _, result -> result.key }, contentType = { _, _ -> "poster_result" }) { index, result ->
                                 GridContentCard(
                                     item = result.item, posterCardStyle = cardStyle, showLabel = true,
                                     focusRequester = resultRequesters.getOrPut(result.key) { FocusRequester() },

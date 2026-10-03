@@ -139,6 +139,7 @@ fun ModernHomeContent(
     isCatalogItemWatched: (MetaPreview) -> Boolean = { false },
     onCatalogItemLongPress: (MetaPreview, String) -> Unit = { _, _ -> },
     onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
+    onNavigateToCatalogSeeAll: (String, String, String) -> Unit = { _, _, _ -> },
     onItemFocus: (MetaPreview) -> Unit = {},
     onPreloadAdjacentItem: (MetaPreview) -> Unit = {},
     onSaveFocusState: (Int, Int, String?, Map<String, String>, Map<String, Int>, Map<String, String>, Int, Int) -> Unit,
@@ -210,6 +211,24 @@ fun ModernHomeContent(
                 )
             }
         }
+        return
+    }
+
+    if (isNetflix) {
+        // NETFLIX_THEME reference Home (audit §0): hero card → category strip → inline-expanding rows.
+        NetflixHomeContent(
+            uiState = uiState,
+            rows = carouselRows.list,
+            focusState = focusState,
+            onNavigateToDetail = onNavigateToDetail,
+            onPlayClick = onPlayClick,
+            onContinueWatchingClick = onContinueWatchingClick,
+            onLoadMoreCatalog = onLoadMoreCatalog,
+            onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAll,
+            onItemFocus = onItemFocus,
+            onFocusedRowKeyChanged = onFocusedRowKeyChanged,
+            onSaveFocusState = onSaveFocusState,
+        )
         return
     }
 

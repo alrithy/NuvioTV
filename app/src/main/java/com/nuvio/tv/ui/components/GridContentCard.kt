@@ -64,6 +64,9 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 
+/** True inside a Netflix-theme surface whose reference uses 2:3 posters (Search results). */
+val LocalNetflixPortraitCards = androidx.compose.runtime.compositionLocalOf { false }
+
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
 fun GridContentCard(
@@ -88,8 +91,14 @@ fun GridContentCard(
     }
     val cardDepthStyle = LocalCardDepthStyle.current
     val density = LocalDensity.current
-    val globalLandscape = isNetflix || LocalLandscapePosterMode.current
-    val effectivePosterShape = if (globalLandscape) PosterShape.LANDSCAPE else item.posterShape
+    // NETFLIX_THEME portrait grids (Search, audit §0) opt out of the theme's landscape default.
+    val netflixPortrait = isNetflix && LocalNetflixPortraitCards.current
+    val globalLandscape = !netflixPortrait && (isNetflix || LocalLandscapePosterMode.current)
+    val effectivePosterShape = when {
+        netflixPortrait -> PosterShape.POSTER
+        globalLandscape -> PosterShape.LANDSCAPE
+        else -> item.posterShape
+    }
 
     // Derive card height from item's posterShape aspect ratio while keeping width from posterCardStyle.
     // This ensures grids and rows display landscape/square shapes correctly.

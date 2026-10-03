@@ -33,6 +33,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -178,37 +183,72 @@ internal fun NetflixTopNavigationBar(
     modifier: Modifier = Modifier,
 ) {
     val tokens = NetflixThemeTokens.TopNav
-    // The selected destination owns the bar's focus entry point; an unknown route falls back to
-    // the first content tab so Back always has a target.
-    val focusRoute = entries.firstOrNull { it.route == selectedRoute }?.route
-        ?: entries.firstOrNull { it.kind == NetflixNavEntry.Kind.TAB }?.route
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(tokens.height)
-            .background(Brush.verticalGradient(listOf(NetflixThemeTokens.background, NetflixThemeTokens.background.copy(alpha = .0f))))
-            .padding(start = NetflixThemeTokens.safeMargin, end = NetflixThemeTokens.safeMargin, top = tokens.topInset)
-            .onFocusChanged { onFocusChanged(it.hasFocus) }
-            .testTag("netflix_top_nav"),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(tokens.itemGap),
-    ) {
-        if (profile != null) {
-            NetflixTopNavProfile(profile)
-        }
-        entries.filter { it.kind != NetflixNavEntry.Kind.SETTINGS }.forEach { entry ->
-            val requester = if (entry.route == focusRoute) selectedRequester else null
-            when (entry.kind) {
-                NetflixNavEntry.Kind.SEARCH -> NetflixTopNavIcon(entry, Icons.Default.Search, entry.route == selectedRoute, requester, onNavigate)
-                else -> NetflixTopNavTab(entry, entry.route == selectedRoute, requester, onNavigate)
+    // Settings is not a primary anchor in the reference bar (audit §0); it stays reachable through
+    // My Netflix / the profile path. Only content destinations and Search are drawn.
+    val shown = entries.filter { it.kind != NetflixNavEntry.Kind.SETTINGS }
+    val focusRoute = shown.firstOrNull { it.route == selectedRoute }?.route
+        ?: shown.firstOrNull { it.kind == NetflixNavEntry.Kind.TAB }?.route
+    val readingDirection = LocalLayoutDirection.current
+    // Physical anchors: the brand mark stays at the far LEFT and the profile at the far RIGHT in both
+    // English and Arabic; only the destination labels follow the reading direction.
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(tokens.height)
+                .background(Brush.verticalGradient(listOf(NetflixThemeTokens.background, NetflixThemeTokens.background.copy(alpha = .0f))))
+                .padding(start = NetflixThemeTokens.safeMargin, end = NetflixThemeTokens.safeMargin, top = tokens.topInset)
+                .onFocusChanged { onFocusChanged(it.hasFocus) }
+                .testTag("netflix_top_nav"),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Image(
+                painter = painterResource(R.drawable.app_logo_wordmark),
+                contentDescription = null,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.height(tokens.brandHeight).testTag("netflix_top_nav_brand"),
+            )
+            Spacer(Modifier.weight(1f))
+            CompositionLocalProvider(LocalLayoutDirection provides readingDirection) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(tokens.itemGap),
+                ) {
+                    shown.forEach { entry ->
+                        val requester = if (entry.route == focusRoute) selectedRequester else null
+                        when (entry.kind) {
+                            NetflixNavEntry.Kind.SEARCH -> NetflixTopNavIcon(entry, Icons.Default.Search, entry.route == selectedRoute, requester, onNavigate)
+                            else -> NetflixTopNavTab(entry, entry.route == selectedRoute, requester, onNavigate)
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            if (profile != null) {
+                CompositionLocalProvider(LocalLayoutDirection provides readingDirection) { NetflixTopNavProfile(profile) }
+            } else {
+                Spacer(Modifier.width(tokens.avatarSize))
             }
         }
-        Spacer(Modifier.weight(1f))
-        entries.firstOrNull { it.kind == NetflixNavEntry.Kind.SETTINGS }?.let { settings ->
-            NetflixTopNavIcon(settings, Icons.Default.Settings, settings.route == selectedRoute,
-                if (settings.route == focusRoute) selectedRequester else null, onNavigate, secondary = true)
-        }
     }
+}
+
+/** Selected: a light rounded pill with bold text. Focused: a solid white pill. No underline. */
+@Composable
+private fun navPillColors(selected: Boolean, focused: Boolean): Pair<Color, Color> {
+    val tokens = NetflixThemeTokens.TopNav
+    val background = when {
+        focused -> NetflixThemeTokens.focus
+        selected -> NetflixThemeTokens.focus.copy(alpha = tokens.selectedFillAlpha)
+        else -> Color.Transparent
+    }
+    val content = when {
+        focused -> NetflixThemeTokens.focusContent
+        selected -> NetflixThemeTokens.textPrimary
+        else -> NetflixThemeTokens.textPrimary.copy(alpha = tokens.idleLabelAlpha)
+    }
+    val animated by animateColorAsState(background, tween(NetflixThemeTokens.focusDurationMillis), label = "netflixTopNavPill")
+    return animated to content
 }
 
 @Composable
@@ -220,47 +260,30 @@ private fun NetflixTopNavTab(
 ) {
     val tokens = NetflixThemeTokens.TopNav
     var focused by remember { mutableStateOf(false) }
-    // Focused: a soft translucent pill. Selected: bold label with an underline. Idle: dimmed label.
-    val background by animateColorAsState(
-        if (focused) NetflixThemeTokens.focus.copy(alpha = tokens.focusFillAlpha) else Color.Transparent,
-        tween(NetflixThemeTokens.focusDurationMillis), label = "netflixTopNavTabBackground",
-    )
-    val content = if (focused || selected) NetflixThemeTokens.textPrimary
-        else NetflixThemeTokens.textPrimary.copy(alpha = tokens.idleLabelAlpha)
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .height(tokens.itemHeight)
-                .clip(RoundedCornerShape(tokens.itemRadius))
-                .background(background)
-                .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-                .onFocusChanged { focused = it.isFocused }
-                .semantics { this.selected = selected; role = Role.Tab }
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onNavigate(entry.route) }
-                .padding(horizontal = tokens.itemHorizontalPadding)
-                .testTag("netflix_top_nav_${entry.route}"),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = entry.label,
-                style = TextStyle(
-                    fontFamily = NetflixThemeTokens.fontFamily,
-                    fontSize = tokens.labelSize,
-                    fontWeight = if (selected || focused) FontWeight.Bold else FontWeight.Normal,
-                ),
-                color = content,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        // The current destination keeps a quiet marker while focus is elsewhere.
-        Box(
-            Modifier
-                .padding(top = tokens.indicatorGap)
-                .width(tokens.indicatorWidth)
-                .height(tokens.indicatorHeight)
-                .clip(RoundedCornerShape(tokens.indicatorHeight))
-                .background(if (selected) NetflixThemeTokens.progress else Color.Transparent),
+    val (background, content) = navPillColors(selected, focused)
+    Box(
+        modifier = Modifier
+            .height(tokens.itemHeight)
+            .clip(RoundedCornerShape(tokens.itemRadius))
+            .background(background)
+            .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
+            .onFocusChanged { focused = it.isFocused }
+            .semantics { this.selected = selected; role = Role.Tab }
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onNavigate(entry.route) }
+            .padding(horizontal = tokens.itemHorizontalPadding)
+            .testTag("netflix_top_nav_${entry.route}"),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = entry.label,
+            style = TextStyle(
+                fontFamily = NetflixThemeTokens.fontFamily,
+                fontSize = tokens.labelSize,
+                fontWeight = if (selected || focused) FontWeight.Bold else FontWeight.Normal,
+            ),
+            color = content,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -272,38 +295,23 @@ private fun NetflixTopNavIcon(
     selected: Boolean,
     focusRequester: FocusRequester?,
     onNavigate: (String) -> Unit,
-    secondary: Boolean = false,
 ) {
     val tokens = NetflixThemeTokens.TopNav
     var focused by remember { mutableStateOf(false) }
-    val tint = when {
-        focused || selected -> NetflixThemeTokens.textPrimary
-        secondary -> NetflixThemeTokens.textPrimary.copy(alpha = tokens.settingsAlpha)
-        else -> NetflixThemeTokens.textPrimary.copy(alpha = tokens.idleLabelAlpha)
-    }
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Box(
-            modifier = Modifier
-                .size(tokens.itemHeight)
-                .clip(CircleShape)
-                .background(if (focused) NetflixThemeTokens.focus.copy(alpha = tokens.focusFillAlpha) else Color.Transparent)
-                .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-                .onFocusChanged { focused = it.isFocused }
-                .semantics { contentDescription = entry.label; this.selected = selected; role = Role.Tab }
-                .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onNavigate(entry.route) }
-                .testTag("netflix_top_nav_${entry.route}"),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(tokens.iconSize))
-        }
-        Box(
-            Modifier
-                .padding(top = tokens.indicatorGap)
-                .width(tokens.indicatorWidth / 2)
-                .height(tokens.indicatorHeight)
-                .clip(RoundedCornerShape(tokens.indicatorHeight))
-                .background(if (selected) NetflixThemeTokens.progress else Color.Transparent),
-        )
+    val (background, tint) = navPillColors(selected, focused)
+    Box(
+        modifier = Modifier
+            .size(tokens.itemHeight)
+            .clip(CircleShape)
+            .background(background)
+            .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
+            .onFocusChanged { focused = it.isFocused }
+            .semantics { contentDescription = entry.label; this.selected = selected; role = Role.Tab }
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) { onNavigate(entry.route) }
+            .testTag("netflix_top_nav_${entry.route}"),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(tokens.iconSize))
     }
 }
 

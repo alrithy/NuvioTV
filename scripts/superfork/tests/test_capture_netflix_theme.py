@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import contextlib
 import io
 
-from capture_netflix_theme import SCREENS, instrumentation_succeeded, print_failures
+from capture_netflix_theme import ALIASES, SCREENS, instrumentation_succeeded, print_failures
 
 
 class NetflixCaptureReceiptTests(unittest.TestCase):
@@ -53,8 +53,10 @@ class NetflixCaptureLogTests(unittest.TestCase):
         self.assertIn("expected:<2>", log)
         self.assertNotIn("FAILED passes", log)
 
-    def test_matrix_names_the_twenty_six_review_surfaces_once(self):
-        self.assertEqual(26, len(SCREENS))
+    def test_matrix_names_the_review_surfaces_once(self):
+        self.assertEqual(34, len(SCREENS))
+        self.assertFalse(any(name.startswith("32-") for name in SCREENS))
+        self.assertTrue(all(alias <= set(SCREENS) for alias in ALIASES))
         self.assertEqual(len(SCREENS), len(set(SCREENS)))
         self.assertFalse(any(name.startswith("09-navigation") for name in SCREENS))
 

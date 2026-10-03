@@ -1,6 +1,6 @@
 # Netflix TV 2026 parity audit — mandatory implementation brief
 
-Status: MANDATORY / OPEN
+Status: MANDATORY / OPEN — amended 2026-10-03 by the maintainer reference correction in §0
 Task: NETFLIX_THEME
 Branch: feat/netflix-theme
 Audit date: 2026-10-03
@@ -11,6 +11,34 @@ Authoritative project base at audit time: superfork/integration e07d684009bcb5b9
 This document is the required design and verification baseline for the Netflix theme. Read it before changing the theme. Do not mark the theme Done, merge it, or describe it as current-Netflix parity until every P0/P1 acceptance item below is either implemented and verified or explicitly waived by the maintainer.
 
 The objective is not to copy Netflix assets or proprietary implementation. The objective is to reproduce the current observable TV interaction model and visual hierarchy using Nuvio-owned code, Nuvio content and Nuvio data. Do not add Netflix logos, proprietary fonts, copied artwork, internal code, WebViews, a new playback engine, a second navigation owner, or a second data model.
+
+---
+
+---
+
+## 0. MAINTAINER REFERENCE CORRECTION — 2026-10-03 (supersedes conflicting sections below)
+
+Source: a 102-second maintainer recording of the CURRENT Netflix TV UI (Arabic), reviewed frame by
+frame. The recording and any frame from it are NOT committed to this repository; only these textual
+observations are. Where any later section of this document conflicts with this section, THIS SECTION WINS.
+
+| Topic | OLD assumption (superseded) | NEW requirement |
+|---|---|---|
+| Home hero | Eliminate/replace the hero with a fully focus-driven layout (§5) | Keep a LARGE hero at the top of Home. It is a rounded media CARD inside horizontal safe margins below the top navigation, with the dark app background visible around it — not a full-bleed backdrop with floating text. Compact title + factual metadata near its lower edge; synopsis is not dominant in the initial state. |
+| Home flow | Hero and rows read as one focus-driven surface | Two states. TOP: nav → hero card → category shortcuts → rows. SCROLLED: hero scrolls away with content, nav stays, the active row becomes the main surface with the focused item's metadata beneath it and the next row partly visible. |
+| Browse cards | All Netflix browse cards are 16:9 (§9.1) | Primary browse rows use PORTRAIT (~2:3) idle cards. The focused item expands INLINE into a large LANDSCAPE (~16:9) card about 2–2.5× an idle width at roughly the row height; siblings move aside. Continue Watching / episode rows may stay landscape. |
+| Focus bounds | A focused card must not change its layout bounds (§5.11–12, §9.4, §22.5) | Controlled inline bounds change and sibling reflow are EXPECTED. Overlap, clipping, focus loss, two expanded items or viewport jumps are not. |
+| Expanded preview | Floating expanded card attached to the selected card (§10) | No floating popup over unrelated content (the old 04b collision). The selected item's metadata (type, year, runtime/seasons, age rating, short synopsis, factual callout) sits beneath the inline landscape card. |
+| Category discovery | Only through Search | A row of large rounded category tiles sits below the hero — only from a genuine Nuvio category source. Without one the gap is documented, never faked. |
+| Top 10 | Only if data exists (§5) | Unchanged: large outlined rank numbers with portrait posters ONLY from a real ranking source; otherwise recorded as unavailable. |
+| Top navigation | Selected destination may use a red underline; Settings as a trailing icon | Brand anchor at the far LEFT (a Nuvio-owned mark, never the Netflix N), profile at the far RIGHT, labels in reading order with Search next to Home. Selected destination = rounded light pill with bold text; NO red underline. Settings is not a permanent primary anchor; it is reached through the profile/My Netflix path. In Arabic the brand stays left and the profile right; only the labels follow RTL order. |
+| Search | Landscape result cards | Portrait poster results. RTL: keyboard RIGHT, results LEFT. LTR: keyboard LEFT, results RIGHT. Top navigation stays visible. |
+| Focus style | Scale + elevation + outline | The main cue is the portrait → landscape transformation plus a thin light outline; no launcher-style border. |
+| Player / Details / Episodes / Loading | Netflix-parity redesign targets | The recording gives NO evidence for these. Keep Round 2; no speculative redesign until a verified reference exists. |
+| My Netflix | Hub design details | Recording confirms only that My Netflix is a top-level destination; hub internals are not validated by it. |
+
+Tests that encoded superseded assumptions are REPLACED (not deleted) by tests of the new behaviour, e.g.
+`focusedLandscapeCardMovesWithoutChangingItsLayoutBounds` → `focusedPosterExpandsInlineWithoutOverlap…`.
 
 ---
 

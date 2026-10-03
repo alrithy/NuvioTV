@@ -412,6 +412,7 @@ fun HomeScreen(
                                 onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
                                 showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,
                                 onNavigateToFolderDetail = onNavigateToFolderDetailStable,
+                                onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAllStable,
                                 isCatalogItemWatched = isCatalogItemWatched,
                                 onCatalogItemLongPress = onCatalogItemLongPress
                             )
@@ -647,6 +648,7 @@ private fun ModernHomeRoute(
     onContinueWatchingPlayManually: (ContinueWatchingItem) -> Unit,
     showContinueWatchingManualPlayOption: Boolean,
     onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
+    onNavigateToCatalogSeeAll: (String, String, String) -> Unit = { _, _, _ -> },
     isCatalogItemWatched: (MetaPreview) -> Boolean,
     onCatalogItemLongPress: (MetaPreview, String) -> Unit
 ) {
@@ -711,6 +713,7 @@ private fun ModernHomeRoute(
         isCatalogItemWatched = isCatalogItemWatched,
         onCatalogItemLongPress = onCatalogItemLongPress,
         onNavigateToFolderDetail = onNavigateToFolderDetail,
+        onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAll,
         onItemFocus = remember(viewModel, NuvioTheme.isNetflix) {
             { item ->
                 viewModel.onItemFocus(item)

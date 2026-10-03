@@ -67,6 +67,7 @@ import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollToNode
@@ -167,126 +168,126 @@ class NetflixThemeTvTest {
         }
     }
 
+    // ---- Home: maintainer reference (audit §0) — hero card, category strip, inline portrait → landscape rows ----
+
     @Test fun homeHeroShowsMetadataAndPlayUsesTheExistingCallback() {
         var opened = 0
         setContent { FullHome { opened++ } }
         compose.onNodeWithTag("netflix_hero_play").requestFocus().assertIsFocused()
         capture("01-home-hero")
+        capture("27-home-hero-full-reference-state")
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals(1, opened) }
+    }
+
+    @Test fun heroIsLargeRoundedCardInsideSafeMargins() {
+        setContent { FullHome {} }
+        val root = compose.onRoot().fetchSemanticsNode().boundsInRoot
+        val hero = bounds("netflix_home_hero_card")
+        val margin = with(compose.density) { NetflixThemeTokens.safeMargin.toPx() }
+        // A bounded card, not a full-bleed backdrop: inset on both sides, and the dominant first surface.
+        assertTrue("hero inset start", hero.left >= margin - 1f)
+        assertTrue("hero inset end", hero.right <= root.right - margin + 1f)
+        assertTrue("hero is large", hero.height >= root.height * .45f)
     }
 
     @Test fun homeRowsKeepContentReachableFromTheHero() {
         setContent { FullHome {} }
         compose.onNodeWithTag("netflix_hero_play").requestFocus().assertIsFocused()
         press(KeyEvent.KEYCODE_DPAD_DOWN)
-        // The hero's Down hands focus to the rows through the scaffold's content requester.
         compose.onNodeWithTag("netflix_hero_play").assertIsNotFocused()
         compose.onAllNodes(isFocused()).assertCountEquals(1)
-        press(if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT)
+        capture("28-home-category-shortcuts")
+        press(KeyEvent.KEYCODE_DPAD_DOWN)
         compose.onAllNodes(isFocused()).assertCountEquals(1)
         capture("02-home-rows")
     }
 
-    @Test fun focusedLandscapeCardMovesWithoutChangingItsLayoutBounds() {
-        var clicked = -1
-        setContent {
-            val initial = remember { FocusRequester() }
-            Row(Modifier.padding(horizontal = NetflixThemeTokens.safeMargin).alignForCardFixture(),
-                horizontalArrangement = Arrangement.spacedBy(NetflixThemeTokens.cardGap)) {
-                // GridContentCard is a grid cell (fillMaxWidth in landscape/Netflix mode); give each card the
-                // bounded cell width a grid would, otherwise card 0 takes the Row and the rest measure 0 dp.
-                // Four 212 dp cells fit the 960 dp canvas, as a real Netflix-theme row shows them.
-                items.take(4).forEachIndexed { index, item ->
-                    Box(Modifier.width(NetflixThemeTokens.landscapeCardWidth)) {
-                        GridContentCard(item, onClick = { clicked = index }, modifier = Modifier.testTag("fixture_card_$index"),
-                            posterCardStyle = netflixCardStyle(), focusRequester = if (index == 1) initial else null)
-                    }
-                }
-            }
-            LaunchedEffect(Unit) { initial.requestFocus() }
-        }
-        compose.waitUntil(5_000) { compose.onAllNodes(isFocused()).fetchSemanticsNodes().size == 1 }
-        val before = compose.onNodeWithTag("fixture_card_1").fetchSemanticsNode().boundsInRoot
-        val neighbour = compose.onNodeWithTag("fixture_card_2").fetchSemanticsNode().boundsInRoot
-        assertTrue("cards have real width", before.width > 0f && neighbour.width > 0f)
-        capture("03-focused-card")
+    @Test fun categoryShortcutsOpenTheRealCatalogThroughSeeAll() {
+        var opened: String? = null
+        setContent { FullHome(onSeeAll = { catalog, _, _ -> opened = catalog }) {} }
+        compose.onNodeWithTag("netflix_category_strip").assertIsDisplayed()
+        compose.onNodeWithTag("netflix_category_trending").requestFocus().assertIsFocused()
         press(KeyEvent.KEYCODE_DPAD_CENTER)
-        compose.runOnIdle { assertEquals(1, clicked) }
-        press(if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT)
-        val after = compose.onNodeWithTag("fixture_card_1").fetchSemanticsNode().boundsInRoot
-        assertEquals(before, after)
-        assertEquals(neighbour, compose.onNodeWithTag("fixture_card_2").fetchSemanticsNode().boundsInRoot)
-        press(KeyEvent.KEYCODE_DPAD_CENTER)
-        compose.runOnIdle { assertEquals(2, clicked) }
+        compose.runOnIdle { assertEquals("trending", opened) }
     }
 
-    @Test fun expandedPreviewExposesPlayListAndInformationToTheRemote() {
-        var played = 0
-        var listed = 0
-        var informed = 0
-        setContent {
-            val focus = remember { FocusRequester() }
-            ArtworkBackground()
-            Box(Modifier.padding(NetflixThemeTokens.safeMargin)) {
-                NetflixExpandedCardContent(carouselItem(items.first(), "fixture"), { played++ }, { listed++ }, { informed++ },
-                    playFocusRequester = focus)
-            }
-            LaunchedEffect(Unit) { focus.requestFocus() }
-        }
-        compose.onNodeWithTag("netflix_card_play").assertIsFocused()
-        capture("04-expanded-card")
-        press(if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT)
-        compose.onNodeWithTag("netflix_card_library").assertIsFocused()
-        press(KeyEvent.KEYCODE_DPAD_CENTER)
-        press(if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT)
-        compose.onNodeWithTag("netflix_card_more_info").assertIsFocused()
-        press(KeyEvent.KEYCODE_DPAD_CENTER)
-        compose.runOnIdle { assertEquals(0, played); assertEquals(1, listed); assertEquals(1, informed) }
-    }
-
-    @Test fun homeDwellPreviewRestoresItsAnchorAndAllowsRepeatedRemoteNavigation() {
-        var played = 0
-        var listed = 0
-        var informed = 0
-        setContent { FullHome(onPlay = { played++ }, onLibrary = { listed++ }) { informed++ } }
+    @Test fun primaryRowUsesPortraitIdleCards() {
+        setContent { FullHome {} }
         compose.onNodeWithTag("netflix_hero_play").requestFocus()
-        press(KeyEvent.KEYCODE_DPAD_DOWN)
-        press(KeyEvent.KEYCODE_DPAD_DOWN)
-        val firstAnchor = "netflix_home_card_focus_trending:fixture:0"
-        compose.onNodeWithTag(firstAnchor).requestFocus()
-        waitForHomePreview()
-        compose.onNodeWithTag("netflix_card_play").assertIsFocused()
-        capture("04b-expanded-card-in-home")
-        press(KeyEvent.KEYCODE_DPAD_CENTER)
-        compose.runOnIdle { assertEquals(1, played) }
+        compose.onNodeWithTag("netflix_home").performScrollToNode(hasTestTag("netflix_row_trending"))
+        val idle = bounds("netflix_home_card_focus_trending:fixture:0")
+        assertTrue("idle poster is portrait", idle.height > idle.width)
+        compose.onAllNodesWithTag("netflix_inline_expanded").assertCountEquals(0)
+        capture("29-browse-row-portrait-idle")
+    }
+
+    @Test fun focusedPosterExpandsInlineToLandscapeWithoutOverlap() {
+        setContent { FullHome {} }
+        val first = "netflix_home_card_focus_trending:fixture:0"
+        val second = "netflix_home_card_focus_trending:fixture:1"
+        focusCard(first)
+        compose.onNodeWithTag(first).assertIsFocused()
+        compose.waitForIdle()
+        val expanded = bounds(first)
+        val sibling = bounds(second)
+        assertTrue("focused card is landscape", expanded.width > expanded.height * 1.6f)
+        assertTrue("sibling stays portrait", sibling.height > sibling.width)
+        assertTrue("expanded ≈ 2–3× an idle poster", expanded.width > sibling.width * 2f)
+        // Siblings move aside: no horizontal overlap in either reading direction.
+        assertTrue("no overlap", if (arabic) sibling.right <= expanded.left + 1f else sibling.left >= expanded.right - 1f)
+        compose.onAllNodesWithTag("netflix_inline_expanded").assertCountEquals(1)
+        // The facts beneath the row belong to the expanded item and to nothing else.
+        compose.onNodeWithTag("netflix_focused_facts_trending:fixture:0").assertIsDisplayed()
+        compose.onNodeWithTag("netflix_focused_facts_trending:fixture:1").assertDoesNotExist()
+        capture("03-focused-card")
+        // The reference has no separate floating preview: the inline landscape card IS the expanded card.
+        capture("04-expanded-card")
+        capture("30-browse-row-focused-landscape")
+        capture("34-arabic-browse-expanded")
+    }
+
+    @Test fun focusedItemCollapseAndNextExpansionAreDeterministic() {
+        setContent { FullHome {} }
         val towardNext = if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+        focusCard("netflix_home_card_focus_trending:fixture:0")
         press(towardNext)
-        compose.onNodeWithTag("netflix_card_library").assertIsFocused()
-        press(KeyEvent.KEYCODE_DPAD_CENTER)
-        compose.runOnIdle { assertEquals(1, listed) }
-        compose.waitUntil(15_000) {
-            compose.onAllNodes(hasTestTag(firstAnchor).and(isFocused())).fetchSemanticsNodes().size == 1
-        }
-        compose.onNodeWithTag("netflix_expanded_card").assertDoesNotExist()
-        press(towardNext)
-        waitForHomePreview()
-        compose.onNodeWithTag("netflix_card_play").assertIsFocused()
-        press(towardNext)
-        press(towardNext)
-        compose.onNodeWithTag("netflix_card_more_info").assertIsFocused()
-        press(KeyEvent.KEYCODE_DPAD_CENTER)
-        compose.runOnIdle { assertEquals(1, informed) }
-        press(KeyEvent.KEYCODE_BACK)
-        val secondAnchor = "netflix_home_card_focus_trending:fixture:1"
-        compose.waitUntil(15_000) {
-            compose.onAllNodes(hasTestTag(secondAnchor).and(isFocused())).fetchSemanticsNodes().size == 1
-        }
-        // Three remote presses before a new dwell; a Popup must not trap row movement.
-        repeat(3) { instrumentation.sendKeyDownUpSync(towardNext) }
+        compose.onNodeWithTag("netflix_home_card_focus_trending:fixture:1").assertIsFocused()
+        val collapsed = bounds("netflix_home_card_focus_trending:fixture:0")
+        val next = bounds("netflix_home_card_focus_trending:fixture:1")
+        assertTrue("previous collapsed to portrait", collapsed.height > collapsed.width)
+        assertTrue("next expanded to landscape", next.width > next.height * 1.6f)
+        compose.onAllNodesWithTag("netflix_inline_expanded").assertCountEquals(1)
+        compose.onNodeWithTag("netflix_focused_facts_trending:fixture:1").assertIsDisplayed()
+        capture("31-browse-row-focus-moved-next-item")
+    }
+
+    @Test fun rapidRemoteNavigationLeavesOnlyOneExpandedItem() {
+        setContent { FullHome {} }
+        val towardNext = if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+        focusCard("netflix_home_card_focus_trending:fixture:0")
+        // Key presses without waiting in between, as a held/rapid remote produces them.
+        repeat(4) { instrumentation.sendKeyDownUpSync(towardNext) }
         compose.waitForIdle()
         compose.onNodeWithTag("netflix_home_card_focus_trending:fixture:4").assertIsFocused()
         compose.onAllNodes(isFocused()).assertCountEquals(1)
+        compose.onAllNodesWithTag("netflix_inline_expanded").assertCountEquals(1)
+    }
+
+    @Test fun scrollingMovesHeroOutWhileTopNavigationRemains() {
+        setContent {
+            Column(Modifier.fillMaxSize()) {
+                NetflixTopNavigationBar(navigationEntries(), "home", remember { FocusRequester() },
+                    TopMenuProfile(text("Alex", "أحمد"), "#4D7290", null) {}, onFocusChanged = {}, onNavigate = {})
+                Box(Modifier.weight(1f)) { FullHome {} }
+            }
+        }
+        focusCard("netflix_home_card_focus_popular:fixture:2")
+        compose.waitForIdle()
+        // The active row rises to the top of the content: the hero has left the viewport, the bar has not.
+        compose.onNodeWithTag("netflix_home_hero_card").assertDoesNotExist()
+        compose.onNodeWithTag("netflix_top_nav").assertIsDisplayed()
+        compose.onNodeWithTag("netflix_focused_facts_popular:fixture:2").assertIsDisplayed()
     }
 
     @Test fun movieDetailsRetainPlayAndLibraryActions() {
@@ -342,7 +343,14 @@ class NetflixThemeTvTest {
                 restoreFocus = true, onEvent = { emitted += it }, onNavigateToDetail = { _, _, _ -> })
         }
         compose.onNodeWithTag("netflix_search").assertIsDisplayed()
+        // Reference Search: 2:3 poster results; keyboard on the reading-start side (right in Arabic).
+        val result = compose.onNodeWithTag("netflix_search_result_0").fetchSemanticsNode().boundsInRoot
+        assertTrue("portrait result", result.height > result.width)
+        val keyboard = compose.onNodeWithTag("netflix_search_field").fetchSemanticsNode().boundsInRoot
+        assertTrue("keyboard side", if (arabic) keyboard.left > result.right else keyboard.right < result.left)
         capture("08-search")
+        capture("33-search-portrait-results")
+        capture("35-arabic-search-keyboard-right")
         press(KeyEvent.KEYCODE_BACK)
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertTrue(emitted.any { it is SearchEvent.QueryChanged }) }
@@ -418,25 +426,63 @@ class NetflixThemeTvTest {
         capture("09-top-nav-home")
         val towardStart = if (arabic) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
         val towardEnd = if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
-        // One deterministic step from Home to Search, in either direction of reading.
+        // Search sits next to Home: one deterministic step in either reading direction.
         press(towardStart)
         compose.onNodeWithTag("netflix_top_nav_search").assertIsFocused()
         capture("10-top-nav-search")
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals("search", route) }
-        press(towardStart)
-        compose.onNodeWithTag("netflix_top_nav_profile").assertIsFocused()
-        press(KeyEvent.KEYCODE_DPAD_CENTER)
-        compose.runOnIdle { assertEquals(1, switched) }
-        repeat(5) { press(towardEnd) }
+        repeat(4) { press(towardEnd) }
         compose.onNodeWithTag("netflix_top_nav_my_netflix").assertIsFocused()
         capture("11-top-nav-my-netflix")
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals("my_netflix", route) }
-        // Settings stays reachable as the trailing, low-emphasis entry rather than a content tab.
-        press(towardEnd)
-        compose.onNodeWithTag("netflix_top_nav_settings").assertIsFocused()
+        // The profile is the physical far-right anchor in both languages.
+        repeat(6) { if (compose.onAllNodes(hasTestTag("netflix_top_nav_profile").and(isFocused())).fetchSemanticsNodes().isEmpty()) press(KeyEvent.KEYCODE_DPAD_RIGHT) }
+        compose.onNodeWithTag("netflix_top_nav_profile").assertIsFocused()
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(1, switched) }
         compose.onAllNodes(isFocused()).assertCountEquals(1)
+    }
+
+    @Test fun topNavigationHasNoPrimarySettingsGearAndUsesASelectedPill() {
+        setContent {
+            Column(Modifier.fillMaxSize()) {
+                NetflixTopNavigationBar(navigationEntries(), "home", remember { FocusRequester() },
+                    TopMenuProfile(text("Alex", "أحمد"), "#4D7290", null) {}, onFocusChanged = {}, onNavigate = {})
+            }
+        }
+        compose.onNodeWithTag("netflix_top_nav_settings").assertDoesNotExist()
+        compose.onNodeWithTag("netflix_top_nav_home").assertIsSelected()
+        // Selected (unfocused) destination: a light pill behind the label, and no red underline anywhere.
+        val pill = compose.onNodeWithTag("netflix_top_nav_home").captureToImage().toPixelMap()
+        val corner = pill[pill.width / 2, 2]
+        assertTrue("selected pill is light", corner.red > .15f && corner.red == corner.green && corner.green == corner.blue)
+        val bar = compose.onNodeWithTag("netflix_top_nav").captureToImage().toPixelMap()
+        val red = NetflixThemeTokens.progress
+        var redPixels = 0
+        for (y in 0 until bar.height step 2) for (x in 0 until bar.width step 2) {
+            val p = bar[x, y]
+            if (kotlin.math.abs(p.red - red.red) < .05f && kotlin.math.abs(p.green - red.green) < .05f && kotlin.math.abs(p.blue - red.blue) < .05f) redPixels++
+        }
+        assertEquals("no red underline", 0, redPixels)
+    }
+
+    @Test fun brandAndProfileAnchorsDoNotMirrorInArabic() {
+        setContent {
+            Column(Modifier.fillMaxSize()) {
+                NetflixTopNavigationBar(navigationEntries(), "home", remember { FocusRequester() },
+                    TopMenuProfile(text("Alex", "أحمد"), "#4D7290", null) {}, onFocusChanged = {}, onNavigate = {})
+            }
+        }
+        val brand = bounds("netflix_top_nav_brand")
+        val profile = bounds("netflix_top_nav_profile")
+        val home = bounds("netflix_top_nav_home")
+        val search = bounds("netflix_top_nav_search")
+        assertTrue("brand stays physically left", brand.right < home.left && brand.right < profile.left)
+        assertTrue("profile stays physically right", profile.left > home.right && profile.left > search.right)
+        // Only the labels follow reading order: Search precedes Home at the reading start.
+        assertTrue("search next to home in reading order", if (arabic) search.left > home.left else search.left < home.left)
     }
 
     @Test fun myNetflixHubAggregatesRealProfileDataAndOpensTitles() {
@@ -511,15 +557,11 @@ class NetflixThemeTvTest {
     @Test fun lowMemoryTierUsesStaticArtworkWithoutVideoOrMotion() {
         val policy = netflixHomePreviewPolicy(MemoryTier.LOW_RAM)
         assertTrue(!policy.allowVideo && !policy.animate)
-        setContent {
-            ArtworkBackground()
-            Box(Modifier.padding(NetflixThemeTokens.safeMargin)) {
-                // Exactly what the row passes on this tier: no trailer URL, unscaled card.
-                NetflixExpandedCardContent(carouselItem(items[2], "low"), {}, {}, {},
-                    width = NetflixThemeTokens.landscapeCardWidth * policy.expandedScale, trailerPreviewUrl = null)
-            }
-        }
-        compose.onNodeWithTag("netflix_expanded_card").assertIsDisplayed()
+        // The inline row never mounts a video surface: the expanded card is static artwork on every tier.
+        setContent { FullHome {} }
+        focusCard("netflix_home_card_focus_trending:fixture:2")
+        compose.waitForIdle()
+        compose.onAllNodesWithTag("netflix_inline_expanded").assertCountEquals(1)
         capture("21-low-memory-fallback")
     }
 
@@ -726,14 +768,16 @@ class NetflixThemeTvTest {
     }
 
     @Composable private fun FullHome(onPlay: (() -> Unit)? = null, onLibrary: () -> Unit = {},
-        focusState: HomeScreenFocusState = HomeScreenFocusState(), onOpen: () -> Unit) {
+        focusState: HomeScreenFocusState = HomeScreenFocusState(),
+        onSeeAll: (String, String, String) -> Unit = { _, _, _ -> }, onOpen: () -> Unit) {
         // Production provides this from the navigation scaffold; the hero's Down targets it.
         CompositionLocalProvider(LocalContentFocusRequester provides remember { FocusRequester() }) {
-            FullHomeContent(onPlay, onLibrary, focusState, onOpen)
+            FullHomeContent(onPlay, onLibrary, focusState, onSeeAll, onOpen)
         }
     }
 
-    @Composable private fun FullHomeContent(onPlay: (() -> Unit)?, onLibrary: () -> Unit, focusState: HomeScreenFocusState, onOpen: () -> Unit) {
+    @Composable private fun FullHomeContent(onPlay: (() -> Unit)?, onLibrary: () -> Unit, focusState: HomeScreenFocusState,
+        onSeeAll: (String, String, String) -> Unit, onOpen: () -> Unit) {
         val catalogs = listOf(catalog(), catalog("popular", text("Popular", "الأكثر شعبية")),
             catalog("movies", text("Movies", "الأفلام")), catalog("series", text("TV Shows", "المسلسلات")))
         val resume = ContinueWatchingItem.InProgress(progress(episodes()[1]))
@@ -750,7 +794,8 @@ class NetflixThemeTvTest {
             onPlayClick = { _, _, _ -> if (onPlay != null) onPlay() else onOpen() },
             onCatalogLibraryAction = { _, _ -> onLibrary() }, onContinueWatchingClick = { onOpen() },
             onRequestTrailerPreview = { _, _, _, _ -> }, onLoadMoreCatalog = { _, _, _ -> },
-            onRemoveContinueWatching = { _, _, _, _ -> }, onSaveFocusState = { _, _, _, _, _, _, _, _ -> })
+            onRemoveContinueWatching = { _, _, _, _ -> }, onSaveFocusState = { _, _, _, _, _, _, _, _ -> },
+            onNavigateToCatalogSeeAll = onSeeAll)
     }
 
     @Composable private fun DetailFixture(meta: Meta, onLibrary: () -> Unit = {}, onPlay: () -> Unit) {
@@ -845,6 +890,14 @@ class NetflixThemeTvTest {
             if (row.any { it != first }) return false
         }
         return true
+    }
+
+    private fun bounds(tag: String) = compose.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
+
+    /** Home is lazy: bring the card's row into composition first, as remote scrolling would. */
+    private fun focusCard(tag: String): androidx.compose.ui.test.SemanticsNodeInteraction {
+        compose.onNodeWithTag("netflix_home").performScrollToNode(hasTestTag(tag))
+        return compose.onNodeWithTag(tag).requestFocus()
     }
 
     /** The result tag sits on GridContentCard's wrapper; focus lands on the Card inside it. */

@@ -49,6 +49,8 @@ object NetflixThemeTokens {
     // About four 16:9 cards per 960 dp row: fewer, larger titles read better at 10 feet.
     val landscapeCardWidth = 212.dp
     val landscapeAspectRatio = 16f / 9f
+    /** Portrait browse/search posters (reference: ~2:3). */
+    const val posterAspectRatio = 2f / 3f
     val cardRadius = 3.dp
     val cardGap = 10.dp
     val rowGap = 18.dp
@@ -87,7 +89,7 @@ object NetflixThemeTokens {
     val navigationIconSize = 22.dp
     val searchKeyboardWidth = 240.dp
     val searchKeySize = 32.dp
-    const val searchColumns = 4
+    const val searchColumns = 5
     val profileAvatarSize = 136.dp
     val profileAvatarCompactSize = 104.dp
     val profileCardWidth = 160.dp
@@ -126,8 +128,44 @@ object NetflixThemeTokens {
         val focusOutline = 2.dp
         /** Focus is a soft translucent pill, never a solid white block. */
         const val focusFillAlpha = .20f
+        /** Selected destination: a light grey pill (reference), distinct from the white focused pill. */
+        const val selectedFillAlpha = .26f
+        val brandHeight = 22.dp
         const val idleLabelAlpha = .72f
         const val settingsAlpha = .55f
+    }
+
+    /** Home per the maintainer reference (audit §0): hero card, category strip, inline-expanding rows. */
+    object Home {
+        val heroHeight = 300.dp
+        val heroRadius = 12.dp
+        /** Content width of the hero card on the 960 dp canvas (safe margins excluded). */
+        val heroRequestWidth = 864.dp
+        val heroPadding = 28.dp
+        val heroTitleSize = 34.sp
+        val heroSynopsisSize = 15.sp
+        const val heroSynopsisLines = 1
+        const val heroTextWidthFraction = .55f
+        const val heroSideScrimAlpha = .85f
+        const val heroBottomScrimAlpha = .80f
+        val sectionGap = 20.dp
+        val bottomPadding = 200.dp
+        val categoryWidth = 200.dp
+        val categoryHeight = 88.dp
+        val categoryRadius = 12.dp
+        val categoryGap = 12.dp
+        val categoryTextSize = 17.sp
+        /** Row height: idle 2:3 posters are 112 dp wide, the focused landscape card 299 dp. */
+        val rowCardHeight = 168.dp
+        val cardGap = 10.dp
+        val cardRadius = 6.dp
+        val cardTitleSize = 17.sp
+        val focusOutline = 2.dp
+        const val expandMillis = 160
+        val factsMaxWidth = 560.dp
+        val factsSynopsisSize = 15.sp
+        val factsSynopsisLineHeight = 21.sp
+        const val restoreFrames = 20
     }
 
     /** My Netflix hub (parity audit §6). */
