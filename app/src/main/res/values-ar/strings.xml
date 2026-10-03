@@ -14,6 +14,7 @@
     <string name="netflix_callout_continue">تابع المشاهدة</string>
     <string name="netflix_callout_in_my_list">في قائمتي</string>
     <string name="netflix_callout_next_episode">الحلقة التالية</string>
+    <string name="netflix_error_title">حدث خطأ ما</string>
     <string name="netflix_more_info">مزيد من المعلومات</string>
     <string name="netflix_add_to_list">قائمتي</string>
     <string name="netflix_my_list">قائمتي</string>

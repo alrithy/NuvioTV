@@ -2,6 +2,8 @@ package com.nuvio.tv.ui.components
 
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.tv.material3.Button
@@ -30,7 +32,10 @@ fun NuvioDialogButton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier,
+        // NETFLIX_THEME: TV-sized remote targets; other themes keep their own sizing.
+        modifier = if (NuvioTheme.isNetflix) modifier
+            .heightIn(min = NetflixThemeTokens.Dialog.buttonHeight)
+            .widthIn(min = NetflixThemeTokens.Dialog.buttonMinWidth) else modifier,
         enabled = enabled,
         colors = if (NuvioTheme.isNetflix) ButtonDefaults.colors(
             containerColor = NetflixThemeTokens.surfaceRaised,

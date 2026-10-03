@@ -18,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +43,19 @@ fun ErrorState(
         message = message,
         strings = rememberErrorStateStrings()
     ).annotated
+
+    if (NuvioTheme.isNetflix) {
+        // Title + the existing safe, formatted message (buildErrorStatePresentation) + Retry.
+        NetflixStatePanel(
+            title = stringResource(R.string.netflix_error_title),
+            body = displayMessage,
+            modifier = modifier.fillMaxSize(),
+            icon = Icons.Default.ErrorOutline,
+            actionLabel = stringResource(R.string.action_retry),
+            onAction = onRetry,
+        )
+        return
+    }
 
     Column(
         modifier = modifier.fillMaxSize(),

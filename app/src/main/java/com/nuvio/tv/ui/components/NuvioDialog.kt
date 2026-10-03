@@ -107,7 +107,10 @@ fun NuvioDialog(
                 if (title.isNotBlank()) {
                     Text(
                         text = title,
-                        style = (if (NuvioTheme.isNetflix) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.titleLarge).copy(
+                        style = (if (NuvioTheme.isNetflix) MaterialTheme.typography.headlineSmall.copy(
+                            fontSize = NetflixThemeTokens.Dialog.titleSize,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                        ) else MaterialTheme.typography.titleLarge).copy(
                             textDirection = title.contentTextDirection()
                         ),
                         color = NuvioTheme.colors.TextPrimary,

@@ -26,6 +26,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.tv.material3.Icon
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.VideoLibrary
+import androidx.compose.material.icons.Icons
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -84,11 +94,13 @@ internal fun MyNetflixHubContent(
     val tokens = NetflixThemeTokens
     LazyColumn(
         modifier = Modifier.fillMaxSize().background(tokens.background).testTag("my_netflix_hub"),
-        contentPadding = PaddingValues(top = tokens.safeVerticalMargin, bottom = tokens.safeVerticalMargin * 2),
+        contentPadding = PaddingValues(bottom = tokens.safeVerticalMargin * 2),
         verticalArrangement = Arrangement.spacedBy(NetflixThemeTokens.Hub.sectionGap),
     ) {
         item(key = "header") {
-            MyNetflixHeader(profile, state.libraryCount, onOpenFullLibrary, onOpenSettings)
+            // The header art is the profile's own most recent title, never stock imagery.
+            val headerArt = state.rows.firstOrNull()?.cards?.firstOrNull { it.imageUrl != null }?.imageUrl
+            MyNetflixHeader(profile, state.libraryCount, headerArt, onOpenFullLibrary, onOpenSettings)
         }
         if (state.isEmpty) {
             item(key = "empty") { MyNetflixEmpty(onOpenSearch) }
@@ -105,41 +117,82 @@ internal fun MyNetflixHubContent(
 private fun MyNetflixHeader(
     profile: UserProfile?,
     libraryCount: Int,
+    headerArt: String?,
     onOpenFullLibrary: () -> Unit,
     onOpenSettings: () -> Unit,
 ) {
     val tokens = NetflixThemeTokens
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = tokens.safeMargin),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(NetflixThemeTokens.Hub.headerGap),
-    ) {
-        if (profile != null) {
-            ProfileAvatarCircle(name = profile.name, colorHex = profile.avatarColorHex, size = NetflixThemeTokens.Hub.headerAvatarSize,
-                avatarImageUrl = profile.avatarUrl, imageCrossfade = false, avatarShape = RoundedCornerShape(tokens.profileRadius))
-        }
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = stringResource(R.string.netflix_nav_my_netflix),
-                style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.titleSize, fontWeight = FontWeight.Bold),
-                color = tokens.textPrimary, maxLines = 1,
-            )
-            if (profile != null) {
-                Text(
-                    text = profile.name,
-                    style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.subtitleSize,
-                        textDirection = profile.name.contentTextDirection()),
-                    color = tokens.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                )
+    val hub = NetflixThemeTokens.Hub
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    Box(Modifier.fillMaxWidth().height(hub.headerArtHeight)) {
+        if (headerArt != null) {
+            val context = LocalContext.current
+            val density = LocalDensity.current
+            val config = LocalConfiguration.current
+            val model = remember(headerArt, config.screenWidthDp) {
+                // Bounded decode: header width at the canvas density, never the source resolution.
+                ImageRequest.Builder(context).data(headerArt)
+                    .size(with(density) { config.screenWidthDp.dp.roundToPx() }, with(density) { hub.headerArtHeight.roundToPx() })
+                    .build()
             }
+            AsyncImage(model, contentDescription = null, contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().graphicsLayer { alpha = hub.headerArtAlpha })
+            Box(Modifier.fillMaxSize().background(tokens.heroSideGradient(rtl)))
         }
-        // Real destinations only: the full Library (lists, providers, cloud) and Settings.
-        MyNetflixAction(
-            label = if (libraryCount > 0) stringResource(R.string.netflix_hub_full_library_count, libraryCount)
-                else stringResource(R.string.netflix_hub_full_library),
-            onClick = onOpenFullLibrary, tag = "my_netflix_full_library",
-        )
-        MyNetflixAction(stringResource(R.string.nav_settings), onOpenSettings, tag = "my_netflix_settings")
+        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, tokens.background))))
+        Row(
+            modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth()
+                .padding(start = tokens.safeMargin, end = tokens.safeMargin, bottom = tokens.metadataGap),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(hub.headerGap),
+        ) {
+            if (profile != null) {
+                ProfileAvatarCircle(name = profile.name, colorHex = profile.avatarColorHex, size = hub.headerAvatarSize,
+                    avatarImageUrl = profile.avatarUrl, imageCrossfade = false, avatarShape = RoundedCornerShape(tokens.profileRadius))
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(tokens.metadataGap / 2)) {
+                Text(
+                    text = stringResource(R.string.netflix_nav_my_netflix),
+                    style = TextStyle(fontFamily = tokens.fontFamily, fontSize = hub.titleSize, fontWeight = FontWeight.Bold),
+                    color = tokens.textPrimary, maxLines = 1,
+                )
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(tokens.metadataGap)) {
+                    if (profile != null) {
+                        Text(
+                            text = profile.name,
+                            style = TextStyle(fontFamily = tokens.fontFamily, fontSize = hub.subtitleSize,
+                                textDirection = profile.name.contentTextDirection()),
+                            color = tokens.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    // Full Library belongs with the profile identity as a quiet link, not an admin button.
+                    MyNetflixAction(
+                        label = if (libraryCount > 0) stringResource(R.string.netflix_hub_full_library_count, libraryCount)
+                            else stringResource(R.string.netflix_hub_full_library),
+                        onClick = onOpenFullLibrary, tag = "my_netflix_full_library",
+                    )
+                }
+            }
+            MyNetflixIconAction(Icons.Default.Settings, stringResource(R.string.nav_settings), onOpenSettings, tag = "my_netflix_settings")
+        }
+    }
+}
+
+@Composable
+private fun MyNetflixIconAction(icon: ImageVector, label: String, onClick: () -> Unit, tag: String) {
+    val tokens = NetflixThemeTokens
+    androidx.tv.material3.IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(NetflixThemeTokens.Hub.actionHeight + tokens.metadataGap).testTag(tag),
+        colors = androidx.tv.material3.IconButtonDefaults.colors(
+            containerColor = Color.Transparent,
+            contentColor = tokens.textPrimary.copy(alpha = NetflixThemeTokens.TopNav.settingsAlpha),
+            focusedContainerColor = tokens.focus.copy(alpha = NetflixThemeTokens.TopNav.focusFillAlpha),
+            focusedContentColor = tokens.textPrimary,
+        ),
+        scale = androidx.tv.material3.IconButtonDefaults.scale(focusedScale = 1f),
+    ) {
+        Icon(icon, contentDescription = label, modifier = Modifier.size(NetflixThemeTokens.TopNav.iconSize))
     }
 }
 
@@ -149,15 +202,15 @@ private fun MyNetflixAction(label: String, onClick: () -> Unit, tag: String) {
     Button(
         onClick = onClick,
         modifier = Modifier.height(NetflixThemeTokens.Hub.actionHeight).testTag(tag),
-        shape = ButtonDefaults.shape(shape = tokens.buttonShape),
+        shape = ButtonDefaults.shape(shape = RoundedCornerShape(NetflixThemeTokens.TopNav.itemRadius)),
         colors = ButtonDefaults.colors(
-            containerColor = tokens.surfaceMuted.copy(alpha = .72f), contentColor = tokens.textPrimary,
+            containerColor = tokens.focus.copy(alpha = .10f), contentColor = tokens.textPrimary,
             focusedContainerColor = tokens.focus, focusedContentColor = tokens.focusContent,
         ),
         scale = ButtonDefaults.scale(focusedScale = 1f),
         contentPadding = PaddingValues(horizontal = tokens.previewPadding),
     ) {
-        Text(label, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.metadata, fontWeight = FontWeight.SemiBold), maxLines = 1)
+        Text(label, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.actionTextSize, fontWeight = FontWeight.SemiBold), maxLines = 1)
     }
 }
 
@@ -255,23 +308,13 @@ private fun MyNetflixCardView(card: MyNetflixCard, onClick: () -> Unit) {
 
 @Composable
 private fun MyNetflixEmpty(onOpenSearch: () -> Unit) {
-    val tokens = NetflixThemeTokens
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = tokens.safeMargin, vertical = NetflixThemeTokens.Hub.sectionGap),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(NetflixThemeTokens.Hub.headerGap),
-    ) {
-        Text(
-            stringResource(R.string.netflix_hub_empty_title),
-            style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.rowHeader, fontWeight = FontWeight.Bold),
-            color = tokens.textPrimary, textAlign = TextAlign.Center,
-        )
-        Text(
-            stringResource(R.string.netflix_hub_empty_body),
-            style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.description),
-            color = tokens.textSecondary, textAlign = TextAlign.Center,
-            modifier = Modifier.widthIn(max = NetflixThemeTokens.State.maxTextWidth),
-        )
-        MyNetflixAction(stringResource(R.string.nav_search), onOpenSearch, tag = "my_netflix_empty_search")
-    }
+    com.nuvio.tv.ui.components.NetflixStatePanel(
+        title = stringResource(R.string.netflix_hub_empty_title),
+        body = androidx.compose.ui.text.AnnotatedString(stringResource(R.string.netflix_hub_empty_body)),
+        modifier = Modifier.fillMaxWidth().padding(vertical = NetflixThemeTokens.Hub.sectionGap),
+        icon = Icons.Default.VideoLibrary,
+        actionLabel = stringResource(R.string.nav_search),
+        onAction = onOpenSearch,
+        actionModifier = Modifier.testTag("my_netflix_empty_search"),
+    )
 }

@@ -291,19 +291,20 @@ fun SeasonTabs(
                     },
                 shape = CardDefaults.shape(shape = tabShape),
                 colors = CardDefaults.colors(
+                    // NETFLIX_THEME chips: quiet idle, translucent selected, solid white only under focus.
                     containerColor = if (isNetflix) {
-                        if (isSelected) NetflixThemeTokens.surfaceMuted else NetflixThemeTokens.surface
+                        if (isSelected) NetflixThemeTokens.focus.copy(alpha = NetflixThemeTokens.secondaryActionFillAlpha) else Color.Transparent
                     } else if (isSelected) NuvioTheme.colors.SurfaceVariant else NuvioTheme.colors.BackgroundCard,
-                    focusedContainerColor = NuvioTheme.colors.Secondary
+                    focusedContainerColor = if (isNetflix) NetflixThemeTokens.focus else NuvioTheme.colors.Secondary
                 ),
-                border = tabBorder,
+                border = if (isNetflix) CardDefaults.border() else tabBorder,
                 scale = tabScale
             ) {
                 Text(
                     text = if (season == 0) stringResource(R.string.episodes_specials) else stringResource(R.string.episodes_season, season),
                     style = tabTextStyle,
                     color = when {
-                        isFocused -> NuvioTheme.colors.OnSecondary
+                        isFocused -> if (isNetflix) NetflixThemeTokens.focusContent else NuvioTheme.colors.OnSecondary
                         isSelected -> NuvioTheme.colors.TextPrimary
                         else -> textSecondary
                     },
@@ -771,7 +772,9 @@ private fun EpisodeCard(
 
     val primaryColor = NuvioTheme.colors.Primary
     val textPrimary = NuvioTheme.colors.TextPrimary
-    val focusRingBorder = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs)
+    // NETFLIX_THEME: a thin translucent outline with the subtle scale, not a heavy white box.
+    val focusRingBorder = if (isNetflix) BorderStroke(NetflixThemeTokens.focusedBorderWidth,
+        NetflixThemeTokens.focus.copy(alpha = NetflixThemeTokens.focusOutlineAlpha)) else NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs)
     val cardShape = CardDefaults.shape(shape = shape)
     val cardColors = CardDefaults.colors(
         containerColor = Color.Transparent,

@@ -3,6 +3,14 @@ package com.nuvio.tv.ui.screens.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
+import androidx.tv.material3.Icon
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -45,7 +53,7 @@ internal fun netflixCallout(payload: ModernPayload?, inLibrary: Boolean): Netfli
 
 @Composable
 internal fun NetflixCalloutChip(callout: NetflixCallout, modifier: Modifier = Modifier) {
-    val tokens = NetflixThemeTokens
+    val tokens = NetflixThemeTokens.Callout
     val label = when (callout.kind) {
         NetflixCalloutKind.CONTINUE -> stringResource(R.string.netflix_callout_continue)
         NetflixCalloutKind.NEXT_EPISODE -> stringResource(R.string.netflix_callout_next_episode)
@@ -53,17 +61,22 @@ internal fun NetflixCalloutChip(callout: NetflixCallout, modifier: Modifier = Mo
     }
     val season = callout.season
     val episode = callout.episode
-    val text = if (season != null && episode != null && season > 0) "${netflixIsolate(label)} · ${netflixEpisodeToken(season, episode)}" else label
-    Box(
-        modifier = modifier
-            .height(NetflixThemeTokens.Callout.height)
-            .clip(RoundedCornerShape(NetflixThemeTokens.Callout.radius))
-            .background(if (callout.kind == NetflixCalloutKind.IN_MY_LIST) tokens.surfaceMuted else tokens.progress)
-            .padding(horizontal = NetflixThemeTokens.Callout.horizontalPadding)
-            .testTag("netflix_callout"),
-        contentAlignment = Alignment.Center,
+    val text = if (season != null && episode != null && season > 0) "${netflixIsolate(label)} \u00B7 ${netflixEpisodeToken(season, episode)}" else label
+    // An inline label that belongs to the metadata, not a technical badge: a slim accent mark for
+    // watch state, a check for My List.
+    Row(
+        modifier = modifier.testTag("netflix_callout"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(tokens.gap),
     ) {
-        Text(text, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Callout.textSize, fontWeight = FontWeight.Bold),
-            color = tokens.textPrimary, maxLines = 1)
+        if (callout.kind == NetflixCalloutKind.IN_MY_LIST) {
+            Icon(Icons.Default.Check, contentDescription = null, tint = NetflixThemeTokens.textPrimary,
+                modifier = Modifier.size(tokens.iconSize))
+        } else {
+            Box(Modifier.width(tokens.accentWidth).height(tokens.accentHeight)
+                .clip(RoundedCornerShape(tokens.accentWidth)).background(NetflixThemeTokens.progress))
+        }
+        Text(text, style = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = tokens.textSize,
+            fontWeight = FontWeight.SemiBold, letterSpacing = 0.2.sp), color = NetflixThemeTokens.textPrimary, maxLines = 1)
     }
 }

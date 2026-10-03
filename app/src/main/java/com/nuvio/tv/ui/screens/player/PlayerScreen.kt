@@ -2201,7 +2201,8 @@ internal fun NetflixPlayerContentHeading(uiState: PlayerUiState, modifier: Modif
         Text(
             text = title,
             color = NetflixThemeTokens.textPrimary,
-            style = MaterialTheme.typography.headlineSmall.copy(textDirection = title.contentTextDirection()),
+            style = MaterialTheme.typography.headlineSmall.copy(fontSize = NetflixThemeTokens.Player.titleSize,
+                fontWeight = FontWeight.Bold, textDirection = title.contentTextDirection()),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -2209,11 +2210,13 @@ internal fun NetflixPlayerContentHeading(uiState: PlayerUiState, modifier: Modif
             val code = stringResource(R.string.season_episode_format, uiState.currentSeason!!, uiState.currentEpisode!!)
             val context = LocalContext.current
             val episodeTitle = uiState.currentEpisodeTitle?.takeIf(String::isNotBlank)?.localizeEpisodeTitle(context)
-            val label = listOfNotNull(code, episodeTitle).joinToString(" · ")
+            // Each part isolated so "S1 E2" and a Latin episode title keep their order in Arabic.
+            val label = com.nuvio.tv.ui.theme.netflixMetadataLine(listOf(code, episodeTitle))
             Text(
                 text = label,
                 color = NetflixThemeTokens.textSecondary,
-                style = MaterialTheme.typography.titleMedium.copy(textDirection = label.contentTextDirection()),
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = NetflixThemeTokens.Player.episodeSize,
+                    textDirection = (episodeTitle ?: code).contentTextDirection()),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -2701,7 +2704,8 @@ internal fun PlayerTimeText(
     // NETFLIX_THEME keeps the player in the locale's direction; a timeline reads left to right in
     // every locale, so "elapsed / duration" must not be reordered by an RTL paragraph.
     val style = if (NuvioTheme.isNetflix) {
-        MaterialTheme.typography.bodyMedium.copy(textDirection = androidx.compose.ui.text.style.TextDirection.Ltr)
+        MaterialTheme.typography.bodyMedium.copy(fontSize = NetflixThemeTokens.Player.timeSize,
+            fontWeight = FontWeight.Medium, textDirection = androidx.compose.ui.text.style.TextDirection.Ltr)
     } else MaterialTheme.typography.bodyMedium
     Text(
         text = timeText,

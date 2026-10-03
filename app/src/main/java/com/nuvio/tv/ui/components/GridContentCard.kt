@@ -194,7 +194,9 @@ fun GridContentCard(
             ),
             border = CardDefaults.border(
                 focusedBorder = Border(
-                    border = NuvioTheme.focusRing.border(if (isNetflix) NetflixThemeTokens.focusedBorderWidth else posterCardStyle.focusedBorderWidth),
+                    border = if (isNetflix) BorderStroke(NetflixThemeTokens.focusedBorderWidth,
+                        NetflixThemeTokens.focus.copy(alpha = NetflixThemeTokens.focusOutlineAlpha))
+                        else NuvioTheme.focusRing.border(posterCardStyle.focusedBorderWidth),
                     shape = cardShape
                 )
             ),

@@ -151,7 +151,8 @@ internal fun NetflixDetailHero(
             } else {
                 Text(
                     text = meta.name,
-                    style = MaterialTheme.typography.displayMedium.copy(textDirection = meta.name.contentTextDirection()),
+                    style = MaterialTheme.typography.displayMedium.copy(fontSize = NetflixThemeTokens.detailTitle,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold, textDirection = meta.name.contentTextDirection()),
                     color = NetflixThemeTokens.textPrimary,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -171,9 +172,12 @@ internal fun NetflixDetailHero(
                     horizontalArrangement = Arrangement.spacedBy(NetflixThemeTokens.metadataGap),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    listOfNotNull(ratingLabel, year, duration).forEach { value ->
-                        Text(value, style = MaterialTheme.typography.labelLarge,
-                            color = NetflixThemeTokens.textSecondary)
+                    // One concise, bidi-isolated metadata group; missing facts simply drop out.
+                    listOfNotNull(ratingLabel, year, duration).forEachIndexed { index, value ->
+                        Text(com.nuvio.tv.ui.theme.netflixIsolate(value), style = MaterialTheme.typography.labelLarge.copy(
+                            fontSize = NetflixThemeTokens.metadata,
+                            fontWeight = if (index == 0 && value == ratingLabel) androidx.compose.ui.text.font.FontWeight.SemiBold else null),
+                            color = if (index == 0 && value == ratingLabel) NetflixThemeTokens.textPrimary else NetflixThemeTokens.textSecondary)
                     }
                     meta.ageRating?.trim()?.takeIf { it.isNotBlank() }?.let { age ->
                         Text(
@@ -186,7 +190,7 @@ internal fun NetflixDetailHero(
                     }
                 }
                 if (genres.isNotBlank()) {
-                    Text(genres, style = MaterialTheme.typography.labelLarge,
+                    Text(genres, style = MaterialTheme.typography.labelLarge.copy(fontSize = NetflixThemeTokens.metadata),
                         color = NetflixThemeTokens.textSecondary, maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth(NetflixThemeTokens.detailContentWidthFraction))
@@ -284,16 +288,16 @@ private fun NetflixDetailSecondaryButton(label: String, onClick: () -> Unit, onF
         modifier = Modifier.height(NetflixThemeTokens.buttonHeight).onFocusChanged { if (it.isFocused) onFocused() },
         shape = ButtonDefaults.shape(shape = RoundedCornerShape(NetflixThemeTokens.buttonRadius)),
         colors = ButtonDefaults.colors(
-            containerColor = NetflixThemeTokens.surfaceMuted,
+            containerColor = NetflixThemeTokens.focus.copy(alpha = NetflixThemeTokens.secondaryActionFillAlpha),
             contentColor = NetflixThemeTokens.textPrimary,
             focusedContainerColor = NetflixThemeTokens.focus,
             focusedContentColor = NetflixThemeTokens.focusContent
         ),
-        border = ButtonDefaults.border(focusedBorder = Border(BorderStroke(NetflixThemeTokens.focusedBorderWidth, NetflixThemeTokens.focus))),
         scale = ButtonDefaults.scale(focusedScale = NetflixThemeTokens.episodeFocusScale),
         contentPadding = PaddingValues(horizontal = NetflixThemeTokens.actionGap)
     ) {
-        Text(label, style = MaterialTheme.typography.labelLarge)
+        Text(label, style = MaterialTheme.typography.labelLarge.copy(fontSize = NetflixThemeTokens.buttonText,
+            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold))
     }
 }
 

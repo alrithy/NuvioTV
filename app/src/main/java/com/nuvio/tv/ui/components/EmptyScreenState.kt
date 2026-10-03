@@ -33,6 +33,11 @@ fun EmptyScreenState(
     modifier: Modifier = Modifier,
     height: Dp = 400.dp
 ) {
+    if (NuvioTheme.isNetflix) {
+        NetflixStatePanel(title, subtitle?.let { androidx.compose.ui.text.AnnotatedString(it) },
+            modifier = modifier.fillMaxWidth().height(height), icon = icon)
+        return
+    }
     Column(
         modifier = modifier
             .fillMaxWidth()

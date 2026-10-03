@@ -14,6 +14,7 @@
     <string name="netflix_callout_continue">Continue watching</string>
     <string name="netflix_callout_in_my_list">In My List</string>
     <string name="netflix_callout_next_episode">Next episode</string>
+    <string name="netflix_error_title">Something went wrong</string>
     <string name="netflix_more_info">More Info</string>
     <string name="netflix_add_to_list">My List</string>
     <string name="netflix_my_list">My List</string>

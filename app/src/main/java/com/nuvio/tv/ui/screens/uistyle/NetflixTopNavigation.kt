@@ -186,8 +186,8 @@ internal fun NetflixTopNavigationBar(
         modifier = modifier
             .fillMaxWidth()
             .height(tokens.height)
-            .background(Brush.verticalGradient(listOf(NetflixThemeTokens.background, NetflixThemeTokens.background.copy(alpha = .92f))))
-            .padding(horizontal = NetflixThemeTokens.safeMargin)
+            .background(Brush.verticalGradient(listOf(NetflixThemeTokens.background, NetflixThemeTokens.background.copy(alpha = .0f))))
+            .padding(start = NetflixThemeTokens.safeMargin, end = NetflixThemeTokens.safeMargin, top = tokens.topInset)
             .onFocusChanged { onFocusChanged(it.hasFocus) }
             .testTag("netflix_top_nav"),
         verticalAlignment = Alignment.CenterVertically,
@@ -220,15 +220,13 @@ private fun NetflixTopNavTab(
 ) {
     val tokens = NetflixThemeTokens.TopNav
     var focused by remember { mutableStateOf(false) }
+    // Focused: a soft translucent pill. Selected: bold label with an underline. Idle: dimmed label.
     val background by animateColorAsState(
-        if (focused) NetflixThemeTokens.focus else Color.Transparent,
+        if (focused) NetflixThemeTokens.focus.copy(alpha = tokens.focusFillAlpha) else Color.Transparent,
         tween(NetflixThemeTokens.focusDurationMillis), label = "netflixTopNavTabBackground",
     )
-    val content = when {
-        focused -> NetflixThemeTokens.focusContent
-        selected -> NetflixThemeTokens.textPrimary
-        else -> NetflixThemeTokens.textSecondary
-    }
+    val content = if (focused || selected) NetflixThemeTokens.textPrimary
+        else NetflixThemeTokens.textPrimary.copy(alpha = tokens.idleLabelAlpha)
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
@@ -248,7 +246,7 @@ private fun NetflixTopNavTab(
                 style = TextStyle(
                     fontFamily = NetflixThemeTokens.fontFamily,
                     fontSize = tokens.labelSize,
-                    fontWeight = if (selected || focused) FontWeight.Bold else FontWeight.Medium,
+                    fontWeight = if (selected || focused) FontWeight.Bold else FontWeight.Normal,
                 ),
                 color = content,
                 maxLines = 1,
@@ -262,7 +260,7 @@ private fun NetflixTopNavTab(
                 .width(tokens.indicatorWidth)
                 .height(tokens.indicatorHeight)
                 .clip(RoundedCornerShape(tokens.indicatorHeight))
-                .background(if (selected && !focused) NetflixThemeTokens.textPrimary else Color.Transparent),
+                .background(if (selected) NetflixThemeTokens.progress else Color.Transparent),
         )
     }
 }
@@ -279,17 +277,16 @@ private fun NetflixTopNavIcon(
     val tokens = NetflixThemeTokens.TopNav
     var focused by remember { mutableStateOf(false) }
     val tint = when {
-        focused -> NetflixThemeTokens.focusContent
-        selected -> NetflixThemeTokens.textPrimary
-        secondary -> NetflixThemeTokens.textMuted
-        else -> NetflixThemeTokens.textSecondary
+        focused || selected -> NetflixThemeTokens.textPrimary
+        secondary -> NetflixThemeTokens.textPrimary.copy(alpha = tokens.settingsAlpha)
+        else -> NetflixThemeTokens.textPrimary.copy(alpha = tokens.idleLabelAlpha)
     }
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Box(
             modifier = Modifier
                 .size(tokens.itemHeight)
                 .clip(CircleShape)
-                .background(if (focused) NetflixThemeTokens.focus else Color.Transparent)
+                .background(if (focused) NetflixThemeTokens.focus.copy(alpha = tokens.focusFillAlpha) else Color.Transparent)
                 .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
                 .onFocusChanged { focused = it.isFocused }
                 .semantics { contentDescription = entry.label; this.selected = selected; role = Role.Tab }
@@ -305,7 +302,7 @@ private fun NetflixTopNavIcon(
                 .width(tokens.indicatorWidth / 2)
                 .height(tokens.indicatorHeight)
                 .clip(RoundedCornerShape(tokens.indicatorHeight))
-                .background(if (selected && !focused) NetflixThemeTokens.textPrimary else Color.Transparent),
+                .background(if (selected) NetflixThemeTokens.progress else Color.Transparent),
         )
     }
 }

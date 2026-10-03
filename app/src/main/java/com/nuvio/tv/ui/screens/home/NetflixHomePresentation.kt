@@ -105,7 +105,6 @@ internal fun NetflixHeroTitleContent(
         modifier = modifier.testTag("netflix_home_hero"),
         verticalArrangement = Arrangement.spacedBy(tokens.metadataGap)
     ) {
-        if (callout != null) NetflixCalloutChip(callout)
         if (logoModel != null && !logoFailed) {
             AsyncImage(
                 model = logoModel,
@@ -128,24 +127,26 @@ internal fun NetflixHeroTitleContent(
                 overflow = TextOverflow.Ellipsis
             )
         }
+        if (callout != null) NetflixCalloutChip(callout)
         NetflixPreviewMetadata(preview, showImdbRatings = showImdbRatings)
-        val genres = remember(preview.genres, context) {
-            preview.genres.list.take(3).joinToString(" • ") { localizedGenreLabel(context, it) }
-        }
-        if (genres.isNotBlank()) {
-            Text(genres, style = MaterialTheme.typography.labelMedium, color = tokens.textPrimary,
-                maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
         preview.description?.takeIf(String::isNotBlank)?.let { description ->
             Text(
                 description,
-                style = MaterialTheme.typography.bodyMedium.copy(textDirection = description.contentTextDirection()),
+                style = MaterialTheme.typography.bodyMedium.copy(fontSize = tokens.description,
+                    lineHeight = tokens.descriptionLineHeight, textDirection = description.contentTextDirection()),
                 color = tokens.textPrimary,
                 maxLines = tokens.descriptionMaxLines,
                 overflow = TextOverflow.Ellipsis
             )
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(tokens.actionGap)) {
+        val genres = remember(preview.genres, context) {
+            preview.genres.list.take(3).joinToString(" \u00B7 ") { localizedGenreLabel(context, it) }
+        }
+        if (genres.isNotBlank()) {
+            Text(genres, style = MaterialTheme.typography.labelMedium.copy(fontSize = tokens.metadata),
+                color = tokens.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        Row(Modifier.padding(top = tokens.metadataGap), horizontalArrangement = Arrangement.spacedBy(tokens.actionGap)) {
             NetflixHomeAction(
                 icon = Icons.Default.PlayArrow,
                 label = stringResource(R.string.hero_play),
@@ -311,10 +312,10 @@ private fun NetflixPreviewMetadata(preview: HeroPreview, showImdbRatings: Boolea
     FlowRow(horizontalArrangement = Arrangement.spacedBy(tokens.metadataGap),
         verticalArrangement = Arrangement.spacedBy(tokens.cardGap)) {
         if (showImdbRatings) preview.imdbText?.takeIf(String::isNotBlank)?.let {
-            Text("IMDb $it", style = MaterialTheme.typography.labelMedium, color = tokens.textPrimary, maxLines = 1)
+            Text(com.nuvio.tv.ui.theme.netflixIsolate("IMDb $it"), style = MaterialTheme.typography.labelMedium.copy(fontSize = tokens.metadata, fontWeight = FontWeight.SemiBold), color = tokens.textPrimary, maxLines = 1)
         }
         preview.yearText?.takeIf(String::isNotBlank)?.let {
-            Text(it, style = MaterialTheme.typography.labelMedium, color = tokens.textSecondary, maxLines = 1)
+            Text(it, style = MaterialTheme.typography.labelMedium.copy(fontSize = tokens.metadata), color = tokens.textSecondary, maxLines = 1)
         }
         preview.ageRatingText?.takeIf(String::isNotBlank)?.let {
             Text(it, style = MaterialTheme.typography.labelSmall, color = tokens.textSecondary, maxLines = 1,
@@ -325,7 +326,7 @@ private fun NetflixPreviewMetadata(preview: HeroPreview, showImdbRatings: Boolea
             pluralStringResource(R.plurals.netflix_seasons, preview.seasonCount, preview.seasonCount)
         } else preview.runtimeText
         duration?.takeIf(String::isNotBlank)?.let {
-            Text(it, style = MaterialTheme.typography.labelMedium, color = tokens.textSecondary, maxLines = 1,
+            Text(it, style = MaterialTheme.typography.labelMedium.copy(fontSize = tokens.metadata), color = tokens.textSecondary, maxLines = 1,
                 overflow = TextOverflow.Ellipsis)
         }
     }
@@ -355,7 +356,8 @@ private fun NetflixHomeAction(
             } else Modifier),
         shape = ButtonDefaults.shape(tokens.buttonShape),
         colors = ButtonDefaults.colors(
-            containerColor = if (primary) tokens.focus else tokens.surfaceMuted,
+            // Secondary actions are a translucent glass over the artwork, clearly below Play.
+            containerColor = if (primary) tokens.focus else tokens.focus.copy(alpha = tokens.secondaryActionFillAlpha),
             contentColor = if (primary) tokens.focusContent else tokens.textPrimary,
             focusedContainerColor = tokens.focus,
             focusedContentColor = tokens.focusContent
@@ -367,7 +369,7 @@ private fun NetflixHomeAction(
     ) {
         Icon(icon, contentDescription = if (iconOnly) label else null,
             modifier = Modifier.size(tokens.navigationIconSize))
-        if (!iconOnly) Text(label, style = MaterialTheme.typography.titleSmall,
+        if (!iconOnly) Text(label, style = MaterialTheme.typography.titleSmall.copy(fontSize = tokens.buttonText, fontWeight = FontWeight.SemiBold),
             modifier = Modifier.padding(start = tokens.cardGap))
     }
 }
