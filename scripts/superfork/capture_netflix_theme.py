@@ -47,6 +47,23 @@ def instrumentation_succeeded(result: subprocess.CompletedProcess[str]) -> bool:
             re.search(r"^OK \([1-9]\d* tests?\)\s*$", output, re.MULTILINE) is not None)
 
 
+def print_failures(output: str) -> None:
+    """Put each failing test and the top of its stack in the job log; artifacts are not always reachable."""
+    # In `am instrument -r` output a test's STATUS lines precede its STATUS_CODE line (-2 = failure).
+    for match in re.finditer(r"(.*?)^INSTRUMENTATION_STATUS_CODE: (-?\d+)\s*$", output, re.MULTILINE | re.DOTALL):
+        block, code = match.group(1), match.group(2)
+        if code not in ("-2", "-4"):
+            continue
+        test = re.search(r"^INSTRUMENTATION_STATUS: test=(.*)$", block, re.MULTILINE)
+        stack = re.search(r"^INSTRUMENTATION_STATUS: stack=(.*?)(?=^INSTRUMENTATION_STATUS: |\Z)", block, re.MULTILINE | re.DOTALL)
+        name = test.group(1).strip() if test else "?"
+        lines = (stack.group(1) if stack else "").strip().splitlines()[:16]
+        print(f"FAILED {name}")
+        print("\n".join("    " + line for line in lines))
+    summary = [line for line in output.splitlines() if line.startswith(("OK (", "Tests run:", "FAILURES!!!"))]
+    print("Instrumentation summary: " + (" | ".join(summary) or "no JUnit summary"))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--serial", required=True, help="adb device serial (explicitly selected)")
@@ -79,6 +96,7 @@ def main() -> int:
             f"{args.package}.test/androidx.test.runner.AndroidJUnitRunner", check=False,
         )
         (args.output / "instrumentation-result.txt").write_text(test_result.stdout, encoding="utf-8")
+        print_failures(test_result.stdout)
 
     remote = f"/sdcard/Android/data/{args.package}/files/netflix-theme/."
     pull = adb("pull", remote, str(args.output), check=False)

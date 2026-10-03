@@ -175,20 +175,28 @@ class NetflixThemeTvTest {
             val initial = remember { FocusRequester() }
             Row(Modifier.padding(horizontal = NetflixThemeTokens.safeMargin).alignForCardFixture(),
                 horizontalArrangement = Arrangement.spacedBy(NetflixThemeTokens.cardGap)) {
+                // GridContentCard is a grid cell (fillMaxWidth in landscape/Netflix mode); give each card the
+                // bounded cell width a grid would, otherwise card 0 takes the Row and the rest measure 0 dp.
                 items.take(5).forEachIndexed { index, item ->
-                    GridContentCard(item, onClick = { clicked = index }, modifier = Modifier.testTag("fixture_card_$index"),
-                        posterCardStyle = netflixCardStyle(), focusRequester = if (index == 1) initial else null)
+                    Box(Modifier.width(NetflixThemeTokens.landscapeCardWidth)) {
+                        GridContentCard(item, onClick = { clicked = index }, modifier = Modifier.testTag("fixture_card_$index"),
+                            posterCardStyle = netflixCardStyle(), focusRequester = if (index == 1) initial else null)
+                    }
                 }
             }
             LaunchedEffect(Unit) { initial.requestFocus() }
         }
+        compose.waitUntil(5_000) { compose.onAllNodes(isFocused()).fetchSemanticsNodes().size == 1 }
         val before = compose.onNodeWithTag("fixture_card_1").fetchSemanticsNode().boundsInRoot
+        val neighbour = compose.onNodeWithTag("fixture_card_2").fetchSemanticsNode().boundsInRoot
+        assertTrue("cards have real width", before.width > 0f && neighbour.width > 0f)
         capture("03-focused-card")
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals(1, clicked) }
         press(if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT)
         val after = compose.onNodeWithTag("fixture_card_1").fetchSemanticsNode().boundsInRoot
         assertEquals(before, after)
+        assertEquals(neighbour, compose.onNodeWithTag("fixture_card_2").fetchSemanticsNode().boundsInRoot)
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals(2, clicked) }
     }
@@ -424,7 +432,9 @@ class NetflixThemeTvTest {
                 NetflixPlayerContentHeading(PlayerUiState(title = titles.first(), contentName = titles.first(),
                     currentSeason = 1, currentEpisode = 2, currentEpisodeTitle = text("The Crossing", "العبور")))
                 Spacer(Modifier.weight(1f))
-                ProgressBar(position, 6_720_000L, { sought = it; position = it }, { committed++ },
+                // onSeekPreview carries a signed scrub DELTA (PlayerScrubRates.deltaMsForKeyRepeat), as
+                // PlayerScreen's own caller applies it; the position is the caller's to accumulate.
+                ProgressBar(position, 6_720_000L, { delta -> sought += delta; position += delta }, { committed++ },
                     focusRequester = focus, bufferedPosition = 3_600_000L)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(NetflixThemeTokens.actionGap)) {
                     ControlButton(Icons.Default.PlayArrow, contentDescription = text("Play", "تشغيل"), onClick = {})
@@ -436,8 +446,12 @@ class NetflixThemeTvTest {
             LaunchedEffect(Unit) { focus.requestFocus() }
         }
         capture("11-player-controls")
+        compose.waitUntil(5_000) { compose.onAllNodes(isFocused()).fetchSemanticsNodes().size == 1 }
+        // The scrubber is a media timeline: DPAD_RIGHT is forward in both LTR and RTL.
         press(KeyEvent.KEYCODE_DPAD_RIGHT)
-        compose.runOnIdle { assertTrue(sought > 1_800_000L); assertTrue(committed > 0) }
+        compose.runOnIdle { assertTrue("forward scrub delta", sought > 0L); assertTrue("seek commit on key up", committed > 0) }
+        press(KeyEvent.KEYCODE_DPAD_LEFT)
+        compose.runOnIdle { assertTrue("backward scrub returns", sought == 0L); assertTrue(committed > 1) }
     }
 
     @Test fun detailResumeAndBeginningRemainSeparateActions() {

@@ -15,6 +15,7 @@ collect_log() {
   local status=$?
   trap - EXIT
   adb -s "$serial" logcat -d -v time > "$output/logcat.txt" 2>&1 || true
+  python3 scripts/superfork/print_visual_previews.py "$output" || true
   exit "$status"
 }
 trap collect_log EXIT
