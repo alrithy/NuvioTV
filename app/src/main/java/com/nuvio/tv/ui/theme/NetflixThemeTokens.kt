@@ -139,6 +139,8 @@ object NetflixThemeTokens {
         /** Selected destination: a light grey pill (reference), distinct from the white focused pill. */
         const val selectedFillAlpha = .26f
         val brandHeight = 22.dp
+        /** Compact square Nuvio mark in the bar (measured reference: small brand footprint). */
+        val brandMarkSize = 30.dp
         const val idleLabelAlpha = .72f
         const val settingsAlpha = .55f
     }
@@ -152,7 +154,8 @@ object NetflixThemeTokens {
         val heroPadding = 28.dp
         val heroTitleSize = 34.sp
         val heroSynopsisSize = 15.sp
-        const val heroSynopsisLines = 1
+        /** Measured reference: synopsis up to ~2 lines when present, never dominant. */
+        const val heroSynopsisLines = 2
         const val heroTextWidthFraction = .55f
         const val heroSideScrimAlpha = .85f
         const val heroBottomScrimAlpha = .80f

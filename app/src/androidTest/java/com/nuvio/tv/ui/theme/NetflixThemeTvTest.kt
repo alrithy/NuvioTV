@@ -337,6 +337,14 @@ class NetflixThemeTvTest {
         assertEquals(160f * density, idle.width, 6f * density)
         val gap = if (arabic) focused.left - idle.right else idle.left - focused.right
         assertEquals(6f * density, gap, 2f * density)
+        // Measured expansion ratio ≈2.73–2.84× (median 2.77×).
+        val ratio = focused.width / idle.width
+        assertTrue("expansion ratio $ratio", ratio in 2.6f..2.95f)
+        // Vertical density: the active row dominates (~46 % of 540 dp); the next row only peeks.
+        val root = rootBounds()
+        assertTrue("active card share ${focused.height / root.height}", focused.height >= root.height * .42f)
+        val nextCard = compose.onNodeWithTag(card("popular", 0)).fetchSemanticsNode()
+        assertTrue("next row is not fully shown", nextCard.positionInRoot.y + nextCard.size.height > root.bottom)
         capture("37-home-full-production-scrolled")
     }
 

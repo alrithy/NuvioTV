@@ -203,10 +203,11 @@ internal fun NetflixTopNavigationBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Image(
-                painter = painterResource(R.drawable.app_logo_wordmark),
+                // Compact Nuvio-owned mark: the reference brand footprint is small (never the Netflix N).
+                painter = painterResource(R.drawable.app_logo_mark),
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
-                modifier = Modifier.height(tokens.brandHeight).testTag("netflix_top_nav_brand"),
+                modifier = Modifier.size(tokens.brandMarkSize).testTag("netflix_top_nav_brand"),
             )
             Spacer(Modifier.weight(1f))
             CompositionLocalProvider(LocalLayoutDirection provides readingDirection) {

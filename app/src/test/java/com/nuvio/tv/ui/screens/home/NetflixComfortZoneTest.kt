@@ -82,4 +82,10 @@ class NetflixComfortZoneTest {
         val settled = scrolls.drop(4)
         assertTrue(settled.zipWithNext().all { (a, b) -> b >= a - 0.01f })
     }
+
+    @Test
+    fun expansionMotionMatchesMeasuredReference() {
+        // Measured stable transitions ≈180–230 ms; target ≈200 ms.
+        assertTrue(com.nuvio.tv.ui.theme.NetflixThemeTokens.Home.expandMillis in 180..230)
+    }
 }
