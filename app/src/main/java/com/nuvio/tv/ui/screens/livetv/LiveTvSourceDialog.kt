@@ -54,6 +54,7 @@ import com.nuvio.tv.fork.livetv.LiveTvStalkerSettings
 import com.nuvio.tv.fork.livetv.LiveTvXtreamSettings
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 /**
  * Where the channels come from (G10b, features 209–212): the saved sources and a form to add one.
@@ -174,23 +175,23 @@ internal fun LiveTvSourceDialog(repository: LiveTvRepository, onDismiss: () -> U
                         modifier = Modifier.fillMaxWidth().padding(top = NuvioTheme.spacing.sm),
                         horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm, Alignment.End),
                     ) {
-                        LiveTvPillButton(text = stringResource(R.string.live_tv_close), onClick = onDismiss)
-                        LiveTvPillButton(text = stringResource(R.string.live_tv_add_source_button), onClick = { adding = true })
+                        LiveTvDialogButton(text = stringResource(R.string.live_tv_close), onClick = onDismiss)
+                        LiveTvDialogButton(text = stringResource(R.string.live_tv_add_source_button), onClick = { adding = true })
                     }
                 } else {
                     Row(horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm)) {
-                        LiveTvPillButton(
+                        LiveTvDialogButton(
                             text = stringResource(R.string.live_tv_source_m3u),
                             selected = tab == LiveTvSourceType.M3u,
                             onClick = { tab = LiveTvSourceType.M3u },
                             modifier = Modifier.focusRequester(firstFocus),
                         )
-                        LiveTvPillButton(
+                        LiveTvDialogButton(
                             text = stringResource(R.string.live_tv_source_xtream),
                             selected = tab == LiveTvSourceType.Xtream,
                             onClick = { tab = LiveTvSourceType.Xtream },
                         )
-                        LiveTvPillButton(
+                        LiveTvDialogButton(
                             text = stringResource(R.string.live_tv_source_stalker),
                             selected = tab == LiveTvSourceType.Stalker,
                             onClick = { tab = LiveTvSourceType.Stalker },
@@ -251,11 +252,11 @@ internal fun LiveTvSourceDialog(repository: LiveTvRepository, onDismiss: () -> U
                         horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm, Alignment.End),
                     ) {
                         if (state.hasSource) {
-                            LiveTvPillButton(text = stringResource(R.string.live_tv_back), onClick = { adding = false })
+                            LiveTvDialogButton(text = stringResource(R.string.live_tv_back), onClick = { adding = false })
                         } else {
-                            LiveTvPillButton(text = stringResource(R.string.live_tv_close), onClick = onDismiss)
+                            LiveTvDialogButton(text = stringResource(R.string.live_tv_close), onClick = onDismiss)
                         }
-                        LiveTvPillButton(
+                        LiveTvDialogButton(
                             text = stringResource(R.string.live_tv_load),
                             enabled = !state.isLoading,
                             onClick = {
@@ -333,8 +334,11 @@ private fun LiveTvSourceRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(NuvioTheme.colors.BackgroundElevated.copy(alpha = 0.6f))
+            .then(
+                if (NuvioTheme.isNetflix) Modifier.background(NetflixThemeTokens.surfaceRaised, NetflixThemeTokens.buttonShape)
+                else Modifier.clip(RoundedCornerShape(14.dp))
+                    .background(NuvioTheme.colors.BackgroundElevated.copy(alpha = 0.6f))
+            )
             .padding(start = NuvioTheme.spacing.lg, end = NuvioTheme.spacing.sm, top = 10.dp, bottom = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -354,7 +358,7 @@ private fun LiveTvSourceRow(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        LiveTvPillButton(
+        LiveTvDialogButton(
             text = stringResource(if (confirmingRemove) R.string.live_tv_remove_confirm else R.string.live_tv_remove_source),
             onClick = onRemove,
             modifier = modifier,

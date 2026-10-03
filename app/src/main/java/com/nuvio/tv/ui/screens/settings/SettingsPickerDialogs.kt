@@ -3,6 +3,7 @@
 package com.nuvio.tv.ui.screens.settings
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -194,10 +195,10 @@ internal fun ColorSelectionDialog(
                     border = CardDefaults.border(
                         focusedBorder = Border(
                             border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                            shape = RoundedCornerShape(NuvioTheme.radii.sm)
+                            shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.sm)
                         )
                     ),
-                    shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.sm))
+                    shape = CardDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.sm))
                 ) {
                     Text(
                         text = "−",
@@ -235,10 +236,10 @@ internal fun ColorSelectionDialog(
                     border = CardDefaults.border(
                         focusedBorder = Border(
                             border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                            shape = RoundedCornerShape(NuvioTheme.radii.sm)
+                            shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.sm)
                         )
                     ),
-                    shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.sm))
+                    shape = CardDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.sm))
                 ) {
                     Text(
                         text = "+",
@@ -264,10 +265,10 @@ internal fun ColorSelectionDialog(
                     border = CardDefaults.border(
                         focusedBorder = Border(
                             border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                            shape = RoundedCornerShape(NuvioTheme.radii.sm)
+                            shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.sm)
                         )
                     ),
-                    shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.sm)),
+                    shape = CardDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.sm)),
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
@@ -289,10 +290,10 @@ internal fun ColorSelectionDialog(
                     border = CardDefaults.border(
                         focusedBorder = Border(
                             border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                            shape = RoundedCornerShape(NuvioTheme.radii.sm)
+                            shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.sm)
                         )
                     ),
-                    shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.sm)),
+                    shape = CardDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.radii.sm)),
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(

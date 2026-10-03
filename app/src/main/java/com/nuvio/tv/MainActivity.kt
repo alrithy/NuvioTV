@@ -51,6 +51,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Movie
+import androidx.compose.material.icons.filled.Tv
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.LiveTv
 import androidx.compose.material.icons.filled.Search
@@ -892,7 +894,11 @@ open class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     var optimisticRoute by remember { mutableStateOf<String?>(null) }
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
-                    val actualRoute = navBackStackEntry?.destination?.route
+                    val netflixThemeEnabled = NuvioTheme.isNetflix
+                    val destinationRoute = navBackStackEntry?.destination?.route
+                    val actualRoute = if (destinationRoute == Screen.Discover.routePattern) {
+                        Screen.Discover.createRoute(if (netflixThemeEnabled) navBackStackEntry?.arguments?.getString("type") else null)
+                    } else destinationRoute
                     val currentRoute = optimisticRoute ?: actualRoute
                     startupDestination = startupDestinationForRoute(actualRoute ?: startDestination)
 
@@ -1053,7 +1059,7 @@ open class MainActivity : ComponentActivity() {
                         if (discoverLocation == null) return@LaunchedEffect
                         val onDiscoverRoute = currentRoute == Screen.Discover.route ||
                             currentRoute?.startsWith("${Screen.Discover.route}/") == true
-                        if (discoverLocation == DiscoverLocation.OFF && onDiscoverRoute) {
+                        if (!netflixThemeEnabled && discoverLocation == DiscoverLocation.OFF && onDiscoverRoute) {
                             navController.navigate(Screen.Home.route) {
                                 popUpTo(navController.graph.startDestinationId) { saveState = false }
                                 launchSingleTop = true
@@ -1073,15 +1079,20 @@ open class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                    val rootRoutes = remember(discoverLocation, liveTvEnabled) {
+                    val rootRoutes = remember(discoverLocation, liveTvEnabled, netflixThemeEnabled) {
                         buildSet {
                             add(Screen.Home.route)
                             if (calendarEnabled) add(Screen.Calendar.route)
                             if (liveTvEnabled) add(Screen.LiveTv.route)
                             add(Screen.Search.route)
-                            add(Screen.Library.route)
+                            // NETFLIX_THEME: My Netflix is the root; the full Library opens from it as a child.
+                            if (netflixThemeEnabled) add(Screen.MyNetflix.route) else add(Screen.Library.route)
                             add(Screen.Settings.route)
-                            if (discoverLocation == DiscoverLocation.IN_SIDEBAR) {
+                            if (netflixThemeEnabled) {
+                                add(Screen.Discover.route)
+                                add(Screen.Discover.createRoute("movie"))
+                                add(Screen.Discover.createRoute("series"))
+                            } else if (discoverLocation == DiscoverLocation.IN_SIDEBAR) {
                                 add(Screen.Discover.route)
                             }
                         }
@@ -1089,12 +1100,18 @@ open class MainActivity : ComponentActivity() {
 
                     val strNavHome = stringResource(R.string.nav_home)
                     val strNavDiscover = stringResource(R.string.nav_discover)
+                    val strNavMovies = stringResource(R.string.nav_movies)
+                    val strNavSeries = stringResource(R.string.nav_series)
                     val strNavSearch = stringResource(R.string.nav_search)
                     val strNavLibrary = stringResource(R.string.nav_library)
                     val strNavSettings = stringResource(R.string.nav_settings)
                     val strNavCalendar = stringResource(R.string.nav_calendar)
                     val strNavLiveTv = stringResource(R.string.live_tv_title)
+                    val strNavNetflixShows = stringResource(R.string.netflix_nav_shows)
+                    val strNavMyNetflix = stringResource(R.string.netflix_nav_my_netflix)
                     val drawerItems = remember(
+                        strNavNetflixShows,
+                        strNavMyNetflix,
                         strNavHome,
                         strNavDiscover,
                         strNavCalendar,
@@ -1103,9 +1120,25 @@ open class MainActivity : ComponentActivity() {
                         strNavSearch,
                         strNavLibrary,
                         strNavSettings,
-                        discoverLocation
+                        discoverLocation,
+                        netflixThemeEnabled,
+                        strNavMovies,
+                        strNavSeries
                     ) {
                         buildList {
+                            if (netflixThemeEnabled) {
+                                // Current Netflix TV order (parity audit §4): Home, Shows, Movies, My Netflix;
+                                // the top bar draws Search as an icon and Settings as a trailing low-emphasis icon.
+                                add(DrawerItem(Screen.Search.route, strNavSearch, iconRes = R.raw.sidebar_search))
+                                add(DrawerItem(Screen.Home.route, strNavHome, icon = Icons.Default.Home))
+                                add(DrawerItem(Screen.Discover.createRoute("series"), strNavNetflixShows, icon = Icons.Default.Tv))
+                                add(DrawerItem(Screen.Discover.createRoute("movie"), strNavMovies, icon = Icons.Default.Movie))
+                                add(DrawerItem(Screen.MyNetflix.route, strNavMyNetflix, iconRes = R.raw.sidebar_library))
+                                if (calendarEnabled) add(DrawerItem(Screen.Calendar.route, strNavCalendar, icon = Icons.Default.DateRange))
+                                if (liveTvEnabled) add(DrawerItem(Screen.LiveTv.route, strNavLiveTv, icon = Icons.Default.LiveTv))
+                                add(DrawerItem(Screen.Settings.route, strNavSettings, iconRes = R.raw.sidebar_settings))
+                                return@buildList
+                            }
                             add(
                                 DrawerItem(
                                     route = Screen.Home.route,
@@ -1225,7 +1258,30 @@ open class MainActivity : ComponentActivity() {
                                 storedNavigationStyle,
                                 modernLayout = homeLayout == com.nuvio.tv.domain.model.HomeLayout.MODERN
                             )
-                            if (navigationStyle.isGlass) {
+                            if (NuvioTheme.isNetflix) {
+                                // NETFLIX_THEME (parity audit §4): current-generation top navigation, never a side rail.
+                                com.nuvio.tv.ui.screens.uistyle.NetflixTopNavigationScaffold(
+                                    longPressBackHeld = longPressBackHeld,
+                                    navController = navController,
+                                    startDestination = startDestination,
+                                    currentRoute = currentRoute,
+                                    rootRoutes = rootRoutes,
+                                    entries = remember(drawerItems) {
+                                        com.nuvio.tv.ui.screens.uistyle.netflixNavEntries(
+                                            drawerItems, Screen.Search.route, Screen.Settings.route
+                                        )
+                                    },
+                                    selectedRoute = selectedDrawerRoute,
+                                    profile = com.nuvio.tv.ui.screens.uistyle.TopMenuProfile(
+                                        activeProfile?.name ?: "",
+                                        activeProfile?.avatarColorHex ?: "#1E88E5",
+                                        activeProfileAvatarImageUrl,
+                                        handleSwitchProfile
+                                    ),
+                                    onNavigate = { optimisticRoute = it },
+                                    onExitApp = handleExitApp
+                                )
+                            } else if (navigationStyle.isGlass) {
                                 com.nuvio.tv.ui.screens.uistyle.GlassChromeScaffold(
                                     effect = com.nuvio.tv.fork.uistyle.UiStyleRules.glassEffect(
                                         android.os.Build.VERSION.SDK_INT,
@@ -2469,7 +2525,9 @@ internal fun navigateToDrawerRoute( // Superfork G12a: shared with the top menu
                 saveState = true
             }
             launchSingleTop = true
-            restoreState = true
+            // Movies and Series share the Discover destination; restoring the previous category
+            // would also restore its old type argument and select the wrong menu item.
+            restoreState = !targetRoute.startsWith("${Screen.Discover.route}?type=")
         }
     } catch (e: IllegalArgumentException) {
         Log.w("NuvioNavigation", "Route not found in nav graph: $targetRoute", e)

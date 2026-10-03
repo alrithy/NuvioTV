@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.components
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.theme.accentBrush
 
 import androidx.compose.animation.core.CubicBezierEasing
@@ -31,7 +32,11 @@ fun LoadingIndicator(
     modifier: Modifier = Modifier,
     color: Color = Color.Unspecified
 ) {
-    val brush = if (color == Color.Unspecified) NuvioTheme.palette.accentBrush() else SolidColor(color)
+    val brush = when {
+        color != Color.Unspecified -> SolidColor(color)
+        NuvioTheme.isNetflix -> SolidColor(NetflixThemeTokens.textPrimary)
+        else -> NuvioTheme.palette.accentBrush()
+    }
     val frame = rememberInfiniteTransition(label = "loading_indicator").animateFloat(
         initialValue = 0f,
         targetValue = 60f,

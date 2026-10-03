@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.components
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -73,7 +74,7 @@ fun P2pConsentDialog(
         CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(NuvioTheme.radii.xl))
+                    .clip(RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.xl))
                     .background(NuvioTheme.colors.BackgroundCard)
             ) {
                 Column(
@@ -149,10 +150,10 @@ fun P2pConsentDialog(
                             border = CardDefaults.border(
                                 focusedBorder = Border(
                                     border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                                    shape = RoundedCornerShape(NuvioTheme.radii.md)
+                                    shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.md)
                                 )
                             ),
-                            shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.md)),
+                            shape = CardDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.md)),
                             scale = CardDefaults.scale(focusedScale = 1.05f)
                         ) {
                             Text(
@@ -179,10 +180,10 @@ fun P2pConsentDialog(
                             border = CardDefaults.border(
                                 focusedBorder = Border(
                                     border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                                    shape = RoundedCornerShape(NuvioTheme.radii.md)
+                                    shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.md)
                                 )
                             ),
-                            shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.md)),
+                            shape = CardDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else NuvioTheme.radii.md)),
                             scale = CardDefaults.scale(focusedScale = 1.05f)
                         ) {
                             Text(

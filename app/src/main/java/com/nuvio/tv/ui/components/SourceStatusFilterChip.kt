@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.components
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.util.directedFor
 
 import androidx.compose.animation.core.Animatable
@@ -110,7 +111,7 @@ fun SourceStatusFilterChip(
         border = FilterChipDefaults.border(
             border = Border(
                 border = BorderStroke(NuvioTheme.spacing.hairline, if (isError) NuvioTheme.colors.Error.copy(alpha = 0.7f) else NuvioTheme.colors.Border),
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else 20.dp)
             ),
             focusedBorder = Border(
                 border = if (isError) {
@@ -118,11 +119,11 @@ fun SourceStatusFilterChip(
                 } else {
                     NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs)
                 },
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else 20.dp)
             ),
             selectedBorder = Border(
                 border = BorderStroke(NuvioTheme.spacing.hairline, if (isError) NuvioTheme.colors.Error.copy(alpha = 0.75f) else NuvioTheme.colors.Primary),
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else 20.dp)
             ),
             focusedSelectedBorder = Border(
                 border = if (isError) {
@@ -130,10 +131,10 @@ fun SourceStatusFilterChip(
                 } else {
                     NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs)
                 },
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else 20.dp)
             )
         ),
-        shape = FilterChipDefaults.shape(shape = RoundedCornerShape(20.dp))
+        shape = FilterChipDefaults.shape(shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else 20.dp))
     ) {
         Text(
             text = name,

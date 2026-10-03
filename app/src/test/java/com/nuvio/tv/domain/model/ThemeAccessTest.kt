@@ -7,6 +7,13 @@ import org.junit.Test
 
 class ThemeAccessTest {
     @Test
+    fun netflixIsAnIndependentThemeAvailableForEveryProfileWithoutMembership() {
+        assertTrue(AppTheme.NETFLIX in availableAppThemes(CosmeticEntitlements.None))
+        assertEquals(AppTheme.NETFLIX, resolveAppTheme(AppTheme.NETFLIX, CosmeticEntitlements.None))
+        assertEquals(AppTheme.NETFLIX, resolveAppTheme(AppTheme.NETFLIX, CosmeticEntitlements.SupporterPreview))
+        assertEquals(AppTheme.NETFLIX, AppTheme.valueOf("NETFLIX"))
+    }
+    @Test
     fun customThemesAreAvailableWithoutMembership() {
         val themes = availableAppThemes(CosmeticEntitlements.None)
 

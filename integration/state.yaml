@@ -241,3 +241,11 @@ completed_gates:
     fullDebug APK; per-slice exact-head runs 36877526195 (2219), 36879784424 (2290), 36882099635 (2323);
     docs/audits/G13_CLOSEOUT.md; D047, D063; 9 IDs experimental (OFF unless opted in); HV-G13-1..HV-G13-3 MANUAL-PENDING for G14.'
   deferred_features: [251, 252, 253, 254]
+
+user_authorized_task:
+  id: NETFLIX_THEME
+  branch: feat/netflix-theme
+  task_packet: tasks/NETFLIX_THEME.md
+  authorization: explicit-user-request
+  status: IN_PROGRESS
+  feature_ids: [188, 189, 190, 191, 192, 195, 201, 202, 203, 205]

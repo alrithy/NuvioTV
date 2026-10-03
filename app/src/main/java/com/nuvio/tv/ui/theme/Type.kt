@@ -154,6 +154,20 @@ fun buildNuvioTypography(fontFamily: FontFamily): Typography = Typography(
 val NuvioTypography = buildNuvioTypography(InterFamily)
 
 @OptIn(ExperimentalTvMaterial3Api::class)
+fun buildNetflixTypography(): Typography {
+    val base = buildNuvioTypography(NetflixThemeTokens.fontFamily)
+    return base.copy(
+        displayLarge = base.displayLarge.copy(fontSize = NetflixThemeTokens.heroTitle, lineHeight = 42.sp),
+        displayMedium = base.displayMedium.copy(fontSize = NetflixThemeTokens.heroTitle, lineHeight = 42.sp),
+        headlineMedium = base.headlineMedium.copy(fontSize = NetflixThemeTokens.rowHeader, lineHeight = 26.sp),
+        bodyLarge = base.bodyLarge.copy(fontSize = NetflixThemeTokens.description, letterSpacing = 0.sp),
+        bodyMedium = base.bodyMedium.copy(letterSpacing = 0.sp),
+        labelMedium = base.labelMedium.copy(fontSize = NetflixThemeTokens.metadata, letterSpacing = 0.sp),
+        labelLarge = base.labelLarge.copy(fontSize = NetflixThemeTokens.buttonText, fontWeight = FontWeight.Bold, letterSpacing = 0.sp)
+    )
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
 fun buildNuvioTextStyles(typography: Typography): NuvioTextStyleTokens = NuvioTextStyleTokens(
     display = typography.displayLarge,
     displayCompact = typography.displayMedium,

@@ -574,3 +574,23 @@ starts, in the component that owns it, with official behaviour kept wherever the
 
 Also: the G9d parameters of `EpisodeShuffleDialog` move after official's, so official's instrumented
 test (positional call) compiles again; production calls use names.
+
+
+## D068 — Explicit independent Netflix presentation task, retaining current owners
+The repository owner explicitly requested `feat/netflix-theme` after the G12
+closeout. This task is recorded separately from blocked G14 in
+`state.yaml:user_authorized_task` and `tasks/NETFLIX_THEME.md`. It extends the
+existing `AppTheme`/ThemeDataStore profile-scoped choice, current Modern home
+pipeline, sidebar, detail/episode/search/profile owners and player chrome. It
+does not write the official home-layout/navigation preferences, add a router,
+backend or playback engine, change a baseline pin, or certify hardware.
+Existing layouts/styles are retained. Centralized legal platform typography,
+black/white tokens and AdaptiveResources fallbacks govern the presentation.
+Observable TV behavior is the target; invented match/stream quality facts and
+Netflix assets/internal code/proprietary fonts are excluded.
+
+The scope guard accepts the exact documented task/branch/authorization triplet
+while requiring the usual handoff/traceability updates and preserving canonical
+G14 state and previous feature evidence. Ordinary task, sync, baseline debt and
+CI protections remain in effect. This task is not Done while its visual evidence
+or build checks remain incomplete.

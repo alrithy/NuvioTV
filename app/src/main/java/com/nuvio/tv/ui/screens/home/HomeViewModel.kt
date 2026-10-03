@@ -18,6 +18,7 @@ import com.nuvio.tv.data.local.StartupAuthNotice
 import com.nuvio.tv.data.local.MDBListSettingsDataStore
 import com.nuvio.tv.data.local.TmdbSettingsDataStore
 import com.nuvio.tv.data.local.TraktSettingsDataStore
+import com.nuvio.tv.data.local.ThemeDataStore
 import com.nuvio.tv.data.local.ContinueWatchingEnrichmentCache
 import com.nuvio.tv.data.trailer.TrailerService
 import com.nuvio.tv.domain.model.Addon
@@ -72,6 +73,7 @@ class HomeViewModel @Inject constructor(
     internal val episodeShuffle: com.nuvio.tv.domain.model.EpisodeShuffle,
     internal val collectionsDataStore: CollectionsDataStore,
     internal val layoutPreferenceDataStore: LayoutPreferenceDataStore,
+    internal val themeDataStore: ThemeDataStore,
     internal val playerSettingsDataStore: PlayerSettingsDataStore,
     internal val tmdbSettingsDataStore: TmdbSettingsDataStore,
     internal val mdbListSettingsDataStore: MDBListSettingsDataStore,
@@ -123,6 +125,8 @@ class HomeViewModel @Inject constructor(
     }
 
     internal val _modernHomePresentation = MutableStateFlow(ModernHomePresentationState())
+    internal val _netflixHomeSources = MutableStateFlow(NetflixHomeSources())
+    internal val _homeCompletedProgress = MutableStateFlow<HomeCompletedProgressSnapshot?>(null)
     val modernHomePresentation: StateFlow<ModernHomePresentationState> = _modernHomePresentation.asStateFlow()
 
     internal val _movieWatchedStatus = MutableStateFlow<Map<String, Boolean>>(emptyMap())
@@ -360,6 +364,7 @@ class HomeViewModel @Inject constructor(
             profileManager.activeProfileReady.first { it }
             observeLayoutPreferences()
             observeModernHomePresentation()
+            observeNetflixHomeSourcesPipeline()
             loadContinueWatching()
             watchedSeriesStateHolder.loadFromDisk()
             observeExternalMetaPrefetchPreference()
@@ -382,6 +387,8 @@ class HomeViewModel @Inject constructor(
             profileManager.activeProfileId.collect { newId ->
                 if (newId != previousProfileId) {
                     previousProfileId = newId
+                    _netflixHomeSources.value = NetflixHomeSources()
+                    _homeCompletedProgress.value = null
                     // Cancel old pipeline — prevents racing writes from stale coroutines.
                     cwPipelineJob?.cancel()
                     cwPipelineJob = null

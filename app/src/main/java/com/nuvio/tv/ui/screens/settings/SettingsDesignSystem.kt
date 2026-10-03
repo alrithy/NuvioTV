@@ -96,6 +96,7 @@ import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.screens.detail.requestFocusAfterFrames
 import com.nuvio.tv.ui.theme.NuvioComponents
 import com.nuvio.tv.ui.theme.NuvioRadii
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 internal val SettingsContainerRadius = NuvioComponents.tokens.settings.containerRadius
 internal val SettingsPillRadius = NuvioRadii.tokens.full
@@ -129,11 +130,18 @@ internal fun settingsFocusFillColor(): Color = NuvioTheme.colors.TextPrimary.cop
 
 @Composable
 @androidx.compose.runtime.ReadOnlyComposable
-internal fun settingsRowShape(): RoundedCornerShape = when (NuvioTheme.settingsUiStyle) {
+internal fun settingsRowShape(): RoundedCornerShape = if (NuvioTheme.isNetflix) {
+    NetflixThemeTokens.buttonShape
+} else when (NuvioTheme.settingsUiStyle) {
     SettingsUiStyle.CLASSIC -> RoundedCornerShape(SettingsPillRadius)
     SettingsUiStyle.ZEN -> SettingsZenRowShape
     SettingsUiStyle.HORIZON -> SettingsHorizonRowShape
 }
+
+@Composable
+@androidx.compose.runtime.ReadOnlyComposable
+private fun settingsContainerShape(): RoundedCornerShape =
+    if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(SettingsContainerRadius)
 
 @Composable
 @androidx.compose.runtime.ReadOnlyComposable
@@ -237,12 +245,12 @@ internal fun SettingsBrandPanel(
 
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(SettingsContainerRadius))
+            .clip(settingsContainerShape())
             .background(NuvioTheme.colors.BackgroundElevated)
             .border(
                 width = NuvioTheme.spacing.hairline,
                 color = NuvioTheme.colors.Border,
-                shape = RoundedCornerShape(SettingsContainerRadius)
+                shape = settingsContainerShape()
             )
             .padding(26.dp),
         verticalArrangement = Arrangement.Center,
@@ -325,12 +333,12 @@ internal fun SettingsWorkspaceSurface(
     } else {
         Box(
             modifier = modifier
-                .clip(RoundedCornerShape(SettingsContainerRadius))
+                .clip(settingsContainerShape())
                 .background(NuvioTheme.colors.BackgroundElevated)
                 .border(
                     width = NuvioTheme.spacing.hairline,
                     color = NuvioTheme.colors.Border,
-                    shape = RoundedCornerShape(SettingsContainerRadius)
+                    shape = settingsContainerShape()
                 )
                 .padding(20.dp),
             content = content
@@ -351,7 +359,7 @@ internal fun SettingsRailButton(
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val zen = isFlatSettingsStyle()
-    val railShape = if (zen) SettingsZenRowShape else RoundedCornerShape(SettingsPillRadius)
+    val railShape = if (zen) SettingsZenRowShape else settingsRowShape()
     val appliedModifier = if (focusRequester != null) {
         modifier.focusRequester(focusRequester)
     } else {
@@ -385,11 +393,11 @@ internal fun SettingsRailButton(
             CardDefaults.border(
                 border = if (isSelected) Border(
                     border = NuvioTheme.focusRing.border(NuvioTheme.spacing.hairline),
-                    shape = RoundedCornerShape(SettingsPillRadius)
+                    shape = settingsRowShape()
                 ) else Border.None,
                 focusedBorder = Border(
                     border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                    shape = RoundedCornerShape(SettingsPillRadius)
+                    shape = settingsRowShape()
                 )
             )
         },
@@ -418,7 +426,7 @@ internal fun SettingsRailButton(
                             modifier = Modifier
                                 .width(3.dp)
                                 .height(16.dp)
-                                .clip(RoundedCornerShape(SettingsPillRadius))
+                                .clip(settingsRowShape())
                                 .background(
                                     if (isSelected) NuvioTheme.colors.Secondary else Color.Transparent
                                 )
@@ -531,7 +539,7 @@ internal fun SettingsTopBarTab(
             }
         ),
         border = CardDefaults.border(border = Border.None, focusedBorder = Border.None),
-        shape = CardDefaults.shape(RoundedCornerShape(SettingsPillRadius)),
+        shape = CardDefaults.shape(settingsRowShape()),
         scale = CardDefaults.scale(focusedScale = 1f, pressedScale = 1f)
     ) {
         Row(
@@ -662,7 +670,7 @@ internal fun SettingsGroupCard(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(SettingsHorizonGroupShape)
+                    .clip(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else SettingsHorizonGroupShape)
                     .background(NuvioTheme.colors.BackgroundCard.copy(alpha = 0.55f))
                     .padding(NuvioTheme.spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xxs)
@@ -1197,26 +1205,26 @@ internal fun SettingsChoiceChip(
             CardDefaults.border(
                 border = if (selected) Border(
                     border = BorderStroke(NuvioTheme.spacing.hairline, NuvioTheme.colors.Secondary.copy(alpha = 0.6f)),
-                    shape = RoundedCornerShape(SettingsPillRadius)
+                    shape = settingsRowShape()
                 ) else Border.None,
                 focusedBorder = if (selected) Border(
                     border = BorderStroke(NuvioTheme.spacing.hairline, NuvioTheme.colors.Secondary.copy(alpha = 0.6f)),
-                    shape = RoundedCornerShape(SettingsPillRadius)
+                    shape = settingsRowShape()
                 ) else Border.None
             )
         } else {
             CardDefaults.border(
                 border = if (selected) Border(
                     border = NuvioTheme.focusRing.border(NuvioTheme.spacing.hairline),
-                    shape = RoundedCornerShape(SettingsPillRadius)
+                    shape = settingsRowShape()
                 ) else Border.None,
                 focusedBorder = Border(
                     border = NuvioTheme.focusRing.border(NuvioTheme.spacing.hairline),
-                    shape = RoundedCornerShape(SettingsPillRadius)
+                    shape = settingsRowShape()
                 )
             )
         },
-        shape = CardDefaults.shape(RoundedCornerShape(SettingsPillRadius)),
+        shape = CardDefaults.shape(settingsRowShape()),
         scale = CardDefaults.scale(focusedScale = 1f, pressedScale = 1f)
     ) {
         Text(
@@ -1251,7 +1259,7 @@ private fun SettingsTogglePill(
         modifier = Modifier
             .width(46.dp)
             .height(NuvioTheme.spacing.xl)
-            .clip(RoundedCornerShape(SettingsPillRadius))
+            .clip(settingsRowShape())
             .background(trackColor)
             .padding(NuvioTheme.spacing.xxs),
         contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart

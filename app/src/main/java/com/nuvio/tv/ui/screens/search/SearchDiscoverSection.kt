@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.screens.search
 
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.ui.screens.home.HeroBackdropState
 
@@ -96,6 +97,7 @@ internal fun DiscoverSection(
     watchedSeriesIds: Set<String> = emptySet(),
     focusResults: Boolean,
     showBuiltInHeader: Boolean = true,
+    fixedType: String? = null,
     firstItemFocusRequester: FocusRequester,
     focusedItemIndex: Int,
     shouldRestoreFocusedItem: Boolean,
@@ -107,6 +109,7 @@ internal fun DiscoverSection(
     onSelectCatalog: (String) -> Unit,
     onSelectGenre: (String?) -> Unit,
     onLoadMore: () -> Unit,
+    onRetry: () -> Unit = {},
     onItemLongPress: (MetaPreview, String) -> Unit = { _, _ -> },
     modifier: Modifier = Modifier
 ) {
@@ -134,11 +137,13 @@ internal fun DiscoverSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = NuvioTheme.spacing.xxxl),
+            .padding(horizontal = if (NuvioTheme.isNetflix) NetflixThemeTokens.safeVerticalMargin else NuvioTheme.spacing.xxxl),
         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
     ) {
         Text(
-            text = stringResource(R.string.discover_title),
+            text = if (NuvioTheme.isNetflix && fixedType != null) {
+                stringResource(if (fixedType == "movie") R.string.nav_movies else R.string.nav_series)
+            } else stringResource(R.string.discover_title),
             style = MaterialTheme.typography.headlineMedium,
             color = if (showBuiltInHeader) NuvioTheme.colors.TextPrimary else Color.Transparent
         )
@@ -147,7 +152,7 @@ internal fun DiscoverSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
         ) {
-            DiscoverDropdownPicker(
+            if (fixedType == null) DiscoverDropdownPicker(
                 modifier = Modifier.weight(1f)
                     .focusRequester(filterFocusRequester),
                 title = stringResource(R.string.discover_filter_type),
@@ -169,7 +174,8 @@ internal fun DiscoverSection(
             )
 
             DiscoverDropdownPicker(
-                modifier = Modifier.weight(1f),
+                modifier = Modifier.weight(1f)
+                    .then(if (fixedType != null) Modifier.focusRequester(filterFocusRequester) else Modifier),
                 title = stringResource(R.string.discover_filter_catalog),
                 value = selectedCatalogLabel,
                 selectedValue = uiState.selectedDiscoverCatalogKey,
@@ -224,6 +230,9 @@ internal fun DiscoverSection(
         }
 
         when {
+            NuvioTheme.isNetflix && uiState.discoverError != null && uiState.discoverResults.isEmpty() -> {
+                com.nuvio.tv.ui.components.ErrorState(message = uiState.discoverError, onRetry = onRetry)
+            }
             uiState.discoverLoading && uiState.discoverResults.isEmpty() -> {
                 Box(
                     modifier = Modifier
@@ -600,7 +609,7 @@ internal fun DiscoverGrid(
     LazyVerticalGrid(
         state = gridState,
         columns = GridCells.Adaptive(
-            minSize = if (globalLandscape) posterCardStyle.height else adaptiveStyle.width
+            minSize = if (NuvioTheme.isNetflix) posterCardStyle.width else if (globalLandscape) posterCardStyle.height else adaptiveStyle.width
         ),
         modifier = Modifier.fillMaxSize()
             .focusRestorer { focusedItemRequester }
@@ -651,8 +660,8 @@ internal fun DiscoverGrid(
                 }
             ),
         contentPadding = PaddingValues(bottom = NuvioTheme.spacing.xxl),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.lg)
+        horizontalArrangement = Arrangement.spacedBy(if (NuvioTheme.isNetflix) NetflixThemeTokens.cardGap else 10.dp),
+        verticalArrangement = Arrangement.spacedBy(if (NuvioTheme.isNetflix) NetflixThemeTokens.rowGap else NuvioTheme.spacing.lg)
     ) {
         itemsIndexed(
             items = items,

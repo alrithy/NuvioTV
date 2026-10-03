@@ -3,6 +3,9 @@ package com.nuvio.tv.ui.screens.player
 import com.nuvio.tv.ui.theme.NuvioMotion
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.ui.theme.netflixPresentationPolicy
+import com.nuvio.tv.fork.resource.AdaptiveResources
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -46,6 +49,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import com.nuvio.tv.ui.components.LoadingIndicator
 import androidx.compose.ui.res.stringResource
 import androidx.tv.material3.MaterialTheme
@@ -62,6 +66,10 @@ fun LoadingOverlay(
     progress: Float? = null,
     modifier: Modifier = Modifier
 ) {
+    if (NuvioTheme.isNetflix) {
+        NetflixPlayerLoadingOverlay(visible, backdropUrl, logoUrl, title, message, progress, modifier)
+        return
+    }
     var logoLoadFailed by remember(logoUrl) { mutableStateOf(false) }
     val showLogo = !logoUrl.isNullOrBlank() && !logoLoadFailed
 
@@ -289,6 +297,79 @@ fun LoadingOverlay(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Reuses the current loading state; the presentation keeps one artwork and one spinner. */
+@Composable
+internal fun NetflixPlayerLoadingOverlay(
+    visible: Boolean,
+    backdropUrl: String?,
+    logoUrl: String?,
+    title: String?,
+    message: String?,
+    progress: Float?,
+    modifier: Modifier = Modifier
+) {
+    var logoFailed by remember(logoUrl) { mutableStateOf(false) }
+    val context = LocalContext.current
+    val policy = netflixPresentationPolicy(AdaptiveResources.policy.tier)
+    val logoWidthPx = with(LocalDensity.current) { NetflixThemeTokens.State.maxTextWidth.roundToPx() }
+        .coerceAtMost(policy.maxBackdropWidthPx)
+    val logoHeightPx = with(LocalDensity.current) { NetflixThemeTokens.logoHeight.roundToPx() }
+        .coerceAtMost(policy.maxBackdropHeightPx)
+    val backdropRequest = remember(context, backdropUrl, policy.maxBackdropWidthPx, policy.maxBackdropHeightPx) {
+        backdropUrl?.takeIf(String::isNotBlank)?.let {
+            ImageRequest.Builder(context).data(it).size(policy.maxBackdropWidthPx, policy.maxBackdropHeightPx).build()
+        }
+    }
+    val logoRequest = remember(context, logoUrl, logoWidthPx, logoHeightPx) {
+        logoUrl?.takeIf(String::isNotBlank)?.let {
+            ImageRequest.Builder(context).data(it).size(logoWidthPx, logoHeightPx).build()
+        }
+    }
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(tween(NetflixThemeTokens.screenTransitionMillis)),
+        exit = fadeOut(tween(NetflixThemeTokens.focusDurationMillis)),
+        modifier = modifier
+    ) {
+        Box(Modifier.fillMaxSize().background(NetflixThemeTokens.background)) {
+            if (backdropRequest != null) {
+                AsyncImage(model = backdropRequest, contentDescription = null, contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize())
+                Box(Modifier.fillMaxSize().background(NetflixThemeTokens.overlay))
+            }
+            Column(
+                modifier = Modifier.align(Alignment.Center).padding(horizontal = NetflixThemeTokens.Player.safeMargin),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (logoRequest != null && !logoFailed) {
+                    AsyncImage(model = logoRequest, contentDescription = title, onError = { logoFailed = true },
+                        modifier = Modifier.width(NetflixThemeTokens.State.maxTextWidth).height(NetflixThemeTokens.logoHeight),
+                        contentScale = ContentScale.Fit)
+                    Spacer(Modifier.height(NetflixThemeTokens.rowGap))
+                } else if (!title.isNullOrBlank()) {
+                    Text(title, style = MaterialTheme.typography.headlineSmall, color = NetflixThemeTokens.textPrimary,
+                        textAlign = TextAlign.Center, maxLines = 2)
+                    Spacer(Modifier.height(NetflixThemeTokens.rowGap))
+                }
+                LoadingIndicator()
+                if (!message.isNullOrBlank()) {
+                    Spacer(Modifier.height(NetflixThemeTokens.metadataGap))
+                    Text(message, style = MaterialTheme.typography.bodyMedium, color = NetflixThemeTokens.textSecondary,
+                        textAlign = TextAlign.Center, maxLines = 2)
+                }
+                if (progress != null) {
+                    Spacer(Modifier.height(NetflixThemeTokens.metadataGap))
+                    Box(Modifier.width(NetflixThemeTokens.State.maxTextWidth).height(NetflixThemeTokens.progressHeight)
+                        .background(NetflixThemeTokens.surfaceMuted)) {
+                        Box(Modifier.fillMaxWidth(progress.coerceIn(0f, 1f)).height(NetflixThemeTokens.progressHeight)
+                            .background(NetflixThemeTokens.progress))
                     }
                 }
             }

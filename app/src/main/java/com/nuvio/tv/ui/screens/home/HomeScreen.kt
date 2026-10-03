@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.screens.home
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.animation.AnimatedVisibility
@@ -95,9 +96,13 @@ fun HomeScreen(
     onContinueWatchingStartFromBeginning: (ContinueWatchingItem) -> Unit = onContinueWatchingClick,
     onContinueWatchingPlayManually: (ContinueWatchingItem) -> Unit = onContinueWatchingClick,
     onNavigateToCatalogSeeAll: (String, String, String) -> Unit = { _, _, _ -> },
-    onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> }
+    onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
+    onPlayClick: (String, String, String) -> Unit = onNavigateToDetail
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // A theme changes presentation, never the profile's chosen official layout preference.
+    val isNetflix = NuvioTheme.isNetflix
+    val presentationLayout = if (isNetflix) HomeLayout.MODERN else uiState.homeLayout
 
     // Home was the only major screen without a lifecycle observer, so nothing ever told it to
     // look at its catalogs again.
@@ -122,7 +127,7 @@ fun HomeScreen(
     val hasCollectionContent = uiState.homeRows.any { it is HomeRow.CollectionRow }
     val hasHeroContent = uiState.heroItems.isNotEmpty()
     val modernPresentationReady =
-        uiState.homeLayout != HomeLayout.MODERN ||
+        presentationLayout != HomeLayout.MODERN ||
             modernPresentation.rows.list.isNotEmpty() ||
             (uiState.heroSectionEnabled && hasHeroContent && !hasCatalogContent && !hasCollectionContent)
     var showHomeContentWithAnimation by rememberSaveable { mutableStateOf(false) }
@@ -133,8 +138,8 @@ fun HomeScreen(
     var catalogLoadingStarted by rememberSaveable { mutableStateOf(false) }
     var posterOptionsTarget by remember { mutableStateOf<HomePosterOptionsTarget?>(null) }
 
-    LaunchedEffect(uiState.homeLayout) {
-        if (uiState.homeLayout != HomeLayout.MODERN) {
+    LaunchedEffect(presentationLayout) {
+        if (presentationLayout != HomeLayout.MODERN) {
             HeroBackdropState.update(null)
         }
     }
@@ -356,6 +361,8 @@ fun HomeScreen(
                         visible = showHomeContentWithAnimation,
                         enter = if (hasShownInitialHomeContent) {
                             EnterTransition.None
+                        } else if (isNetflix) {
+                            fadeIn(animationSpec = tween(NetflixThemeTokens.screenTransitionMillis))
                         } else {
                             fadeIn(animationSpec = tween(320)) +
                                 slideInVertically(
@@ -364,7 +371,7 @@ fun HomeScreen(
                                 )
                         }
                     ) {
-                        when (uiState.homeLayout) {
+                        when (presentationLayout) {
                             HomeLayout.CLASSIC -> ClassicHomeRoute(
                                 viewModel = viewModel,
                                 uiState = uiState,
@@ -399,11 +406,13 @@ fun HomeScreen(
                                 viewModel = viewModel,
                                 uiState = uiState,
                                 onNavigateToDetail = onNavigateToDetailStable,
+                                onPlayClick = onPlayClick,
                                 onContinueWatchingClick = onContinueWatchingClickStable,
                                 onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginningStable,
                                 onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
                                 showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,
                                 onNavigateToFolderDetail = onNavigateToFolderDetailStable,
+                                onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAllStable,
                                 isCatalogItemWatched = isCatalogItemWatched,
                                 onCatalogItemLongPress = onCatalogItemLongPress
                             )
@@ -633,14 +642,17 @@ private fun ModernHomeRoute(
     viewModel: HomeViewModel,
     uiState: HomeUiState,
     onNavigateToDetail: (String, String, String) -> Unit,
+    onPlayClick: (String, String, String) -> Unit,
     onContinueWatchingClick: (ContinueWatchingItem) -> Unit,
     onContinueWatchingStartFromBeginning: (ContinueWatchingItem) -> Unit,
     onContinueWatchingPlayManually: (ContinueWatchingItem) -> Unit,
     showContinueWatchingManualPlayOption: Boolean,
     onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
+    onNavigateToCatalogSeeAll: (String, String, String) -> Unit = { _, _, _ -> },
     isCatalogItemWatched: (MetaPreview) -> Boolean,
     onCatalogItemLongPress: (MetaPreview, String) -> Unit
 ) {
+    val isNetflix = NuvioTheme.isNetflix
     val focusState by viewModel.focusState.collectAsStateWithLifecycle()
     val scrollToTopTrigger by viewModel.scrollToTopTrigger.collectAsStateWithLifecycle()
     val modernPresentation by viewModel.modernHomePresentation.collectAsStateWithLifecycle()
@@ -687,6 +699,10 @@ private fun ModernHomeRoute(
         trailerPreviewUrls = viewModel.trailerPreviewUrls,
         trailerPreviewAudioUrls = viewModel.trailerPreviewAudioUrls,
         onNavigateToDetail = onNavigateToDetail,
+        onPlayClick = onPlayClick,
+        onCatalogLibraryAction = remember(viewModel) {
+            { item, addonBaseUrl -> viewModel.openPosterListPicker(item, addonBaseUrl) }
+        },
         onContinueWatchingClick = onContinueWatchingClick,
         onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginning,
         onContinueWatchingPlayManually = onContinueWatchingPlayManually,
@@ -697,8 +713,12 @@ private fun ModernHomeRoute(
         isCatalogItemWatched = isCatalogItemWatched,
         onCatalogItemLongPress = onCatalogItemLongPress,
         onNavigateToFolderDetail = onNavigateToFolderDetail,
-        onItemFocus = remember(viewModel) {
-            { item -> viewModel.onItemFocus(item) }
+        onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAll,
+        onItemFocus = remember(viewModel, NuvioTheme.isNetflix) {
+            { item ->
+                viewModel.onItemFocus(item)
+                if (isNetflix) viewModel.refreshPosterLibraryStatus(item)
+            }
         },
         onPreloadAdjacentItem = preloadAdjacentItem,
         onSaveFocusState = saveModernFocusState,

@@ -43,7 +43,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.tv.material3.Button
+import com.nuvio.tv.ui.components.NuvioDialogButton as Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
@@ -56,6 +56,7 @@ import com.nuvio.tv.domain.model.ServerConfiguration
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.screens.detail.requestFocusAfterFrames
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import kotlinx.coroutines.delay
 
 @Composable
@@ -110,7 +111,7 @@ internal fun ServerOptionsMenuHost(
             onDismissRequest = { expanded = false },
             offset = DpOffset(x = 0.dp, y = 12.dp),
             modifier = Modifier.width(320.dp),
-            shape = RoundedCornerShape(14.dp),
+            shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(14.dp),
             containerColor = NuvioTheme.colors.BackgroundCard,
             tonalElevation = 0.dp,
             shadowElevation = NuvioTheme.spacing.sm,
@@ -188,12 +189,12 @@ private fun ServerMenuItem(
             .padding(horizontal = 6.dp, vertical = NuvioTheme.spacing.xxs)
             .background(
                 color = if (isFocused) NuvioTheme.colors.Secondary else Color.Transparent,
-                shape = RoundedCornerShape(10.dp)
+                shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(10.dp)
             )
             .border(
                 width = if (isFocused) NuvioTheme.spacing.xxs else NuvioTheme.spacing.hairline,
                 color = if (isFocused) NuvioTheme.colors.FocusRing else Color.Transparent,
-                shape = RoundedCornerShape(10.dp)
+                shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(10.dp)
             )
             .onFocusChanged { state -> isFocused = state.isFocused || state.hasFocus },
         text = {
