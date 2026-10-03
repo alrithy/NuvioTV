@@ -571,7 +571,9 @@ class NetflixThemeTvTest {
 
     @Test fun returningFromDetailsRestoresTheExactRowAndCard() {
         var opened = 0
-        val saved = HomeScreenFocusState(focusedRowKey = "popular",
+        // What onSaveFocusState records on leaving Home: the vertical position as well as the row and
+        // card (rows: continue_watching 0, trending 1, popular 2), so the target row is composed.
+        val saved = HomeScreenFocusState(verticalScrollIndex = 2, focusedRowKey = "popular",
             focusedItemKeyByRow = mapOf("popular" to "popular:fixture:3"), hasSavedFocus = true)
         setContent { FullHome(focusState = saved) { opened++ } }
         val target = "netflix_home_card_focus_popular:fixture:3"
