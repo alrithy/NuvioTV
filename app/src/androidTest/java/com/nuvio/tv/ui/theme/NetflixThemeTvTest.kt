@@ -835,6 +835,14 @@ class NetflixThemeTvTest {
         instrumentation.sendKeyDownUpSync(keyCode)
         compose.waitForIdle()
     }
+    private fun Bitmap.isUniform(): Boolean {
+        val first = getPixel(0, 0)
+        val stepX = (width / 16).coerceAtLeast(1)
+        val stepY = (height / 9).coerceAtLeast(1)
+        for (y in 0 until height step stepY) for (x in 0 until width step stepX) if (getPixel(x, y) != first) return false
+        return true
+    }
+
     /** The result tag sits on GridContentCard's wrapper; focus lands on the Card inside it. */
     private fun focusedInside(tag: String): Boolean =
         compose.onAllNodes(isFocused().and(hasAnyAncestor(hasTestTag(tag)))).fetchSemanticsNodes().size == 1
@@ -849,8 +857,19 @@ class NetflixThemeTvTest {
         // Coil decodes the offline bitmap asynchronously; allow one bounded settling interval.
         SystemClock.sleep(350)
         val directory = File(context.getExternalFilesDir(null), "netflix-theme").apply { mkdirs() }
-        File(directory, "$name-$localeTag.png").outputStream().use {
-            checkNotNull(instrumentation.uiAutomation.takeScreenshot()).compress(Bitmap.CompressFormat.PNG, 100, it)
+        // The software-GPU emulator can hand back a blank, single-colour surface before the frame
+        // is composited (seen at 4K as an all-white image). Retry a bounded number of times; a frame
+        // that is still uniform fails loudly instead of being saved as evidence.
+        var shot = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
+        var attempts = 0
+        while (shot.isUniform() && attempts < 12) {
+            shot.recycle(); SystemClock.sleep(250); compose.waitForIdle()
+            shot = checkNotNull(instrumentation.uiAutomation.takeScreenshot()); attempts++
         }
+        check(!shot.isUniform()) { "$name rendered a blank uniform frame" }
+        File(directory, "$name-$localeTag.png").outputStream().use {
+            shot.compress(Bitmap.CompressFormat.PNG, 100, it)
+        }
+        shot.recycle()
     }
 }
