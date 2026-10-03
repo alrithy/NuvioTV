@@ -153,3 +153,17 @@ No TCL C6K performance, remote-feel or TV output certification is claimed from e
   emulator occasionally returned an all-white surface; capture now retries and refuses to save a uniform frame.
 - Not yet produced: signed Superfork Test Build (runs on a PR titled `[test-build]`, deferred until the maintainer
   approves the screenshots). Visual review: PENDING. TCL C6K: MANUAL-PENDING.
+
+### Visual Round 2 — head ea68c79 (automated matrix GREEN; visual review PENDING)
+- Netflix Visual push run 37095465484 and PR run 37095461937: Build PASS; 1080p EN/AR and 4K EN/AR all PASS,
+  26/26 instrumentation each, 0 missing required screens, no identical or blank required states.
+- Same head: Superfork Full Debug CI PASS (37095465511), Device Smoke PASS (37095465455), Governance/PR Policy/
+  State Handoff/Baseline Change PASS.
+- Round 2 artifacts: 1080p EN 11264422090, 1080p AR 11264471894, 4K EN 11264795594, 4K AR 11263882810,
+  APKs 11264127015.
+- Changes: Home rows band 45% + larger type/cards; top-nav translucent focus pill and selected underline; inline
+  callout; art-backed My Netflix header with quiet actions; shared Netflix empty/error panel; TV-sized dialogs;
+  player/details/episodes/profiles typography and focus polish. Low-memory contract unchanged (no new animation,
+  bounded header-art decode, no video).
+- Visual review: PENDING (maintainer). Signed Test Build: not produced (on hold until screenshot approval).
+  TCL C6K: MANUAL-PENDING.
