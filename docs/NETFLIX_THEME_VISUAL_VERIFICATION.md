@@ -139,3 +139,17 @@ No TCL C6K performance, remote-feel or TV output certification is claimed from e
   myNetflixHub… (test looked up a tag in the merged tree; fixed in the next head).
 - Player capture is now a real controls overlay (title, S1 E2 · episode, 30:00 / 1:52:00, scrubber, controls).
 - Visual review: PENDING (maintainer). TCL C6K: MANUAL-PENDING.
+
+### Run 37093075199 (head f75d31a) — automated matrix GREEN
+- Superfork Netflix Visual: Build PASS; 1080p EN, 1080p AR, 4K EN, 4K AR all PASS (26/26 tests each, 0 missing
+  required screens, no identical required states). The PR-triggered run 37093077773 on the same head is also 4/4 PASS.
+- Same head: Superfork Full Debug CI PASS, Device Smoke PASS, Governance/PR Policy/State Handoff/Baseline Change PASS.
+- Artifacts: netflix-visual-1080p-en-37093075199 (11263268766), netflix-visual-1080p-ar-37093075199 (11262633396),
+  netflix-visual-4k-en-37093075199 (11263673296), netflix-visual-4k-ar-37093075199 (11262862755),
+  APKs netflix-visual-apks-37093075199-1 (11263333269).
+- Final root causes of the remaining failures: Search restoration did move focus (logged moved=true); the tests asserted
+  focus on GridContentCard's tagged wrapper instead of its Card. Return-to-card fixture omitted the vertical scroll index
+  production saves. Hub test asserted an off-screen lazy section and used a header action after it scrolled away. The
+  emulator occasionally returned an all-white surface; capture now retries and refuses to save a uniform frame.
+- Not yet produced: signed Superfork Test Build (runs on a PR titled `[test-build]`, deferred until the maintainer
+  approves the screenshots). Visual review: PENDING. TCL C6K: MANUAL-PENDING.
