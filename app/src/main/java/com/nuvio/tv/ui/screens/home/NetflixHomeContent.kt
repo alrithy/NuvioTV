@@ -1,4 +1,4 @@
-@file:OptIn(androidx.tv.material3.ExperimentalTvMaterial3Api::class)
+@file:OptIn(androidx.tv.material3.ExperimentalTvMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 
 package com.nuvio.tv.ui.screens.home
 
@@ -17,7 +17,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
@@ -230,6 +233,11 @@ internal fun NetflixHomeContent(
         }
     }
 
+    // Home owns its scrolling explicitly (two-state column, focus comfort zone in rows). The platform's
+    // TV pivot bring-into-view would otherwise move the hero up as soon as Play gains focus and drag
+    // rows toward a fixed pivot, fighting the comfort zone. The category strip keeps the default.
+    val platformBringIntoView = LocalBringIntoViewSpec.current
+    CompositionLocalProvider(LocalBringIntoViewSpec provides NetflixExplicitScroll) {
     LazyColumn(
         state = columnState,
         modifier = Modifier.fillMaxSize().background(tokens.background).testTag("netflix_home"),
@@ -242,7 +250,10 @@ internal fun NetflixHomeContent(
                     item = heroItem,
                     inLibrary = heroItem.metaPreview?.let { membership[homeItemStatusKey(it.id, it.apiType)] } == true,
                     showImdbRatings = uiState.homeImdbRatingsVisibility.showRatings,
-                    onFocused = { activeRowKey = null; onFocusedRowKeyChanged(null); heroItem.metaPreview?.let(onItemFocus) },
+                    onFocused = {
+                        activeRowKey = null; onFocusedRowKeyChanged(null); heroItem.metaPreview?.let(onItemFocus)
+                        scope.launch { columnState.animateScrollToItem(0) }
+                    },
                     onPlay = { heroAction(heroItem, onPlayClick, onContinueWatchingClick) },
                     onMoreInfo = { saveFocus(); heroAction(heroItem, onNavigateToDetail, onContinueWatchingClick) },
                 )
@@ -250,9 +261,15 @@ internal fun NetflixHomeContent(
         }
         if (categories.isNotEmpty()) {
             item(key = CATEGORY_KEY) {
-                NetflixCategoryStrip(categories) { row ->
-                    saveFocus()
-                    onNavigateToCatalogSeeAll(row.catalogId!!, row.addonId!!, row.apiType!!)
+                CompositionLocalProvider(LocalBringIntoViewSpec provides platformBringIntoView) {
+                    NetflixCategoryStrip(categories,
+                        onFocused = {
+                            if (activeRowKey != null) { activeRowKey = null; onFocusedRowKeyChanged(null) }
+                            scope.launch { columnState.animateScrollToItem(0) }
+                        }) { row ->
+                        saveFocus()
+                        onNavigateToCatalogSeeAll(row.catalogId!!, row.addonId!!, row.apiType!!)
+                    }
                 }
             }
         }
@@ -292,6 +309,12 @@ internal fun NetflixHomeContent(
             )
         }
     }
+    }
+}
+
+/** Scrolling in Netflix Home is decided by its own policies, never by the platform pivot. */
+private object NetflixExplicitScroll : BringIntoViewSpec {
+    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float = 0f
 }
 
 private fun heroAction(
@@ -409,11 +432,11 @@ private fun NetflixHeroButton(icon: androidx.compose.ui.graphics.vector.ImageVec
 
 /** Category shortcuts below the hero: the profile's real catalogs, opened through See all. */
 @Composable
-private fun NetflixCategoryStrip(categories: List<HeroCarouselRow>, onOpen: (HeroCarouselRow) -> Unit) {
+private fun NetflixCategoryStrip(categories: List<HeroCarouselRow>, onFocused: () -> Unit, onOpen: (HeroCarouselRow) -> Unit) {
     val tokens = NetflixThemeTokens
     val home = NetflixThemeTokens.Home
     LazyRow(
-        modifier = Modifier.testTag("netflix_category_strip"),
+        modifier = Modifier.onFocusChanged { if (it.hasFocus) onFocused() }.testTag("netflix_category_strip"),
         contentPadding = PaddingValues(horizontal = tokens.safeMargin, vertical = home.focusOutline * 2),
         horizontalArrangement = Arrangement.spacedBy(home.categoryGap),
     ) {
