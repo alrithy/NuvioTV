@@ -81,6 +81,9 @@ import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.theme.netflixMetadataLine
 import com.nuvio.tv.ui.util.contentTextDirection
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeoutOrNull
+import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.launch
 
 /*
@@ -455,6 +458,20 @@ private fun NetflixBrowseRow(
     fun keepComfortable(index: Int) {
         comfortJob?.cancel()
         comfortJob = rowScope.launch {
+            // Decide on settled geometry: under rapid key repeat, cards are mid-transform and the
+            // focus system's own bring-into-view scroll is in flight; measuring then made the row
+            // swing back. Waiting for the row to settle (bounded by the transform time) keeps the
+            // decision a pure function of the final layout.
+            val expandedPx = with(density) { (home.rowCardHeight * tokens.landscapeAspectRatio).toPx() }
+            val idlePx = if (landscape) expandedPx else with(density) { (home.rowCardHeight * tokens.posterAspectRatio).toPx() }
+            withTimeoutOrNull(home.expandMillis + 240L) {
+                snapshotFlow {
+                    val visible = listState.layoutInfo.visibleItemsInfo
+                    !listState.isScrollInProgress && visible.all { item ->
+                        kotlin.math.abs(item.size - if (item.index == index) expandedPx else idlePx) < 1.5f
+                    }
+                }.first { it }
+            }
             val delta = with(density) {
                 netflixComfortDeltaFor(listState.layoutInfo, index, landscape,
                     portraitPx = (home.rowCardHeight * tokens.posterAspectRatio).toPx(),

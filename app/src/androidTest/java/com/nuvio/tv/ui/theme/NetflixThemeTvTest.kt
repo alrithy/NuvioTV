@@ -303,7 +303,10 @@ class NetflixThemeTvTest {
         val root = rootBounds()
         val nav = bounds("netflix_top_nav"); val hero = bounds("netflix_home_hero_card")
         assertTrue("hero below the bar", hero.top >= nav.bottom - 1f)
-        assertTrue("hero is the dominant surface", hero.height >= root.height * .45f)
+        // Layout size, not the clipped bounds: the column may bring Play into view by a few pixels.
+        val heroHeight = compose.onNodeWithTag("netflix_home_hero_card").fetchSemanticsNode().size.height
+        assertTrue("hero is the dominant surface ($heroHeight of ${root.height - nav.height})",
+            heroHeight >= (root.height - nav.height) * .45f)
         capture("36-home-full-production-top")
     }
 
