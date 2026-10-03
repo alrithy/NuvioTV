@@ -69,6 +69,11 @@ Do not merge while visual verification is incomplete. Record remaining gaps
 and hardware checks honestly; open a draft review artifact if those checks are
 still pending, without marking this task Done.
 
+## Maintainer reference correction (2026-10-03)
+
+Visual Round 3 follows docs/NETFLIX_TV_2026_PARITY_AUDIT.md §0: rounded hero card, category strip from real catalogs,
+portrait rows with inline landscape expansion, selected-pill top nav, portrait Search. Top 10 is unavailable (no ranking source).
+
 ## Current status
 
 IN_PROGRESS. Implementation, local builds and visual evidence are being prepared.

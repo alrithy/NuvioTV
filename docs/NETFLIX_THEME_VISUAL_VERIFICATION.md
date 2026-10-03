@@ -167,3 +167,18 @@ No TCL C6K performance, remote-feel or TV output certification is claimed from e
   bounded header-art decode, no video).
 - Visual review: PENDING (maintainer). Signed Test Build: not produced (on hold until screenshot approval).
   TCL C6K: MANUAL-PENDING.
+
+### Visual Round 3 — maintainer reference correction, head 23f3d85 (automated GREEN; visual review PENDING)
+Reference: parity audit §0 (2026-10-03). No Netflix recording, frame or asset is committed.
+- Netflix Visual: PR run 37110129569 and push run 37110126396 — Build PASS; 1080p EN, 1080p AR, 4K EN, 4K AR all PASS,
+  32/32 instrumentation each, 0 missing required screens (34 names incl. aliases), no unintended identical states.
+- Same head: Full Debug CI PASS (37110129528), Device Smoke PASS (37110129543), Governance / PR Policy / State Handoff /
+  Baseline Change PASS.
+- Artifacts (run 37110129569): 1080p EN 11269532491, 1080p AR 11269707046, 4K EN 11269273166, 4K AR 11269861952,
+  APKs 11269567015.
+- New surfaces: 27 hero reference state, 28 category shortcuts, 29 portrait idle row, 30 focused landscape (inline),
+  31 focus moved to next item, 33 Search portrait results, 34 Arabic expanded row, 35 Arabic Search keyboard right.
+  32 Top 10 is intentionally absent: Nuvio has no factual ranking source.
+- Category strip source: the profile's own add-on catalogs on Home (real data), opened via the existing See all owner.
+  No genre list exists on Home; none is invented.
+- Visual review: PENDING (maintainer). Signed Test Build: not produced. TCL C6K: MANUAL-PENDING.
