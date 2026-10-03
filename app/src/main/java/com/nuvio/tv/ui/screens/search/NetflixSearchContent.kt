@@ -11,7 +11,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +46,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -77,6 +77,7 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.nuvio.tv.R
+import kotlinx.coroutines.launch
 import com.nuvio.tv.domain.model.CatalogRow
 import com.nuvio.tv.domain.model.DiscoverLocation
 import com.nuvio.tv.domain.model.MetaPreview
@@ -278,8 +279,7 @@ internal fun NetflixSearchContent(
     BackHandler(enabled = resultsHaveFocus) {
         runCatching { keyboardRequester.requestFocus() }
     }
-    val rowAlignInsetPx = with(LocalDensity.current) { tokens.metadataGap.toPx() }
-    val rowAligned = remember(rowAlignInsetPx) { NetflixRowAlignedScroll(rowAlignInsetPx) }
+    val gridScope = rememberCoroutineScope()
     BoxWithConstraints(
         Modifier.fillMaxSize().background(tokens.background)
             .padding(horizontal = tokens.safeVerticalMargin, vertical = tokens.safeVerticalMargin)
@@ -436,7 +436,7 @@ internal fun NetflixSearchContent(
                         icon = Icons.Default.Search
                     )
                     else -> CompositionLocalProvider(com.nuvio.tv.ui.components.LocalNetflixPortraitCards provides true,
-                        LocalBringIntoViewSpec provides rowAligned) {
+                        LocalBringIntoViewSpec provides NetflixExplicitGridScroll) {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(tokens.searchColumns), state = gridState,
                             modifier = Modifier.fillMaxSize().onFocusChanged { resultsHaveFocus = it.hasFocus }.testTag("netflix_search_results"),
@@ -459,6 +459,15 @@ internal fun NetflixSearchContent(
                                             } else false
                                         },
                                     onFocused = {
+                                        // A focused poster that is not fully visible brings its whole row to the
+                                        // grid's top edge, so no row is ever left half under the header.
+                                        gridScope.launch {
+                                            val info = gridState.layoutInfo
+                                            val cell = info.visibleItemsInfo.firstOrNull { it.index == index }
+                                            if (cell == null || cell.offset.y < 0 || cell.offset.y + cell.size.height > info.viewportEndOffset) {
+                                                gridState.animateScrollToItem(index - index % tokens.searchColumns)
+                                            }
+                                        }
                                         onItemFocused(result.item, index)
                                         if (uiState.query.isBlank() && index >= results.size - tokens.searchColumns) onEvent(SearchEvent.LoadNextDiscoverResults)
                                     },
@@ -504,8 +513,7 @@ private fun NetflixKeyboardKey(
     }
 }
 
-/** Grid focus scrolling aligns the focused row to the top inset instead of the TV pivot. */
-private class NetflixRowAlignedScroll(private val insetPx: Float) : BringIntoViewSpec {
-    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float =
-        if (offset < insetPx - 0.5f || offset + size > containerSize + 0.5f) offset - insetPx else 0f
+/** The results grid scrolls only by its own row-aligned rule (onFocused), never by the TV pivot. */
+private object NetflixExplicitGridScroll : BringIntoViewSpec {
+    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float = 0f
 }
