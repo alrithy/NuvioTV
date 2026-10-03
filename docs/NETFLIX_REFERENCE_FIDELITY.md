@@ -97,6 +97,15 @@ numbers NOT_MEASURABLE against the reference) · **DIFF** (known difference) · 
 | Row scroll | NOT_MEASURABLE | 160 ms only when the comfort zone requires it | — | NOT_MEASURABLE |
 | Frame intervals | — | not measured: the emulator uses a software GPU and cannot represent TCL C6K timing | — | MANUAL-PENDING (TCL) |
 
+## Evidence (head f239d65)
+
+- Superfork Netflix Visual PR run 37139447618 and push run 37139443772: build + 1080p EN/AR + 4K EN/AR, 44/44 tests per
+  job, 42/42 required screens, no identical or blank states. Artifacts: 1080p EN 11279463444, 1080p AR 11280122596,
+  4K EN 11280251170, 4K AR 11280635314, APKs 11280082384.
+- Superfork CI 37139447654, Device Smoke 37139447691, PR Policy 37139447602: success.
+- Observed in the 36–43 previews (not a visual PASS): with the result grid scrolled, its first poster row is cropped
+  under the query label (43); keyboard key glyphs are small at 1080p (42/43).
+
 ## OBSERVABLE_REFERENCE_PARITY score
 
 Points are given only for items with automated evidence; NOT_MEASURABLE geometry and motion earn nothing.

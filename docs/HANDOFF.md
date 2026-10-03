@@ -394,12 +394,11 @@ navigation, profile persistence and playback owners are reused. No Netflix asset
 or proprietary font/code are included. Verification evidence and remaining gaps
 are tracked in `docs/NETFLIX_THEME_VISUAL_VERIFICATION.md`.
 
-Progress (2026-10-03, draft PR open from feat/netflix-theme): branch synced with integration
-ee2813a; top navigation and the My Netflix hub implemented for AppTheme.NETFLIX only; the five audit
-failures root-caused (two fixture defects, a real Search focus-restoration bug, a missing harness
-content focus requester); visual matrix extended to 26 surfaces with identical-state rejection and
-log previews. Evidence, run IDs and remaining gaps: docs/NETFLIX_THEME_VISUAL_VERIFICATION.md.
+Progress (2026-10-03, draft PR #100): design contract = audit §1 (maintainer reference correction);
+final fidelity round at f239d65 added the focus comfort zone, title-logo preference, production-scaffold
+captures 36–43 and stress tests; matrix 42 surfaces, 44/44 tests per job (run 37139447618). Measured
+table and evidence-backed score (64/100): docs/NETFLIX_REFERENCE_FIDELITY.md.
 
-Next action for this task: get every Netflix Visual matrix job green, run full Superfork CI and the
-signed Test Build on the exact head, then wait for the maintainer's screenshot review and TCL C6K
-results (MANUAL-PENDING). Do not merge before both.
+Next action for this task: maintainer reviews screenshots 01–43 and supplies reference frame
+measurements for the NOT_MEASURABLE rows. Only after that approval: add [test-build] for the signed
+Test Build. TCL C6K remains MANUAL-PENDING. Do not merge, do not mark Done.

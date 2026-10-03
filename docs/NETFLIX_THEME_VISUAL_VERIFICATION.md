@@ -103,8 +103,9 @@ Do not merge this theme while the requested visual verification remains incomple
 
 ## Current evidence
 
-Final fidelity round: see the latest "Superfork Netflix Visual" run on the PR head and the run IDs in
-the PR body. Earlier rounds are recorded below as history; their matrix descriptions (16:9 cards, no
+Final fidelity round, head f239d65: Netflix Visual run 37139447618 (push 37139443772), 44/44 tests in
+each of 1080p EN/AR and 4K EN/AR, 42/42 required screens. Artifacts 11279463444 (1080p EN), 11280122596
+(1080p AR), 11280251170 (4K EN), 11280635314 (4K AR). Visual review PENDING. Earlier rounds are recorded below as history; their matrix descriptions (16:9 cards, no
 reflow, floating preview, Settings trailing, 26 surfaces) are superseded.
 
 ## HISTORY — evidence from earlier rounds
