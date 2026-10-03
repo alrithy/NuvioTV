@@ -196,7 +196,8 @@ class NetflixThemeTvTest {
                 horizontalArrangement = Arrangement.spacedBy(NetflixThemeTokens.cardGap)) {
                 // GridContentCard is a grid cell (fillMaxWidth in landscape/Netflix mode); give each card the
                 // bounded cell width a grid would, otherwise card 0 takes the Row and the rest measure 0 dp.
-                items.take(5).forEachIndexed { index, item ->
+                // Four 212 dp cells fit the 960 dp canvas, as a real Netflix-theme row shows them.
+                items.take(4).forEachIndexed { index, item ->
                     Box(Modifier.width(NetflixThemeTokens.landscapeCardWidth)) {
                         GridContentCard(item, onClick = { clicked = index }, modifier = Modifier.testTag("fixture_card_$index"),
                             posterCardStyle = netflixCardStyle(), focusRequester = if (index == 1) initial else null)
