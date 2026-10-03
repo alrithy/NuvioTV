@@ -63,6 +63,7 @@ import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
@@ -359,9 +360,8 @@ class NetflixThemeTvTest {
         }
         // Restoration is asynchronous (scroll, then compose the cell); wait for it, then assert.
         compose.waitUntil(15_000) {
-            compose.onAllNodes(hasTestTag("netflix_search_result_72").and(isFocused())).fetchSemanticsNodes().size == 1
+            focusedInside("netflix_search_result_72")
         }
-        compose.onNodeWithTag("netflix_search_result_72").assertIsFocused()
         compose.onNodeWithTag("netflix_search_result_0").assertDoesNotExist()
         press(KeyEvent.KEYCODE_BACK)
         compose.onNodeWithText(if (arabic) "ا" else "a").assertIsFocused()
@@ -394,7 +394,7 @@ class NetflixThemeTvTest {
             state = state.copy(catalogRows = listOf(catalog()), error = null)
         }
         compose.waitUntil(15_000) {
-            compose.onAllNodes(hasTestTag("netflix_search_result_8").and(isFocused())).fetchSemanticsNodes().size == 1
+            focusedInside("netflix_search_result_8")
         }
         compose.runOnIdle { assertEquals(1, restored) }
         capture("08c-search-async-focus-restore")
@@ -457,6 +457,10 @@ class NetflixThemeTvTest {
                 onOpenDetail = { id, _, _ -> opened = id }, onResume = { resumed = it.videoId },
                 onOpenFullLibrary = { library++ }, onOpenSearch = {}, onOpenSettings = {})
         }
+        // Header action first, while it is on screen.
+        compose.onNodeWithTag("my_netflix_full_library").requestFocus()
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(1, library) }
         compose.onNodeWithTag("my_netflix_row_continue_watching").assertIsDisplayed()
         compose.onNodeWithTag("my_netflix_row_my_list").assertIsDisplayed()
         // The third section sits below the fold of the lazy hub; bring it in before asserting.
@@ -472,9 +476,6 @@ class NetflixThemeTvTest {
         press(KeyEvent.KEYCODE_DPAD_DOWN)
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertTrue(opened?.startsWith("fixture:") == true) }
-        compose.onNodeWithTag("my_netflix_full_library").requestFocus()
-        press(KeyEvent.KEYCODE_DPAD_CENTER)
-        compose.runOnIdle { assertEquals(1, library) }
     }
 
     @Test fun emptyMyNetflixOffersARealSearchActionInsteadOfATextIsland() {
@@ -834,6 +835,10 @@ class NetflixThemeTvTest {
         instrumentation.sendKeyDownUpSync(keyCode)
         compose.waitForIdle()
     }
+    /** The result tag sits on GridContentCard's wrapper; focus lands on the Card inside it. */
+    private fun focusedInside(tag: String): Boolean =
+        compose.onAllNodes(isFocused().and(hasAnyAncestor(hasTestTag(tag)))).fetchSemanticsNodes().size == 1
+
     private fun waitForHomePreview() {
         compose.waitUntil(15_000) {
             compose.onAllNodes(hasTestTag("netflix_expanded_card")).fetchSemanticsNodes().size == 1
