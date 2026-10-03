@@ -1,8 +1,21 @@
+@file:OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+
 package com.nuvio.tv.ui.screens.search
 
 import android.view.KeyEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.BringIntoViewSpec
+import androidx.compose.foundation.gestures.LocalBringIntoViewSpec
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,8 +39,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.CompositionLocalProvider
@@ -267,52 +278,71 @@ internal fun NetflixSearchContent(
     BackHandler(enabled = resultsHaveFocus) {
         runCatching { keyboardRequester.requestFocus() }
     }
+    val rowAlignInsetPx = with(LocalDensity.current) { tokens.metadataGap.toPx() }
+    val rowAligned = remember(rowAlignInsetPx) { NetflixRowAlignedScroll(rowAlignInsetPx) }
     BoxWithConstraints(
         Modifier.fillMaxSize().background(tokens.background)
             .padding(horizontal = tokens.safeVerticalMargin, vertical = tokens.safeVerticalMargin)
             .onFocusChanged { screenHasFocus = it.hasFocus }
             .testTag("netflix_search")
     ) {
-        val gridWidth = maxWidth - tokens.searchKeyboardWidth - tokens.profileGap
-        val cardWidth = (gridWidth - tokens.cardGap * (tokens.searchColumns - 1)) / tokens.searchColumns
-        // Reference Search shows 2:3 poster results (audit §0); the keyboard sits on the reading-start side.
+        val available = maxWidth - tokens.searchKeyboardWidth - tokens.profileGap
+        // Measured reference: four ~150×210 dp posters; never wider than the space allows.
+        val cardWidth = minOf(tokens.searchPosterWidth,
+            (available - tokens.searchResultGap * (tokens.searchColumns - 1)) / tokens.searchColumns)
+        val gridWidth = cardWidth * tokens.searchColumns + tokens.searchResultGap * (tokens.searchColumns - 1)
         val cardStyle = remember(cardWidth) {
             PosterCardStyle(
                 width = cardWidth,
-                height = cardWidth / tokens.posterAspectRatio,
+                height = cardWidth * (tokens.searchPosterHeight / tokens.searchPosterWidth),
                 cornerRadius = tokens.cardRadius,
                 focusedBorderWidth = tokens.focusedBorderWidth,
                 focusedScale = tokens.focusScale
             )
         }
-        Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(tokens.profileGap)) {
+        // Keyboard on the reading-start side, results grid against the far edge.
+        Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.SpaceBetween) {
             Column(
                 Modifier.width(tokens.searchKeyboardWidth).focusGroup(),
-                verticalArrangement = Arrangement.spacedBy(tokens.metadataGap)
+                verticalArrangement = Arrangement.spacedBy(tokens.searchKeyGap)
             ) {
-                Text(stringResource(R.string.nav_search), style = MaterialTheme.typography.headlineMedium)
-                OutlinedTextField(
-                    value = uiState.query,
-                    onValueChange = { onEvent(SearchEvent.QueryChanged(it)) },
-                    modifier = Modifier.fillMaxWidth().focusRequester(fieldRequester).testTag("netflix_search_field"),
-                    singleLine = true,
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(textDirection = uiState.query.contentTextDirection()),
-                    placeholder = { Text(stringResource(R.string.search_placeholder), style = MaterialTheme.typography.bodyMedium) },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions(onSearch = { onEvent(SearchEvent.SubmitSearch); moveToResults() }),
-                    colors = TextFieldDefaults.colors(
-                        focusedTextColor = tokens.textPrimary, unfocusedTextColor = tokens.textPrimary,
-                        focusedContainerColor = tokens.surface, unfocusedContainerColor = tokens.surface,
-                        focusedIndicatorColor = tokens.focus, unfocusedIndicatorColor = tokens.textMuted,
-                        cursorColor = tokens.focus
-                    ),
-                    shape = tokens.buttonShape
-                )
+                // Reference: a compact search icon + query line, not a boxed form field.
+                Row(
+                    Modifier.fillMaxWidth().height(tokens.searchKeySize + tokens.searchKeyGap * 2)
+                        .drawBehind {
+                            drawLine(tokens.textMuted, Offset(0f, size.height - 1f), Offset(size.width, size.height - 1f), strokeWidth = 1f)
+                        }
+                        .testTag("netflix_search_field"),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(tokens.searchKeyGap * 3),
+                ) {
+                    Icon(Icons.Default.Search, contentDescription = null, tint = tokens.textSecondary, modifier = Modifier.size(tokens.navigationIconSize))
+                    BasicTextField(
+                        value = uiState.query,
+                        onValueChange = { onEvent(SearchEvent.QueryChanged(it)) },
+                        modifier = Modifier.weight(1f).focusRequester(fieldRequester),
+                        singleLine = true,
+                        textStyle = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = tokens.searchQuerySize,
+                            color = tokens.textPrimary, textDirection = uiState.query.contentTextDirection()),
+                        cursorBrush = SolidColor(tokens.focus),
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions(onSearch = { onEvent(SearchEvent.SubmitSearch); moveToResults() }),
+                        decorationBox = { inner ->
+                            Box(contentAlignment = Alignment.CenterStart) {
+                                if (uiState.query.isEmpty()) {
+                                    Text(stringResource(R.string.search_placeholder), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                        style = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = tokens.searchQuerySize, color = tokens.textMuted))
+                                }
+                                inner()
+                            }
+                        },
+                    )
+                }
                 // Characters are ordered for reading in each script. Row applies logical RTL placement.
                 val alphabet = if (arabicKeyboard) "ابتثجحخدذرزسشصضطظعغفقكلمنهويءأإآةى" else "abcdefghijklmnopqrstuvwxyz0123456789"
                 CompositionLocalProvider(LocalLayoutDirection provides if (arabicKeyboard) LayoutDirection.Rtl else LayoutDirection.Ltr) {
                     alphabet.chunked(6).forEachIndexed { rowIndex, letters ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(tokens.cardGap)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(tokens.searchKeyGap)) {
                             letters.forEachIndexed { column, letter ->
                                 NetflixKeyboardKey(
                                     text = letter.toString(),
@@ -330,7 +360,7 @@ internal fun NetflixSearchContent(
                         }
                     }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(tokens.cardGap)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(tokens.searchKeyGap)) {
                     NetflixKeyboardKey(
                         text = if (arabicKeyboard) "ABC" else "أ ب ج",
                         modifier = Modifier.weight(1f),
@@ -350,7 +380,7 @@ internal fun NetflixSearchContent(
                         Icon(Icons.AutoMirrored.Filled.Backspace, stringResource(R.string.netflix_search_delete), Modifier.size(tokens.navigationIconSize))
                     }
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(tokens.cardGap)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(tokens.searchKeyGap)) {
                     NetflixKeyboardKey(stringResource(R.string.action_clear), Modifier.weight(1f)) {
                         onEvent(SearchEvent.QueryChanged(""))
                     }
@@ -364,7 +394,7 @@ internal fun NetflixSearchContent(
                     }
                 }
             }
-            Column(Modifier.weight(1f)) {
+            Column(Modifier.width(gridWidth)) {
                 if (uiState.query.isBlank() && uiState.recentSearches.isNotEmpty()) {
                     Text(stringResource(R.string.search_recent_title), color = tokens.textSecondary, style = MaterialTheme.typography.labelLarge)
                     Row(
@@ -381,19 +411,22 @@ internal fun NetflixSearchContent(
                         }
                     }
                 }
-                Text(
-                    text = if (uiState.query.isBlank()) stringResource(R.string.nav_discover) else uiState.query,
-                    color = tokens.textSecondary,
-                    style = MaterialTheme.typography.titleMedium.copy(textDirection = uiState.query.contentTextDirection()),
-                    modifier = Modifier.padding(bottom = tokens.rowTitleGap)
-                )
+                // The query already sits in the compact query line; only browse mode needs a header.
+                if (uiState.query.isBlank()) {
+                    Text(
+                        text = stringResource(R.string.nav_discover),
+                        color = tokens.textSecondary,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.padding(bottom = tokens.rowTitleGap)
+                    )
+                }
                 val currentError = if (uiState.query.isBlank()) uiState.discoverError else uiState.error
                 when {
                     currentError != null && results.isEmpty() -> ErrorState(currentError, onRetry = {
                         onEvent(if (uiState.query.isBlank()) SearchEvent.RetryDiscover else SearchEvent.Retry)
                     })
                     results.isEmpty() && (uiState.isSearching || uiState.discoverLoading || (uiState.query.trim().length >= MIN_SEARCH_QUERY_LENGTH && uiState.query.trim() != uiState.submittedQuery.trim())) -> {
-                        LazyVerticalGrid(columns = GridCells.Fixed(tokens.searchColumns), horizontalArrangement = Arrangement.spacedBy(tokens.cardGap), verticalArrangement = Arrangement.spacedBy(tokens.rowGap)) {
+                        LazyVerticalGrid(columns = GridCells.Fixed(tokens.searchColumns), horizontalArrangement = Arrangement.spacedBy(tokens.searchResultGap), verticalArrangement = Arrangement.spacedBy(tokens.rowGap)) {
                             items(tokens.searchColumns * 3) { Box(Modifier.fillMaxWidth().height(cardStyle.height).background(tokens.surface, tokens.cardShape)) }
                         }
                     }
@@ -402,17 +435,20 @@ internal fun NetflixSearchContent(
                         subtitle = stringResource(if (uiState.query.trim().length >= MIN_SEARCH_QUERY_LENGTH) R.string.search_no_results_subtitle else R.string.search_start_subtitle_no_discover),
                         icon = Icons.Default.Search
                     )
-                    else -> CompositionLocalProvider(com.nuvio.tv.ui.components.LocalNetflixPortraitCards provides true) {
+                    else -> CompositionLocalProvider(com.nuvio.tv.ui.components.LocalNetflixPortraitCards provides true,
+                        LocalBringIntoViewSpec provides rowAligned) {
                         LazyVerticalGrid(
                             columns = GridCells.Fixed(tokens.searchColumns), state = gridState,
                             modifier = Modifier.fillMaxSize().onFocusChanged { resultsHaveFocus = it.hasFocus }.testTag("netflix_search_results"),
-                            horizontalArrangement = Arrangement.spacedBy(tokens.cardGap),
+                            horizontalArrangement = Arrangement.spacedBy(tokens.searchResultGap),
                             verticalArrangement = Arrangement.spacedBy(tokens.rowGap),
-                            contentPadding = PaddingValues(top = tokens.metadataGap, bottom = tokens.safeVerticalMargin)
+                            // Rows are aligned to the top inset when focus moves, and the tall bottom padding
+                            // lets the last rows align too, so no poster row is ever cut by the grid's top edge.
+                            contentPadding = PaddingValues(top = tokens.metadataGap, bottom = this@BoxWithConstraints.maxHeight)
                         ) {
                             itemsIndexed(results, key = { _, result -> result.key }, contentType = { _, _ -> "poster_result" }) { index, result ->
                                 GridContentCard(
-                                    item = result.item, posterCardStyle = cardStyle, showLabel = true,
+                                    item = result.item, posterCardStyle = cardStyle, showLabel = false,
                                     focusRequester = resultRequesters.getOrPut(result.key) { FocusRequester() },
                                     isWatched = if (result.item.apiType in listOf("series", "tv")) result.item.id in watchedSeriesIds else result.item.id in watchedMovieIds,
                                     modifier = Modifier.fillMaxWidth().testTag("netflix_search_result_$index")
@@ -449,7 +485,7 @@ private fun NetflixKeyboardKey(
         onClick = onClick,
         modifier = modifier.height(NetflixThemeTokens.searchKeySize)
             .then(if (contentDescription != null) Modifier.semantics { this.contentDescription = contentDescription } else Modifier),
-        contentPadding = PaddingValues(NetflixThemeTokens.cardGap),
+        contentPadding = PaddingValues(0.dp),
         shape = ButtonDefaults.shape(shape = NetflixThemeTokens.buttonShape),
         colors = ButtonDefaults.colors(
             containerColor = NetflixThemeTokens.surface,
@@ -459,6 +495,17 @@ private fun NetflixKeyboardKey(
         ),
         scale = ButtonDefaults.scale(focusedScale = 1f)
     ) {
-        Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.bodyMedium)
+        // Explicit platform sans-serif at a legible size: Arabic glyphs must not fall back to a
+        // font without them or be squeezed by button padding (measured reference ~15–16 sp).
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                style = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = NetflixThemeTokens.searchKeyGlyph, fontWeight = FontWeight.Medium))
+        }
     }
+}
+
+/** Grid focus scrolling aligns the focused row to the top inset instead of the TV pivot. */
+private class NetflixRowAlignedScroll(private val insetPx: Float) : BringIntoViewSpec {
+    override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float =
+        if (offset < insetPx - 0.5f || offset + size > containerSize + 0.5f) offset - insetPx else 0f
 }

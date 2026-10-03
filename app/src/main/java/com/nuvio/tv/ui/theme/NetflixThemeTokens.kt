@@ -87,9 +87,17 @@ object NetflixThemeTokens {
 
     // Icon size inside keyboard/action buttons (the theme has no side navigation rail).
     val navigationIconSize = 22.dp
-    val searchKeyboardWidth = 240.dp
-    val searchKeySize = 32.dp
-    const val searchColumns = 5
+    /** Measured reference (PR #100 maintainer packet): 6 × 31 dp keys + 2 dp gaps ≈ 196 dp. */
+    val searchKeyboardWidth = 196.dp
+    val searchKeySize = 31.dp
+    val searchKeyGap = 2.dp
+    val searchKeyGlyph = 15.sp
+    val searchQuerySize = 17.sp
+    /** Reference Search: 4 result columns of ~150×210 dp posters. */
+    const val searchColumns = 4
+    val searchPosterWidth = 150.dp
+    val searchPosterHeight = 210.dp
+    val searchResultGap = 12.dp
     val profileAvatarSize = 136.dp
     val profileAvatarCompactSize = 104.dp
     val profileCardWidth = 160.dp
@@ -137,10 +145,10 @@ object NetflixThemeTokens {
 
     /** Home per the maintainer reference (audit §0): hero card, category strip, inline-expanding rows. */
     object Home {
-        val heroHeight = 300.dp
+        val heroHeight = 400.dp
         val heroRadius = 12.dp
         /** Content width of the hero card on the 960 dp canvas (safe margins excluded). */
-        val heroRequestWidth = 864.dp
+        val heroRequestWidth = 880.dp
         val heroPadding = 28.dp
         val heroTitleSize = 34.sp
         val heroSynopsisSize = 15.sp
@@ -148,22 +156,29 @@ object NetflixThemeTokens {
         const val heroTextWidthFraction = .55f
         const val heroSideScrimAlpha = .85f
         const val heroBottomScrimAlpha = .80f
-        val heroLogoHeight = 72.dp
+        /** Measured reference: hero card ≈ 880×400 dp (40 dp side inset on the 960 dp canvas). */
+        val heroInset = 40.dp
+        val heroLogoHeight = 88.dp
         val heroLogoMaxWidth = 320.dp
         val sectionGap = 20.dp
         val bottomPadding = 200.dp
-        val categoryWidth = 200.dp
+        /** Category tiles size to their label, bounded like the reference (~120–185 dp). */
+        val categoryMinWidth = 120.dp
+        val categoryMaxWidth = 185.dp
+        val categoryPadding = 20.dp
         val categoryHeight = 88.dp
         val categoryRadius = 12.dp
-        val categoryGap = 12.dp
+        val categoryGap = 6.dp
         val categoryTextSize = 17.sp
-        /** Row height: idle 2:3 posters are 112 dp wide, the focused landscape card 299 dp. */
-        val rowCardHeight = 168.dp
-        val cardGap = 10.dp
+        /** Measured reference: idle posters ≈160×250 dp, focused card ≈440×250 dp (2.75×). */
+        val rowCardHeight = 250.dp
+        val rowCardIdleWidth = 160.dp
+        val rowCardExpandedWidth = 440.dp
+        val cardGap = 6.dp
         val cardRadius = 6.dp
         val cardTitleSize = 17.sp
         val focusOutline = 2.dp
-        const val expandMillis = 160
+        const val expandMillis = 200
         /** Neighbour peek kept on each side of the focus comfort zone, as a fraction of an idle poster. */
         const val comfortPeekFraction = 0.5f
         val factsMaxWidth = 560.dp

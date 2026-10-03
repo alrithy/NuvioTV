@@ -68,6 +68,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollToNode
@@ -186,8 +187,12 @@ class NetflixThemeTvTest {
         setContent { FullHome {} }
         val root = compose.onRoot().fetchSemanticsNode().boundsInRoot
         val hero = bounds("netflix_home_hero_card")
-        val margin = with(compose.density) { NetflixThemeTokens.safeMargin.toPx() }
+        val margin = with(compose.density) { NetflixThemeTokens.Home.heroInset.toPx() }
         // A bounded card, not a full-bleed backdrop: inset on both sides, and the dominant first surface.
+        // Measured reference: ≈880×400 dp.
+        val density = compose.density.density
+        assertEquals(880f * density, hero.width, 6f * density)
+        assertEquals(400f * density, compose.onNodeWithTag("netflix_home_hero_card").fetchSemanticsNode().size.height.toFloat(), 6f * density)
         assertTrue("hero inset start", hero.left >= margin - 1f)
         assertTrue("hero inset end", hero.right <= root.right - margin + 1f)
         assertTrue("hero is large", hero.height >= root.height * .45f)
@@ -323,6 +328,14 @@ class NetflixThemeTvTest {
         val next = bounds("netflix_row_popular")
         assertTrue("next row starts below the facts", next.top >= facts.bottom - 1f)
         assertTrue("next row is partly visible", next.top < rootBounds().bottom)
+        // Measured reference: focused ≈440×250 dp, idle posters ≈160×250 dp, ~6 dp apart.
+        val density = compose.density.density
+        val focused = bounds(card("trending", 1)); val idle = bounds(card("trending", 2))
+        assertEquals(440f * density, focused.width, 6f * density)
+        assertEquals(250f * density, focused.height, 6f * density)
+        assertEquals(160f * density, idle.width, 6f * density)
+        val gap = if (arabic) focused.left - idle.right else idle.left - focused.right
+        assertEquals(6f * density, gap, 2f * density)
         capture("37-home-full-production-scrolled")
     }
 
@@ -409,10 +422,13 @@ class NetflixThemeTvTest {
         // Measured on unfocused tiles so the focus treatment does not enter the geometry.
         val tile = bounds("netflix_category_popular"); val next = bounds("netflix_category_movies")
         val density = compose.density.density
-        assertEquals(NetflixThemeTokens.Home.categoryWidth.value * density, tile.width, 2f)
-        assertEquals(NetflixThemeTokens.Home.categoryHeight.value * density, tile.height, 2f)
+        // Content-driven width inside the measured ~120–185 dp band, ~88 dp high, ~6 dp apart.
+        for (b in listOf(tile, next)) {
+            assertTrue("tile width ${b.width / density} dp", b.width >= 119f * density && b.width <= 186f * density)
+            assertEquals(NetflixThemeTokens.Home.categoryHeight.value * density, b.height, 2f)
+        }
         val gap = if (arabic) tile.left - next.right else next.left - tile.right
-        assertEquals(NetflixThemeTokens.Home.categoryGap.value * density, gap, 2f)
+        assertEquals(6f * density, gap, 2f * density)
         capture("41-category-strip-final")
     }
 
@@ -482,12 +498,79 @@ class NetflixThemeTvTest {
         assertTrue("keyboard side", if (arabic) keyboard.left > result.right else keyboard.right < result.left)
         assertTrue("keyboard is a minority column", keyboard.width < root.width * .45f)
         capture("42-search-full-production")
-        // Navigating into the results and back to the keyboard keeps exactly one focus owner.
-        val towardResults = if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
-        repeat(8) { press(towardResults) }
+    }
+
+    private fun manySearchResults() = (0 until 40).map { index -> items[index % items.size].copy(id = "many:$index") }
+
+    @Composable private fun SearchScaffold(state: SearchUiState) {
+        Column(Modifier.fillMaxSize()) {
+            NetflixTopNavigationBar(navigationEntries(), "search", remember { FocusRequester() },
+                TopMenuProfile(text("Alex", "أحمد"), "#4D7290", null) {}, onFocusChanged = {}, onNavigate = {})
+            Box(Modifier.weight(1f)) {
+                NetflixSearchContent(state, restoreFocus = false, onEvent = {}, onNavigateToDetail = { _, _, _ -> })
+            }
+        }
+    }
+
+    @Test fun searchUsesFourColumnsOfMeasuredPostersWithoutExternalLabels() {
+        setContent { SearchScaffold(SearchUiState(query = "light", submittedQuery = "light",
+            catalogRows = listOf(catalog().copy(items = manySearchResults())), isSearching = false)) }
+        val density = compose.density.density
+        val first = bounds("netflix_search_result_0"); val fifth = bounds("netflix_search_result_4")
+        // Four columns: result 4 starts the second row.
+        assertTrue("result 4 wraps to row 2", fifth.top > first.bottom - 1f)
+        assertEquals(bounds("netflix_search_result_3").top, first.top, 1f)
+        assertEquals(150f * density, first.width, 6f * density)
+        assertEquals(210f * density, first.height, 6f * density)
+        // No title text under the posters: titles are not rendered as text anywhere in the grid.
+        titles.forEach { compose.onAllNodesWithText(it).assertCountEquals(0) }
+    }
+
+    @Test fun searchQueryIsACompactLineNotAFormBox() {
+        setContent { SearchScaffold(SearchUiState(query = "light", submittedQuery = "light",
+            catalogRows = listOf(catalog()), isSearching = false)) }
+        val density = compose.density.density
+        val field = bounds("netflix_search_field")
+        // A single compact line (icon + query), not a 56 dp outlined form field, inside the ~196 dp keyboard column.
+        assertTrue("query line height ${field.height / density} dp", field.height <= 40f * density)
+        assertTrue("keyboard column width ${field.width / density} dp", field.width <= 202f * density && field.width >= 188f * density)
+        val root = rootBounds()
+        assertTrue("keyboard side", if (arabic) field.right >= root.right - 60f * density else field.left <= root.left + 60f * density)
+    }
+
+    @Test fun searchKeyboardGlyphsAreLegible() {
+        setContent { SearchScaffold(SearchUiState(query = "", isSearching = false)) }
+        val key = if (arabic) "ب" else "b"
+        val image = compose.onNodeWithText(key).captureToImage().toPixelMap()
+        // The glyph must be drawn: count clearly light pixels on the dark key surface.
+        var ink = 0
+        for (y in 0 until image.height) for (x in 0 until image.width) {
+            val p = image[x, y]
+            if (p.red > .6f && p.green > .6f && p.blue > .6f) ink++
+        }
+        val density = compose.density.density
+        assertTrue("glyph ink pixels $ink", ink >= (12f * density).toInt())
+        val glyph = compose.onNodeWithText(key).fetchSemanticsNode().size
+        assertTrue("glyph box ${glyph.height / density} dp", glyph.height >= 14f * density)
+    }
+
+    @Test fun searchFirstVisibleResultNeverClipsUnderHeader() {
+        setContent { SearchScaffold(SearchUiState(query = "light", submittedQuery = "light",
+            catalogRows = listOf(catalog().copy(items = manySearchResults())), isSearching = false)) }
+        // Enter the grid from the keyboard's grid-facing key, as the remote does.
+        compose.onNodeWithText(if (arabic) "ح" else "f").requestFocus()
+        press(if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT)
+        compose.waitUntil(5_000) { focusedInside("netflix_search_result_0") }
+        repeat(4) { press(KeyEvent.KEYCODE_DPAD_DOWN) }
         compose.onAllNodes(isFocused()).assertCountEquals(1)
-        repeat(3) { press(KeyEvent.KEYCODE_DPAD_DOWN) }
-        compose.onAllNodes(isFocused()).assertCountEquals(1)
+        val grid = bounds("netflix_search_results")
+        val nodes = compose.onAllNodes(hasTestTagStartingWith("netflix_search_result_")).fetchSemanticsNodes()
+        assertTrue("grid scrolled", nodes.none { it.config.getOrNull(androidx.compose.ui.semantics.SemanticsProperties.TestTag) == "netflix_search_result_0" && it.positionInRoot.y >= grid.top })
+        nodes.forEach { node ->
+            val top = node.positionInRoot.y; val bottom = top + node.size.height
+            // No row straddles the grid's top edge: a row is either fully visible or fully scrolled away.
+            assertTrue("result straddles the header (top $top, grid ${grid.top})", !(top < grid.top - 1f && bottom > grid.top + 1f))
+        }
         capture("43-search-full-production-results")
     }
 
@@ -1109,6 +1192,9 @@ class NetflixThemeTvTest {
         return true
     }
 
+    private fun hasTestTagStartingWith(prefix: String) = androidx.compose.ui.test.SemanticsMatcher("testTag starts with $prefix") {
+        it.config.getOrNull(androidx.compose.ui.semantics.SemanticsProperties.TestTag)?.startsWith(prefix) == true
+    }
     private fun bounds(tag: String) = compose.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
 
     /** Home is lazy: bring the card's row into composition first, as remote scrolling would. */

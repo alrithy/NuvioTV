@@ -8,10 +8,11 @@ import org.junit.Test
 class NetflixComfortZoneTest {
     private val viewportStart = -48f // content padding before the first card
     private val viewportEnd = 912f
-    private val poster = 112f
-    private val gap = 10f
-    private val expanded = 299f
-    private val peek = 56f
+    // Measured reference geometry (PR #100 maintainer packet): 160 / 440 dp cards, 6 dp gaps.
+    private val poster = 160f
+    private val gap = 6f
+    private val expanded = 440f
+    private val peek = 80f
 
     /** Start of item [index] when the row is scrolled by [scroll] and only [index] is expanded. */
     private fun start(index: Int, scroll: Float = 0f) = index * (poster + gap) - scroll
@@ -20,14 +21,14 @@ class NetflixComfortZoneTest {
 
     @Test
     fun middlePosterExpandsWithoutJumpingToEdge() {
-        // Item 2 starts at 244 and ends at 543 when expanded: fully inside the zone, so nothing moves.
+        // Item 2 starts at 332 and ends at 772 when expanded: fully inside the zone, so nothing moves.
+        assertEquals(0f, delta(1))
         assertEquals(0f, delta(2))
-        assertEquals(0f, delta(3))
     }
 
     @Test
     fun expansionScrollsOnlyWhenRequiredForVisibility() {
-        // Item 5 would end at 909 > zone end 856: scroll exactly enough, not to the reading start.
+        // Item 5 would end at 1270 > zone end 832: scroll exactly enough, not to the reading start.
         val d = delta(5)
         assertEquals(start(5) + expanded - (viewportEnd - peek), d, 0.01f)
         assertTrue(d < start(5) - viewportStart)

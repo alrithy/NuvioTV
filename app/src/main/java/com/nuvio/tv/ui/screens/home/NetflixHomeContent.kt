@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -265,7 +266,9 @@ internal fun NetflixHomeContent(
                     NetflixCategoryStrip(categories,
                         onFocused = {
                             if (activeRowKey != null) { activeRowKey = null; onFocusedRowKeyChanged(null) }
-                            scope.launch { columnState.animateScrollToItem(0) }
+                            // The 400 dp hero leaves only a peek of the strip in the top state; a focused
+                            // strip is revealed by the minimal scroll, keeping as much hero as possible.
+                            scope.launch { columnState.revealItem(CATEGORY_KEY) }
                         }) { row ->
                         saveFocus()
                         onNavigateToCatalogSeeAll(row.catalogId!!, row.addonId!!, row.apiType!!)
@@ -312,6 +315,17 @@ internal fun NetflixHomeContent(
     }
 }
 
+/** Minimal scroll that shows the whole item [key]; nothing moves when it is already fully visible. */
+private suspend fun LazyListState.revealItem(key: Any) {
+    val info = layoutInfo.visibleItemsInfo.firstOrNull { it.key == key } ?: return
+    val overflow = info.offset + info.size - layoutInfo.viewportEndOffset
+    val underflow = info.offset - layoutInfo.viewportStartOffset
+    when {
+        underflow < 0 -> animateScrollBy(underflow.toFloat())
+        overflow > 0 -> animateScrollBy(overflow.toFloat())
+    }
+}
+
 /** Scrolling in Netflix Home is decided by its own policies, never by the platform pivot. */
 private object NetflixExplicitScroll : BringIntoViewSpec {
     override fun calculateScrollDistance(offset: Float, size: Float, containerSize: Float): Float = 0f
@@ -345,7 +359,7 @@ private fun NetflixHeroCard(
     val preview = item.heroPreview
     val art = preview.backdrop ?: item.metaPreview?.background ?: item.imageUrl ?: preview.poster
     Box(
-        Modifier.fillMaxWidth().padding(horizontal = tokens.safeMargin).height(home.heroHeight)
+        Modifier.fillMaxWidth().padding(horizontal = home.heroInset).height(home.heroHeight)
             .clip(RoundedCornerShape(home.heroRadius)).background(tokens.surface)
             .onFocusChanged { if (it.hasFocus) onFocused() }
             .testTag("netflix_home_hero_card"),
@@ -437,22 +451,26 @@ private fun NetflixCategoryStrip(categories: List<HeroCarouselRow>, onFocused: (
     val home = NetflixThemeTokens.Home
     LazyRow(
         modifier = Modifier.onFocusChanged { if (it.hasFocus) onFocused() }.testTag("netflix_category_strip"),
-        contentPadding = PaddingValues(horizontal = tokens.safeMargin, vertical = home.focusOutline * 2),
+        // Aligned with the hero card's edges, as in the reference top state.
+        contentPadding = PaddingValues(horizontal = home.heroInset, vertical = home.focusOutline * 2),
         horizontalArrangement = Arrangement.spacedBy(home.categoryGap),
     ) {
         itemsIndexed(categories, key = { _, row -> "category:" + row.key }) { _, row ->
             Card(
                 onClick = { onOpen(row) },
-                modifier = Modifier.width(home.categoryWidth).height(home.categoryHeight).testTag("netflix_category_${row.key}"),
+                modifier = Modifier.widthIn(min = home.categoryMinWidth, max = home.categoryMaxWidth).height(home.categoryHeight)
+                    .testTag("netflix_category_${row.key}"),
                 shape = CardDefaults.shape(RoundedCornerShape(home.categoryRadius)),
                 colors = CardDefaults.colors(containerColor = tokens.surfaceRaised, focusedContainerColor = tokens.surfaceMuted),
                 border = CardDefaults.border(focusedBorder = Border(BorderStroke(home.focusOutline, tokens.focus), shape = RoundedCornerShape(home.categoryRadius))),
                 scale = CardDefaults.scale(focusedScale = 1f),
             ) {
-                Box(Modifier.fillMaxSize().padding(horizontal = tokens.previewPadding), contentAlignment = Alignment.Center) {
+                // Width follows the label (bounded), not a fixed settings-like block.
+                Box(Modifier.fillMaxHeight().widthIn(min = home.categoryMinWidth).padding(horizontal = home.categoryPadding),
+                    contentAlignment = Alignment.Center) {
                     Text(row.title, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = home.categoryTextSize,
                         fontWeight = FontWeight.Bold, textDirection = row.title.contentTextDirection()),
-                        color = tokens.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                        color = tokens.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
@@ -485,8 +503,8 @@ private fun NetflixBrowseRow(
             // focus system's own bring-into-view scroll is in flight; measuring then made the row
             // swing back. Waiting for the row to settle (bounded by the transform time) keeps the
             // decision a pure function of the final layout.
-            val expandedPx = with(density) { (home.rowCardHeight * tokens.landscapeAspectRatio).toPx() }
-            val idlePx = if (landscape) expandedPx else with(density) { (home.rowCardHeight * tokens.posterAspectRatio).toPx() }
+            val expandedPx = with(density) { home.rowCardExpandedWidth.toPx() }
+            val idlePx = if (landscape) expandedPx else with(density) { home.rowCardIdleWidth.toPx() }
             withTimeoutOrNull(home.expandMillis + 240L) {
                 snapshotFlow {
                     val visible = listState.layoutInfo.visibleItemsInfo
@@ -497,9 +515,9 @@ private fun NetflixBrowseRow(
             }
             val delta = with(density) {
                 netflixComfortDeltaFor(listState.layoutInfo, index, landscape,
-                    portraitPx = (home.rowCardHeight * tokens.posterAspectRatio).toPx(),
-                    expandedPx = (home.rowCardHeight * tokens.landscapeAspectRatio).toPx(),
-                    peekPx = (home.rowCardHeight * tokens.posterAspectRatio * home.comfortPeekFraction).toPx())
+                    portraitPx = home.rowCardIdleWidth.toPx(),
+                    expandedPx = home.rowCardExpandedWidth.toPx(),
+                    peekPx = (home.rowCardIdleWidth * home.comfortPeekFraction).toPx())
             }
             when {
                 delta == null -> listState.animateScrollToItem(index)
@@ -557,8 +575,8 @@ private fun NetflixBrowseCard(
     val lowRam = AdaptiveResources.policy.isLowRam
     var focused by remember { mutableStateOf(false) }
     val height = home.rowCardHeight
-    val portraitWidth = height * tokens.posterAspectRatio
-    val landscapeWidth = height * tokens.landscapeAspectRatio
+    val portraitWidth = home.rowCardIdleWidth
+    val landscapeWidth = home.rowCardExpandedWidth
     val expanded = focused && !landscapeRow
     val targetWidth = if (landscapeRow || expanded) landscapeWidth else portraitWidth
     // Bounded, interruptible transform; a new focus target retargets the animation, never queues it.
