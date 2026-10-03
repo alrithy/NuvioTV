@@ -372,6 +372,14 @@ GITHUB_ADMIN_CHECKLIST; connector access to those settings is not available.
 
 ## Independent user-requested Netflix theme
 
+MANDATORY before any further Netflix-theme work: read `docs/NETFLIX_TV_2026_PARITY_AUDIT.md`
+in full. It records the current Netflix TV reference as of 2026-10-03, the actual visual artifacts
+from Superfork Netflix Visual #3, the current EN/AR instrumentation failures, per-screen deltas,
+P0/P1 implementation order, RTL/focus/performance rules and the theme Done definition. It explicitly
+supersedes the older assumption that Netflix-theme navigation should use the pre-2025 left sidebar:
+the current reference uses top-of-screen navigation and a My Netflix hub. Do not merge, declare
+parity, or polish the old left rail around this requirement.
+
 `feat/netflix-theme` is an explicit-user-request extension, recorded separately
 as `user_authorized_task` in state.yaml and `tasks/NETFLIX_THEME.md`. G14 remains
 BLOCKED; its canonical gate/branch/task/owner and hardware campaign are unchanged.
@@ -380,7 +388,9 @@ navigation, profile persistence and playback owners are reused. No Netflix asset
 or proprietary font/code are included. Verification evidence and remaining gaps
 are tracked in `docs/NETFLIX_THEME_VISUAL_VERIFICATION.md`.
 
-Next action for this task: complete implementation, run the full baseline-guarded
-unit/build/CI checks, review all eleven screens at TV sizes in LTR/Arabic RTL,
-and provide a signed Test Build. Do not merge or call it Done before visual
+Next action for this task: execute the P0 order in the parity audit (fix the five current visual
+interaction failures; replace Netflix-theme left rail with top navigation; implement a real Nuvio-backed
+My Netflix hub; refactor Home to current focus-driven discovery; fix Search focus restoration; fix and
+re-capture Player), then run the full baseline-guarded unit/build/CI checks, the expanded EN/AR 1080p/4K
+visual matrix, manual visual review, and provide a signed Test Build. Do not merge or call it Done before visual
 verification. Existing G14 hardware checks retain their real pending status.
