@@ -1136,7 +1136,9 @@ private fun NetflixEpisodeCardContent(
     val episodeTitle = episode.title.localizeEpisodeTitle(context)
     val title = remember(episode.episode, episodeTitle) {
         episode.episode?.let { number ->
-            "${java.text.NumberFormat.getIntegerInstance(Locale.getDefault()).format(number)}. $episodeTitle"
+            // Each part is isolated so a Latin title in Arabic (or the reverse) cannot reorder the number.
+            "${com.nuvio.tv.ui.theme.netflixIsolate(java.text.NumberFormat.getIntegerInstance(Locale.getDefault()).format(number))}. " +
+                com.nuvio.tv.ui.theme.netflixIsolate(episodeTitle)
         } ?: episodeTitle
     }
     Column(

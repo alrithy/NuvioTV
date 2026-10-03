@@ -18,6 +18,8 @@ import time
 from pathlib import Path
 
 
+# The review matrix in docs/NETFLIX_THEME_VISUAL_VERIFICATION.md; each name is captured by the
+# instrumentation test that drives that exact state (a PNG existing is not a visual pass).
 SCREENS = (
     "01-home-hero",
     "02-home-rows",
@@ -27,9 +29,24 @@ SCREENS = (
     "06-series-details",
     "07-episodes",
     "08-search",
-    "09-navigation",
-    "10-profiles",
-    "11-player-controls",
+    "09-top-nav-home",
+    "10-top-nav-search",
+    "11-top-nav-my-netflix",
+    "12-my-netflix-hub",
+    "13-profiles",
+    "14-player-controls",
+    "15-resume-actions",
+    "16-confirmation-dialog",
+    "17-empty-state",
+    "18-network-error",
+    "19-playback-loading",
+    "20-contextual-callout",
+    "21-low-memory-fallback",
+    "22-missing-logo-fallback",
+    "23-very-long-title",
+    "24-arabic-mixed-bidi",
+    "25-search-error-keyboard",
+    "26-details-return-focus",
 )
 TEST_CLASS = "com.nuvio.tv.ui.theme.NetflixThemeTvTest"
 
@@ -116,6 +133,13 @@ def main() -> int:
     sha = subprocess.run(["git", "rev-parse", "HEAD"], text=True, capture_output=True, check=True).stdout.strip()
     dirty = subprocess.run(["git", "status", "--porcelain"], text=True, capture_output=True, check=True).stdout.strip()
     missing = [screen for screen in SCREENS if not any(f["file"].startswith(screen) for f in files)]
+    # Two required states rendering the same pixels means one capture does not show its state.
+    by_hash: dict[str, list[str]] = {}
+    for screen in SCREENS:
+        for f in files:
+            if f["file"].startswith(screen):
+                by_hash.setdefault(f["sha256"], []).append(screen)
+    identical = sorted(names for names in by_hash.values() if len(names) > 1)
     expected_dimensions = (1920, 1080) if args.resolution == "1080p" else (3840, 2160)
     unexpected_dimensions = [f["file"] for f in files if (f["width"], f["height"]) != expected_dimensions]
     manifest = {
@@ -126,6 +150,7 @@ def main() -> int:
         "device_fingerprint": adb("shell", "getprop", "ro.build.fingerprint").stdout.strip(),
         "screenshots": files, "missing_required_screens": missing,
         "unexpected_dimensions": unexpected_dimensions,
+        "identical_required_screens": identical,
         "instrumentation_status": ("PASS" if instrumentation_succeeded(test_result) else "FAIL")
             if test_result is not None else "NOT_RUN_CAPTURE_ONLY",
         "visual_review_status": "PENDING", "netflix_reference_comparison_status": "PENDING",
@@ -133,10 +158,13 @@ def main() -> int:
         "scope": "Actual production Compose components with offline deterministic fixtures; no backend or playback-engine certification.",
     }
     (args.output / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
-    print(f"Collected {len(files)} screenshots; missing required screens: {len(missing)}; unexpected dimensions: {len(unexpected_dimensions)}")
+    print(f"Collected {len(files)} screenshots; missing required screens: {len(missing)}; "
+          f"unexpected dimensions: {len(unexpected_dimensions)}; identical required states: {identical}")
+    if missing:
+        print("Missing: " + ", ".join(missing))
     if test_result and not instrumentation_succeeded(test_result):
         return 1
-    return 1 if missing or unexpected_dimensions else 0
+    return 1 if missing or unexpected_dimensions or identical else 0
 
 
 if __name__ == "__main__":

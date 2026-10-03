@@ -5,7 +5,10 @@ import sys
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from capture_netflix_theme import instrumentation_succeeded
+import contextlib
+import io
+
+from capture_netflix_theme import SCREENS, instrumentation_succeeded, print_failures
 
 
 class NetflixCaptureReceiptTests(unittest.TestCase):
@@ -33,6 +36,27 @@ class NetflixCaptureReceiptTests(unittest.TestCase):
         self.assertFalse(instrumentation_succeeded(self.receipt(success, exit_code=1)))
         self.assertFalse(instrumentation_succeeded(self.receipt("FAILURES!!!\n" + success)))
         self.assertFalse(instrumentation_succeeded(self.receipt("INSTRUMENTATION_CODE: 0\n" + success)))
+
+
+class NetflixCaptureLogTests(unittest.TestCase):
+    def test_failures_are_named_with_their_stack_in_the_log(self):
+        output = ("INSTRUMENTATION_STATUS: test=passes\nINSTRUMENTATION_STATUS_CODE: 1\n"
+                  "INSTRUMENTATION_STATUS: test=passes\nINSTRUMENTATION_STATUS_CODE: 0\n"
+                  "INSTRUMENTATION_STATUS: stack=java.lang.AssertionError: expected:<2>\n\tat X.kt:9\n"
+                  "INSTRUMENTATION_STATUS: test=breaks\nINSTRUMENTATION_STATUS_CODE: -2\n"
+                  "Tests run: 2,  Failures: 1\n")
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            print_failures(output)
+        log = buffer.getvalue()
+        self.assertIn("FAILED breaks", log)
+        self.assertIn("expected:<2>", log)
+        self.assertNotIn("FAILED passes", log)
+
+    def test_matrix_names_the_twenty_six_review_surfaces_once(self):
+        self.assertEqual(26, len(SCREENS))
+        self.assertEqual(len(SCREENS), len(set(SCREENS)))
+        self.assertFalse(any(name.startswith("09-navigation") for name in SCREENS))
 
 
 if __name__ == "__main__":

@@ -42,6 +42,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -167,6 +168,7 @@ internal fun NetflixSearchScreen(
 }
 
 internal const val NETFLIX_SEARCH_GRID_KEY = "netflix_search_grid"
+private const val NETFLIX_SEARCH_RESTORE_FRAMES = 12
 
 internal data class NetflixSearchResult(val item: MetaPreview, val addonBaseUrl: String) {
     val key: String get() = "${item.apiType}:${item.id}"
@@ -227,20 +229,29 @@ internal fun NetflixSearchContent(
         Unit
     }
     val latestOnFocusRestored by rememberUpdatedState(onFocusRestored)
+    var screenHasFocus by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         repeat(2) { withFrameNanos { } }
-        // Keep the keyboard usable while an asynchronous saved-result restoration is pending.
-        runCatching { keyboardRequester.requestFocus() }
+        // Keep the keyboard usable while an asynchronous saved-result restoration is pending, but
+        // never take focus back from a result the restoration already focused.
+        if (!screenHasFocus) runCatching { keyboardRequester.requestFocus() }
     }
     // Results may arrive after the screen resumes; retire the restoration only after a cell owns focus.
     LaunchedEffect(restoreFocus, results.size, initialFocusedIndex) {
         if (!restoreFocus || results.isEmpty()) return@LaunchedEffect
         val index = initialFocusedIndex.coerceIn(results.indices)
         gridState.scrollToItem(index)
-        repeat(2) { withFrameNanos { } }
-        val restored = resultRequesters[results[index].key]
-            ?.let { runCatching { it.requestFocus() }.getOrDefault(false) } == true
-        if (restored) latestOnFocusRestored()
+        // The target cell composes on a later frame. The Boolean overload reports whether focus
+        // really moved (the no-argument one returns Unit, which left this restoration armed forever
+        // and let later result updates pull focus back into the grid).
+        repeat(NETFLIX_SEARCH_RESTORE_FRAMES) {
+            withFrameNanos { }
+            val requester = resultRequesters[results[index].key]
+            if (requester != null && runCatching { requester.requestFocus(FocusDirection.Enter) }.getOrDefault(false)) {
+                latestOnFocusRestored()
+                return@LaunchedEffect
+            }
+        }
     }
     var lastGridQuery by remember { mutableStateOf(uiState.query) }
     LaunchedEffect(uiState.query) {
@@ -255,6 +266,7 @@ internal fun NetflixSearchContent(
     BoxWithConstraints(
         Modifier.fillMaxSize().background(tokens.background)
             .padding(horizontal = tokens.safeVerticalMargin, vertical = tokens.safeVerticalMargin)
+            .onFocusChanged { screenHasFocus = it.hasFocus }
             .testTag("netflix_search")
     ) {
         val gridWidth = maxWidth - tokens.searchKeyboardWidth - tokens.profileGap

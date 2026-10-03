@@ -171,52 +171,7 @@ private fun PlaybackNavHost(
                 item: ContinueWatchingItem,
                 manualSelection: Boolean = false,
                 startFromBeginning: Boolean = false
-            ): String {
-                return when (item) {
-                    is ContinueWatchingItem.InProgress -> Screen.Stream.createRoute(
-                        videoId = item.progress.videoId,
-                        contentType = item.progress.contentType,
-                        title = item.progress.name,
-                        poster = item.progress.poster,
-                        backdrop = item.progress.backdrop,
-                        logo = item.progress.logo,
-                        season = item.progress.season,
-                        episode = item.progress.episode,
-                        episodeName = item.progress.episodeTitle,
-                        genres = null,
-                        year = null,
-                        contentId = item.progress.contentId,
-                        contentName = item.progress.name,
-                        runtime = null,
-                        manualSelection = manualSelection,
-                        returnToDetailOnBack = item.progress.contentType.equals("series", ignoreCase = true),
-                        returnToHomeOnBack = true,
-                        startFromBeginning = startFromBeginning,
-                        contentLanguage = item.contentLanguage
-                    )
-                    is ContinueWatchingItem.NextUp -> Screen.Stream.createRoute(
-                        videoId = item.info.videoId,
-                        contentType = item.info.contentType,
-                        title = item.info.name,
-                        poster = item.info.poster,
-                        backdrop = item.info.backdrop,
-                        logo = item.info.logo,
-                        season = item.info.season,
-                        episode = item.info.episode,
-                        episodeName = item.info.episodeTitle,
-                        genres = null,
-                        year = null,
-                        contentId = item.info.contentId,
-                        contentName = item.info.name,
-                        runtime = null,
-                        manualSelection = manualSelection,
-                        returnToDetailOnBack = item.info.contentType.equals("series", ignoreCase = true),
-                        returnToHomeOnBack = true,
-                        startFromBeginning = startFromBeginning,
-                        contentLanguage = item.info.contentLanguage
-                    )
-                }
-            }
+            ): String = continueWatchingRoute(item, manualSelection, startFromBeginning)
 
             HomeScreen(
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
@@ -1208,6 +1163,28 @@ private fun PlaybackNavHost(
             )
         }
 
+        // NETFLIX_THEME (parity audit §6): the hub reads the same library/progress owners; the full
+        // Library stays one action away for lists, providers and cloud files.
+        composable(Screen.MyNetflix.route) {
+            com.nuvio.tv.ui.screens.mynetflix.MyNetflixHubScreen(
+                onOpenDetail = { itemId, itemType, addonBaseUrl ->
+                    navController.navigate(Screen.Detail.createRoute(itemId, itemType, addonBaseUrl))
+                },
+                onResume = onResume@{ progress ->
+                    val item = ContinueWatchingItem.InProgress(progress)
+                    if (!playbackAvailability.canStream(item)) {
+                        Toast.makeText(context, R.string.playback_unavailable_message, Toast.LENGTH_SHORT).show()
+                        return@onResume
+                    }
+                    navController.navigate(continueWatchingRoute(item))
+                },
+                onOpenFullLibrary = { navController.navigate(Screen.Library.route) },
+                // Search and Settings are top-level destinations: switch to them as the top bar does.
+                onOpenSearch = { com.nuvio.tv.navigateToDrawerRoute(navController, Screen.MyNetflix.route, Screen.Search.route) },
+                onOpenSettings = { com.nuvio.tv.navigateToDrawerRoute(navController, Screen.MyNetflix.route, Screen.Settings.route) }
+            )
+        }
+
         composable(Screen.Library.route) {
             LibraryScreen(
                 showBuiltInHeader = !hideBuiltInHeaders,
@@ -1489,5 +1466,57 @@ private fun PlaybackNavHost(
                 }
             )
         }
+    }
+}
+
+/** Home's Continue Watching resume route, shared with the Netflix-theme My Netflix hub. */
+internal fun continueWatchingRoute(
+    item: ContinueWatchingItem,
+    manualSelection: Boolean = false,
+    startFromBeginning: Boolean = false
+): String {
+    return when (item) {
+        is ContinueWatchingItem.InProgress -> Screen.Stream.createRoute(
+            videoId = item.progress.videoId,
+            contentType = item.progress.contentType,
+            title = item.progress.name,
+            poster = item.progress.poster,
+            backdrop = item.progress.backdrop,
+            logo = item.progress.logo,
+            season = item.progress.season,
+            episode = item.progress.episode,
+            episodeName = item.progress.episodeTitle,
+            genres = null,
+            year = null,
+            contentId = item.progress.contentId,
+            contentName = item.progress.name,
+            runtime = null,
+            manualSelection = manualSelection,
+            returnToDetailOnBack = item.progress.contentType.equals("series", ignoreCase = true),
+            returnToHomeOnBack = true,
+            startFromBeginning = startFromBeginning,
+            contentLanguage = item.contentLanguage
+        )
+        is ContinueWatchingItem.NextUp -> Screen.Stream.createRoute(
+            videoId = item.info.videoId,
+            contentType = item.info.contentType,
+            title = item.info.name,
+            poster = item.info.poster,
+            backdrop = item.info.backdrop,
+            logo = item.info.logo,
+            season = item.info.season,
+            episode = item.info.episode,
+            episodeName = item.info.episodeTitle,
+            genres = null,
+            year = null,
+            contentId = item.info.contentId,
+            contentName = item.info.name,
+            runtime = null,
+            manualSelection = manualSelection,
+            returnToDetailOnBack = item.info.contentType.equals("series", ignoreCase = true),
+            returnToHomeOnBack = true,
+            startFromBeginning = startFromBeginning,
+            contentLanguage = item.info.contentLanguage
+        )
     }
 }

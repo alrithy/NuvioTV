@@ -94,6 +94,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.CornerRadius
@@ -2676,16 +2677,37 @@ private fun PlayerControlsProgressBarHost(
 @Composable
 private fun PlayerControlsTimeTextHost(viewModel: PlayerViewModel) {
     val playbackTimeline by viewModel.playbackTimeline.collectAsState()
-    val timeText = if (playbackTimeline.isLive) {
-        stringResource(R.string.player_live_watched, formatTime(playbackTimeline.watchedDurationMs))
-    } else {
-        "${formatTime(playbackTimeline.currentPosition)} / ${formatTime(playbackTimeline.duration)}"
-    }
+    PlayerTimeText(
+        currentPositionMs = playbackTimeline.currentPosition,
+        durationMs = playbackTimeline.duration,
+        isLive = playbackTimeline.isLive,
+        watchedDurationMs = playbackTimeline.watchedDurationMs
+    )
+}
 
+/** Stateless elapsed / duration label, shared by the player and the Netflix TV fixtures. */
+@Composable
+internal fun PlayerTimeText(
+    currentPositionMs: Long,
+    durationMs: Long,
+    isLive: Boolean = false,
+    watchedDurationMs: Long = 0L
+) {
+    val timeText = if (isLive) {
+        stringResource(R.string.player_live_watched, formatTime(watchedDurationMs))
+    } else {
+        "${formatTime(currentPositionMs)} / ${formatTime(durationMs)}"
+    }
+    // NETFLIX_THEME keeps the player in the locale's direction; a timeline reads left to right in
+    // every locale, so "elapsed / duration" must not be reordered by an RTL paragraph.
+    val style = if (NuvioTheme.isNetflix) {
+        MaterialTheme.typography.bodyMedium.copy(textDirection = androidx.compose.ui.text.style.TextDirection.Ltr)
+    } else MaterialTheme.typography.bodyMedium
     Text(
         text = timeText,
-        style = MaterialTheme.typography.bodyMedium,
-        color = Color.White.copy(alpha = 0.9f)
+        style = style,
+        color = Color.White.copy(alpha = 0.9f),
+        modifier = Modifier.testTag("player_time_text")
     )
 }
 

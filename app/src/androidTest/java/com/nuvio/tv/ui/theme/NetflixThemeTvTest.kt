@@ -77,8 +77,7 @@ import androidx.tv.material3.Text
 import coil3.compose.AsyncImage
 import com.nuvio.tv.DrawerItem
 import com.nuvio.tv.LocaleCache
-import com.nuvio.tv.ModernSidebarBlurPanel
-import com.nuvio.tv.NetflixSidebarRail
+import com.nuvio.tv.LocalContentFocusRequester
 import com.nuvio.tv.domain.model.AppTheme
 import com.nuvio.tv.domain.model.CatalogRow
 import com.nuvio.tv.domain.model.ContentType
@@ -111,6 +110,7 @@ import com.nuvio.tv.ui.screens.home.NetflixExpandedCardContent
 import com.nuvio.tv.ui.screens.home.buildCarouselRowLookups
 import com.nuvio.tv.ui.screens.player.ControlButton
 import com.nuvio.tv.ui.screens.player.NetflixPlayerContentHeading
+import com.nuvio.tv.ui.screens.player.PlayerTimeText
 import com.nuvio.tv.ui.screens.player.PlayerUiState
 import com.nuvio.tv.ui.screens.player.ProgressBar
 import com.nuvio.tv.ui.screens.player.NetflixPlayerLoadingOverlay
@@ -119,7 +119,20 @@ import com.nuvio.tv.ui.screens.search.NetflixSearchContent
 import com.nuvio.tv.ui.screens.search.SearchEvent
 import com.nuvio.tv.ui.screens.search.SearchUiState
 import com.nuvio.tv.ui.util.asStable
-import dev.chrisbanes.haze.HazeState
+import com.nuvio.tv.fork.resource.MemoryTier
+import com.nuvio.tv.ui.screens.home.NetflixCallout
+import com.nuvio.tv.ui.screens.home.NetflixCalloutKind
+import com.nuvio.tv.ui.screens.home.NetflixHeroTitleContent
+import com.nuvio.tv.ui.screens.home.netflixHomePreviewPolicy
+import com.nuvio.tv.ui.screens.mynetflix.MyNetflixHubContent
+import com.nuvio.tv.ui.screens.mynetflix.buildMyNetflixHub
+import com.nuvio.tv.ui.screens.uistyle.NetflixNavEntry
+import com.nuvio.tv.ui.screens.uistyle.NetflixTopNavigationBar
+import com.nuvio.tv.ui.screens.uistyle.TopMenuProfile
+import com.nuvio.tv.ui.screens.uistyle.netflixNavEntries
+import com.nuvio.tv.domain.model.LibraryEntry
+import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.onAllNodesWithTag
 import java.io.File
 import java.util.Locale
 import org.junit.Assert.assertEquals
@@ -165,6 +178,10 @@ class NetflixThemeTvTest {
         setContent { FullHome {} }
         compose.onNodeWithTag("netflix_hero_play").requestFocus().assertIsFocused()
         press(KeyEvent.KEYCODE_DPAD_DOWN)
+        // The hero's Down hands focus to the rows through the scaffold's content requester.
+        compose.onNodeWithTag("netflix_hero_play").assertIsNotFocused()
+        compose.onAllNodes(isFocused()).assertCountEquals(1)
+        press(if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT)
         compose.onAllNodes(isFocused()).assertCountEquals(1)
         capture("02-home-rows")
     }
@@ -237,7 +254,7 @@ class NetflixThemeTvTest {
         compose.onNodeWithTag(firstAnchor).requestFocus()
         waitForHomePreview()
         compose.onNodeWithTag("netflix_card_play").assertIsFocused()
-        capture("04-expanded-card-in-home")
+        capture("04b-expanded-card-in-home")
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals(1, played) }
         val towardNext = if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
@@ -350,7 +367,7 @@ class NetflixThemeTvTest {
         compose.onAllNodes(isFocused()).assertCountEquals(1)
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertTrue(selectedIndex >= 60) }
-        capture("17-search-deep-grid-reentry")
+        capture("08b-search-deep-grid-reentry")
     }
 
     @Test fun savedSearchFocusWaitsForResultsAndKeepsTheKeyboardAvailableDuringAnError() {
@@ -366,6 +383,7 @@ class NetflixThemeTvTest {
             compose.onAllNodes(isFocused()).fetchSemanticsNodes().size == 1
         }
         compose.onNodeWithText(initialKey).assertIsFocused()
+        capture("25-search-error-keyboard")
         compose.runOnIdle {
             assertEquals(0, restored)
             state = state.copy(catalogRows = listOf(catalog()), error = null)
@@ -374,34 +392,189 @@ class NetflixThemeTvTest {
             compose.onAllNodes(hasTestTag("netflix_search_result_8").and(isFocused())).fetchSemanticsNodes().size == 1
         }
         compose.runOnIdle { assertEquals(1, restored) }
-        capture("18-search-async-focus-restore")
+        capture("08c-search-async-focus-restore")
     }
 
-    @Test fun navigationShowsCollapsedAndExpandedStatesWithSingleRemoteActivation() {
+    @Test fun topNavigationReachesHomeSearchAndMyNetflixWithoutASideRail() {
         var route: String? = null
-        val entries = navigationItems()
+        var switched = 0
         setContent {
-            val requesters = remember { entries.associate { it.route to FocusRequester() } }
-            ArtworkBackground()
-            Box(Modifier.width(NetflixThemeTokens.navigationExpandedWidth).fillMaxHeight()) {
-                ModernSidebarBlurPanel(entries, "home", true, 1f, 1f, 1f, true, false, false,
-                    remember { HazeState() }, RoundedCornerShape(0.dp), requesters, {}, { route = it },
-                    text("Alex", "أحمد"), "#4D7290", null, false, {})
+            val selected = remember { FocusRequester() }
+            Column(Modifier.fillMaxSize()) {
+                NetflixTopNavigationBar(navigationEntries(), "home", selected,
+                    TopMenuProfile(text("Alex", "أحمد"), "#4D7290", null) { switched++ }, onFocusChanged = {},
+                    onNavigate = { route = it })
+                Box(Modifier.fillMaxSize()) { ArtworkBackground() }
             }
-            LaunchedEffect(Unit) { requesters.getValue("home").requestFocus() }
+            LaunchedEffect(Unit) { selected.requestFocus() }
         }
-        capture("09-navigation-expanded")
-        press(KeyEvent.KEYCODE_DPAD_DOWN)
+        compose.onNodeWithTag("netflix_top_nav_home").assertIsFocused().assertIsSelected()
+        capture("09-top-nav-home")
+        val towardStart = if (arabic) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
+        val towardEnd = if (arabic) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+        // One deterministic step from Home to Search, in either direction of reading.
+        press(towardStart)
+        compose.onNodeWithTag("netflix_top_nav_search").assertIsFocused()
+        capture("10-top-nav-search")
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals("search", route) }
+        press(towardStart)
+        compose.onNodeWithTag("netflix_top_nav_profile").assertIsFocused()
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(1, switched) }
+        repeat(5) { press(towardEnd) }
+        compose.onNodeWithTag("netflix_top_nav_my_netflix").assertIsFocused()
+        capture("11-top-nav-my-netflix")
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals("my_netflix", route) }
+        // Settings stays reachable as the trailing, low-emphasis entry rather than a content tab.
+        press(towardEnd)
+        compose.onNodeWithTag("netflix_top_nav_settings").assertIsFocused()
+        compose.onAllNodes(isFocused()).assertCountEquals(1)
     }
 
-    @Test fun collapsedNavigationRemainsMinimalOverTheArtwork() {
+    @Test fun myNetflixHubAggregatesRealProfileDataAndOpensTitles() {
+        var resumed: String? = null
+        var opened: String? = null
+        var library = 0
+        val now = 1_760_000_000_000L
+        val state = buildMyNetflixHub(
+            library = items.take(4).mapIndexed { index, item -> LibraryEntry(item.id, "movie", item.name, item.poster,
+                background = item.background, logo = null, description = null, releaseInfo = "2026", imdbRating = null,
+                genres = emptyList(), addonBaseUrl = "https://fixture.invalid", listedAt = now - index) },
+            continueWatching = listOf(progress(episodes()[1]).copy(lastWatched = now)),
+            watched = emptyList(),
+            allProgress = listOf(progress(episodes()[1]), WatchProgress("fixture:5", "movie", titles[5], artwork(5), artwork(5), null,
+                "fixture:5", null, null, null, 6_400_000L, 6_500_000L, now - 10)),
+        )
+        setContent {
+            MyNetflixHubContent(state, UserProfile(1, text("Alex", "أحمد"), "#476C91"),
+                onOpenDetail = { id, _, _ -> opened = id }, onResume = { resumed = it.videoId },
+                onOpenFullLibrary = { library++ }, onOpenSearch = {}, onOpenSettings = {})
+        }
+        compose.onNodeWithTag("my_netflix_row_continue_watching").assertIsDisplayed()
+        compose.onNodeWithTag("my_netflix_row_my_list").assertIsDisplayed()
+        compose.onNodeWithTag("my_netflix_row_recently_watched").assertIsDisplayed()
+        compose.onAllNodesWithTag("my_netflix_progress").assertCountEquals(1)
+        val first = compose.onAllNodes(hasTestTag("my_netflix_card_continue:series:fixture:0"))
+        first.assertCountEquals(1)
+        compose.onNodeWithTag("my_netflix_card_continue:series:fixture:0").requestFocus().assertIsFocused()
+        capture("12-my-netflix-hub")
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(episodes()[1].id, resumed) }
+        press(KeyEvent.KEYCODE_DPAD_DOWN)
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertTrue(opened?.startsWith("fixture:") == true) }
+        compose.onNodeWithTag("my_netflix_full_library").requestFocus()
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(1, library) }
+    }
+
+    @Test fun emptyMyNetflixOffersARealSearchActionInsteadOfATextIsland() {
+        var searched = 0
+        setContent {
+            MyNetflixHubContent(buildMyNetflixHub(emptyList(), emptyList(), emptyList(), emptyList()),
+                UserProfile(1, text("Alex", "أحمد"), "#476C91"), { _, _, _ -> }, {}, {}, { searched++ }, {})
+        }
+        compose.onNodeWithTag("my_netflix_empty_search").requestFocus().assertIsFocused()
+        capture("17-empty-state")
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(1, searched) }
+    }
+
+    @Test fun contextualCalloutStatesOnlyProvenFacts() {
+        setContent {
+            Box(Modifier.fillMaxSize()) {
+                ArtworkBackground()
+                NetflixHeroTitleContent(carouselItem(items[1], "callout").heroPreview, {}, {},
+                    modifier = Modifier.align(Alignment.CenterStart).padding(horizontal = NetflixThemeTokens.safeMargin)
+                        .fillMaxWidth(NetflixThemeTokens.heroMetadataWidthFraction),
+                    callout = NetflixCallout(NetflixCalloutKind.CONTINUE, 1, 2))
+            }
+        }
+        compose.onNodeWithTag("netflix_callout").assertIsDisplayed()
+        listOf("Top 10", "98% Match", "Emmy", "Highly Rewatched", "Leaving Soon").forEach {
+            compose.onNodeWithText(it, substring = true).assertDoesNotExist()
+        }
+        capture("20-contextual-callout")
+    }
+
+    @Test fun lowMemoryTierUsesStaticArtworkWithoutVideoOrMotion() {
+        val policy = netflixHomePreviewPolicy(MemoryTier.LOW_RAM)
+        assertTrue(!policy.allowVideo && !policy.animate)
         setContent {
             ArtworkBackground()
-            NetflixSidebarRail(navigationItems(), "home", onExpand = {})
+            Box(Modifier.padding(NetflixThemeTokens.safeMargin)) {
+                // Exactly what the row passes on this tier: no trailer URL, unscaled card.
+                NetflixExpandedCardContent(carouselItem(items[2], "low"), {}, {}, {},
+                    width = NetflixThemeTokens.landscapeCardWidth * policy.expandedScale, trailerPreviewUrl = null)
+            }
         }
-        capture("09-navigation-collapsed")
+        compose.onNodeWithTag("netflix_expanded_card").assertIsDisplayed()
+        capture("21-low-memory-fallback")
+    }
+
+    @Test fun missingLogoAndArtworkFallBackToDarkTitleSurfaces() {
+        setContent {
+            ArtworkBackground()
+            Column(Modifier.padding(NetflixThemeTokens.safeMargin), verticalArrangement = Arrangement.spacedBy(NetflixThemeTokens.rowGap)) {
+                NetflixHeroTitleContent(carouselItem(items[3], "nologo").heroPreview.copy(logo = "file:///nonexistent/logo.png"), {}, {},
+                    modifier = Modifier.fillMaxWidth(NetflixThemeTokens.heroMetadataWidthFraction))
+                Box(Modifier.width(NetflixThemeTokens.landscapeCardWidth)) {
+                    GridContentCard(items[3].copy(poster = null, background = null, landscapePoster = null), onClick = {},
+                        posterCardStyle = netflixCardStyle())
+                }
+            }
+        }
+        compose.waitUntil(5_000) { compose.onAllNodes(hasTestTag("netflix_home_hero")).fetchSemanticsNodes().isNotEmpty() }
+        capture("22-missing-logo-fallback")
+    }
+
+    @Test fun veryLongTitlesEllipsizeWithoutPushingActionsOffScreen() {
+        val long = text("The Extraordinarily Long and Winding Journey of the Last Lighthouse Keeper Beyond the Northern Passage",
+            "الرحلة الطويلة والمتعرجة بشكل استثنائي لآخر حارس منارة خلف الممر الشمالي البعيد")
+        setContent {
+            Box(Modifier.fillMaxSize()) {
+                ArtworkBackground()
+                NetflixHeroTitleContent(carouselItem(items[4].copy(name = long), "long").heroPreview.copy(title = long), {}, {},
+                    modifier = Modifier.align(Alignment.CenterStart).padding(horizontal = NetflixThemeTokens.safeMargin)
+                        .fillMaxWidth(NetflixThemeTokens.heroMetadataWidthFraction))
+            }
+        }
+        compose.onNodeWithTag("netflix_hero_play").assertIsDisplayed()
+        capture("23-very-long-title")
+    }
+
+    @Test fun arabicTitleWithLatinTokensKeepsLogicalOrder() {
+        // Rendered in both locales: an Arabic title, Latin brand/rating tokens and an episode token.
+        val mixed = "الممر الشمالي: Northern Passage 2"
+        setContent {
+            Box(Modifier.fillMaxSize()) {
+                ArtworkBackground()
+                NetflixHeroTitleContent(carouselItem(items[1].copy(name = mixed), "bidi").heroPreview.copy(title = mixed,
+                    description = "رحلة هادئة مع Maya Reed في الموسم 1، حلقة 2 بدقة 4K عبر IMDb 8.1"), {}, {},
+                    modifier = Modifier.align(Alignment.CenterStart).padding(horizontal = NetflixThemeTokens.safeMargin)
+                        .fillMaxWidth(NetflixThemeTokens.heroMetadataWidthFraction),
+                    callout = NetflixCallout(NetflixCalloutKind.NEXT_EPISODE, 1, 2))
+            }
+        }
+        compose.onNodeWithTag("netflix_callout").assertIsDisplayed()
+        capture("24-arabic-mixed-bidi")
+    }
+
+    @Test fun returningFromDetailsRestoresTheExactRowAndCard() {
+        var opened = 0
+        val saved = HomeScreenFocusState(focusedRowKey = "popular",
+            focusedItemKeyByRow = mapOf("popular" to "popular:fixture:3"), hasSavedFocus = true)
+        setContent { FullHome(focusState = saved) { opened++ } }
+        val target = "netflix_home_card_focus_popular:fixture:3"
+        compose.waitUntil(15_000) {
+            compose.onAllNodes(hasTestTag(target).and(isFocused())).fetchSemanticsNodes().size == 1
+        }
+        compose.onAllNodes(isFocused()).assertCountEquals(1)
+        capture("26-details-return-focus")
+        press(KeyEvent.KEYCODE_DPAD_CENTER)
+        compose.runOnIdle { assertEquals(1, opened) }
     }
 
     @Test fun profilesOfferLargeCardsAndSelectTheFocusedProfile() {
@@ -415,7 +588,7 @@ class NetflixThemeTvTest {
                 profileThemes = mapOf(1 to AppTheme.NETFLIX, 2 to AppTheme.WHITE),
                 onProfileFocused = {}, onProfileSelected = { selected = it.id }, onProfileLongPress = {}, onAddProfileClick = {})
         }
-        capture("10-profiles")
+        capture("13-profiles")
         compose.onAllNodes(isFocused()).assertCountEquals(1)
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals(1, selected) }
@@ -432,6 +605,7 @@ class NetflixThemeTvTest {
                 NetflixPlayerContentHeading(PlayerUiState(title = titles.first(), contentName = titles.first(),
                     currentSeason = 1, currentEpisode = 2, currentEpisodeTitle = text("The Crossing", "العبور")))
                 Spacer(Modifier.weight(1f))
+                PlayerTimeText(position, 6_720_000L)
                 // onSeekPreview carries a signed scrub DELTA (PlayerScrubRates.deltaMsForKeyRepeat), as
                 // PlayerScreen's own caller applies it; the position is the caller's to accumulate.
                 ProgressBar(position, 6_720_000L, { delta -> sought += delta; position += delta }, { committed++ },
@@ -445,7 +619,9 @@ class NetflixThemeTvTest {
             }
             LaunchedEffect(Unit) { focus.requestFocus() }
         }
-        capture("11-player-controls")
+        compose.onNodeWithTag("player_time_text").assertIsDisplayed()
+        compose.onNodeWithText("30:00 / 1:52:00", substring = true).assertIsDisplayed()
+        capture("14-player-controls")
         compose.waitUntil(5_000) { compose.onAllNodes(isFocused()).fetchSemanticsNodes().size == 1 }
         // The scrubber is a media timeline: DPAD_RIGHT is forward in both LTR and RTL.
         press(KeyEvent.KEYCODE_DPAD_RIGHT)
@@ -478,7 +654,7 @@ class NetflixThemeTvTest {
             .requestFocus().assertIsFocused()
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals(1, resumed); assertEquals(1, restarted) }
-        capture("12-resume-actions")
+        capture("15-resume-actions")
     }
 
     @Test fun aConfirmationDialogReturnsToTheUnderlyingScreenOnBack() {
@@ -493,10 +669,10 @@ class NetflixThemeTvTest {
             }
         }
         compose.onNodeWithText(text("Cancel", "إلغاء")).requestFocus().assertIsFocused()
-        capture("13-confirmation-dialog")
+        capture("16-confirmation-dialog")
         press(KeyEvent.KEYCODE_BACK)
         compose.runOnIdle { assertTrue(dismissed) }
-        capture("14-empty-list")
+        capture("17b-empty-state-generic")
     }
 
     @Test fun errorStateOffersAnExistingRetryCallback() {
@@ -509,7 +685,7 @@ class NetflixThemeTvTest {
         retry.requestFocus().assertIsFocused()
         val pixels = retry.captureToImage().toPixelMap()
         assertEquals(NetflixThemeTokens.focus, pixels[8, pixels.height / 2])
-        capture("15-network-error")
+        capture("18-network-error")
         press(KeyEvent.KEYCODE_DPAD_CENTER)
         compose.runOnIdle { assertEquals(1, retried) }
     }
@@ -517,7 +693,7 @@ class NetflixThemeTvTest {
     @Test fun playbackLoadingUsesTheSameCinematicSurface() {
         setContent { NetflixPlayerLoadingOverlay(true, artwork(0), null, titles.first(),
             text("Preparing playback", "جارٍ تحضير التشغيل"), .45f) }
-        capture("16-playback-loading")
+        capture("19-playback-loading")
     }
 
     private fun setContent(content: @Composable () -> Unit) {
@@ -538,7 +714,15 @@ class NetflixThemeTvTest {
         }
     }
 
-    @Composable private fun FullHome(onPlay: (() -> Unit)? = null, onLibrary: () -> Unit = {}, onOpen: () -> Unit) {
+    @Composable private fun FullHome(onPlay: (() -> Unit)? = null, onLibrary: () -> Unit = {},
+        focusState: HomeScreenFocusState = HomeScreenFocusState(), onOpen: () -> Unit) {
+        // Production provides this from the navigation scaffold; the hero's Down targets it.
+        CompositionLocalProvider(LocalContentFocusRequester provides remember { FocusRequester() }) {
+            FullHomeContent(onPlay, onLibrary, focusState, onOpen)
+        }
+    }
+
+    @Composable private fun FullHomeContent(onPlay: (() -> Unit)?, onLibrary: () -> Unit, focusState: HomeScreenFocusState, onOpen: () -> Unit) {
         val catalogs = listOf(catalog(), catalog("popular", text("Popular", "الأكثر شعبية")),
             catalog("movies", text("Movies", "الأفلام")), catalog("series", text("TV Shows", "المسلسلات")))
         val resume = ContinueWatchingItem.InProgress(progress(episodes()[1]))
@@ -550,7 +734,7 @@ class NetflixThemeTvTest {
         ModernHomeContent(HomeUiState(catalogRows = catalogs, continueWatchingItems = listOf(resume), isLoading = false,
             layoutPreferencesReady = true, installedAddonsCount = 1, modernLandscapePostersEnabled = true,
             heroItems = items, posterLabelsEnabled = false, catalogAddonNameEnabled = false, catalogTypeSuffixEnabled = false),
-            modernPresentation = presentation, focusState = HomeScreenFocusState(),
+            modernPresentation = presentation, focusState = focusState,
             onNavigateToDetail = { _, _, _ -> onOpen() },
             onPlayClick = { _, _, _ -> if (onPlay != null) onPlay() else onOpen() },
             onCatalogLibraryAction = { _, _ -> onLibrary() }, onContinueWatchingClick = { onOpen() },
@@ -598,12 +782,13 @@ class NetflixThemeTvTest {
         director = listOf(text("Alex Rivers", "علي سالم")), cast = listOf(text("Maya Reed", "مريم خالد"), text("Sam Jordan", "سامي حسن")),
         videos = if (type == ContentType.SERIES) episodes() + episodes().map { it.copy(id = it.id.replace(":1:", ":2:"), season = 2) } else emptyList(),
         ageRating = "16+", country = null, awards = null, language = localeTag, links = emptyList())
-    private fun navigationItems() = listOf(DrawerItem("home", text("Home", "الرئيسية"), icon = Icons.Default.Home),
+    private fun navigationEntries() = netflixNavEntries(listOf(
         DrawerItem("search", text("Search", "بحث"), icon = Icons.Default.Search),
-        DrawerItem("movies", text("Movies", "أفلام"), icon = Icons.Default.Movie),
-        DrawerItem("tv", text("TV Shows", "مسلسلات"), icon = Icons.Default.Tv),
-        DrawerItem("library", text("My List", "قائمتي"), icon = Icons.Default.VideoLibrary),
-        DrawerItem("settings", text("Settings", "الإعدادات"), icon = Icons.Default.Settings))
+        DrawerItem("home", text("Home", "الرئيسية"), icon = Icons.Default.Home),
+        DrawerItem("discover?type=series", text("TV Shows", "المسلسلات"), icon = Icons.Default.Tv),
+        DrawerItem("discover?type=movie", text("Movies", "أفلام"), icon = Icons.Default.Movie),
+        DrawerItem("my_netflix", text("My Netflix", "نتفليكس الخاص بي"), icon = Icons.Default.VideoLibrary),
+        DrawerItem("settings", text("Settings", "الإعدادات"), icon = Icons.Default.Settings)), "search", "settings")
 
     /** Original geometric landscape, created locally, never passed off as captured movie artwork. */
     private fun artwork(index: Int): String {

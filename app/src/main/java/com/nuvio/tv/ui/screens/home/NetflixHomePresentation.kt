@@ -85,7 +85,8 @@ internal fun NetflixHeroTitleContent(
     modifier: Modifier = Modifier,
     playFocusRequester: FocusRequester? = null,
     onDownToRows: (() -> Unit)? = null,
-    showImdbRatings: Boolean = true
+    showImdbRatings: Boolean = true,
+    callout: NetflixCallout? = null
 ) {
     val tokens = NetflixThemeTokens
     val context = LocalContext.current
@@ -104,6 +105,7 @@ internal fun NetflixHeroTitleContent(
         modifier = modifier.testTag("netflix_home_hero"),
         verticalArrangement = Arrangement.spacedBy(tokens.metadataGap)
     ) {
+        if (callout != null) NetflixCalloutChip(callout)
         if (logoModel != null && !logoFailed) {
             AsyncImage(
                 model = logoModel,
@@ -277,6 +279,7 @@ internal fun NetflixExpandedCardContent(
             }
         }
         Column(Modifier.padding(tokens.previewPadding), verticalArrangement = Arrangement.spacedBy(tokens.metadataGap)) {
+            netflixCallout(item.payload, inLibrary)?.let { NetflixCalloutChip(it) }
             Row(horizontalArrangement = Arrangement.spacedBy(tokens.cardGap)) {
                 NetflixHomeAction(Icons.Default.PlayArrow, stringResource(R.string.hero_play), onPlay,
                     primary = true, iconOnly = true,

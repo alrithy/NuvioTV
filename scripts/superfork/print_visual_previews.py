@@ -16,7 +16,7 @@ from pathlib import Path
 
 def main() -> int:
     directory = Path(sys.argv[1])
-    width = int(sys.argv[2]) if len(sys.argv) > 2 else 640
+    width = int(sys.argv[2]) if len(sys.argv) > 2 else 480
     try:
         from PIL import Image
     except ImportError:

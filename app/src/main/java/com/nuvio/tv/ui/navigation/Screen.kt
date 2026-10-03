@@ -144,6 +144,7 @@ sealed class Screen(val route: String) {
         }
     }
     data object Library : Screen("library")
+    data object MyNetflix : Screen("my_netflix") // NETFLIX_THEME hub over existing library/progress owners
     data object Calendar : Screen("calendar") // Superfork G9e
     data object LiveTv : Screen("live_tv") // Superfork G10b
     data object Settings : Screen("settings")

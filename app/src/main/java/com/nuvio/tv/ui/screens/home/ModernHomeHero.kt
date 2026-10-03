@@ -327,6 +327,7 @@ internal fun HeroTitleBlock(
     onNetflixMoreInfo: (HeroPreview) -> Unit = {},
     netflixPlayFocusRequester: FocusRequester? = null,
     onNetflixDownToRows: (() -> Unit)? = null,
+    netflixInLibrary: (HeroPreview) -> Boolean = { false },
     modifier: Modifier = Modifier
 ) {
     val isNetflix = NuvioTheme.isNetflix
@@ -359,7 +360,8 @@ internal fun HeroTitleBlock(
                 onMoreInfo = { onNetflixMoreInfo(displayPreview) },
                 playFocusRequester = netflixPlayFocusRequester,
                 onDownToRows = onNetflixDownToRows,
-                showImdbRatings = showImdbRatings
+                showImdbRatings = showImdbRatings,
+                callout = netflixCallout(displayPreview.actionPayload, netflixInLibrary(displayPreview))
             )
             return@Box
         }

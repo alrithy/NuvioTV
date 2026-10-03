@@ -29,6 +29,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -287,6 +288,9 @@ fun ModernHomeContent(
         derivedStateOf {
             if (!contentHasFocus.value) return@derivedStateOf false
             if (fullscreenTrailerPlaying.value) return@derivedStateOf true
+            // NETFLIX_THEME (parity audit §4.5): Back from any row goes to the top menu, which the
+            // navigation scaffold owns; the row keeps its position for the way back down.
+            if (isNetflix) return@derivedStateOf false
             val rowKey = activeRowKey.value ?: return@derivedStateOf false
             val itemIndex = focusedItemByRow[rowKey] ?: 0
             itemIndex > 0
@@ -348,12 +352,22 @@ fun ModernHomeContent(
             (uiState.focusedPosterBackdropExpandDelaySeconds.coerceAtLeast(0) * 1000L).coerceAtLeast(150L)
         delay(expansionDelayMs)
         if (!lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return@LaunchedEffect
+        // NETFLIX_THEME: a dwell preview never opens under the screensaver (G12d owns that state).
+        if (isNetflix && com.nuvio.tv.fork.uistyle.Screensaver.machine.trailersSuppressed) return@LaunchedEffect
         if (shouldActivateFocusedPosterFlow &&
             !isSidebarExpanded.value &&
             !verticalRowListState.isScrollInProgress &&
             focusedCatalogSelection.value?.focusKey == selection.focusKey
         ) {
             expandedCatalogFocusKey.value = selection.focusKey
+        }
+    }
+
+    // NETFLIX_THEME: the screensaver closes an open preview (and its trailer) immediately.
+    if (isNetflix) {
+        val screensaverVisible by com.nuvio.tv.fork.uistyle.Screensaver.machine.visible.collectAsState()
+        LaunchedEffect(screensaverVisible) {
+            if (screensaverVisible) expandedCatalogFocusKey.value = null
         }
     }
 
@@ -1103,8 +1117,13 @@ fun ModernHomeContent(
                     .fillMaxWidth(MODERN_HERO_TEXT_WIDTH_FRACTION)
             }
 
+            val libraryMembership = uiState.posterLibraryMembership
             HeroTitleBlock(
                 netflixPlayFocusRequester = netflixHeroPlayRequester,
+                netflixInLibrary = { displayedPreview ->
+                    (displayedPreview.actionPayload as? ModernPayload.Catalog)
+                        ?.let { libraryMembership[homeItemStatusKey(it.itemId, it.itemType)] } == true
+                },
                 onNetflixDownToRows = { runCatching { contentFocusRequester.requestFocus() }; Unit },
                 onNetflixPlay = { displayedPreview ->
                     when (val payload = displayedPreview.actionPayload) {

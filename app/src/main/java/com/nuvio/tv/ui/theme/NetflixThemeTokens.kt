@@ -44,10 +44,11 @@ object NetflixThemeTokens {
     val detailContentWidthFraction = .50f
     val logoWidthFraction = .40f
     val logoHeight = 90.dp
-    val landscapeCardWidth = 160.dp
+    // About five 16:9 cards per 960 dp row: large enough for 10-foot reading, small enough to browse.
+    val landscapeCardWidth = 184.dp
     val landscapeAspectRatio = 16f / 9f
     val cardRadius = 3.dp
-    val cardGap = 6.dp
+    val cardGap = 8.dp
     val rowGap = 20.dp
     val rowTitleGap = 8.dp
     val episodeCardWidth = 256.dp
@@ -58,7 +59,7 @@ object NetflixThemeTokens {
     val actionGap = 12.dp
     val metadataGap = 8.dp
     val focusElevation = 12.dp
-    val focusedBorderWidth = 2.dp
+    val focusedBorderWidth = 1.5.dp
     val previewPadding = 12.dp
     val focusEdgeReserve = 8.dp
     const val rowsViewportFraction = .38f
@@ -66,22 +67,19 @@ object NetflixThemeTokens {
     const val previewDescriptionMaxLines = 2
     const val previewMetadataMaxItems = 4
 
-    const val focusScale = 1.08f
+    // Subtle: the focused card reads by scale + elevation + contrast + a thin outline together.
+    const val focusScale = 1.06f
+    const val secondaryActionAlpha = .55f
     const val episodeFocusScale = 1.04f
     const val expandedScale = 1.24f
     const val focusDurationMillis = 120
     const val focusDurationMs = focusDurationMillis
     const val heroCrossfadeMs = 280
     const val previewDelayMs = 700L
-    const val navigationDurationMillis = 180
     const val screenTransitionMillis = 160
 
-    val navigationCollapsedWidth = 56.dp
-    val navigationExpandedWidth = 220.dp
-    val navigationItemHeight = 44.dp
+    // Icon size inside keyboard/action buttons (the theme has no side navigation rail).
     val navigationIconSize = 22.dp
-    val navigationGap = 6.dp
-    val navigationInset = 16.dp
     val searchKeyboardWidth = 240.dp
     val searchKeySize = 32.dp
     const val searchColumns = 4
@@ -104,6 +102,41 @@ object NetflixThemeTokens {
     fun heroSideGradient(rtl: Boolean): Brush {
         val colors = listOf(background, background.copy(alpha = .86f), background.copy(alpha = .20f), Color.Transparent)
         return Brush.horizontalGradient(if (rtl) colors.reversed() else colors)
+    }
+
+    /** Current-generation top navigation (parity audit §4); there is no Netflix-theme side rail. */
+    object TopNav {
+        val height = 56.dp
+        val itemHeight = 32.dp
+        val itemRadius = 4.dp
+        val itemHorizontalPadding = 14.dp
+        val itemGap = 6.dp
+        val iconSize = 20.dp
+        val avatarSize = 28.dp
+        val labelSize = 15.sp
+        val indicatorWidth = 18.dp
+        val indicatorHeight = 2.dp
+        val indicatorGap = 3.dp
+        val focusOutline = 2.dp
+    }
+
+    /** My Netflix hub (parity audit §6). */
+    object Hub {
+        val headerAvatarSize = 64.dp
+        val headerGap = 16.dp
+        val titleSize = 28.sp
+        val subtitleSize = 14.sp
+        val rowTitleSize = 18.sp
+        val actionHeight = 36.dp
+        val sectionGap = 24.dp
+    }
+
+    /** Factual focus callout (parity audit §5 contextual callout model). */
+    object Callout {
+        val height = 22.dp
+        val horizontalPadding = 8.dp
+        val radius = 2.dp
+        val textSize = 12.sp
     }
 
     object Player {

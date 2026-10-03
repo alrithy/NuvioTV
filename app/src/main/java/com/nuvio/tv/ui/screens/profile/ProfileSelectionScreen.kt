@@ -1329,6 +1329,8 @@ private fun AddProfileCard(
             .graphicsLayer {
                 scaleX = itemScale
                 scaleY = itemScale
+                // NETFLIX_THEME: adding a profile is secondary to choosing one until it is focused.
+                if (netflix) alpha = NetflixThemeTokens.secondaryActionAlpha + (1f - NetflixThemeTokens.secondaryActionAlpha) * focusProgress
             }
             .focusRequester(focusRequester)
             .onFocusChanged {

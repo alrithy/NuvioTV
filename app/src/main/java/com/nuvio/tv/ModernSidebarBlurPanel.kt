@@ -54,7 +54,6 @@ import com.nuvio.tv.ui.theme.NuvioComponents
 import com.nuvio.tv.ui.theme.NuvioMotion
 import com.nuvio.tv.ui.theme.NuvioRadii
 import com.nuvio.tv.ui.theme.NuvioStrokes
-import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.ui.theme.accentBrush
 import com.nuvio.tv.ui.util.contentTextDirection
@@ -91,8 +90,6 @@ internal fun ModernSidebarBlurPanel(
     showProfileSelector: Boolean,
     onSwitchProfile: () -> Unit
 ) {
-    val netflix = NuvioTheme.isNetflix
-    val isRtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
     val delayedBlurProgress =
         ((sidebarExpandProgress - 0.34f) / 0.66f).coerceIn(0f, 1f)
     val showPanelBlur = blurEnabled &&
@@ -113,11 +110,7 @@ internal fun ModernSidebarBlurPanel(
     val bgCard = colors.BackgroundCard
     val borderBase = colors.Border
     val isAmoledBlack = bgElevated == Color.Black
-    val panelBackgroundBrush = remember(blurEnabled, isAmoledBlack, bgElevated, bgCard, netflix, isRtl) {
-        if (netflix) {
-            val stops = listOf(Color.Black, Color.Black.copy(alpha = 0.96f), Color.Black.copy(alpha = 0.86f))
-            return@remember Brush.horizontalGradient(if (isRtl) stops.reversed() else stops)
-        }
+    val panelBackgroundBrush = remember(blurEnabled, isAmoledBlack, bgElevated, bgCard) {
         val baseColor = if (isAmoledBlack) Color.Black else Color(0xFF161618)
         val alpha = when {
             blurEnabled -> 0.65f
@@ -139,7 +132,7 @@ internal fun ModernSidebarBlurPanel(
             .graphicsLayer {
                 val p = sidebarExpandProgress
                 alpha = p
-                val s = if (netflix) 1f else 0.97f + (0.03f * p)
+                val s = 0.97f + (0.03f * p)
                 scaleX = s
                 scaleY = s
                 transformOrigin = TransformOrigin(0f, 0f)
@@ -154,10 +147,7 @@ internal fun ModernSidebarBlurPanel(
                     Modifier
                 }
             )
-            .padding(
-                horizontal = if (netflix) NetflixThemeTokens.navigationInset else NuvioTheme.spacing.md,
-                vertical = if (netflix) NetflixThemeTokens.safeVerticalMargin else NuvioTheme.spacing.lg - NuvioTheme.spacing.xxs
-            )
+            .padding(horizontal = NuvioTheme.spacing.md, vertical = NuvioTheme.spacing.lg - NuvioTheme.spacing.xxs)
     ) {
         if (showProfileSelector && activeProfileName.isNotEmpty()) {
             Box(
@@ -207,7 +197,7 @@ internal fun ModernSidebarBlurPanel(
         ) {
             Column(
                 modifier = Modifier.offset(y = (-12).dp),
-                verticalArrangement = Arrangement.spacedBy(if (netflix) NetflixThemeTokens.navigationGap else NuvioTheme.spacing.sm - NuvioTheme.spacing.xxs)
+                verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm - NuvioTheme.spacing.xxs)
             ) {
                 drawerItems.forEachIndexed { index, item ->
                     key(item.route) {
@@ -249,16 +239,12 @@ private fun SidebarNavigationItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val netflix = NuvioTheme.isNetflix
     var isFocused by remember { mutableStateOf(false) }
     val colors = NuvioTheme.colors
-    val shape = RoundedCornerShape(if (netflix) NetflixThemeTokens.cardRadius else NuvioRadii.tokens.full)
+    val shape = RoundedCornerShape(NuvioRadii.tokens.full)
     val palette = NuvioTheme.palette
     val accentColor = palette.secondary
     val backgroundColorTarget = when {
-        netflix && isFocused -> Color.White
-        netflix && selected -> NetflixThemeTokens.surfaceRaised
-        netflix -> Color.Transparent
         isFocused && selected -> accentColor.copy(alpha = 0.28f)
         isFocused -> Color.White.copy(alpha = 0.12f)
         selected -> accentColor.copy(alpha = 0.15f)
@@ -272,8 +258,6 @@ private fun SidebarNavigationItem(
     val backgroundColor = if (selected && !isFocused) backgroundColorTarget else animatedBackgroundColor
 
     val contentColorTarget = when {
-        netflix && isFocused -> Color.Black
-        netflix -> colors.TextPrimary
         selected -> accentColor
         isFocused -> colors.TextPrimary
         else -> colors.text.onOverlay
@@ -285,10 +269,8 @@ private fun SidebarNavigationItem(
     )
     val contentColor = if (selected && !isFocused) contentColorTarget else animatedContentColor
 
-    val iconBrush = if (selected && !netflix) palette.accentBrush() else null
+    val iconBrush = if (selected) palette.accentBrush() else null
     val iconTintTarget = when {
-        netflix && isFocused -> Color.Black
-        netflix -> colors.TextPrimary
         selected -> Color.White
         isFocused -> colors.TextPrimary
         else -> colors.text.onOverlay
@@ -300,7 +282,7 @@ private fun SidebarNavigationItem(
     )
     val iconTint = if (selected && !isFocused) iconTintTarget else animatedIconTint
     val itemScale by animateFloatAsState(
-        targetValue = if (isFocused && !netflix) 1.1f else 1f,
+        targetValue = if (isFocused) 1.1f else 1f,
         animationSpec = tween(durationMillis = NuvioMotion.tokens.durations.fast, easing = NuvioMotion.tokens.easings.standard),
         label = "sidebarItemScale"
     )
@@ -335,11 +317,7 @@ private fun SidebarNavigationItem(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(if (netflix) Modifier.height(NetflixThemeTokens.navigationItemHeight) else Modifier)
-                .padding(
-                    horizontal = if (netflix) NuvioTheme.spacing.sm else NuvioTheme.spacing.lg - NuvioTheme.spacing.xxs,
-                    vertical = if (netflix) NuvioTheme.spacing.none else NuvioTheme.spacing.sm + NuvioTheme.spacing.xxs
-                ),
+                .padding(horizontal = NuvioTheme.spacing.lg - NuvioTheme.spacing.xxs, vertical = NuvioTheme.spacing.sm + NuvioTheme.spacing.xxs),
             verticalAlignment = Alignment.CenterVertically
         ) {
         Box(
@@ -362,7 +340,7 @@ private fun SidebarNavigationItem(
                         }
                     }
             } else {
-                Modifier.size(if (netflix) NetflixThemeTokens.navigationIconSize else NuvioComponents.tokens.sidebar.iconSize)
+                Modifier.size(NuvioComponents.tokens.sidebar.iconSize)
             }
             when {
                 icon != null -> Icon(
@@ -384,7 +362,6 @@ private fun SidebarNavigationItem(
         AutoResizeText(
             text = label,
             color = contentColor,
-            style = if (netflix) androidx.tv.material3.MaterialTheme.typography.titleMedium else androidx.tv.material3.LocalTextStyle.current,
             modifier = Modifier
                 .weight(1f)
                 .graphicsLayer { alpha = labelAlpha }
@@ -404,11 +381,10 @@ private fun SidebarProfileItem(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val netflix = NuvioTheme.isNetflix
     var isFocused by remember { mutableStateOf(false) }
     val colors = NuvioTheme.colors
-    val shape = RoundedCornerShape(if (netflix) NetflixThemeTokens.cardRadius else NuvioRadii.tokens.full)
-    val backgroundColor = if (isFocused && netflix) Color.White else if (isFocused) Color.White.copy(alpha = 0.12f) else Color.Transparent
+    val shape = RoundedCornerShape(NuvioRadii.tokens.full)
+    val backgroundColor = if (isFocused) Color.White.copy(alpha = 0.12f) else Color.Transparent
     Card(
         onClick = onClick,
         modifier = modifier
@@ -446,14 +422,13 @@ private fun SidebarProfileItem(
                 colorHex = profileColorHex,
                 size = SidebarLeadingVisualSize,
                 avatarImageUrl = profileAvatarImageUrl,
-                imageCrossfade = false,
-                avatarShape = if (netflix) RoundedCornerShape(NetflixThemeTokens.profileRadius) else CircleShape
+                imageCrossfade = false
             )
         }
         Spacer(modifier = Modifier.width(SidebarProfileContentGap))
         AutoResizeText(
             text = profileName,
-            color = if (isFocused && netflix) Color.Black else colors.text.onOverlay,
+            color = colors.text.onOverlay,
             modifier = Modifier
                 .weight(1f)
                 .graphicsLayer { alpha = labelAlpha },
