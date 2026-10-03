@@ -130,3 +130,12 @@ Additional audit observations:
   explicit bidi verification.
 
 No TCL C6K performance, remote-feel or TV output certification is claimed from emulator evidence.
+
+### Run 37088795947 (Superfork Netflix Visual #10, head 79fa95c)
+- Build: PASS. 1080p EN: 26 tests, 4 failures; 26 screenshots, no identical required states.
+- Now passing (were failing in #3/#7): playerChrome…, focusedLandscapeCard…, homeDwellPreview…; Home hero and rows captures now differ.
+- Still failing: deeplyScrolledSearch… and savedSearchFocus… (programmatic restoration into the lazy result grid never takes focus),
+  returningFromDetailsRestoresTheExactRowAndCard (saved Home focus not re-applied in the harness), and
+  myNetflixHub… (test looked up a tag in the merged tree; fixed in the next head).
+- Player capture is now a real controls overlay (title, S1 E2 · episode, 30:00 / 1:52:00, scrubber, controls).
+- Visual review: PENDING (maintainer). TCL C6K: MANUAL-PENDING.

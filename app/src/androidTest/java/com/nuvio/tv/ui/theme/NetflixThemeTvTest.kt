@@ -459,7 +459,7 @@ class NetflixThemeTvTest {
         compose.onNodeWithTag("my_netflix_row_continue_watching").assertIsDisplayed()
         compose.onNodeWithTag("my_netflix_row_my_list").assertIsDisplayed()
         compose.onNodeWithTag("my_netflix_row_recently_watched").assertIsDisplayed()
-        compose.onAllNodesWithTag("my_netflix_progress").assertCountEquals(1)
+        compose.onAllNodesWithTag("my_netflix_progress", useUnmergedTree = true).assertCountEquals(1)
         val first = compose.onAllNodes(hasTestTag("my_netflix_card_continue:series:fixture:0"))
         first.assertCountEquals(1)
         compose.onNodeWithTag("my_netflix_card_continue:series:fixture:0").requestFocus().assertIsFocused()
