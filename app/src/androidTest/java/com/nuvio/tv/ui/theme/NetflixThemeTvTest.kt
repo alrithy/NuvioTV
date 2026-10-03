@@ -218,7 +218,7 @@ class NetflixThemeTvTest {
         compose.onNodeWithTag("netflix_home").performScrollToNode(hasTestTag("netflix_row_trending"))
         val idle = bounds("netflix_home_card_focus_trending:fixture:0")
         assertTrue("idle poster is portrait", idle.height > idle.width)
-        compose.onAllNodesWithTag("netflix_inline_expanded").assertCountEquals(0)
+        compose.onAllNodesWithTag("netflix_inline_expanded", useUnmergedTree = true).assertCountEquals(0)
         capture("29-browse-row-portrait-idle")
     }
 
@@ -236,7 +236,7 @@ class NetflixThemeTvTest {
         assertTrue("expanded ≈ 2–3× an idle poster", expanded.width > sibling.width * 2f)
         // Siblings move aside: no horizontal overlap in either reading direction.
         assertTrue("no overlap", if (arabic) sibling.right <= expanded.left + 1f else sibling.left >= expanded.right - 1f)
-        compose.onAllNodesWithTag("netflix_inline_expanded").assertCountEquals(1)
+        compose.onAllNodesWithTag("netflix_inline_expanded", useUnmergedTree = true).assertCountEquals(1)
         // The facts beneath the row belong to the expanded item and to nothing else.
         compose.onNodeWithTag("netflix_focused_facts_trending:fixture:0").assertIsDisplayed()
         compose.onNodeWithTag("netflix_focused_facts_trending:fixture:1").assertDoesNotExist()
@@ -257,7 +257,7 @@ class NetflixThemeTvTest {
         val next = bounds("netflix_home_card_focus_trending:fixture:1")
         assertTrue("previous collapsed to portrait", collapsed.height > collapsed.width)
         assertTrue("next expanded to landscape", next.width > next.height * 1.6f)
-        compose.onAllNodesWithTag("netflix_inline_expanded").assertCountEquals(1)
+        compose.onAllNodesWithTag("netflix_inline_expanded", useUnmergedTree = true).assertCountEquals(1)
         compose.onNodeWithTag("netflix_focused_facts_trending:fixture:1").assertIsDisplayed()
         capture("31-browse-row-focus-moved-next-item")
     }
@@ -271,7 +271,7 @@ class NetflixThemeTvTest {
         compose.waitForIdle()
         compose.onNodeWithTag("netflix_home_card_focus_trending:fixture:4").assertIsFocused()
         compose.onAllNodes(isFocused()).assertCountEquals(1)
-        compose.onAllNodesWithTag("netflix_inline_expanded").assertCountEquals(1)
+        compose.onAllNodesWithTag("netflix_inline_expanded", useUnmergedTree = true).assertCountEquals(1)
     }
 
     @Test fun scrollingMovesHeroOutWhileTopNavigationRemains() {
@@ -561,7 +561,7 @@ class NetflixThemeTvTest {
         setContent { FullHome {} }
         focusCard("netflix_home_card_focus_trending:fixture:2")
         compose.waitForIdle()
-        compose.onAllNodesWithTag("netflix_inline_expanded").assertCountEquals(1)
+        compose.onAllNodesWithTag("netflix_inline_expanded", useUnmergedTree = true).assertCountEquals(1)
         capture("21-low-memory-fallback")
     }
 

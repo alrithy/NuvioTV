@@ -442,14 +442,15 @@ private fun NetflixBrowseCard(
             .zIndex(if (focused) 1f else 0f)
             .focusRequester(requester)
             .onFocusChanged { focused = it.isFocused; onFocusChanged(it.isFocused) }
-            .testTag("netflix_home_card_focus_${item.key}")
-            .then(if (expanded) Modifier.testTag("netflix_inline_expanded") else Modifier),
+            .testTag("netflix_home_card_focus_${item.key}"),
         shape = CardDefaults.shape(shape),
         colors = CardDefaults.colors(containerColor = tokens.surfaceRaised, focusedContainerColor = tokens.surfaceRaised),
         border = CardDefaults.border(focusedBorder = Border(BorderStroke(home.focusOutline, tokens.focus.copy(alpha = tokens.focusOutlineAlpha)), shape = shape)),
         scale = CardDefaults.scale(focusedScale = 1f),
     ) {
         Box(Modifier.fillMaxSize()) {
+            // A node holds one test tag (the card's identity), so the expanded state is marked inside it.
+            if (expanded) Box(Modifier.fillMaxSize().testTag("netflix_inline_expanded"))
             if (landscapeRow) {
                 BoundedImage(wide ?: poster, landscapeWidth, height, Modifier.fillMaxSize())
             } else {
