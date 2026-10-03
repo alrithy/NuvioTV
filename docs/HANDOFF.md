@@ -394,9 +394,12 @@ navigation, profile persistence and playback owners are reused. No Netflix asset
 or proprietary font/code are included. Verification evidence and remaining gaps
 are tracked in `docs/NETFLIX_THEME_VISUAL_VERIFICATION.md`.
 
-Next action for this task: execute the P0 order in the parity audit (fix the five current visual
-interaction failures; replace Netflix-theme left rail with top navigation; implement a real Nuvio-backed
-My Netflix hub; refactor Home to current focus-driven discovery; fix Search focus restoration; fix and
-re-capture Player), then run the full baseline-guarded unit/build/CI checks, the expanded EN/AR 1080p/4K
-visual matrix, manual visual review, and provide a signed Test Build. Do not merge or call it Done before visual
-verification. Existing G14 hardware checks retain their real pending status.
+Progress (2026-10-03, draft PR open from feat/netflix-theme): branch synced with integration
+ee2813a; top navigation and the My Netflix hub implemented for AppTheme.NETFLIX only; the five audit
+failures root-caused (two fixture defects, a real Search focus-restoration bug, a missing harness
+content focus requester); visual matrix extended to 26 surfaces with identical-state rejection and
+log previews. Evidence, run IDs and remaining gaps: docs/NETFLIX_THEME_VISUAL_VERIFICATION.md.
+
+Next action for this task: get every Netflix Visual matrix job green, run full Superfork CI and the
+signed Test Build on the exact head, then wait for the maintainer's screenshot review and TCL C6K
+results (MANUAL-PENDING). Do not merge before both.
