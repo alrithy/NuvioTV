@@ -76,12 +76,29 @@ CURRENT values are dp on the 960×540 canvas. Evidence = the instrumentation tes
 Real D-pad feel, sustained frame time during the 200 ms expansion and row scroll, 4K image memory, LOW_RAM behaviour on
 the device. The emulator uses a software GPU; no frame-rate claim is made from it.
 
+## Evidence (code head c194aec)
+
+Superfork Netflix Visual PR run 37154785016 (push 37154781237): 48/48 tests in each of 1080p EN, 1080p AR, 4K EN
+and 4K AR; 42/42 required screens, no blank or identical states. Artifacts: 1080p EN 11285254945, 1080p AR
+11286081096, 4K EN 11285456885, 4K AR 11286121128, APKs 11285980851. Superfork CI 37154785049, Device Smoke
+37154784989, PR Policy 37154784985: success.
+
 ## Scores
 
-**A. Implementable observable parity: see the final report for the score on the verified head.** Every row above is an
-implementable visible measurement. A row counts only when the CI run on the head asserts it in all four
-configurations. Motion is asserted as a token, not as measured frame timing, and frame timing is TCL-pending.
+**A. Implementable observable parity: 97 / 100**
 
-**B. Raw reference coverage:** all reference-visible elements except the three data-limited rows above.
+| Category | Max | Score | Withheld |
+|---|---|---|---|
+| Home structure | 20 | 19 | the fixture has four catalogs, so the reference's 5–6 visible category tiles are not demonstrated (widths and gap are asserted) |
+| Top nav | 10 | 10 | — |
+| Hero | 10 | 10 | — |
+| Browse rows | 20 | 20 | — |
+| Inline focus | 15 | 15 | — |
+| Search | 10 | 10 | — |
+| RTL | 10 | 10 | — |
+| Motion | 5 | 3 | 200 ms is asserted as a token; real frame timing is TCL-pending |
 
-Visual review stays PENDING for the maintainer.
+**B. Raw reference coverage:** every reference-visible element is implemented except the three data-limited rows
+(Top 10, category artwork, original-language title). These are data gaps, not UI defects, and are not counted in A.
+
+These scores come from automated assertions only. Visual review stays PENDING for the maintainer.

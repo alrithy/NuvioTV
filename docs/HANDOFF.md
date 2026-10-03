@@ -395,10 +395,9 @@ or proprietary font/code are included. Verification evidence and remaining gaps
 are tracked in `docs/NETFLIX_THEME_VISUAL_VERIFICATION.md`.
 
 Progress (2026-10-03, draft PR #100): design contract = audit §1 (maintainer reference correction);
-final fidelity round at f239d65 added the focus comfort zone, title-logo preference, production-scaffold
-captures 36–43 and stress tests; matrix 42 surfaces, 44/44 tests per job (run 37139447618). Measured
-table and evidence-backed score (64/100): docs/NETFLIX_REFERENCE_FIDELITY.md.
+measured reference pass at c194aec applied the maintainer's frame-measured geometry (880×400 hero,
+160×250 / 440×250 cards, 4-column Search, compact query line, 196 dp keyboard); 48/48 tests per job (run
+37154785016). Measured table and scores (implementable 97/100): docs/NETFLIX_REFERENCE_FIDELITY.md.
 
-Next action for this task: maintainer reviews screenshots 01–43 and supplies reference frame
-measurements for the NOT_MEASURABLE rows. Only after that approval: add [test-build] for the signed
+Next action for this task: maintainer reviews screenshots 01–43 against the measured packet. Only after that approval: add [test-build] for the signed
 Test Build. TCL C6K remains MANUAL-PENDING. Do not merge, do not mark Done.
