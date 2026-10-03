@@ -54,7 +54,11 @@ class NetflixCaptureLogTests(unittest.TestCase):
         self.assertNotIn("FAILED passes", log)
 
     def test_matrix_names_the_review_surfaces_once(self):
-        self.assertEqual(34, len(SCREENS))
+        self.assertEqual(42, len(SCREENS))
+        # The production-scaffold captures are evidence in their own right, never an alias.
+        production = {"36-home-full-production-top", "37-home-full-production-scrolled"}
+        self.assertTrue(production <= set(SCREENS))
+        self.assertFalse(any(production & alias for alias in ALIASES))
         self.assertFalse(any(name.startswith("32-") for name in SCREENS))
         self.assertTrue(all(alias <= set(SCREENS) for alias in ALIASES))
         self.assertEqual(len(SCREENS), len(set(SCREENS)))

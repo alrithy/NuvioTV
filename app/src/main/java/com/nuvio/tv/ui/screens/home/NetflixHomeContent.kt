@@ -17,7 +17,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListLayoutInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -78,6 +80,7 @@ import com.nuvio.tv.fork.resource.AdaptiveResources
 import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.theme.netflixMetadataLine
 import com.nuvio.tv.ui.util.contentTextDirection
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /*
@@ -93,6 +96,58 @@ import kotlinx.coroutines.launch
 private const val HERO_KEY = "netflix_hero"
 private const val CATEGORY_KEY = "netflix_categories"
 private const val LOAD_MORE_THRESHOLD = 4
+private const val LOGO_LOADING = 0
+private const val LOGO_SHOWN = 1
+private const val LOGO_FAILED = 2
+
+/*
+ * FOCUS COMFORT ZONE (docs/NETFLIX_REFERENCE_FIDELITY.md §Browse rows). The row scrolls only when the
+ * focused card, at its final expanded width, would not sit inside the zone: the viewport minus a
+ * neighbour "peek" on each side. Within the zone the viewport stays still, so a middle poster expands
+ * in place. Offsets are LazyRow main-axis offsets measured from the reading start, so the same policy
+ * maps to the mirrored physical bounds in RTL. The first and last items reach the edges because the
+ * list clamps the scroll. The result depends only on positions, so repeated focus cannot oscillate.
+ */
+internal fun netflixComfortScrollDelta(
+    finalStart: Float,
+    finalEnd: Float,
+    viewportStart: Float,
+    viewportEnd: Float,
+    peek: Float,
+): Float {
+    val span = finalEnd - finalStart
+    // Never ask for a zone narrower than the card itself.
+    val usablePeek = peek.coerceIn(0f, ((viewportEnd - viewportStart - span) / 2f).coerceAtLeast(0f))
+    val zoneStart = viewportStart + usablePeek
+    val zoneEnd = viewportEnd - usablePeek
+    val delta = when {
+        finalStart < zoneStart -> finalStart - zoneStart
+        finalEnd > zoneEnd -> minOf(finalEnd - zoneEnd, finalStart - zoneStart)
+        else -> 0f
+    }
+    return if (kotlin.math.abs(delta) < 1f) 0f else delta
+}
+
+/**
+ * Predicts the focused card's final span: every earlier visible card settles to its idle width (the
+ * previous selection collapsing moves this card toward the reading start). Null when the card is not
+ * laid out; the caller then falls back to bringing it into view.
+ */
+internal fun netflixComfortDeltaFor(
+    info: LazyListLayoutInfo,
+    index: Int,
+    landscapeRow: Boolean,
+    portraitPx: Float,
+    expandedPx: Float,
+    peekPx: Float,
+): Float? {
+    val target = info.visibleItemsInfo.firstOrNull { it.index == index } ?: return null
+    val idlePx = if (landscapeRow) expandedPx else portraitPx
+    val shift = info.visibleItemsInfo.filter { it.index < index }.sumOf { (idlePx - it.size).toDouble() }.toFloat()
+    val start = target.offset + shift
+    return netflixComfortScrollDelta(start, start + expandedPx, info.viewportStartOffset.toFloat(),
+        info.viewportEndOffset.toFloat(), peekPx)
+}
 
 /** A row the reference draws with landscape cards rather than portrait posters. */
 internal fun netflixRowIsLandscape(row: HeroCarouselRow): Boolean =
@@ -216,9 +271,8 @@ internal fun NetflixHomeContent(
                     }
                     item.metaPreview?.let(onItemFocus)
                     // The focused row becomes the page: it rises under the top navigation, which pushes
-                    // the hero out of view; the selection is anchored at the row's reading start.
+                    // the hero out of view. Horizontal scrolling is the row's focus comfort zone (below).
                     scope.launch { columnState.animateScrollToItem(leadingItems + rowIndex) }
-                    scope.launch { rowState(row.key).animateScrollToItem(index) }
                     if (row.hasMore && !row.isLoading && index >= row.items.list.size - LOAD_MORE_THRESHOLD) {
                         val catalogId = row.catalogId; val addonId = row.addonId; val apiType = row.apiType
                         if (catalogId != null && addonId != null && apiType != null) onLoadMoreCatalog(catalogId, addonId, apiType)
@@ -283,12 +337,31 @@ private fun NetflixHeroCard(
                 .testTag("netflix_home_hero"),
             verticalArrangement = Arrangement.spacedBy(tokens.metadataGap),
         ) {
-            Text(
-                preview.title,
-                style = TextStyle(fontFamily = tokens.fontFamily, fontSize = home.heroTitleSize, fontWeight = FontWeight.Bold,
-                    textDirection = preview.title.contentTextDirection()),
-                color = tokens.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis,
-            )
+            // The real title logo is preferred; the text title stands in while it decodes and when it is
+            // missing or fails, so the hero never shows an empty title slot.
+            var logoState by remember(preview.logo) { mutableIntStateOf(if (preview.logo.isNullOrBlank()) LOGO_FAILED else LOGO_LOADING) }
+            Box(if (logoState == LOGO_FAILED) Modifier else Modifier.height(home.heroLogoHeight), contentAlignment = Alignment.BottomStart) {
+                if (logoState != LOGO_SHOWN) {
+                    Text(
+                        preview.title,
+                        style = TextStyle(fontFamily = tokens.fontFamily, fontSize = home.heroTitleSize, fontWeight = FontWeight.Bold,
+                            textDirection = preview.title.contentTextDirection()),
+                        color = tokens.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (logoState != LOGO_FAILED) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current).data(preview.logo).build(),
+                        contentDescription = preview.title,
+                        contentScale = ContentScale.Fit,
+                        alignment = if (rtl) Alignment.BottomEnd else Alignment.BottomStart,
+                        onSuccess = { logoState = LOGO_SHOWN },
+                        onError = { logoState = LOGO_FAILED },
+                        modifier = Modifier.height(home.heroLogoHeight).widthIn(max = home.heroLogoMaxWidth)
+                            .graphicsAlpha(if (logoState == LOGO_SHOWN) 1f else 0f).testTag("netflix_hero_logo"),
+                    )
+                }
+            }
             netflixCallout(item.payload, inLibrary)?.let { NetflixCalloutChip(it) }
             NetflixFactsLine(preview, showImdbRatings)
             // Reference: synopsis is not dominant in the initial hero state — one line at most.
@@ -376,6 +449,24 @@ private fun NetflixBrowseRow(
     val tokens = NetflixThemeTokens
     val home = NetflixThemeTokens.Home
     var focusedKey by remember(row.key) { mutableStateOf<String?>(null) }
+    val rowScope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    var comfortJob by remember(row.key) { mutableStateOf<Job?>(null) }
+    fun keepComfortable(index: Int) {
+        comfortJob?.cancel()
+        comfortJob = rowScope.launch {
+            val delta = with(density) {
+                netflixComfortDeltaFor(listState.layoutInfo, index, landscape,
+                    portraitPx = (home.rowCardHeight * tokens.posterAspectRatio).toPx(),
+                    expandedPx = (home.rowCardHeight * tokens.landscapeAspectRatio).toPx(),
+                    peekPx = (home.rowCardHeight * tokens.posterAspectRatio * home.comfortPeekFraction).toPx())
+            }
+            when {
+                delta == null -> listState.animateScrollToItem(index)
+                delta != 0f -> listState.animateScrollBy(delta, tween(if (AdaptiveResources.policy.isLowRam) 0 else home.expandMillis))
+            }
+        }
+    }
     Column(Modifier.testTag("netflix_row_${row.key}"), verticalArrangement = Arrangement.spacedBy(tokens.rowTitleGap)) {
         Text(row.title, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.rowHeader, fontWeight = FontWeight.Bold,
             textDirection = row.title.contentTextDirection()), color = tokens.textPrimary,
@@ -391,7 +482,7 @@ private fun NetflixBrowseRow(
                     landscapeRow = landscape,
                     requester = requesterFor(item.key),
                     onFocusChanged = { focused ->
-                        if (focused) { focusedKey = item.key; onItemFocused(index, item) }
+                        if (focused) { focusedKey = item.key; keepComfortable(index); onItemFocused(index, item) }
                         else if (focusedKey == item.key) focusedKey = null
                     },
                     onClick = { onClick(item) },

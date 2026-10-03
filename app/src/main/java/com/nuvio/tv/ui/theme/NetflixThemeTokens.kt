@@ -148,6 +148,8 @@ object NetflixThemeTokens {
         const val heroTextWidthFraction = .55f
         const val heroSideScrimAlpha = .85f
         const val heroBottomScrimAlpha = .80f
+        val heroLogoHeight = 72.dp
+        val heroLogoMaxWidth = 320.dp
         val sectionGap = 20.dp
         val bottomPadding = 200.dp
         val categoryWidth = 200.dp
@@ -162,6 +164,8 @@ object NetflixThemeTokens {
         val cardTitleSize = 17.sp
         val focusOutline = 2.dp
         const val expandMillis = 160
+        /** Neighbour peek kept on each side of the focus comfort zone, as a fraction of an idle poster. */
+        const val comfortPeekFraction = 0.5f
         val factsMaxWidth = 560.dp
         val factsSynopsisSize = 15.sp
         val factsSynopsisLineHeight = 21.sp

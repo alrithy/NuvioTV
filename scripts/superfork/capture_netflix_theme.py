@@ -57,6 +57,16 @@ SCREENS = (
     "33-search-portrait-results",
     "34-arabic-browse-expanded",
     "35-arabic-search-keyboard-right",
+    # Final fidelity round (docs/NETFLIX_REFERENCE_FIDELITY.md): production top bar + production Home
+    # composable, never aliased to component captures.
+    "36-home-full-production-top",
+    "37-home-full-production-scrolled",
+    "38-comfort-zone-middle",
+    "39-comfort-zone-near-edge",
+    "40-comfort-zone-rtl-last",
+    "41-category-strip-final",
+    "42-search-full-production",
+    "43-search-full-production-results",
 )
 # Review names that intentionally capture one scene (the maintainer asked for them by name); any other
 # pair of identical required states still fails the run.

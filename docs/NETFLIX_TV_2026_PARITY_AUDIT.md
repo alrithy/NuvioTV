@@ -1,48 +1,49 @@
-# Netflix TV 2026 parity audit — mandatory implementation brief
+# Netflix TV 2026 parity audit — design contract
 
-Status: MANDATORY / OPEN — amended 2026-10-03 by the maintainer reference correction in §0
-Task: NETFLIX_THEME
-Branch: feat/netflix-theme
-Audit date: 2026-10-03
-Audited implementation commit: 6a8389a1e0fdc8fca140007fba68d17357ab597f
-Audited visual workflow: Superfork Netflix Visual #3, run 37076381309
-Authoritative project base at audit time: superfork/integration e07d684009bcb5b9c41d00c777b11b2318752c53
+Status: MANDATORY / OPEN — current contract set by the maintainer reference correction (2026-10-03)
+Task: NETFLIX_THEME · Branch: feat/netflix-theme
+Measured fidelity: docs/NETFLIX_REFERENCE_FIDELITY.md (REFERENCE / CURRENT / DELTA / STATUS per element)
 
-This document is the required design and verification baseline for the Netflix theme. Read it before changing the theme. Do not mark the theme Done, merge it, or describe it as current-Netflix parity until every P0/P1 acceptance item below is either implemented and verified or explicitly waived by the maintainer.
+This document is the design baseline for the Netflix theme. Do not mark the theme Done, merge it, or
+describe it as Netflix parity until the fidelity table passes and the maintainer has reviewed the
+screenshots. The objective is the observable TV interaction model and hierarchy, built from Nuvio code,
+content and data: no Netflix logo, font, artwork, code, WebView, new playback engine, second navigation
+owner or second data model.
 
-The objective is not to copy Netflix assets or proprietary implementation. The objective is to reproduce the current observable TV interaction model and visual hierarchy using Nuvio-owned code, Nuvio content and Nuvio data. Do not add Netflix logos, proprietary fonts, copied artwork, internal code, WebViews, a new playback engine, a second navigation owner, or a second data model.
+## 0. Reference
 
----
+A 102-second maintainer recording of the current Netflix TV UI (Arabic), reviewed frame by frame. The
+recording and its frames are NOT committed; only textual observations and measurements are. Screens the
+recording does not show (Player, Details, Episodes, loading overlays, post-play, My Netflix internals)
+have no reference: they keep the Round 2 presentation and receive no speculative redesign.
 
----
+## 1. Current design
 
-## 0. MAINTAINER REFERENCE CORRECTION — 2026-10-03 (supersedes conflicting sections below)
-
-Source: a 102-second maintainer recording of the CURRENT Netflix TV UI (Arabic), reviewed frame by
-frame. The recording and any frame from it are NOT committed to this repository; only these textual
-observations are. Where any later section of this document conflicts with this section, THIS SECTION WINS.
-
-| Topic | OLD assumption (superseded) | NEW requirement |
-|---|---|---|
-| Home hero | Eliminate/replace the hero with a fully focus-driven layout (§5) | Keep a LARGE hero at the top of Home. It is a rounded media CARD inside horizontal safe margins below the top navigation, with the dark app background visible around it — not a full-bleed backdrop with floating text. Compact title + factual metadata near its lower edge; synopsis is not dominant in the initial state. |
-| Home flow | Hero and rows read as one focus-driven surface | Two states. TOP: nav → hero card → category shortcuts → rows. SCROLLED: hero scrolls away with content, nav stays, the active row becomes the main surface with the focused item's metadata beneath it and the next row partly visible. |
-| Browse cards | All Netflix browse cards are 16:9 (§9.1) | Primary browse rows use PORTRAIT (~2:3) idle cards. The focused item expands INLINE into a large LANDSCAPE (~16:9) card about 2–2.5× an idle width at roughly the row height; siblings move aside. Continue Watching / episode rows may stay landscape. |
-| Focus bounds | A focused card must not change its layout bounds (§5.11–12, §9.4, §22.5) | Controlled inline bounds change and sibling reflow are EXPECTED. Overlap, clipping, focus loss, two expanded items or viewport jumps are not. |
-| Expanded preview | Floating expanded card attached to the selected card (§10) | No floating popup over unrelated content (the old 04b collision). The selected item's metadata (type, year, runtime/seasons, age rating, short synopsis, factual callout) sits beneath the inline landscape card. |
-| Category discovery | Only through Search | A row of large rounded category tiles sits below the hero — only from a genuine Nuvio category source. Without one the gap is documented, never faked. |
-| Top 10 | Only if data exists (§5) | Unchanged: large outlined rank numbers with portrait posters ONLY from a real ranking source; otherwise recorded as unavailable. |
-| Top navigation | Selected destination may use a red underline; Settings as a trailing icon | Brand anchor at the far LEFT (a Nuvio-owned mark, never the Netflix N), profile at the far RIGHT, labels in reading order with Search next to Home. Selected destination = rounded light pill with bold text; NO red underline. Settings is not a permanent primary anchor; it is reached through the profile/My Netflix path. In Arabic the brand stays left and the profile right; only the labels follow RTL order. |
-| Search | Landscape result cards | Portrait poster results. RTL: keyboard RIGHT, results LEFT. LTR: keyboard LEFT, results RIGHT. Top navigation stays visible. |
-| Focus style | Scale + elevation + outline | The main cue is the portrait → landscape transformation plus a thin light outline; no launcher-style border. |
-| Player / Details / Episodes / Loading | Netflix-parity redesign targets | The recording gives NO evidence for these. Keep Round 2; no speculative redesign until a verified reference exists. |
-| My Netflix | Hub design details | Recording confirms only that My Netflix is a top-level destination; hub internals are not validated by it. |
-
-Tests that encoded superseded assumptions are REPLACED (not deleted) by tests of the new behaviour, e.g.
-`focusedLandscapeCardMovesWithoutChangingItsLayoutBounds` → `focusedPosterExpandsInlineWithoutOverlap…`.
+| Area | Design |
+|---|---|
+| Top navigation | Nuvio brand mark physically LEFT, profile physically RIGHT in both languages; labels in reading order with Search beside Home; selected destination = light rounded pill + bold label; focus = white pill; no red underline; Settings is not a tab (reached through profile / My Netflix). |
+| Home, top state | nav → large rounded hero card inside the safe margins → category tiles → first row. Hero: title logo preferred (text fallback), factual metadata, one-line synopsis, Play / More Info. |
+| Home, browse state | The hero scrolls away, the nav stays; the active row is the main surface, the focused item's facts sit beneath it and the next row peeks below. |
+| Browse rows | Portrait 2:3 idle posters (112×168 dp). The focused poster widens INLINE to a 16:9 landscape card at the row height (299×168 dp, 160 ms); siblings reflow; never two expanded items; no floating popup. Continue Watching rows are landscape with a progress bar. |
+| Horizontal scrolling | Focus comfort zone: the row scrolls only when the expanded card would leave the viewport minus a half-poster neighbour peek; first and last items may reach the edges; the policy works on reading-start offsets, so RTL mirrors it physically. |
+| Category tiles | Only from real catalogs (rows with catalog/addon/type); open the existing See All owner. Tonal text tiles 200×88 dp; no Netflix artwork. |
+| Top 10 | Not rendered: Nuvio has no factual ranking source. |
+| Search | Portrait poster grid; keyboard on the reading-start side (left in EN, right in AR); top nav visible. |
+| Focus cue | Portrait → landscape transform plus a thin light outline; no scale-up border. |
+| Data honesty | Facts only from real data: no Match %, rank, award, "new" or Top 10 claims without a source. |
+| Arabic / RTL | Localized title is primary; Latin tokens (S1 E2, 4K, IMDb) are bidi-isolated, never concatenated. An original-language secondary line is shown only where a data owner provides it. |
+| Resources | AdaptiveResources is the only owner; LOW_RAM: static artwork, no transform animation, no video. |
 
 ---
 
-## 1. Current Netflix TV reference — what is authoritative
+## HISTORY — superseded pre-correction brief (not a contract)
+
+Everything below was written before the 2026-10-03 reference correction. Where it conflicts with §1 it is
+superseded — notably: "all browse cards 16:9", "focus must not change layout bounds / no reflow", a
+floating expanded preview, eliminating the hero, a red underline and a trailing Settings icon, landscape
+Search results and a 26-surface matrix. It is kept only as a record of the earlier audit findings.
+
+### 1. Current Netflix TV reference — what is authoritative
 
 The comparison target is the current Netflix TV experience, not the pre-2025 left-sidebar design.
 
@@ -83,7 +84,7 @@ Reference policy:
 
 ---
 
-## 2. Current Nuvio theme implementation — audit facts
+### 2. Current Nuvio theme implementation — audit facts
 
 At commit 6a8389a the Netflix branch is 5 commits ahead of the audited integration base and contains a large implementation, not a simple color skin.
 
@@ -109,7 +110,7 @@ Do not throw this implementation away. Reuse the existing presentation owners an
 
 ---
 
-## 3. Executive parity assessment
+### 3. Executive parity assessment
 
 This is a visual/interaction parity assessment, not a software quality score.
 
@@ -137,12 +138,12 @@ The highest-value redesign is architectural, not cosmetic.
 
 ---
 
-## 4. P0 — navigation must match the current-generation TV model
+### 4. P0 — navigation must match the current-generation TV model
 
-### Current problem
+#### Current problem
 The audited screenshots show a collapsed left rail and an expanded left sidebar. That is the old interaction model. Current Netflix Help explicitly documents top navigation.
 
-### Required end state
+#### Required end state
 For AppTheme.NETFLIX only:
 
 1. Replace the Netflix-theme left navigation rail with a top navigation bar.
@@ -168,7 +169,7 @@ For AppTheme.NETFLIX only:
 14. Search should be reachable from the top bar in one deterministic D-pad path.
 15. My Netflix should be a real destination, not merely a renamed My List label.
 
-### Acceptance
+#### Acceptance
 - No left rail is visible anywhere in the Netflix theme.
 - Home screenshot clearly shows a current-style top navigation model.
 - Back from rows reaches top navigation.
@@ -177,15 +178,15 @@ For AppTheme.NETFLIX only:
 
 ---
 
-## 5. P0 — Home architecture must be redesigned around current title focus, not the old giant hero
+### 5. P0 — Home architecture must be redesigned around current title focus, not the old giant hero
 
-### Current problem
+#### Current problem
 Audited Home uses:
 full-screen backdrop -> large title block -> metadata -> synopsis -> Play/More Info -> small rows.
 
 That is visually polished but still follows the older Netflix hierarchy.
 
-### Required end state
+#### Required end state
 1. Keep immersive background art, but make the selected/focused title the central decision surface.
 2. The focused title must expose enough information to decide without opening Details:
    - title/logo when available
@@ -211,7 +212,7 @@ That is visually polished but still follows the older Netflix hierarchy.
 16. Continue Watching must not visually dominate the homepage merely because it is technically first.
 17. Home rows should remain driven by actual Nuvio catalogs and personalization, not a hardcoded Netflix-like catalog.
 
-### Contextual callout model
+#### Contextual callout model
 Support a generic Nuvio-owned callout slot that can render real facts such as:
 - Top 10 / trending rank, only if data exists
 - New season, only if metadata proves it
@@ -225,7 +226,7 @@ Never hardcode fake "Emmy Winner", "Highly Rewatched", "98% Match" or similar fi
 
 ---
 
-## 6. P0 — My Netflix must be a hub, not just a My List label
+### 6. P0 — My Netflix must be a hub, not just a My List label
 
 Current Netflix uses My Netflix as a consolidation destination.
 
@@ -248,7 +249,7 @@ Rules:
 
 ---
 
-## 7. P0 — known automated interaction failures from Visual run #3
+### 7. P0 — known automated interaction failures from Visual run #3
 
 The visual run collected all screenshots, but the instrumentation suite failed in BOTH English and Arabic.
 
@@ -284,7 +285,7 @@ Re-run all four visual matrix combinations after the fix.
 
 ---
 
-## 8. Home hero / title block detailed visual checklist
+### 8. Home hero / title block detailed visual checklist
 
 Current audited Home is attractive but too close to the previous-generation Netflix home.
 
@@ -312,7 +313,7 @@ Required:
 
 ---
 
-## 9. Rows and cards detailed checklist
+### 9. Rows and cards detailed checklist
 
 Current screenshots show small landscape cards and a white focus border. Foundation is usable, but current Netflix uses more information-rich, larger focus states.
 
@@ -340,7 +341,7 @@ Required:
 
 ---
 
-## 10. Expanded card / focused preview detailed checklist
+### 10. Expanded card / focused preview detailed checklist
 
 Current expanded card is a useful implementation seam and should be kept, but it needs current-generation hierarchy.
 
@@ -368,7 +369,7 @@ Required:
 
 ---
 
-## 11. Search detailed checklist
+### 11. Search detailed checklist
 
 Search is one of the stronger audited areas, but two focus tests currently fail.
 
@@ -401,7 +402,7 @@ Required:
 
 ---
 
-## 12. Movie details detailed checklist
+### 12. Movie details detailed checklist
 
 The audited Movie Details is structurally strong.
 
@@ -434,7 +435,7 @@ Refine:
 
 ---
 
-## 13. Series details detailed checklist
+### 13. Series details detailed checklist
 
 In addition to Movie Details requirements:
 
@@ -451,7 +452,7 @@ In addition to Movie Details requirements:
 
 ---
 
-## 14. Episodes detailed checklist
+### 14. Episodes detailed checklist
 
 Episodes is one of the strongest current screens. Refine rather than rewrite.
 
@@ -477,7 +478,7 @@ Required:
 
 ---
 
-## 15. Profile selector detailed checklist
+### 15. Profile selector detailed checklist
 
 Current profile selector foundation is good but visually generic.
 
@@ -497,7 +498,7 @@ Required:
 
 ---
 
-## 16. Player controls detailed checklist
+### 16. Player controls detailed checklist
 
 Important: the audited English player capture is not valid visual evidence because the visual suite failed and the captured frame was effectively blank/white.
 
@@ -525,7 +526,7 @@ Mandatory before visual approval:
 
 ---
 
-## 17. Shared dialogs detailed checklist
+### 17. Shared dialogs detailed checklist
 
 Audited confirmation dialog is functional but too generic.
 
@@ -545,7 +546,7 @@ Required:
 
 ---
 
-## 18. Empty / error / loading states detailed checklist
+### 18. Empty / error / loading states detailed checklist
 
 Current empty/error screenshots are extremely sparse. They need theme polish without becoming noisy.
 
@@ -574,7 +575,7 @@ Playback loading:
 
 ---
 
-## 19. Arabic / RTL — mandatory correctness list
+### 19. Arabic / RTL — mandatory correctness list
 
 Arabic is a first-class requirement, not a screenshot afterthought.
 
@@ -604,7 +605,7 @@ Observed audit note:
 
 ---
 
-## 20. Typography and spacing system
+### 20. Typography and spacing system
 
 Do not use Netflix Sans or any proprietary font.
 
@@ -638,7 +639,7 @@ Rules:
 
 ---
 
-## 21. Color / surface system
+### 21. Color / surface system
 
 The existing black/white base is close.
 
@@ -658,7 +659,7 @@ Required:
 
 ---
 
-## 22. Motion and focus behavior
+### 22. Motion and focus behavior
 
 Netflix-like feel depends heavily on motion, not just screenshots.
 
@@ -686,7 +687,7 @@ No TCL 60 fps claim may be made from emulator evidence.
 
 ---
 
-## 23. Accessibility and 10-foot UI
+### 23. Accessibility and 10-foot UI
 
 Required:
 1. readable from normal TV distance
@@ -707,7 +708,7 @@ Required:
 
 ---
 
-## 24. Performance / resource policy
+### 24. Performance / resource policy
 
 The theme must remain viable on Android TV, including the TCL C6K and lower-memory tiers.
 
@@ -733,7 +734,7 @@ Required:
 
 ---
 
-## 25. Data honesty rules
+### 25. Data honesty rules
 
 Never invent content facts for visual parity.
 
@@ -754,7 +755,7 @@ Fixture data may be synthetic only inside deterministic tests and must remain cl
 
 ---
 
-## 26. Screenshot / visual verification matrix
+### 26. Screenshot / visual verification matrix
 
 Current artifact capture has 17 images per locale at 1080p and a corresponding 4K matrix.
 
@@ -801,7 +802,7 @@ The current workflow uses matching logical TV dp canvas at different physical pi
 
 ---
 
-## 27. Visual review rubric
+### 27. Visual review rubric
 
 For every screenshot, manually review and record PASS/FAIL for:
 
@@ -861,7 +862,7 @@ Do not replace manual visual review with screenshot existence.
 
 ---
 
-## 28. CI / build gates before merge
+### 28. CI / build gates before merge
 
 Theme is not mergeable until all are true:
 
@@ -883,69 +884,69 @@ Theme is not mergeable until all are true:
 
 ---
 
-## 29. Current screenshots — audit observations
+### 29. Current screenshots — audit observations
 
-### Home hero / rows
+#### Home hero / rows
 - Good cinematic darkness and readable title block.
 - Too much empty space compared with the current focus-driven Netflix hierarchy.
 - Current navigation absent from the top because implementation is still left-rail based.
 - Hero and rows are visually separated too strongly.
 - Home hero and Home rows captures currently hash-identical in EN and AR, indicating the capture does not demonstrate a meaningful rows-state difference; update fixture/capture so the intended row state is visibly distinct.
 
-### Focused card
+#### Focused card
 - Current card scale/border demonstrates focus but feels generic.
 - Needs current-generation richer focus presentation.
 - Instrumentation failure confirms behavior is not stable yet.
 
-### Expanded card
+#### Expanded card
 - Good real actions.
 - Metadata foundation useful.
 - Needs better current-style context/callout hierarchy and less box-like treatment.
 
-### Movie/series details
+#### Movie/series details
 - Strongest visual area together with Episodes.
 - Keep architecture and refine spacing, density, metadata grouping and focus style.
 
-### Episodes
+#### Episodes
 - Strong structure.
 - Refine focus box, season tabs, spacing and Arabic bidi.
 
-### Search
+#### Search
 - Good structural match for TV search.
 - Needs current top-nav integration.
 - Two current search/focus tests fail and must be fixed.
 
-### Navigation
+#### Navigation
 - Largest architectural mismatch.
 - Left rail must be removed for Netflix theme in favor of current top navigation.
 
-### Profiles
+#### Profiles
 - Functional and clean, but generic.
 - Needs stronger cinematic scale/focus while preserving Nuvio avatars.
 
-### Player
+#### Player
 - Current visual evidence invalid.
 - Must be re-captured after test fix.
 
-### Dialog
+#### Dialog
 - Functional but generic Material-style surface.
 - Needs Netflix-theme TV proportions and focus polish.
 
-### Empty/error
+#### Empty/error
 - Too sparse/tiny for 10-foot UI.
 - Add balanced layout and useful CTA where real.
 
-### Loading
+#### Loading
 - Direction is usable.
 - Improve hierarchy/visibility and ensure no fake progress.
 
-### Arabic
+#### Arabic
 - Overall mirroring is real and useful.
 - Explicitly fix/test mixed LTR tokens and action order.
 
 ---
 
-## 30. Implementation order — do not polish the wrong architecture
+### 30. Implementation order — do not polish the wrong architecture
 
 P0 order:
 1. Fix the five failing interaction tests enough to establish a stable baseline.
@@ -974,7 +975,7 @@ Do not spend time perfecting old left-rail pixels if the rail will be removed.
 
 ---
 
-## 31. Done definition for the Netflix theme
+### 31. Done definition for the Netflix theme
 
 The task is Done only when:
 
@@ -998,7 +999,7 @@ Until then, status remains IN_PROGRESS.
 
 ---
 
-## 32. Mandatory next-agent instruction
+### 32. Mandatory next-agent instruction
 
 When an agent receives "اشتغل على نوفيو" and sees NETFLIX_THEME active/in progress:
 

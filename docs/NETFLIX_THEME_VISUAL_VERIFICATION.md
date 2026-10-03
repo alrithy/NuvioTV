@@ -29,47 +29,64 @@ python3 scripts/superfork/capture_netflix_theme.py \
 
 The script sets 1920×1080/320 dpi or 3840×2160/640 dpi, yielding the same 960×540
 dp TV canvas. It selects a device explicitly, runs instrumentation, collects PNGs,
-checks all 26 required screen names, rejects two required states that render identical
+checks all 42 required screen names, rejects two required states that render identical
 pixels (the old Home hero/rows captures were hash-identical), and writes dimensions,
 SHA-256 hashes, device fingerprint and source commit to `manifest.json`. Failing tests are
 printed with their stack into the CI log, and small JPEG previews of every capture are printed
 as `NETFLIX_PREVIEW <name> <base64>` lines, so the evidence can be read even where artifact
 storage is unreachable. Nothing here marks visual review or TCL performance as passed.
 
-## Screen review matrix (26 surfaces × 1080p/4K × EN/AR)
+## Screen review matrix (42 surfaces × 1080p/4K × EN/AR)
 
 Each capture is produced by the test that drives that exact state; a PNG existing is not a pass.
-`Automated` is the instrumentation result for the state; `Visual` is the human review (rubric in
-the parity audit §27) and stays PENDING until the maintainer reviews the images.
+`32-top10-row` is intentionally absent (no factual ranking source). Visual review is the maintainer's
+and stays PENDING until the images are reviewed. Element-level measurements live in
+docs/NETFLIX_REFERENCE_FIDELITY.md.
 
-| # | Capture | State it proves (test) | Automated | Visual |
-|---|---|---|---|---|
-| 1 | 01-home-hero | Focused title decision surface, Play focused (homeHeroShowsMetadata…) | see run | PENDING |
-| 2 | 02-home-rows | Focus moved from hero into a row card; distinct from 01 (homeRowsKeepContentReachable…) | see run | PENDING |
-| 3 | 03-focused-card | 16:9 card focus: scale + elevation + thin outline, no reflow (focusedLandscapeCard…) | see run | PENDING |
-| 4 | 04-expanded-card | Expanded card with Play/My List/Info (expandedPreviewExposes…; 04b in Home) | see run | PENDING |
-| 5 | 05-movie-details | Movie details, no invented quality/match badges (movieDetailsRetain…) | see run | PENDING |
-| 6 | 06-series-details | Series details, season/next episode context (seriesDetailsShow…) | see run | PENDING |
-| 7 | 07-episodes | Season tabs, landscape thumbnails, progress/watched (episodesShowSeason…) | see run | PENDING |
-| 8 | 08-search | Remote keyboard, recent searches, result grid (searchKeyboardUpdates…; 08b deep grid; 08c async restore) | see run | PENDING |
-| 9 | 09-top-nav-home | Top navigation, Home selected and focused (topNavigationReaches…) | see run | PENDING |
-| 10 | 10-top-nav-search | One D-pad step Home → Search (topNavigationReaches…) | see run | PENDING |
-| 11 | 11-top-nav-my-netflix | My Netflix tab focused; Settings trailing (topNavigationReaches…) | see run | PENDING |
-| 12 | 12-my-netflix-hub | Hub with Continue Watching / My List / Recently Watched (myNetflixHubAggregates…) | see run | PENDING |
-| 13 | 13-profiles | Large profile cards, Add Profile de-emphasized (profilesOfferLarge…) | see run | PENDING |
-| 14 | 14-player-controls | Title/episode, scrubber, elapsed/duration, play/next/audio-subtitles (playerChrome…) | see run | PENDING |
-| 15 | 15-resume-actions | Resume and Start from beginning as separate actions (detailResumeAndBeginning…) | see run | PENDING |
-| 16 | 16-confirmation-dialog | Netflix dark dialog, Cancel focused, Back dismisses (aConfirmationDialog…) | see run | PENDING |
-| 17 | 17-empty-state | Empty My Netflix with a real Search action (emptyMyNetflixOffers…) | see run | PENDING |
-| 18 | 18-network-error | Error with focused Retry, no raw URL (errorStateOffers…) | see run | PENDING |
-| 19 | 19-playback-loading | Backdrop, title, real progress only (playbackLoadingUses…) | see run | PENDING |
-| 20 | 20-contextual-callout | Callout from real progress only; no rank/award/match text (contextualCallout…) | see run | PENDING |
-| 21 | 21-low-memory-fallback | LOW_RAM policy: static artwork, no video, no motion (lowMemoryTier…) | see run | PENDING |
-| 22 | 22-missing-logo-fallback | Failed logo → title text; missing art → dark card (missingLogoAndArtwork…) | see run | PENDING |
-| 23 | 23-very-long-title | Long title ellipsizes, actions stay on screen (veryLongTitles…) | see run | PENDING |
-| 24 | 24-arabic-mixed-bidi | Arabic title + Latin tokens + isolated S1 E2 (arabicTitleWithLatin…) | see run | PENDING |
-| 25 | 25-search-error-keyboard | Search error while the keyboard keeps focus (savedSearchFocusWaits…) | see run | PENDING |
-| 26 | 26-details-return-focus | Saved Home focus restores the exact row/card (returningFromDetails…) | see run | PENDING |
+| Capture | State | Visual |
+|---|---|---|
+| 01-home-hero | Hero card, Play focused | PENDING |
+| 02-home-rows | Focus moved from hero into the first row | PENDING |
+| 03-focused-card | Focused poster expanded inline (alias of 04/30/34) | PENDING |
+| 04-expanded-card | Same scene: the inline landscape card is the expanded card | PENDING |
+| 05-movie-details | Movie details (no reference; Round 2 presentation) | PENDING |
+| 06-series-details | Series details (no reference) | PENDING |
+| 07-episodes | Episodes (no reference) | PENDING |
+| 08-search | Search: keyboard + portrait results | PENDING |
+| 09-top-nav-home | Top nav, Home selected pill + focus | PENDING |
+| 10-top-nav-search | Home → Search in one step | PENDING |
+| 11-top-nav-my-netflix | My Netflix tab focused; no Settings tab | PENDING |
+| 12-my-netflix-hub | My Netflix hub from real profile data | PENDING |
+| 13-profiles | Profiles (no reference) | PENDING |
+| 14-player-controls | Player chrome (no reference) | PENDING |
+| 15-resume-actions | Resume / Start over separate | PENDING |
+| 16-confirmation-dialog | Dialog, Back dismisses | PENDING |
+| 17-empty-state | Empty My Netflix with real Search action | PENDING |
+| 18-network-error | Error with Retry | PENDING |
+| 19-playback-loading | Playback loading (no reference) | PENDING |
+| 20-contextual-callout | Factual callout only | PENDING |
+| 21-low-memory-fallback | LOW_RAM: static art, no motion | PENDING |
+| 22-missing-logo-fallback | Missing logo → text title | PENDING |
+| 23-very-long-title | Long title ellipsizes | PENDING |
+| 24-arabic-mixed-bidi | Arabic + isolated Latin tokens | PENDING |
+| 25-search-error-keyboard | Search error keeps keyboard focus | PENDING |
+| 26-details-return-focus | Home restores row and card | PENDING |
+| 27-home-hero-full-reference-state | Hero top state (alias of 01) | PENDING |
+| 28-home-category-shortcuts | Category tiles focused | PENDING |
+| 29-browse-row-portrait-idle | Idle portrait row | PENDING |
+| 30-browse-row-focused-landscape | Alias of 03 | PENDING |
+| 31-browse-row-focus-moved-next-item | Previous collapsed, next expanded | PENDING |
+| 33-search-portrait-results | Alias of 08 | PENDING |
+| 34-arabic-browse-expanded | Alias of 03 | PENDING |
+| 35-arabic-search-keyboard-right | Alias of 08 | PENDING |
+| 36-home-full-production-top | Production top bar + production Home: nav, hero, categories, first row | PENDING |
+| 37-home-full-production-scrolled | Production scaffold browse state: expanded card, facts, neighbours, next row | PENDING |
+| 38-comfort-zone-middle | Middle poster expands in place, no scroll | PENDING |
+| 39-comfort-zone-near-edge | Near the edge: scrolls only the overflow | PENDING |
+| 40-comfort-zone-rtl-last | Last item reachable and fully visible (RTL in the AR run) | PENDING |
+| 41-category-strip-final | Category tile geometry | PENDING |
+| 42-search-full-production | Search under the production top bar | PENDING |
+| 43-search-full-production-results | Focus moved into results | PENDING |
 
 ## Automated and hardware boundaries
 
@@ -86,7 +103,13 @@ Do not merge this theme while the requested visual verification remains incomple
 
 ## Current evidence
 
-### Audited capture
+Final fidelity round: see the latest "Superfork Netflix Visual" run on the PR head and the run IDs in
+the PR body. Earlier rounds are recorded below as history; their matrix descriptions (16:9 cards, no
+reflow, floating preview, Settings trailing, 26 surfaces) are superseded.
+
+## HISTORY — evidence from earlier rounds
+
+#### Audited capture
 - Source commit: `6a8389a1e0fdc8fca140007fba68d17357ab597f`
 - Workflow: Superfork Netflix Visual #3
 - Run: https://github.com/alrithy/NuvioTV/actions/runs/37076381309
@@ -131,7 +154,7 @@ Additional audit observations:
 
 No TCL C6K performance, remote-feel or TV output certification is claimed from emulator evidence.
 
-### Run 37088795947 (Superfork Netflix Visual #10, head 79fa95c)
+#### Run 37088795947 (Superfork Netflix Visual #10, head 79fa95c)
 - Build: PASS. 1080p EN: 26 tests, 4 failures; 26 screenshots, no identical required states.
 - Now passing (were failing in #3/#7): playerChrome…, focusedLandscapeCard…, homeDwellPreview…; Home hero and rows captures now differ.
 - Still failing: deeplyScrolledSearch… and savedSearchFocus… (programmatic restoration into the lazy result grid never takes focus),
@@ -140,7 +163,7 @@ No TCL C6K performance, remote-feel or TV output certification is claimed from e
 - Player capture is now a real controls overlay (title, S1 E2 · episode, 30:00 / 1:52:00, scrubber, controls).
 - Visual review: PENDING (maintainer). TCL C6K: MANUAL-PENDING.
 
-### Run 37093075199 (head f75d31a) — automated matrix GREEN
+#### Run 37093075199 (head f75d31a) — automated matrix GREEN
 - Superfork Netflix Visual: Build PASS; 1080p EN, 1080p AR, 4K EN, 4K AR all PASS (26/26 tests each, 0 missing
   required screens, no identical required states). The PR-triggered run 37093077773 on the same head is also 4/4 PASS.
 - Same head: Superfork Full Debug CI PASS, Device Smoke PASS, Governance/PR Policy/State Handoff/Baseline Change PASS.
@@ -154,7 +177,7 @@ No TCL C6K performance, remote-feel or TV output certification is claimed from e
 - Not yet produced: signed Superfork Test Build (runs on a PR titled `[test-build]`, deferred until the maintainer
   approves the screenshots). Visual review: PENDING. TCL C6K: MANUAL-PENDING.
 
-### Visual Round 2 — head ea68c79 (automated matrix GREEN; visual review PENDING)
+#### Visual Round 2 — head ea68c79 (automated matrix GREEN; visual review PENDING)
 - Netflix Visual push run 37095465484 and PR run 37095461937: Build PASS; 1080p EN/AR and 4K EN/AR all PASS,
   26/26 instrumentation each, 0 missing required screens, no identical or blank required states.
 - Same head: Superfork Full Debug CI PASS (37095465511), Device Smoke PASS (37095465455), Governance/PR Policy/
@@ -168,7 +191,7 @@ No TCL C6K performance, remote-feel or TV output certification is claimed from e
 - Visual review: PENDING (maintainer). Signed Test Build: not produced (on hold until screenshot approval).
   TCL C6K: MANUAL-PENDING.
 
-### Visual Round 3 — maintainer reference correction, head 23f3d85 (automated GREEN; visual review PENDING)
+#### Visual Round 3 — maintainer reference correction, head 23f3d85 (automated GREEN; visual review PENDING)
 Reference: parity audit §0 (2026-10-03). No Netflix recording, frame or asset is committed.
 - Netflix Visual: PR run 37110129569 and push run 37110126396 — Build PASS; 1080p EN, 1080p AR, 4K EN, 4K AR all PASS,
   32/32 instrumentation each, 0 missing required screens (34 names incl. aliases), no unintended identical states.
