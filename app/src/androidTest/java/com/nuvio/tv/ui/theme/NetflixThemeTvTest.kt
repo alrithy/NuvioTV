@@ -68,6 +68,7 @@ import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -458,6 +459,8 @@ class NetflixThemeTvTest {
         }
         compose.onNodeWithTag("my_netflix_row_continue_watching").assertIsDisplayed()
         compose.onNodeWithTag("my_netflix_row_my_list").assertIsDisplayed()
+        // The third section sits below the fold of the lazy hub; bring it in before asserting.
+        compose.onNodeWithTag("my_netflix_hub").performScrollToNode(hasTestTag("my_netflix_row_recently_watched"))
         compose.onNodeWithTag("my_netflix_row_recently_watched").assertIsDisplayed()
         compose.onAllNodesWithTag("my_netflix_progress", useUnmergedTree = true).assertCountEquals(1)
         val first = compose.onAllNodes(hasTestTag("my_netflix_card_continue:series:fixture:0"))

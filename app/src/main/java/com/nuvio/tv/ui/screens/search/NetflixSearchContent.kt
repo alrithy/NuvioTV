@@ -247,7 +247,11 @@ internal fun NetflixSearchContent(
         repeat(NETFLIX_SEARCH_RESTORE_FRAMES) {
             withFrameNanos { }
             val requester = resultRequesters[results[index].key]
-            if (requester != null && runCatching { requester.requestFocus(FocusDirection.Enter) }.getOrDefault(false)) {
+            val moved = requester != null && runCatching { requester.requestFocus(FocusDirection.Enter) }
+                .onFailure { android.util.Log.d("NetflixSearchRestore", "requestFocus threw: ${it.javaClass.simpleName}: ${it.message}") }
+                .getOrDefault(false)
+            android.util.Log.d("NetflixSearchRestore", "index=$index requester=${requester != null} moved=$moved firstVisible=${gridState.firstVisibleItemIndex}")
+            if (moved) {
                 latestOnFocusRestored()
                 return@LaunchedEffect
             }
