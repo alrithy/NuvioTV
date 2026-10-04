@@ -211,7 +211,9 @@ class NuvioTypographyTvTest {
             assertEquals("$tag on one line", 1, layout.lineCount)
             assertTrue("$tag not ellipsized", !layout.isLineEllipsized(0) && !layout.didOverflowWidth)
             assertTrue("$tag line fits its height", layout.getLineBottom(0) <= size.height + .5f)
-            assertTrue("$tag is not clipped to its text box", !layout.hasVisualOverflow)
+            assertTrue("$tag is not clipped to its text box (overflows width ${layout.didOverflowWidth}, height " +
+                "${layout.didOverflowHeight}, exceeds lines ${layout.multiParagraph.didExceedMaxLines}, paragraph " +
+                "${layout.multiParagraph.width}x${layout.multiParagraph.height} in ${layout.size})", !layout.hasVisualOverflow)
             val image = compose.onNodeWithTag("${tag}Box").captureToImage()
             val rows = inkRows(image)
             assertTrue("$tag draws text", rows != null)
