@@ -121,6 +121,7 @@ import com.nuvio.tv.ui.util.rememberLongPressKeyTracker
 import com.nuvio.tv.domain.model.ProfileBackgroundSelection
 import com.nuvio.tv.domain.model.resolveProfileBackgroundSelection
 import kotlinx.coroutines.delay
+import com.nuvio.tv.ui.theme.withNuvioDescenderRoom
 
 private object ProfileSelectionSpacing {
     val ScreenPaddingHorizontal = NuvioTheme.spacing.huge
@@ -2567,7 +2568,7 @@ private fun ProfileNameField(
                 color = Color.White,
                 fontSize = 16.sp,
                 textDirection = TextDirection.Content
-            ),
+            ).withNuvioDescenderRoom(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(

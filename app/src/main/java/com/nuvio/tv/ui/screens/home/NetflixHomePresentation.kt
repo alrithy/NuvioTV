@@ -72,6 +72,7 @@ import com.nuvio.tv.domain.model.CatalogRow
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.fork.resource.AdaptiveResources
 import kotlin.math.roundToInt
+import com.nuvio.tv.ui.theme.withNuvioDescenderRoom
 
 /** Presentation policy reads the one installed resource owner; it performs no device probing. */
 internal fun netflixHomePreviewPolicy(tier: MemoryTier): NetflixPresentationPolicy = netflixPresentationPolicy(tier)
@@ -133,7 +134,7 @@ internal fun NetflixHeroTitleContent(
             Text(
                 description,
                 style = MaterialTheme.typography.bodyMedium.copy(fontSize = tokens.description,
-                    lineHeight = tokens.descriptionLineHeight, textDirection = description.contentTextDirection()),
+                    lineHeight = tokens.descriptionLineHeight, textDirection = description.contentTextDirection()).withNuvioDescenderRoom(),
                 color = tokens.textPrimary,
                 maxLines = tokens.descriptionMaxLines,
                 overflow = TextOverflow.Ellipsis

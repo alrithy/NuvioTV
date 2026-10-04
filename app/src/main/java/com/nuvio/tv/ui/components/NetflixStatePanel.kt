@@ -24,6 +24,7 @@ import androidx.tv.material3.Icon
 import androidx.tv.material3.Text
 import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.util.contentTextDirection
+import com.nuvio.tv.ui.theme.withNuvioDescenderRoom
 
 /**
  * NETFLIX_THEME empty / error composition (parity audit §18): an intentional centred block — icon,
@@ -52,7 +53,7 @@ internal fun NetflixStatePanel(
         Text(
             title,
             style = TextStyle(fontFamily = tokens.fontFamily, fontSize = state.titleSize, fontWeight = FontWeight.Bold,
-                textDirection = title.contentTextDirection()),
+                textDirection = title.contentTextDirection()).withNuvioDescenderRoom(),
             color = tokens.textPrimary, textAlign = TextAlign.Center,
             modifier = Modifier.widthIn(max = state.maxTextWidth),
         )
@@ -60,7 +61,7 @@ internal fun NetflixStatePanel(
             Text(
                 body,
                 style = TextStyle(fontFamily = tokens.fontFamily, fontSize = state.bodySize, lineHeight = tokens.descriptionLineHeight,
-                    textDirection = body.text.contentTextDirection()),
+                    textDirection = body.text.contentTextDirection()).withNuvioDescenderRoom(),
                 color = tokens.textSecondary, textAlign = TextAlign.Center,
                 modifier = Modifier.widthIn(max = state.maxTextWidth),
             )
@@ -77,7 +78,7 @@ internal fun NetflixStatePanel(
                 scale = ButtonDefaults.scale(focusedScale = tokens.episodeFocusScale),
                 contentPadding = PaddingValues(horizontal = tokens.previewPadding * 2),
             ) {
-                Text(actionLabel, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.buttonText, fontWeight = FontWeight.SemiBold))
+                Text(actionLabel, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.buttonText, fontWeight = FontWeight.SemiBold).withNuvioDescenderRoom())
             }
         }
     }

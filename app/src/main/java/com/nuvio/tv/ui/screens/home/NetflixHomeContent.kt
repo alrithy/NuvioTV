@@ -89,6 +89,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
 import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.launch
+import com.nuvio.tv.ui.theme.withNuvioDescenderRoom
 
 /*
  * NETFLIX_THEME Home, per the maintainer reference correction (docs/NETFLIX_TV_2026_PARITY_AUDIT.md §0):
@@ -385,7 +386,7 @@ private fun NetflixHeroCard(
                     Text(
                         preview.title,
                         style = TextStyle(fontFamily = tokens.fontFamily, fontSize = home.heroTitleSize, fontWeight = FontWeight.Bold,
-                            textDirection = preview.title.contentTextDirection()),
+                            textDirection = preview.title.contentTextDirection()).withNuvioDescenderRoom(),
                         color = tokens.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     )
                 }
@@ -407,7 +408,7 @@ private fun NetflixHeroCard(
             // Reference: synopsis is not dominant in the initial hero state — one line at most.
             preview.description?.takeIf(String::isNotBlank)?.let {
                 Text(it, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = home.heroSynopsisSize,
-                    textDirection = it.contentTextDirection()), color = tokens.textSecondary, maxLines = home.heroSynopsisLines,
+                    textDirection = it.contentTextDirection()).withNuvioDescenderRoom(), color = tokens.textSecondary, maxLines = home.heroSynopsisLines,
                     overflow = TextOverflow.Ellipsis)
             }
             Row(Modifier.padding(top = tokens.metadataGap / 2), horizontalArrangement = Arrangement.spacedBy(tokens.actionGap)) {
@@ -440,7 +441,7 @@ private fun NetflixHeroButton(icon: androidx.compose.ui.graphics.vector.ImageVec
         contentPadding = PaddingValues(horizontal = tokens.previewPadding * 1.5f),
     ) {
         Icon(icon, contentDescription = null, modifier = Modifier.padding(end = tokens.metadataGap).height(tokens.navigationIconSize))
-        Text(label, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.buttonText, fontWeight = FontWeight.SemiBold))
+        Text(label, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.buttonText, fontWeight = FontWeight.SemiBold).withNuvioDescenderRoom())
     }
 }
 
@@ -469,7 +470,7 @@ private fun NetflixCategoryStrip(categories: List<HeroCarouselRow>, onFocused: (
                 Box(Modifier.fillMaxHeight().widthIn(min = home.categoryMinWidth).padding(horizontal = home.categoryPadding),
                     contentAlignment = Alignment.Center) {
                     Text(row.title, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = home.categoryTextSize,
-                        fontWeight = FontWeight.Bold, textDirection = row.title.contentTextDirection()),
+                        fontWeight = FontWeight.Bold, textDirection = row.title.contentTextDirection()).withNuvioDescenderRoom(),
                         color = tokens.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
@@ -527,7 +528,7 @@ private fun NetflixBrowseRow(
     }
     Column(Modifier.testTag("netflix_row_${row.key}"), verticalArrangement = Arrangement.spacedBy(tokens.rowTitleGap)) {
         Text(row.title, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.rowHeader, fontWeight = FontWeight.Bold,
-            textDirection = row.title.contentTextDirection()), color = tokens.textPrimary,
+            textDirection = row.title.contentTextDirection()).withNuvioDescenderRoom(), color = tokens.textPrimary,
             modifier = Modifier.padding(horizontal = tokens.safeMargin))
         LazyRow(
             state = listState,
@@ -611,7 +612,7 @@ private fun NetflixBrowseCard(
                 Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent,
                     tokens.background.copy(alpha = .85f)))))
                 Text(item.title, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = home.cardTitleSize,
-                    fontWeight = FontWeight.Bold, textDirection = item.title.contentTextDirection()),
+                    fontWeight = FontWeight.Bold, textDirection = item.title.contentTextDirection()).withNuvioDescenderRoom(),
                     color = tokens.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.align(Alignment.BottomStart).padding(tokens.previewPadding))
             }
@@ -639,7 +640,7 @@ private fun NetflixFocusedFacts(item: ModernCarouselItem, membership: Map<String
         NetflixFactsLine(preview, showImdbRatings)
         preview.description?.takeIf(String::isNotBlank)?.let {
             Text(it, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = home.factsSynopsisSize,
-                lineHeight = home.factsSynopsisLineHeight, textDirection = it.contentTextDirection()),
+                lineHeight = home.factsSynopsisLineHeight, textDirection = it.contentTextDirection()).withNuvioDescenderRoom(),
                 color = tokens.textSecondary, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
@@ -656,7 +657,7 @@ internal fun NetflixFactsLine(preview: HeroPreview, showImdbRatings: Boolean) {
         if (showImdbRatings) preview.imdbText?.takeIf(String::isNotBlank)?.let { "IMDb $it" } else null,
     ))
     if (facts.isNotBlank()) {
-        Text(facts, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.metadata, fontWeight = FontWeight.Medium),
+        Text(facts, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.metadata, fontWeight = FontWeight.Medium).withNuvioDescenderRoom(),
             color = tokens.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }

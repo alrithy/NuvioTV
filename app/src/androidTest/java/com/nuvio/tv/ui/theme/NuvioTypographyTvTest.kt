@@ -7,17 +7,13 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.util.TypedValue
-import android.widget.TextView
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -226,45 +222,31 @@ class NuvioTypographyTvTest {
 
     /**
      * Some Arabic forms reach below Thmanyah Sans' 1.25 em line box: the dots of isolated ي sit almost
-     * entirely under it, and only they tell ي from ى. This draws the letter straight onto a bitmap with
-     * the same typeface as the ground truth, then checks Compose text draws as far below the baseline,
-     * whatever the overflow setting (the Netflix keys and labels are one-line ellipsized texts).
+     * entirely under it, and only they tell ي from ى; final ي (في) reaches deeper still. Android cuts
+     * text at its box, so the Nuvio styles keep room below the last line ([withNuvioDescenderRoom]).
+     * Each sample is drawn straight onto a bitmap with the same typeface as the ground truth; Compose
+     * must draw as far below the baseline. The bare style is the control that shows the cut.
      */
     @Test fun arabicDotsBelowTheLineBoxAreDrawn() {
-        val letter = "ي"
         val size = 40.sp
-        val style = TextStyle(fontFamily = NuvioFontFamily, fontSize = size, fontWeight = FontWeight.Medium)
-        val variants = listOf("plain", "ellipsis", "visible", "fontPadding", "lineHeight", "textView")
-        var textViewBaseline = 0
+        val bare = TextStyle(fontFamily = NuvioFontFamily, fontSize = size, fontWeight = FontWeight.Medium)
+        class Sample(val tag: String, val text: String, val style: TextStyle)
+        val samples = listOf(
+            Sample("bare", "ي", bare),
+            Sample("key", "ي", bare.withNuvioDescenderRoom()),
+            Sample("finalYeh", "في", bare.withNuvioDescenderRoom()),
+            Sample("theme", "في", NuvioTypography.bodyLarge.copy(fontSize = size)),
+            Sample("netflix", "عربي", buildNetflixTypography().labelLarge.copy(fontSize = size)),
+        )
         compose.setContent {
             NuvioTheme(appTheme = AppTheme.WHITE) {
-                // Side by side: stacked, the six samples would run past the bottom of a 1080p screen.
+                // Side by side: stacked, the samples would run past the bottom of a 1080p screen.
                 Row(Modifier.background(Color.Black).padding(24.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
-                    for (tag in variants) {
-                        Box(Modifier.testTag("${tag}Box").background(Color.Black).padding(vertical = 24.dp)) {
-                            val modifier = Modifier.testTag(tag)
-                            when (tag) {
-                                "plain" -> Text(letter, style = style, color = Color.White, modifier = modifier)
-                                "ellipsis" -> Text(letter, style = style, color = Color.White, maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis, modifier = modifier)
-                                "visible" -> Text(letter, style = style, color = Color.White, maxLines = 1,
-                                    overflow = TextOverflow.Visible, modifier = modifier)
-                                "fontPadding" -> Text(letter, color = Color.White, modifier = modifier,
-                                    style = style.copy(platformStyle = PlatformTextStyle(includeFontPadding = true)))
-                                "lineHeight" -> Text(letter, color = Color.White, modifier = modifier, maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis, style = style.copy(lineHeight = (size.value * 1.6f).sp,
-                                        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)))
-                                else -> AndroidView(modifier = modifier, factory = { viewContext ->
-                                    TextView(viewContext).apply {
-                                        text = letter
-                                        includeFontPadding = false
-                                        setTextColor(android.graphics.Color.WHITE)
-                                        typeface = NuvioUiFonts.typeface(viewContext, 500)
-                                        setTextSize(TypedValue.COMPLEX_UNIT_SP, size.value)
-                                        viewTreeObserver.addOnPreDrawListener { textViewBaseline = baseline; true }
-                                    }
-                                })
-                            }
+                    for (sample in samples) {
+                        Box(Modifier.testTag("${sample.tag}Box").background(Color.Black).padding(vertical = 24.dp)) {
+                            // One line, ellipsized, like the Netflix keys and labels.
+                            Text(sample.text, style = sample.style, color = Color.White, maxLines = 1,
+                                overflow = TextOverflow.Ellipsis, modifier = Modifier.testTag(sample.tag))
                         }
                     }
                 }
@@ -272,29 +254,31 @@ class NuvioTypographyTvTest {
         }
         compose.waitForIdle()
         val textSizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, size.value, context.resources.displayMetrics)
-        val truth = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
-        Canvas(truth).apply { drawColor(android.graphics.Color.BLACK) }.drawText(letter, 100f, 200f,
-            Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                typeface = NuvioUiFonts.typeface(context, 500); textSize = textSizePx; color = android.graphics.Color.WHITE
-            })
-        val truthBelow = checkNotNull(inkRows(truth.asImageBitmap())) { "the bitmap draws the letter" }.second - 200
-        truth.recycle()
-        val report = variants.associateWith { tag ->
-            val text = compose.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
-            val box = compose.onNodeWithTag("${tag}Box").fetchSemanticsNode().boundsInRoot
-            val rows = checkNotNull(inkRows(compose.onNodeWithTag("${tag}Box").captureToImage())) { "$tag draws text" }
-            val baseline = (text.top - box.top) + if (tag == "textView") textViewBaseline.toFloat() else textLayout(tag).firstBaseline
+        val report = samples.associate { sample ->
+            val truth = Bitmap.createBitmap(600, 400, Bitmap.Config.ARGB_8888)
+            Canvas(truth).apply { drawColor(android.graphics.Color.BLACK) }.drawText(sample.text, 100f, 200f,
+                Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                    typeface = NuvioUiFonts.typeface(context, (sample.style.fontWeight ?: FontWeight.Normal).weight)
+                    textSize = textSizePx; color = android.graphics.Color.WHITE
+                })
+            val truthBelow = checkNotNull(inkRows(truth.asImageBitmap())) { "the bitmap draws ${sample.text}" }.second - 200
+            truth.recycle()
+            val text = compose.onNodeWithTag(sample.tag).fetchSemanticsNode().boundsInRoot
+            val box = compose.onNodeWithTag("${sample.tag}Box").fetchSemanticsNode().boundsInRoot
+            val rows = checkNotNull(inkRows(compose.onNodeWithTag("${sample.tag}Box").captureToImage())) { "${sample.tag} draws text" }
+            val baseline = (text.top - box.top) + textLayout(sample.tag).firstBaseline
             val below = rows.second - baseline
-            below to "$tag: ink ${rows.first}..${rows.second}, text box ${text.top - box.top}..${text.bottom - box.top}, " +
-                "baseline $baseline, ${"%.1f".format(below)} px below it"
+            sample.tag to Triple(below, truthBelow, "${sample.tag} ${sample.text}: ${"%.1f".format(below)} px below the baseline " +
+                "(bitmap $truthBelow, text box ${text.top - box.top}..${text.bottom - box.top}, baseline $baseline)")
         }
-        val message = "bitmap: $truthBelow px below the baseline; " + report.values.joinToString("; ") { it.second }
+        val message = report.values.joinToString("; ") { it.third }
         android.util.Log.i("NuvioTypography", message)
-        org.junit.Assume.assumeTrue("the letter reaches below the line box ($message)",
-            truthBelow > (textSizePx * .25f) + 2f)
+        val (bareBelow, bareTruth) = report.getValue("bare")
+        org.junit.Assume.assumeTrue("the dots reach below the line box ($message)", bareTruth > (textSizePx * .25f) + 2f)
+        assertTrue("the bare style shows the cut this guards against ($message)", bareBelow < bareTruth - 2f)
         for ((tag, result) in report) {
-            if (tag == "textView") continue
-            assertTrue("$tag draws the dots below the line box ($message)", result.first >= truthBelow - 2f)
+            if (tag == "bare") continue
+            assertTrue("$tag draws the dots below the line box ($message)", result.first >= result.second - 2f)
         }
     }
 

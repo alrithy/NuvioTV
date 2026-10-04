@@ -27,6 +27,7 @@ import com.nuvio.tv.R
 import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.theme.netflixEpisodeToken
 import com.nuvio.tv.ui.theme.netflixIsolate
+import com.nuvio.tv.ui.theme.withNuvioDescenderRoom
 
 /*
  * NETFLIX_THEME contextual callout slot (parity audit §5). It only ever states a fact a Nuvio owner
@@ -77,6 +78,6 @@ internal fun NetflixCalloutChip(callout: NetflixCallout, modifier: Modifier = Mo
                 .clip(RoundedCornerShape(tokens.accentWidth)).background(NetflixThemeTokens.progress))
         }
         Text(text, style = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = tokens.textSize,
-            fontWeight = FontWeight.SemiBold, letterSpacing = 0.2.sp), color = NetflixThemeTokens.textPrimary, maxLines = 1)
+            fontWeight = FontWeight.SemiBold, letterSpacing = 0.2.sp).withNuvioDescenderRoom(), color = NetflixThemeTokens.textPrimary, maxLines = 1)
     }
 }

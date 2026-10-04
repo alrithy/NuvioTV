@@ -6,6 +6,8 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontSynthesis
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Typography
@@ -51,6 +53,49 @@ object NuvioFontWeights {
 /** Thmanyah Sans ships real files for every weight the UI uses; never fake a heavier one. */
 fun nuvioFontSynthesis(fontFamily: FontFamily): FontSynthesis? =
     if (fontFamily === NuvioFontFamily && NuvioUiFonts.available) FontSynthesis.None else null
+
+/**
+ * Thmanyah Sans declares a 0.25 em descent, but 26–38 Arabic forms per weight reach deeper: the dots
+ * of final ي to 0.54 em, isolated ي 0.42 em, the tails of ع ج ح خ م س ص 0.27–0.37 em. Android draws
+ * text only inside its line box, so on a text's last line those dots and tails were cut (ي then reads
+ * as ى, في as فى). Every Thmanyah text therefore keeps lines at least [NuvioMinLineHeightEm] apart
+ * with the spare space under each line: baselines keep their distance from the top of the text and
+ * the bottom of the box grows by the room the deepest form needs. The minimum is in em, so it still
+ * holds when a screen copies the style with another font size.
+ */
+const val NuvioMinLineHeightEm = 1.55f
+
+fun TextStyle.withNuvioDescenderRoom(): TextStyle {
+    if (fontFamily !== NuvioFontFamily || !NuvioUiFonts.available) return this
+    val ratio = when {
+        lineHeight.isEm -> lineHeight.value
+        lineHeight.isSp && fontSize.isSp -> lineHeight.value / fontSize.value
+        else -> 0f
+    }
+    return copy(
+        lineHeight = maxOf(ratio, NuvioMinLineHeightEm).em,
+        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Top, LineHeightStyle.Trim.None)
+    )
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+private fun Typography.withNuvioDescenderRoom(): Typography = copy(
+    displayLarge = displayLarge.withNuvioDescenderRoom(),
+    displayMedium = displayMedium.withNuvioDescenderRoom(),
+    displaySmall = displaySmall.withNuvioDescenderRoom(),
+    headlineLarge = headlineLarge.withNuvioDescenderRoom(),
+    headlineMedium = headlineMedium.withNuvioDescenderRoom(),
+    headlineSmall = headlineSmall.withNuvioDescenderRoom(),
+    titleLarge = titleLarge.withNuvioDescenderRoom(),
+    titleMedium = titleMedium.withNuvioDescenderRoom(),
+    titleSmall = titleSmall.withNuvioDescenderRoom(),
+    bodyLarge = bodyLarge.withNuvioDescenderRoom(),
+    bodyMedium = bodyMedium.withNuvioDescenderRoom(),
+    bodySmall = bodySmall.withNuvioDescenderRoom(),
+    labelLarge = labelLarge.withNuvioDescenderRoom(),
+    labelMedium = labelMedium.withNuvioDescenderRoom(),
+    labelSmall = labelSmall.withNuvioDescenderRoom()
+)
 
 val DMSansFamily = FontFamily(
     Font(R.font.dm_sans_variable, FontWeight.Normal),
@@ -114,7 +159,7 @@ fun buildNuvioTypography(fontFamily: FontFamily): Typography = buildBaseTypograp
         labelLarge = base.labelLarge.copy(fontSynthesis = synthesis),
         labelMedium = base.labelMedium.copy(fontSynthesis = synthesis),
         labelSmall = base.labelSmall.copy(fontSynthesis = synthesis)
-    )
+    ).withNuvioDescenderRoom()
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -226,7 +271,7 @@ fun buildNetflixTypography(): Typography {
         bodyMedium = base.bodyMedium.copy(letterSpacing = 0.sp),
         labelMedium = base.labelMedium.copy(fontSize = NetflixThemeTokens.metadata, letterSpacing = 0.sp),
         labelLarge = base.labelLarge.copy(fontSize = NetflixThemeTokens.buttonText, fontWeight = FontWeight.Bold, letterSpacing = 0.sp)
-    )
+    ).withNuvioDescenderRoom()
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)

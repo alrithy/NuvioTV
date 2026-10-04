@@ -89,6 +89,7 @@ import com.nuvio.tv.ui.components.PosterCardStyle
 import com.nuvio.tv.ui.screens.home.HeroBackdropState
 import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.util.contentTextDirection
+import com.nuvio.tv.ui.theme.withNuvioDescenderRoom
 
 /** A presentation adapter over SearchViewModel's existing live search, history and catalog owners. */
 @Composable
@@ -322,7 +323,7 @@ internal fun NetflixSearchContent(
                         modifier = Modifier.weight(1f).focusRequester(fieldRequester),
                         singleLine = true,
                         textStyle = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = tokens.searchQuerySize,
-                            color = tokens.textPrimary, textDirection = uiState.query.contentTextDirection()),
+                            color = tokens.textPrimary, textDirection = uiState.query.contentTextDirection()).withNuvioDescenderRoom(),
                         cursorBrush = SolidColor(tokens.focus),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(onSearch = { onEvent(SearchEvent.SubmitSearch); moveToResults() }),
@@ -330,7 +331,7 @@ internal fun NetflixSearchContent(
                             Box(contentAlignment = Alignment.CenterStart) {
                                 if (uiState.query.isEmpty()) {
                                     Text(stringResource(R.string.search_placeholder), maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                        style = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = tokens.searchQuerySize, color = tokens.textMuted))
+                                        style = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = tokens.searchQuerySize, color = tokens.textMuted).withNuvioDescenderRoom())
                                 }
                                 inner()
                             }
@@ -507,7 +508,7 @@ private fun NetflixKeyboardKey(
         // button padding (measured reference ~15–16 sp).
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                style = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = NetflixThemeTokens.searchKeyGlyph, fontWeight = FontWeight.Medium))
+                style = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = NetflixThemeTokens.searchKeyGlyph, fontWeight = FontWeight.Medium).withNuvioDescenderRoom())
         }
     }
 }

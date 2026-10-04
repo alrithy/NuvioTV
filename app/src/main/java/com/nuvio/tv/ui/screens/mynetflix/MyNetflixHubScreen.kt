@@ -65,6 +65,7 @@ import com.nuvio.tv.ui.components.ProfileAvatarCircle
 import com.nuvio.tv.ui.theme.netflixEpisodeLabel
 import com.nuvio.tv.ui.util.contentTextDirection
 import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.ui.theme.withNuvioDescenderRoom
 
 @Composable
 fun MyNetflixHubScreen(
@@ -153,7 +154,7 @@ private fun MyNetflixHeader(
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(tokens.metadataGap / 2)) {
                 Text(
                     text = stringResource(R.string.netflix_nav_my_netflix),
-                    style = TextStyle(fontFamily = tokens.fontFamily, fontSize = hub.titleSize, fontWeight = FontWeight.Bold),
+                    style = TextStyle(fontFamily = tokens.fontFamily, fontSize = hub.titleSize, fontWeight = FontWeight.Bold).withNuvioDescenderRoom(),
                     color = tokens.textPrimary, maxLines = 1,
                 )
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(tokens.metadataGap)) {
@@ -161,7 +162,7 @@ private fun MyNetflixHeader(
                         Text(
                             text = profile.name,
                             style = TextStyle(fontFamily = tokens.fontFamily, fontSize = hub.subtitleSize,
-                                textDirection = profile.name.contentTextDirection()),
+                                textDirection = profile.name.contentTextDirection()).withNuvioDescenderRoom(),
                             color = tokens.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis,
                         )
                     }
@@ -210,7 +211,7 @@ private fun MyNetflixAction(label: String, onClick: () -> Unit, tag: String) {
         scale = ButtonDefaults.scale(focusedScale = 1f),
         contentPadding = PaddingValues(horizontal = tokens.previewPadding),
     ) {
-        Text(label, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.actionTextSize, fontWeight = FontWeight.SemiBold), maxLines = 1)
+        Text(label, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.actionTextSize, fontWeight = FontWeight.SemiBold).withNuvioDescenderRoom(), maxLines = 1)
     }
 }
 
@@ -229,7 +230,7 @@ private fun MyNetflixSectionRow(
     Column(verticalArrangement = Arrangement.spacedBy(tokens.rowTitleGap)) {
         Text(
             text = title,
-            style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.rowTitleSize, fontWeight = FontWeight.Bold),
+            style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.rowTitleSize, fontWeight = FontWeight.Bold).withNuvioDescenderRoom(),
             color = tokens.textPrimary,
             modifier = Modifier.padding(horizontal = tokens.safeMargin),
         )
@@ -280,7 +281,7 @@ private fun MyNetflixCardView(card: MyNetflixCard, onClick: () -> Unit) {
                     Text(
                         card.title,
                         style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.metadata, fontWeight = FontWeight.SemiBold,
-                            textDirection = card.title.contentTextDirection()),
+                            textDirection = card.title.contentTextDirection()).withNuvioDescenderRoom(),
                         color = tokens.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.align(Alignment.Center).padding(tokens.previewPadding),
                     )
@@ -300,7 +301,7 @@ private fun MyNetflixCardView(card: MyNetflixCard, onClick: () -> Unit) {
         val caption = if (season != null && episode != null) netflixEpisodeLabel(season, episode, card.episodeTitle) else card.title
         Text(
             caption,
-            style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.metadata, textDirection = caption.contentTextDirection()),
+            style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.metadata, textDirection = caption.contentTextDirection()).withNuvioDescenderRoom(),
             color = tokens.textSecondary, maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
     }

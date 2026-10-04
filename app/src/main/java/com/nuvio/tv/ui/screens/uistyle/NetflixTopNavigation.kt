@@ -68,6 +68,7 @@ import com.nuvio.tv.navigateToDrawerRoute
 import com.nuvio.tv.ui.components.ProfileAvatarCircle
 import com.nuvio.tv.ui.navigation.NuvioNavHost
 import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.ui.theme.withNuvioDescenderRoom
 
 /*
  * NETFLIX_THEME top navigation (docs/NETFLIX_TV_2026_PARITY_AUDIT.md §4). The current Netflix TV
@@ -281,7 +282,7 @@ private fun NetflixTopNavTab(
                 fontFamily = NetflixThemeTokens.fontFamily,
                 fontSize = tokens.labelSize,
                 fontWeight = if (selected || focused) FontWeight.Bold else FontWeight.Normal,
-            ),
+            ).withNuvioDescenderRoom(),
             color = content,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
