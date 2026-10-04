@@ -84,6 +84,15 @@ Licence: THMANYAH_APP_EMBEDDING = PERMITTED_BY_SUPPLIED_LICENSE; THMANYAH_STANDA
 is kept unless rendered evidence shows the font clipping; the signed Test Build waits for the
 maintainer's review of the new font screenshots.
 
+Rendered evidence (Netflix Visual run 37205669945) proved two font-caused defects, fixed in the typography
+owner (`ui/theme/Type.kt`) only:
+- Thmanyah's descent is 0.25 em while 26–38 Arabic forms reach deeper (final ي to 0.54 em). Android cuts
+  text at its box, so the dots and tails on a text's last line were lost (the ي key read as ى). Every
+  Thmanyah style keeps lines at least 1.55 em apart with the spare space under each line
+  (`withNuvioDescenderRoom`); text boxes grow downward, containers keep their measured sizes.
+- With the Material letter spacing, a one-line Text holding Arabic in a left-to-right paragraph lost its
+  last word at 4K. Theme styles set Thmanyah without tracking.
+
 ## Current status
 
 IN_PROGRESS. Implementation, local builds and visual evidence are being prepared.
