@@ -78,24 +78,34 @@ fun TextStyle.withNuvioDescenderRoom(): TextStyle {
     )
 }
 
+/**
+ * The theme styles as Thmanyah Sans sets them: room below the last line ([withNuvioDescenderRoom]) and
+ * no tracking. The Material letter spacing was tuned for Roboto; with it, a one-line Text holding Arabic
+ * inside a left-to-right paragraph wraps at its own measured width (an Android measuring mismatch seen
+ * at 4K), so its last word silently disappeared. Screens that ask for tracking still set it themselves.
+ */
 @OptIn(ExperimentalTvMaterial3Api::class)
-private fun Typography.withNuvioDescenderRoom(): Typography = copy(
-    displayLarge = displayLarge.withNuvioDescenderRoom(),
-    displayMedium = displayMedium.withNuvioDescenderRoom(),
-    displaySmall = displaySmall.withNuvioDescenderRoom(),
-    headlineLarge = headlineLarge.withNuvioDescenderRoom(),
-    headlineMedium = headlineMedium.withNuvioDescenderRoom(),
-    headlineSmall = headlineSmall.withNuvioDescenderRoom(),
-    titleLarge = titleLarge.withNuvioDescenderRoom(),
-    titleMedium = titleMedium.withNuvioDescenderRoom(),
-    titleSmall = titleSmall.withNuvioDescenderRoom(),
-    bodyLarge = bodyLarge.withNuvioDescenderRoom(),
-    bodyMedium = bodyMedium.withNuvioDescenderRoom(),
-    bodySmall = bodySmall.withNuvioDescenderRoom(),
-    labelLarge = labelLarge.withNuvioDescenderRoom(),
-    labelMedium = labelMedium.withNuvioDescenderRoom(),
-    labelSmall = labelSmall.withNuvioDescenderRoom()
+private fun Typography.withNuvioTypesetting(): Typography = copy(
+    displayLarge = displayLarge.nuvioTypeset(),
+    displayMedium = displayMedium.nuvioTypeset(),
+    displaySmall = displaySmall.nuvioTypeset(),
+    headlineLarge = headlineLarge.nuvioTypeset(),
+    headlineMedium = headlineMedium.nuvioTypeset(),
+    headlineSmall = headlineSmall.nuvioTypeset(),
+    titleLarge = titleLarge.nuvioTypeset(),
+    titleMedium = titleMedium.nuvioTypeset(),
+    titleSmall = titleSmall.nuvioTypeset(),
+    bodyLarge = bodyLarge.nuvioTypeset(),
+    bodyMedium = bodyMedium.nuvioTypeset(),
+    bodySmall = bodySmall.nuvioTypeset(),
+    labelLarge = labelLarge.nuvioTypeset(),
+    labelMedium = labelMedium.nuvioTypeset(),
+    labelSmall = labelSmall.nuvioTypeset()
 )
+
+private fun TextStyle.nuvioTypeset(): TextStyle = withNuvioDescenderRoom().let { style ->
+    if (style.fontFamily === NuvioFontFamily && NuvioUiFonts.available) style.copy(letterSpacing = 0.sp) else style
+}
 
 val DMSansFamily = FontFamily(
     Font(R.font.dm_sans_variable, FontWeight.Normal),
@@ -159,7 +169,7 @@ fun buildNuvioTypography(fontFamily: FontFamily): Typography = buildBaseTypograp
         labelLarge = base.labelLarge.copy(fontSynthesis = synthesis),
         labelMedium = base.labelMedium.copy(fontSynthesis = synthesis),
         labelSmall = base.labelSmall.copy(fontSynthesis = synthesis)
-    ).withNuvioDescenderRoom()
+    ).withNuvioTypesetting()
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)
@@ -271,7 +281,7 @@ fun buildNetflixTypography(): Typography {
         bodyMedium = base.bodyMedium.copy(letterSpacing = 0.sp),
         labelMedium = base.labelMedium.copy(fontSize = NetflixThemeTokens.metadata, letterSpacing = 0.sp),
         labelLarge = base.labelLarge.copy(fontSize = NetflixThemeTokens.buttonText, fontWeight = FontWeight.Bold, letterSpacing = 0.sp)
-    ).withNuvioDescenderRoom()
+    ).withNuvioTypesetting()
 }
 
 @OptIn(ExperimentalTvMaterial3Api::class)

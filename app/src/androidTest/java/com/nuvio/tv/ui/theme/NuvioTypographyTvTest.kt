@@ -216,9 +216,8 @@ class NuvioTypographyTvTest {
             assertTrue("$tag draws text", rows != null)
             assertTrue("$tag ascenders/diacritics not cut (${rows!!.first}..${rows.second} of ${image.height})",
                 rows.first > 0 && rows.second < image.height - 1)
-            // The whole line is drawn: its ink spans the measured line from end to end. (At 4K the semantics
-            // re-layout of a plain Text can report the last word wrapped at the node's own width, so this
-            // checks the pixels rather than that report alone.)
+            // The whole line is drawn: its ink spans the measured line from end to end. With letter spacing,
+            // a left-to-right paragraph holding Arabic wrapped at its own width at 4K and lost its last word.
             val text = compose.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
             val box = compose.onNodeWithTag("${tag}Box").fetchSemanticsNode().boundsInRoot
             val columns = checkNotNull(inkColumns(image))
@@ -227,8 +226,7 @@ class NuvioTypographyTvTest {
                 layout.layoutInput.density.fontScale
             assertTrue("$tag draws its whole line (ink ${columns.first}..${columns.second} in line $left..$right; " +
                 "semantics layout: line 0 ends at ${layout.getLineEnd(0)} of ${mixed.length}, exceeds lines " +
-                "${layout.multiParagraph.didExceedMaxLines}, paragraph ${layout.multiParagraph.width} in ${layout.size}; " +
-                "at own width: ${wrapsAtOwnWidth(mixed, layout.layoutInput.style)})",
+                "${layout.multiParagraph.didExceedMaxLines}, paragraph ${layout.multiParagraph.width} in ${layout.size})",
                 columns.first - left < slack && right - columns.second < slack)
         }
     }
@@ -294,19 +292,6 @@ class NuvioTypographyTvTest {
             assertTrue("$tag draws the dots below the line box ($message)", result.first >= result.second - 2f)
         }
     }
-
-    /** Diagnostic: where one line of [text] ends when laid out at its own measured width. */
-    private fun wrapsAtOwnWidth(text: String, style: TextStyle): String =
-        listOf(androidx.compose.ui.unit.LayoutDirection.Ltr, androidx.compose.ui.unit.LayoutDirection.Rtl).flatMap { direction ->
-            listOf(style, style.copy(letterSpacing = 0.sp)).map { variant ->
-                val measurer = androidx.compose.ui.text.TextMeasurer(createFontFamilyResolver(context),
-                    androidx.compose.ui.unit.Density(context), direction)
-                val free = measurer.measure(text, variant, maxLines = 1)
-                val tight = measurer.measure(text, variant, maxLines = 1,
-                    constraints = androidx.compose.ui.unit.Constraints(maxWidth = free.size.width))
-                "$direction spacing ${variant.letterSpacing}: w=${free.size.width} ends ${tight.getLineEnd(0)}/${text.length}"
-            }
-        }.joinToString(", ")
 
     private fun textLayout(tag: String): TextLayoutResult {
         val results = mutableListOf<TextLayoutResult>()
