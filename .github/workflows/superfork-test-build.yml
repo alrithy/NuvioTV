@@ -266,6 +266,9 @@ jobs:
           -PsuperforkTestBuild="${{ github.run_number }}"
           --stacktrace
 
+      - name: Check the APK carries no standalone font file (docs/PRIVATE_FONTS.md)
+        run: python3 scripts/superfork/private_fonts.py apk-check app/build/outputs/apk/full/debug/app-full-universal-debug.apk ${THMANYAH_FONT_DIR:+--embedded}
+
       - name: Verify the APK
         run: |
           set -euo pipefail

@@ -248,6 +248,10 @@ jobs:
         if: inputs.mode != 'dry-run'
         run: ./gradlew :app:assembleFullRelease --stacktrace
 
+      - name: Check the APK carries no standalone font file (docs/PRIVATE_FONTS.md)
+        if: inputs.mode != 'dry-run'
+        run: python3 scripts/superfork/private_fonts.py apk-check app/build/outputs/apk/full/release/*.apk ${THMANYAH_FONT_DIR:+--embedded}
+
       # Superfork G14b (D064): SHA-256 of every APK, published beside them; GitHub also reports
       # each asset's digest, which the in-app updater checks before installing.
       - name: Write SHA-256 checksums

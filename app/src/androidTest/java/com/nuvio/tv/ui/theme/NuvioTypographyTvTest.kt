@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.createFontFamilyResolver
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.res.ResourcesCompat
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.tv.material3.MaterialTheme
@@ -47,20 +46,14 @@ import androidx.test.filters.SdkSuppress
  * The root Nuvio typography owner renders the real, embedded Thmanyah Sans files (docs/PRIVATE_FONTS.md).
  * Runs in the Netflix Visual workflow, whose same-repository builds require the private font input.
  */
-// Typeface.getWeight() needs API 28; the TV visual emulator runs API 31.
-@SdkSuppress(minSdkVersion = 28)
+// In-memory fonts need API 29; the TV visual emulator runs API 31.
+@SdkSuppress(minSdkVersion = 29)
 @RunWith(AndroidJUnit4::class)
 class NuvioTypographyTvTest {
     @get:Rule val compose = createComposeRule()
     private val context get() = InstrumentationRegistry.getInstrumentation().targetContext
 
-    private val weights = listOf(
-        FontWeight.Light to { ThmanyahFontResources.light() },
-        FontWeight.Normal to { ThmanyahFontResources.regular() },
-        FontWeight.Medium to { ThmanyahFontResources.medium() },
-        FontWeight.Bold to { ThmanyahFontResources.bold() },
-        FontWeight.Black to { ThmanyahFontResources.black() },
-    )
+    private val weights = listOf(FontWeight.Light, FontWeight.Normal, FontWeight.Medium, FontWeight.Bold, FontWeight.Black)
     private val arabicKeyboard = "ابتثجحخدذرزسشصضطظعغفقكلمنهويءأإآةى"
     private val arabicDigits = "٠١٢٣٤٥٦٧٨٩"
 
@@ -85,7 +78,7 @@ class NuvioTypographyTvTest {
         }
         compose.runOnIdle {
             assertTrue("BuildConfig.THMANYAH_EMBEDDED", BuildConfig.THMANYAH_EMBEDDED)
-            assertTrue("generated resources embedded", ThmanyahFontResources.EMBEDDED)
+            assertTrue("encrypted pack embedded and loadable", NuvioUiFonts.available)
             tvStyles.forEachIndexed { i, style -> assertTrue("tv style $i", style.fontFamily === NuvioFontFamily) }
             coreStyles.forEachIndexed { i, style -> assertTrue("material3 style $i", style.fontFamily === NuvioFontFamily) }
             tvStyles.forEach { assertEquals("no synthetic weights", FontSynthesis.None, it.fontSynthesis) }
@@ -96,12 +89,13 @@ class NuvioTypographyTvTest {
     }
 
     @Test fun thmanyahWeightsMapToRealWeights() {
-        assertTrue("Thmanyah Sans is embedded", ThmanyahFontResources.EMBEDDED)
+        assertTrue("Thmanyah Sans is embedded", NuvioUiFonts.available)
         val resolver = createFontFamilyResolver(context)
-        val inks = weights.map { (weight, resource) ->
-            // The resource file itself carries that OS/2 weight: a real file per weight, not one file reused.
-            val file = checkNotNull(ResourcesCompat.getFont(context, resource()))
-            assertEquals("file weight for ${weight.weight}", weight.weight, file.weight)
+        val inks = weights.map { weight ->
+            // The decrypted file itself carries that OS/2 weight: a real file per weight, not one file reused.
+            val font = checkNotNull(NuvioUiFonts.font(context, weight.weight)) { "pack problem: ${NuvioUiFonts.loadProblem}" }
+            assertEquals("file weight for ${weight.weight}", weight.weight, font.style.weight)
+            val file = NuvioUiFonts.typeface(context, weight.weight)
             // Compose resolves the family to that same weight with synthesis disabled.
             val resolved = resolver.resolve(NuvioFontFamily, weight, FontStyle.Normal, FontSynthesis.None).value as Typeface
             assertEquals("resolved weight for ${weight.weight}", weight.weight, resolved.weight)
@@ -109,7 +103,7 @@ class NuvioTypographyTvTest {
         }
         // Heavier files draw strictly more ink: five visibly different real weights.
         inks.zipWithNext().forEachIndexed { i, (lighter, heavier) ->
-            assertTrue("weight ${weights[i + 1].first.weight} ink $heavier > ${weights[i].first.weight} ink $lighter", heavier > lighter)
+            assertTrue("weight ${weights[i + 1].weight} ink $heavier > ${weights[i].weight} ink $lighter", heavier > lighter)
         }
         // There is no SemiBold file: 600 (used for buttons and tabs) uses the real Bold file, never fake bold.
         val semiBold = resolver.resolve(NuvioFontFamily, FontWeight.SemiBold, FontStyle.Normal, FontSynthesis.None).value as Typeface
@@ -117,8 +111,9 @@ class NuvioTypographyTvTest {
     }
 
     @Test fun arabicGlyphsRenderWithoutTofu() {
-        assertTrue("Thmanyah Sans is embedded", ThmanyahFontResources.EMBEDDED)
-        val regular = checkNotNull(ResourcesCompat.getFont(context, ThmanyahFontResources.regular()))
+        assertTrue("Thmanyah Sans is embedded", NuvioUiFonts.available)
+        val regular = NuvioUiFonts.typeface(context, 400)
+        assertEquals("pack loaded", null, NuvioUiFonts.loadProblem)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = regular; textSize = 64f }
         val platform = Paint(Paint.ANTI_ALIAS_FLAG).apply { typeface = Typeface.SANS_SERIF; textSize = 64f }
         val ownGlyphs = (arabicKeyboard + arabicDigits + "،؛؟" + "0123456789").map(Char::toString)
@@ -142,6 +137,45 @@ class NuvioTypographyTvTest {
         // Glyphs the family lacks use the controlled platform fallback, never tofu.
         for (symbol in listOf("→", "★", "▶", "پ", "گ")) assertTrue("$symbol falls back", paint.hasGlyph(symbol))
     }
+
+    @Test fun fontShipsEncryptedAndLoadsFromMemoryOnly() {
+        assertTrue("Thmanyah Sans is embedded", NuvioUiFonts.available)
+        val app = context
+        weights.forEach { NuvioUiFonts.typeface(app, it.weight) }
+        // Loaded and verified against the licensed files' SHA-256 (the exact original bytes).
+        assertEquals("pack loaded", null, NuvioUiFonts.loadProblem)
+        weights.forEach { assertTrue("${it.weight} from the pack", NuvioUiFonts.font(app, it.weight) != null) }
+        // Nothing was written to disk or cache while loading.
+        assertEquals("no font file written", emptySet<String>(), fontFilesOnDisk(app))
+        // The APK holds no standalone font: no font resource, no font-named or font-shaped asset.
+        val fontResources = com.nuvio.tv.R.font::class.java.fields.map { it.name }
+        assertTrue("no Thmanyah font resource: $fontResources", fontResources.none { it.contains("thmanyah", ignoreCase = true) })
+        val assets = assetPaths(app.assets, "")
+        assertTrue("pack asset present", NuvioUiFontPack.ASSET in assets)
+        for (path in assets) {
+            assertTrue("$path is not named like a font", !path.contains("thmanyah", ignoreCase = true) &&
+                !Regex("\\.(otf|ttf|woff2?|ttc)$", RegexOption.IGNORE_CASE).containsMatchIn(path))
+        }
+        val head = app.assets.open(NuvioUiFontPack.ASSET).use { stream -> ByteArray(4).also { stream.read(it) } }
+        assertTrue("pack is not a raw font", String(head, Charsets.ISO_8859_1) !in setOf("OTTO", "wOFF", "wOF2", "\u0000\u0001\u0000\u0000"))
+    }
+
+    private fun assetPaths(assets: android.content.res.AssetManager, dir: String): List<String> =
+        assets.list(dir).orEmpty().flatMap { name ->
+            val path = if (dir.isEmpty()) name else "$dir/$name"
+            val children = assets.list(path).orEmpty()
+            if (children.isEmpty()) listOf(path) else assetPaths(assets, path)
+        }
+
+    /** Every file under the app's writable directories that starts with a font signature. */
+    private fun fontFilesOnDisk(app: android.content.Context): Set<String> =
+        listOfNotNull(app.filesDir, app.cacheDir, app.codeCacheDir, app.noBackupFilesDir, app.externalCacheDir)
+            .flatMap { root -> root.walkTopDown().filter { it.isFile }.toList() }
+            .filter { file ->
+                runCatching { file.inputStream().use { s -> ByteArray(4).also { s.read(it) } } }.getOrNull()
+                    ?.let { String(it, Charsets.ISO_8859_1) in setOf("OTTO", "wOFF", "wOF2", "\u0000\u0001\u0000\u0000") } == true
+            }
+            .map { it.path }.toSet()
 
     @Test fun mixedArabicLatinDoesNotClip() {
         val mixed = "الممر الشمالي: Northern Passage 2 · ٢٠٢٦ · 4K إِنَّ آخر"

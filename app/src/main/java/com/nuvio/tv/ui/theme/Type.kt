@@ -18,17 +18,18 @@ import com.nuvio.tv.domain.model.AppFont
  * so 600 requests resolve to the Bold file (never synthetic bold, see [nuvioFontSynthesis]).
  * Glyphs the family lacks (arrows, ★, Persian letters) fall back to the platform Sans per glyph.
  *
- * The files are private build input (docs/PRIVATE_FONTS.md). Builds without them, such as untrusted
- * fork PRs, use the platform Sans; [ThmanyahFontResources.EMBEDDED] and BuildConfig.THMANYAH_EMBEDDED
- * say which one shipped. Resource fonts are loaded once by Compose's font cache, not per composition.
+ * The files are private build input (docs/PRIVATE_FONTS.md), shipped only inside an encrypted asset
+ * and decrypted in memory once per process by [NuvioUiFonts], never per composition. Builds without
+ * them (untrusted fork PRs) and devices below API 29 use the platform Sans; [NuvioUiFonts.available]
+ * and BuildConfig.THMANYAH_EMBEDDED say which one applies.
  */
-val NuvioFontFamily: FontFamily = if (ThmanyahFontResources.EMBEDDED) {
+val NuvioFontFamily: FontFamily = if (NuvioUiFonts.available) {
     FontFamily(
-        Font(ThmanyahFontResources.light(), FontWeight.Light),
-        Font(ThmanyahFontResources.regular(), FontWeight.Normal),
-        Font(ThmanyahFontResources.medium(), FontWeight.Medium),
-        Font(ThmanyahFontResources.bold(), FontWeight.Bold),
-        Font(ThmanyahFontResources.black(), FontWeight.Black)
+        NuvioMemoryFont(FontWeight.Light),
+        NuvioMemoryFont(FontWeight.Normal),
+        NuvioMemoryFont(FontWeight.Medium),
+        NuvioMemoryFont(FontWeight.Bold),
+        NuvioMemoryFont(FontWeight.Black)
     )
 } else {
     FontFamily.SansSerif
@@ -49,7 +50,7 @@ object NuvioFontWeights {
 
 /** Thmanyah Sans ships real files for every weight the UI uses; never fake a heavier one. */
 fun nuvioFontSynthesis(fontFamily: FontFamily): FontSynthesis? =
-    if (fontFamily === NuvioFontFamily && ThmanyahFontResources.EMBEDDED) FontSynthesis.None else null
+    if (fontFamily === NuvioFontFamily && NuvioUiFonts.available) FontSynthesis.None else null
 
 val DMSansFamily = FontFamily(
     Font(R.font.dm_sans_variable, FontWeight.Normal),

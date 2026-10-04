@@ -76,6 +76,9 @@ jobs:
           ./gradlew :app:assembleFullDebug :app:assembleFullDebugAndroidTest
           -Pdebuggable=true -PsuperforkTestAppId=com.nuvio.tv --stacktrace
 
+      - name: Check the APK carries no standalone font file (docs/PRIVATE_FONTS.md)
+        run: python3 scripts/superfork/private_fonts.py apk-check app/build/outputs/apk/full/debug/app-full-universal-debug.apk ${THMANYAH_FONT_DIR:+--embedded}
+
       - name: Upload fixture APKs
         uses: actions/upload-artifact@v7
         with:

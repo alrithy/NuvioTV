@@ -14,6 +14,8 @@ THMANYAH_SANS_B64_01 … THMANYAH_SANS_B64_10 (unused slots stay empty).
   ci-cleanup                    CI (always()): overwrite and delete the decoded and generated copies
   verify <dir>                  check a directory holds exactly the five expected files
   guard                         fail if a font binary or embedded font data is tracked by Git
+  apk-check <apk> [--embedded]  fail if an APK carries a standalone font file other than the upstream OFL ones;
+                                with --embedded, also require the encrypted pack asset
 """
 
 from __future__ import annotations
@@ -29,6 +31,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -48,6 +51,10 @@ ALLOWED_TRACKED_FONTS = {
 }
 FONT_SUFFIXES = (".otf", ".ttf", ".woff", ".woff2", ".ttc", ".eot")
 # Base64 of the OpenType/CFF, TrueType, WOFF, WOFF2 and ZIP signatures at the start of a long run.
+FONT_MAGIC = (b"OTTO", b"wOFF", b"wOF2", b"\x00\x01\x00\x00", b"ttcf")
+FAMILY_MARKERS = (b"thmanyah", "thmanyah".encode("utf-16-be"))
+# The encrypted asset the build packs the five weights into (app/build.gradle.kts, NuvioUiFonts.kt).
+PACK_ASSET = "assets/nuvio/ui-type.pack"
 EMBEDDED_FONT_PATTERN = re.compile(rb"(?:T1RUT|AAEAA|d09GR|d09GM|UEsDB)[A-Za-z0-9+/]{1500,}")
 
 
@@ -227,6 +234,44 @@ def guard() -> int:
     return 0
 
 
+def apk_check(apk: Path, embedded: bool) -> int:
+    """The APK may hold the encrypted pack, never a standalone Thmanyah Sans file under any name.
+
+    Other fonts (the upstream OFL UI fonts, subtitle fonts from libraries) are listed, not refused.
+    """
+    licensed = set(expected_files().values())
+    failures: list[str] = []
+    other_fonts: list[str] = []
+    with zipfile.ZipFile(apk) as archive:
+        names = archive.namelist()
+        for name in names:
+            lower = name.lower()
+            data = archive.read(name)
+            if hashlib.sha256(data).hexdigest() in licensed:
+                failures.append(f"licensed font file stored as {name}")
+            elif "thmanyah" in lower:
+                failures.append(f"font-named entry {name}")
+            elif lower.endswith(FONT_SUFFIXES) or (lower.startswith(("res/", "assets/")) and data[:4] in FONT_MAGIC):
+                if any(marker in data.lower() for marker in FAMILY_MARKERS):
+                    failures.append(f"Thmanyah font data in {name}")
+                else:
+                    other_fonts.append(name)
+        if embedded:
+            if PACK_ASSET not in names:
+                failures.append(f"{PACK_ASSET} is missing")
+            elif archive.read(PACK_ASSET)[:4] in FONT_MAGIC:
+                failures.append(f"{PACK_ASSET} is a raw font, not the encrypted pack")
+    if failures:
+        print(f"{apk.name} exposes Thmanyah Sans font files:")
+        for failure in failures:
+            print(f"  {failure}")
+        return 1
+    print(f"{apk.name}: no standalone Thmanyah Sans file" + (" (encrypted pack present)" if embedded else "") + ".")
+    if other_fonts:
+        print(f"  other fonts: {', '.join(sorted(other_fonts))}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -239,6 +284,9 @@ def main() -> int:
     verify = commands.add_parser("verify")
     verify.add_argument("directory", type=Path)
     commands.add_parser("guard")
+    apk = commands.add_parser("apk-check")
+    apk.add_argument("apks", type=Path, nargs="+")
+    apk.add_argument("--embedded", action="store_true")
     args = parser.parse_args()
     if args.command == "pack":
         return pack(args.source, args.out_dir)
@@ -246,6 +294,8 @@ def main() -> int:
         return ci_prepare(args.policy)
     if args.command == "ci-cleanup":
         return ci_cleanup()
+    if args.command == "apk-check":
+        return max(apk_check(path, args.embedded) for path in args.apks)
     if args.command == "verify":
         problem = problem_with(args.directory)
         print(problem or "Thmanyah Sans: the five expected files are present and match the manifest.")

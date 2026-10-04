@@ -1082,7 +1082,7 @@ class NetflixThemeTvTest {
                 TopMenuProfile(text("Alex", "أحمد"), "#4D7290", null) {}, onFocusChanged = {}, onNavigate = {})
         }
         compose.runOnIdle {
-            assertTrue("Thmanyah Sans is embedded in this build", ThmanyahFontResources.EMBEDDED)
+            assertTrue("Thmanyah Sans is embedded in this build", NuvioUiFonts.available)
             assertTrue("Netflix tokens use the Nuvio family", NetflixThemeTokens.fontFamily === NuvioFontFamily)
             styles.forEachIndexed { index, style -> assertTrue("style $index uses NuvioFontFamily", style.fontFamily === NuvioFontFamily) }
             assertTrue("rendered width differs from platform Sans ($themedWidth vs $platformWidth)", themedWidth != platformWidth)

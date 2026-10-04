@@ -10,6 +10,7 @@ import sys
 import tarfile
 import tempfile
 import unittest
+import zipfile
 from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -120,6 +121,33 @@ class PrivateFontsTests(unittest.TestCase):
                 code, output = self.run_quiet(pf.guard)
         self.assertEqual(1, code)
         for name in ("leak.otf", "blob.kt", "renamed.bin"):
+            self.assertIn(name, output)
+
+    def make_apk(self, entries):
+        apk = self.tmp / f"app-{len(list(self.tmp.glob('app-*.apk')))}.apk"
+        with zipfile.ZipFile(apk, "w") as archive:
+            for name, data in entries.items():
+                archive.writestr(name, data)
+        return apk
+
+    def test_apk_check_accepts_the_encrypted_pack_and_refuses_standalone_fonts(self):
+        base = {"classes.dex": b"dex\n035" + os.urandom(64), "res/font/inter_variable.ttf": b"\0\1\0\0" + os.urandom(64),
+                "assets/subfont.ttf": b"\0\1\0\0" + os.urandom(64)}
+        clean = self.make_apk({**base, pf.PACK_ASSET: os.urandom(4096)})
+        code, output = self.run_quiet(pf.apk_check, clean, True)
+        self.assertEqual(0, code, output)
+        self.assertIn("encrypted pack present", output)
+        self.assertEqual(1, self.run_quiet(pf.apk_check, self.make_apk(base), True)[0], "pack required")
+        licensed = (self.source / NAMES[2]).read_bytes()
+        leaks = {
+            "res/a1.otf": licensed,  # the licensed bytes under an obfuscated resource name
+            "assets/thmanyahsans-Regular.bin": os.urandom(32),
+            "assets/x/ui.dat": b"OTTO" + os.urandom(32) + "Thmanyah Sans".encode("utf-16-be"),
+            pf.PACK_ASSET: b"OTTO" + os.urandom(32),
+        }
+        for name, data in leaks.items():
+            code, output = self.run_quiet(pf.apk_check, self.make_apk({**base, pf.PACK_ASSET: os.urandom(64), name: data}), True)
+            self.assertEqual(1, code, name)
             self.assertIn(name, output)
 
 

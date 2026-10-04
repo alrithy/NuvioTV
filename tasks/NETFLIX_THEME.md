@@ -78,7 +78,9 @@ portrait rows with inline landscape expansion, selected-pill top nav, portrait S
 
 The maintainer asked for Thmanyah Sans, under their licence, as the official Nuvio UI font across all
 themes. The font files are private build input (docs/PRIVATE_FONTS.md): never committed, released or
-uploaded as artifacts. `private_fonts.py guard` in Superfork CI enforces it. Netflix measured geometry
+uploaded as artifacts. `private_fonts.py guard` in Superfork CI enforces it, and `private_fonts.py
+apk-check` proves each built APK holds only the encrypted pack, decrypted in memory at runtime.
+Licence: THMANYAH_APP_EMBEDDING = PERMITTED_BY_SUPPLIED_LICENSE; THMANYAH_STANDALONE_REDISTRIBUTION = PROHIBITED. Netflix measured geometry
 is kept unless rendered evidence shows the font clipping; the signed Test Build waits for the
 maintainer's review of the new font screenshots.
 

@@ -402,7 +402,10 @@ measured reference pass at c194aec applied the maintainer's frame-measured geome
 
 Thmanyah Sans pass (2026-10-04): the maintainer's licensed Thmanyah Sans is the official UI font for
 every theme through `NuvioFontFamily` (Type.kt). The font files are private build input only, never
-tracked; CI receives them through the split THMANYAH_SANS_B64_NN secrets (docs/PRIVATE_FONTS.md). Visual
+tracked; CI receives them through the split THMANYAH_SANS_B64_NN secrets (docs/PRIVATE_FONTS.md). The APK
+carries them only as one AES-CTR encrypted asset that `NuvioUiFonts` decrypts in memory (no font file in
+res/assets, nothing written to disk). Licence status: THMANYAH_APP_EMBEDDING = PERMITTED_BY_SUPPLIED_LICENSE,
+THMANYAH_STANDALONE_REDISTRIBUTION = PROHIBITED (maintainer decision, 2026-10-04). Visual
 matrix and signed Test Build require that input. Netflix geometry unchanged unless rendered evidence shows
 clipping.
 
