@@ -11,6 +11,7 @@ plugins {
 
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import java.io.File
+import java.security.MessageDigest
 import java.util.Properties
 
 fun parseBooleanProperty(value: String?): Boolean {
@@ -107,7 +108,7 @@ val thmanyahFontProblem: String? = run {
     if (extra.isNotEmpty()) return@run "unexpected files ${extra.sorted()}"
     thmanyahFontFiles.entries.firstOrNull { (name, digest) ->
         val bytes = File(thmanyahFontDir, name).readBytes()
-        val sha = java.security.MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+        val sha = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
         sha != digest
     }?.let { "${it.key} does not match scripts/superfork/thmanyah_sans.sha256" }
 }
