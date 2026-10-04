@@ -12,8 +12,10 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -236,7 +238,8 @@ class NuvioTypographyTvTest {
         var textViewBaseline = 0
         compose.setContent {
             NuvioTheme(appTheme = AppTheme.WHITE) {
-                Column(Modifier.background(Color.Black).padding(24.dp)) {
+                // Side by side: stacked, the six samples would run past the bottom of a 1080p screen.
+                Row(Modifier.background(Color.Black).padding(24.dp), horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                     for (tag in variants) {
                         Box(Modifier.testTag("${tag}Box").background(Color.Black).padding(vertical = 24.dp)) {
                             val modifier = Modifier.testTag(tag)
