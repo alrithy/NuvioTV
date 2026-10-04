@@ -6,12 +6,17 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
+import android.util.TypedValue
+import android.widget.TextView
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -218,38 +223,76 @@ class NuvioTypographyTvTest {
     }
 
     /**
-     * Some Arabic forms (final yeh, ج, ر) reach below Thmanyah Sans' line box. Compose clips text to
-     * its box when the layout overflows (an ellipsized title), so this checks those descenders stay
-     * drawn in truncated Arabic lines too, not only in lines that fit.
+     * Some Arabic forms reach below Thmanyah Sans' 1.25 em line box: the dots of isolated ي sit almost
+     * entirely under it, and only they tell ي from ى. This draws the letter straight onto a bitmap with
+     * the same typeface as the ground truth, then checks Compose text draws as far below the baseline,
+     * whatever the overflow setting (the Netflix keys and labels are one-line ellipsized texts).
      */
-    @Test fun ellipsizedArabicKeepsItsDescenders() {
-        val word = "الشمالي"
+    @Test fun arabicDotsBelowTheLineBoxAreDrawn() {
+        val letter = "ي"
+        val size = 40.sp
+        val style = TextStyle(fontFamily = NuvioFontFamily, fontSize = size, fontWeight = FontWeight.Medium)
+        val variants = listOf("plain", "ellipsis", "visible", "fontPadding", "lineHeight", "textView")
+        var textViewBaseline = 0
         compose.setContent {
             NuvioTheme(appTheme = AppTheme.WHITE) {
                 Column(Modifier.background(Color.Black).padding(24.dp)) {
-                    // No lineHeight, like the Netflix labels: the line box is the font's own 1.25 em.
-                    val style = TextStyle(fontFamily = NuvioFontFamily, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    for ((tag, text) in listOf("fits" to word, "ellipsized" to List(12) { word }.joinToString(" "))) {
-                        Box(Modifier.testTag("${tag}Box").background(Color.Black).padding(vertical = 16.dp)) {
-                            Text(text, style = style, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.width(240.dp).testTag(tag))
+                    for (tag in variants) {
+                        Box(Modifier.testTag("${tag}Box").background(Color.Black).padding(vertical = 24.dp)) {
+                            val modifier = Modifier.testTag(tag)
+                            when (tag) {
+                                "plain" -> Text(letter, style = style, color = Color.White, modifier = modifier)
+                                "ellipsis" -> Text(letter, style = style, color = Color.White, maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis, modifier = modifier)
+                                "visible" -> Text(letter, style = style, color = Color.White, maxLines = 1,
+                                    overflow = TextOverflow.Visible, modifier = modifier)
+                                "fontPadding" -> Text(letter, color = Color.White, modifier = modifier,
+                                    style = style.copy(platformStyle = PlatformTextStyle(includeFontPadding = true)))
+                                "lineHeight" -> Text(letter, color = Color.White, modifier = modifier, maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis, style = style.copy(lineHeight = (size.value * 1.6f).sp,
+                                        lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Center, LineHeightStyle.Trim.None)))
+                                else -> AndroidView(modifier = modifier, factory = { viewContext ->
+                                    TextView(viewContext).apply {
+                                        text = letter
+                                        includeFontPadding = false
+                                        setTextColor(android.graphics.Color.WHITE)
+                                        typeface = NuvioUiFonts.typeface(viewContext, 500)
+                                        setTextSize(TypedValue.COMPLEX_UNIT_SP, size.value)
+                                        viewTreeObserver.addOnPreDrawListener { textViewBaseline = baseline; true }
+                                    }
+                                })
+                            }
                         }
                     }
                 }
             }
         }
-        assertTrue("the long line is ellipsized", textLayout("ellipsized").isLineEllipsized(0))
-        fun belowLineBox(tag: String): Float {
+        compose.waitForIdle()
+        val textSizePx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, size.value, context.resources.displayMetrics)
+        val truth = Bitmap.createBitmap(400, 400, Bitmap.Config.ARGB_8888)
+        Canvas(truth).apply { drawColor(android.graphics.Color.BLACK) }.drawText(letter, 100f, 200f,
+            Paint(Paint.ANTI_ALIAS_FLAG).apply {
+                typeface = NuvioUiFonts.typeface(context, 500); textSize = textSizePx; color = android.graphics.Color.WHITE
+            })
+        val truthBelow = checkNotNull(inkRows(truth.asImageBitmap())) { "the bitmap draws the letter" }.second - 200
+        truth.recycle()
+        val report = variants.associateWith { tag ->
             val text = compose.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
             val box = compose.onNodeWithTag("${tag}Box").fetchSemanticsNode().boundsInRoot
             val rows = checkNotNull(inkRows(compose.onNodeWithTag("${tag}Box").captureToImage())) { "$tag draws text" }
-            return rows.second - (text.bottom - box.top)
+            val baseline = (text.top - box.top) + if (tag == "textView") textViewBaseline.toFloat() else textLayout(tag).firstBaseline
+            val below = rows.second - baseline
+            below to "$tag: ink ${rows.first}..${rows.second}, text box ${text.top - box.top}..${text.bottom - box.top}, " +
+                "baseline $baseline, ${"%.1f".format(below)} px below it"
         }
-        // The fitting word shows the font drawing below its line box; the ellipsized line must too.
-        val fits = belowLineBox("fits")
-        org.junit.Assume.assumeTrue("the word's descender reaches below the line box ($fits px)", fits > 1f)
-        val ellipsized = belowLineBox("ellipsized")
-        assertTrue("ellipsized line keeps its descenders ($ellipsized px below the box, fitting word $fits px)", ellipsized > 1f)
+        val message = "bitmap: $truthBelow px below the baseline; " + report.values.joinToString("; ") { it.second }
+        android.util.Log.i("NuvioTypography", message)
+        org.junit.Assume.assumeTrue("the letter reaches below the line box ($message)",
+            truthBelow > (textSizePx * .25f) + 2f)
+        for ((tag, result) in report) {
+            if (tag == "textView") continue
+            assertTrue("$tag draws the dots below the line box ($message)", result.first >= truthBelow - 2f)
+        }
     }
 
     private fun textLayout(tag: String): TextLayoutResult {
