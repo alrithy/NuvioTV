@@ -227,7 +227,8 @@ class NuvioTypographyTvTest {
                 layout.layoutInput.density.fontScale
             assertTrue("$tag draws its whole line (ink ${columns.first}..${columns.second} in line $left..$right; " +
                 "semantics layout: line 0 ends at ${layout.getLineEnd(0)} of ${mixed.length}, exceeds lines " +
-                "${layout.multiParagraph.didExceedMaxLines}, paragraph ${layout.multiParagraph.width} in ${layout.size})",
+                "${layout.multiParagraph.didExceedMaxLines}, paragraph ${layout.multiParagraph.width} in ${layout.size}; " +
+                "at own width: ${wrapsAtOwnWidth(mixed, layout.layoutInput.style)})",
                 columns.first - left < slack && right - columns.second < slack)
         }
     }
@@ -293,6 +294,19 @@ class NuvioTypographyTvTest {
             assertTrue("$tag draws the dots below the line box ($message)", result.first >= result.second - 2f)
         }
     }
+
+    /** Diagnostic: where one line of [text] ends when laid out at its own measured width. */
+    private fun wrapsAtOwnWidth(text: String, style: TextStyle): String =
+        listOf(androidx.compose.ui.unit.LayoutDirection.Ltr, androidx.compose.ui.unit.LayoutDirection.Rtl).flatMap { direction ->
+            listOf(style, style.copy(letterSpacing = 0.sp)).map { variant ->
+                val measurer = androidx.compose.ui.text.TextMeasurer(createFontFamilyResolver(context),
+                    androidx.compose.ui.unit.Density(context), direction)
+                val free = measurer.measure(text, variant, maxLines = 1)
+                val tight = measurer.measure(text, variant, maxLines = 1,
+                    constraints = androidx.compose.ui.unit.Constraints(maxWidth = free.size.width))
+                "$direction spacing ${variant.letterSpacing}: w=${free.size.width} ends ${tight.getLineEnd(0)}/${text.length}"
+            }
+        }.joinToString(", ")
 
     private fun textLayout(tag: String): TextLayoutResult {
         val results = mutableListOf<TextLayoutResult>()
