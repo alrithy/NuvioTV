@@ -26,8 +26,8 @@ object NetflixThemeTokens {
     val progress = Color(0xFFE50914)
     val overlay = Color(0xEF000000)
 
-    // Platform sans includes Android's legally distributed Arabic fallback with shared metrics.
-    val fontFamily = FontFamily.SansSerif
+    // The one Nuvio UI font owner (Thmanyah Sans); never a Netflix-only family.
+    val fontFamily: FontFamily get() = NuvioFontFamily
     val heroTitle = 42.sp
     val detailTitle = 46.sp
     val rowHeader = 19.sp

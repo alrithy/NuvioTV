@@ -2563,6 +2563,7 @@ private fun ProfileNameField(
                 .focusRequester(focusRequester)
                 .onFocusChanged { isFocused = it.isFocused },
             textStyle = TextStyle(
+                fontFamily = MaterialTheme.typography.bodyLarge.fontFamily,
                 color = Color.White,
                 fontSize = 16.sp,
                 textDirection = TextDirection.Content

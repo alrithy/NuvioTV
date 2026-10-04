@@ -28,6 +28,8 @@ jobs:
         run: python3 -m unittest discover -s scripts/superfork/tests
       - name: Validate canonical project state
         run: python3 scripts/superfork/validate_project_state.py
+      - name: Font binary guard (no licensed font files or font data in Git)
+        run: python3 scripts/superfork/private_fonts.py guard
       - name: Git whitespace check
         run: git diff --check
 
@@ -53,6 +55,20 @@ jobs:
             echo "NUVIO_RELEASE_KEY_PASSWORD=android"
             echo "NUVIO_RELEASE_STORE_PASSWORD=android"
           } >> "$GITHUB_ENV"
+      - name: Private Thmanyah Sans input (docs/PRIVATE_FONTS.md)
+        env:
+          THMANYAH_SANS_B64_01: ${{ secrets.THMANYAH_SANS_B64_01 }}
+          THMANYAH_SANS_B64_02: ${{ secrets.THMANYAH_SANS_B64_02 }}
+          THMANYAH_SANS_B64_03: ${{ secrets.THMANYAH_SANS_B64_03 }}
+          THMANYAH_SANS_B64_04: ${{ secrets.THMANYAH_SANS_B64_04 }}
+          THMANYAH_SANS_B64_05: ${{ secrets.THMANYAH_SANS_B64_05 }}
+          THMANYAH_SANS_B64_06: ${{ secrets.THMANYAH_SANS_B64_06 }}
+          THMANYAH_SANS_B64_07: ${{ secrets.THMANYAH_SANS_B64_07 }}
+          THMANYAH_SANS_B64_08: ${{ secrets.THMANYAH_SANS_B64_08 }}
+          THMANYAH_SANS_B64_09: ${{ secrets.THMANYAH_SANS_B64_09 }}
+          THMANYAH_SANS_B64_10: ${{ secrets.THMANYAH_SANS_B64_10 }}
+        run: python3 scripts/superfork/private_fonts.py ci-prepare --policy optional
+
       - name: Full suite with exact baseline regression guard
         run: python3 scripts/superfork/run_full_unit_suite.py
       - name: Assemble full debug
@@ -72,3 +88,6 @@ jobs:
           archive: false
           if-no-files-found: error
           retention-days: 7
+      - name: Remove the private font input and generated font resources
+        if: always()
+        run: python3 scripts/superfork/private_fonts.py ci-cleanup

@@ -1388,6 +1388,7 @@ private fun SearchInputField(
                 )
             },
             textStyle = TextStyle(
+                fontFamily = androidx.tv.material3.MaterialTheme.typography.bodyLarge.fontFamily,
                 textDirection = TextDirection.Content
             ),
             colors = TextFieldDefaults.colors(

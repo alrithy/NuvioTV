@@ -74,6 +74,14 @@ still pending, without marking this task Done.
 Visual Round 3 follows docs/NETFLIX_TV_2026_PARITY_AUDIT.md §0: rounded hero card, category strip from real catalogs,
 portrait rows with inline landscape expansion, selected-pill top nav, portrait Search. Top 10 is unavailable (no ranking source).
 
+## Thmanyah Sans (2026-10-04)
+
+The maintainer asked for Thmanyah Sans, under their licence, as the official Nuvio UI font across all
+themes. The font files are private build input (docs/PRIVATE_FONTS.md): never committed, released or
+uploaded as artifacts. `private_fonts.py guard` in Superfork CI enforces it. Netflix measured geometry
+is kept unless rendered evidence shows the font clipping; the signed Test Build waits for the
+maintainer's review of the new font screenshots.
+
 ## Current status
 
 IN_PROGRESS. Implementation, local builds and visual evidence are being prepared.

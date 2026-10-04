@@ -12,7 +12,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.focusGroup
@@ -322,7 +321,7 @@ internal fun NetflixSearchContent(
                         onValueChange = { onEvent(SearchEvent.QueryChanged(it)) },
                         modifier = Modifier.weight(1f).focusRequester(fieldRequester),
                         singleLine = true,
-                        textStyle = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = tokens.searchQuerySize,
+                        textStyle = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = tokens.searchQuerySize,
                             color = tokens.textPrimary, textDirection = uiState.query.contentTextDirection()),
                         cursorBrush = SolidColor(tokens.focus),
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
@@ -331,7 +330,7 @@ internal fun NetflixSearchContent(
                             Box(contentAlignment = Alignment.CenterStart) {
                                 if (uiState.query.isEmpty()) {
                                     Text(stringResource(R.string.search_placeholder), maxLines = 1, overflow = TextOverflow.Ellipsis,
-                                        style = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = tokens.searchQuerySize, color = tokens.textMuted))
+                                        style = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = tokens.searchQuerySize, color = tokens.textMuted))
                                 }
                                 inner()
                             }
@@ -504,11 +503,11 @@ private fun NetflixKeyboardKey(
         ),
         scale = ButtonDefaults.scale(focusedScale = 1f)
     ) {
-        // Explicit platform sans-serif at a legible size: Arabic glyphs must not fall back to a
-        // font without them or be squeezed by button padding (measured reference ~15–16 sp).
+        // The Nuvio UI font (Thmanyah Sans covers every Arabic key) at a legible size, not squeezed by
+        // button padding (measured reference ~15–16 sp).
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(text, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                style = TextStyle(fontFamily = FontFamily.SansSerif, fontSize = NetflixThemeTokens.searchKeyGlyph, fontWeight = FontWeight.Medium))
+                style = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = NetflixThemeTokens.searchKeyGlyph, fontWeight = FontWeight.Medium))
         }
     }
 }

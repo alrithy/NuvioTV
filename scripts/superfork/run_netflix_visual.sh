@@ -52,11 +52,13 @@ python3 scripts/superfork/capture_netflix_theme.py \
 
 # adb may exit zero after an instrumentation crash, so require a positive JUnit
 # completion as well as the Android runner's successful final code.
-adb -s "$serial" shell am instrument -w -r \
-  -e class com.nuvio.tv.ui.theme.NuvioDialogButtonThemeTest \
-  "$package.test/androidx.test.runner.AndroidJUnitRunner" \
-  > "$output/dialog-instrumentation-result.txt" 2>&1
-python3 - "$output/dialog-instrumentation-result.txt" <<'PY'
+run_instrumented_class() {
+  local test_class="$1" result_file="$2" label="$3"
+  adb -s "$serial" shell am instrument -w -r \
+    -e class "$test_class" -e netflix_locale "$locale" \
+    "$package.test/androidx.test.runner.AndroidJUnitRunner" \
+    > "$result_file" 2>&1
+  python3 - "$result_file" "$label" <<'PY'
 import re
 import sys
 from pathlib import Path
@@ -69,5 +71,10 @@ failed = any(marker in result for marker in (
     "FAILURES!!!", "INSTRUMENTATION_FAILED", "shortMsg=", "Process crashed",
 ))
 if not completed or not success_code or failed:
-    raise SystemExit("Dialog theme instrumentation did not complete successfully.")
+    raise SystemExit(f"{sys.argv[2]} instrumentation did not complete successfully.")
 PY
+}
+
+run_instrumented_class com.nuvio.tv.ui.theme.NuvioDialogButtonThemeTest "$output/dialog-instrumentation-result.txt" "Dialog theme"
+# Thmanyah Sans root typography owner: embedded weights, Arabic shaping, mixed-script bounds.
+run_instrumented_class com.nuvio.tv.ui.theme.NuvioTypographyTvTest "$output/typography-instrumentation-result.txt" "Typography"

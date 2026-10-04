@@ -465,8 +465,10 @@ private fun DiscoverDropdownPicker(
                             color = itemTextColor,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            style = remember(option.label) {
-                                TextStyle(textDirection = option.label.contentTextDirection())
+                            style = MaterialTheme.typography.bodyLarge.fontFamily.let { family ->
+                                remember(option.label, family) {
+                                    TextStyle(fontFamily = family, textDirection = option.label.contentTextDirection())
+                                }
                             }
                         )
                     },

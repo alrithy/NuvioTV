@@ -391,13 +391,20 @@ as `user_authorized_task` in state.yaml and `tasks/NETFLIX_THEME.md`. G14 remain
 BLOCKED; its canonical gate/branch/task/owner and hardware campaign are unchanged.
 Theme implementation and verification are IN_PROGRESS. Existing content, focus,
 navigation, profile persistence and playback owners are reused. No Netflix assets
-or proprietary font/code are included. Verification evidence and remaining gaps
+or Netflix font/code are included (Thmanyah Sans is the maintainer's licensed font, private build
+input per docs/PRIVATE_FONTS.md). Verification evidence and remaining gaps
 are tracked in `docs/NETFLIX_THEME_VISUAL_VERIFICATION.md`.
 
 Progress (2026-10-03, draft PR #100): design contract = audit §1 (maintainer reference correction);
 measured reference pass at c194aec applied the maintainer's frame-measured geometry (880×400 hero,
 160×250 / 440×250 cards, 4-column Search, compact query line, 196 dp keyboard); 48/48 tests per job (run
 37154785016). Measured table and scores (implementable 97/100): docs/NETFLIX_REFERENCE_FIDELITY.md.
+
+Thmanyah Sans pass (2026-10-04): the maintainer's licensed Thmanyah Sans is the official UI font for
+every theme through `NuvioFontFamily` (Type.kt). The font files are private build input only, never
+tracked; CI receives them through the split THMANYAH_SANS_B64_NN secrets (docs/PRIVATE_FONTS.md). Visual
+matrix and signed Test Build require that input. Netflix geometry unchanged unless rendered evidence shows
+clipping.
 
 Next action for this task: maintainer reviews screenshots 01–43 against the measured packet. Only after that approval: add [test-build] for the signed
 Test Build. TCL C6K remains MANUAL-PENDING. Do not merge, do not mark Done.

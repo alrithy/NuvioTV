@@ -241,7 +241,7 @@ private data class MainUiPrefs(
     val theme: AppTheme = AppTheme.WHITE,
     val customThemeColors: CustomThemeColors = CustomThemeColors.Default,
     val memberAccess: MemberAccess = MemberAccess.None,
-    val font: AppFont = AppFont.INTER,
+    val font: AppFont = AppFont.THMANYAH_SANS,
     val amoledMode: Boolean = false,
     val amoledSurfacesMode: Boolean = false,
     val hasChosenLayout: Boolean? = null,

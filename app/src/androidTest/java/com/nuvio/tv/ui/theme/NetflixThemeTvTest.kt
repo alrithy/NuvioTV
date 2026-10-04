@@ -63,6 +63,7 @@ import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -74,6 +75,11 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollToNode
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -1056,6 +1062,188 @@ class NetflixThemeTvTest {
         setContent { NetflixPlayerLoadingOverlay(true, artwork(0), null, titles.first(),
             text("Preparing playback", "جارٍ تحضير التشغيل"), .45f) }
         capture("19-playback-loading")
+    }
+
+    // ---- Thmanyah Sans (docs/PRIVATE_FONTS.md): the rendered Netflix UI uses the one Nuvio font and fits ----
+
+    @Test fun netflixThemeUsesNuvioFontFamily() {
+        var styles = emptyList<TextStyle>()
+        var themedWidth = 0; var platformWidth = 0
+        setContent {
+            val typography = MaterialTheme.typography
+            styles = listOf(typography.displayLarge, typography.displayMedium, typography.headlineMedium, typography.titleMedium,
+                typography.bodyLarge, typography.bodyMedium, typography.labelLarge, typography.labelMedium,
+                NuvioTheme.textStyles.body, NuvioTheme.textStyles.nav, NuvioTheme.textStyles.button)
+            val measurer = rememberTextMeasurer()
+            val sample = "Nuvio نوفيو Northern Passage الممر الشمالي"
+            themedWidth = measurer.measure(sample, typography.bodyLarge).size.width
+            platformWidth = measurer.measure(sample, typography.bodyLarge.copy(fontFamily = FontFamily.SansSerif)).size.width
+            NetflixTopNavigationBar(navigationEntries(), "home", remember { FocusRequester() },
+                TopMenuProfile(text("Alex", "أحمد"), "#4D7290", null) {}, onFocusChanged = {}, onNavigate = {})
+        }
+        compose.runOnIdle {
+            assertTrue("Thmanyah Sans is embedded in this build", ThmanyahFontResources.EMBEDDED)
+            assertTrue("Netflix tokens use the Nuvio family", NetflixThemeTokens.fontFamily === NuvioFontFamily)
+            styles.forEachIndexed { index, style -> assertTrue("style $index uses NuvioFontFamily", style.fontFamily === NuvioFontFamily) }
+            assertTrue("rendered width differs from platform Sans ($themedWidth vs $platformWidth)", themedWidth != platformWidth)
+        }
+        // The production nav label is laid out with the Nuvio family, not a Netflix-only or platform one.
+        val label = textLayout(compose.onNodeWithText(text("Home", "الرئيسية"), useUnmergedTree = true))
+        assertTrue("nav label font", label.layoutInput.style.fontFamily === NuvioFontFamily)
+    }
+
+    @Test fun netflixArabicKeyboardGlyphsRemainLegible() {
+        setContent { SearchScaffold(SearchUiState(query = "", isSearching = false)) }
+        if (!arabic) {
+            compose.onNodeWithText("أ ب ج").performSemanticsAction(SemanticsActions.OnClick)
+            compose.waitForIdle()
+        }
+        val density = compose.density.density
+        val shapes = mutableMapOf<String, String>()
+        for (letter in "ابتثجحخدذرزسشصضطظعغفقكلمنهويءأإآةى".map(Char::toString)) {
+            val key = compose.onNodeWithText(letter, useUnmergedTree = true)
+            val node = key.fetchSemanticsNode()
+            assertTrue("$letter glyph box ${node.size.height / density} dp", node.size.height >= 14f * density)
+            val layout = textLayout(key)
+            assertTrue("$letter is laid out on one line without ellipsis", layout.lineCount == 1 && !layout.isLineEllipsized(0))
+            val image = key.captureToImage()
+            val ink = inkBounds(image)
+            assertTrue("$letter draws ink", ink != null && ink.count >= (6f * density).toInt())
+            assertTrue("$letter ink is not cut at the top/bottom edge ($ink in ${image.height})",
+                ink!!.top > 0 && ink.bottom < image.height - 1)
+            shapes[letter] = inkSignature(image)
+        }
+        // Tofu boxes would all look the same; every key must render its own glyph.
+        assertEquals("distinct glyph shapes", shapes.size, shapes.values.toSet().size)
+    }
+
+    @Test fun topNavDoesNotClipWithThmanyah() {
+        setContent {
+            NetflixTopNavigationBar(navigationEntries(), "home", remember { FocusRequester() },
+                TopMenuProfile(text("Alex", "أحمد"), "#4D7290", null) {}, onFocusChanged = {}, onNavigate = {})
+        }
+        val nav = bounds("netflix_top_nav")
+        val labels = listOf(text("Home", "الرئيسية"), text("TV Shows", "المسلسلات"), text("Movies", "أفلام"),
+            text("My Netflix", "نتفليكس الخاص بي"))
+        for (label in labels) {
+            val node = compose.onNodeWithText(label, useUnmergedTree = true)
+            assertTextFits(label, node, maxLines = 1)
+            val b = node.fetchSemanticsNode().boundsInRoot
+            assertTrue("$label inside the bar", b.top >= nav.top - 1f && b.bottom <= nav.bottom + 1f && b.left >= nav.left - 1f && b.right <= nav.right + 1f)
+        }
+    }
+
+    @Test fun heroTwoLineSynopsisDoesNotClip() {
+        setContent { ProductionScaffoldHome() }
+        compose.onNodeWithTag("netflix_hero_play").requestFocus()
+        val node = compose.onNodeWithText(synopsis, useUnmergedTree = true)
+        val layout = assertTextFits("synopsis", node, maxLines = NetflixThemeTokens.Home.heroSynopsisLines, ellipsisAllowed = true, flatSurface = false)
+        assertTrue("synopsis uses two lines at most (${layout.lineCount})", layout.lineCount <= 2)
+        val hero = bounds("netflix_home_hero_card"); val b = node.fetchSemanticsNode().boundsInRoot
+        assertTrue("synopsis inside the hero card", b.bottom <= hero.bottom + 1f && b.top >= hero.top - 1f)
+        val play = bounds("netflix_hero_play")
+        assertTrue("synopsis does not overlap the actions", b.bottom <= play.top + 1f)
+    }
+
+    @Test fun categoryLabelsRemainInsideBounds() {
+        setContent { ProductionScaffoldHome() }
+        compose.onNodeWithTag("netflix_hero_play").requestFocus()
+        for ((id, label) in listOf("trending" to text("Trending", "الرائج"), "popular" to text("Popular", "الأكثر شعبية"),
+            "movies" to text("Movies", "الأفلام"))) {
+            val tile = bounds("netflix_category_$id")
+            val node = compose.onNode(hasText(label).and(hasAnyAncestor(hasTestTag("netflix_category_$id"))), useUnmergedTree = true)
+            assertTextFits(label, node, maxLines = 1)
+            val b = node.fetchSemanticsNode().boundsInRoot
+            assertTrue("$label inside its tile", b.left >= tile.left - 1f && b.right <= tile.right + 1f && b.top >= tile.top - 1f && b.bottom <= tile.bottom + 1f)
+        }
+    }
+
+    @Test fun searchQueryLineDoesNotClip() {
+        val query = text("Northern light", "الممر الشمالي")
+        setContent { SearchScaffold(SearchUiState(query = query, submittedQuery = query, catalogRows = listOf(catalog()), isSearching = false)) }
+        val density = compose.density.density
+        val field = bounds("netflix_search_field")
+        assertTrue("query line stays compact (${field.height / density} dp)", field.height <= 40f * density)
+        val node = compose.onNode(hasText(query).and(hasAnyAncestor(hasTestTag("netflix_search_field"))), useUnmergedTree = true)
+        assertTextFits("query", node, maxLines = 1)
+        val b = node.fetchSemanticsNode().boundsInRoot
+        assertTrue("query text inside the line", b.top >= field.top - 1f && b.bottom <= field.bottom + 1f)
+    }
+
+    @Test fun detailsLongTitleDoesNotOverflowUnexpectedly() {
+        val long = text("The Extraordinarily Long and Winding Journey of the Last Lighthouse Keeper Beyond the Northern Passage",
+            "الرحلة الطويلة والمتعرجة بشكل استثنائي لآخر حارس منارة خلف الممر الشمالي البعيد")
+        setContent { DetailFixture(meta(ContentType.MOVIE).copy(name = long)) {} }
+        val node = compose.onNodeWithText(long, useUnmergedTree = true)
+        val layout = assertTextFits("detail title", node, maxLines = 2, ellipsisAllowed = true, flatSurface = false)
+        assertTrue("title wraps to at most two lines (${layout.lineCount})", layout.lineCount <= 2)
+        val root = rootBounds(); val b = node.fetchSemanticsNode().boundsInRoot
+        assertTrue("title stays on screen", b.left >= root.left - 1f && b.right <= root.right + 1f)
+        compose.onNodeWithTag("netflix_detail_play").assertIsDisplayed()
+        val play = bounds("netflix_detail_play")
+        assertTrue("actions stay on screen", play.bottom <= root.bottom + 1f && play.top >= b.bottom - 1f)
+    }
+
+    private fun textLayout(node: androidx.compose.ui.test.SemanticsNodeInteraction): TextLayoutResult {
+        val results = mutableListOf<TextLayoutResult>()
+        node.fetchSemanticsNode().config[SemanticsActions.GetTextLayoutResult].action?.invoke(results)
+        return results.single()
+    }
+
+    /** The laid-out text fits its own box: no lost line, no unintended ellipsis, ink not cut at an edge. */
+    private fun assertTextFits(name: String, node: androidx.compose.ui.test.SemanticsNodeInteraction, maxLines: Int,
+        ellipsisAllowed: Boolean = false, flatSurface: Boolean = true): TextLayoutResult {
+        val layout = textLayout(node)
+        val size = node.fetchSemanticsNode().size
+        assertTrue("$name lines ${layout.lineCount} <= $maxLines", layout.lineCount <= maxLines)
+        if (!ellipsisAllowed) assertTrue("$name is not ellipsized", !layout.isLineEllipsized(layout.lineCount - 1))
+        assertTrue("$name last line bottom ${layout.getLineBottom(layout.lineCount - 1)} within height ${size.height}",
+            layout.getLineBottom(layout.lineCount - 1) <= size.height + 0.5f)
+        // Over artwork the surface is not flat, so only the layout bounds are asserted there.
+        if (!flatSurface) return layout
+        val image = node.captureToImage()
+        inkBounds(image)?.let { ink ->
+            assertTrue("$name ink is not cut at the top/bottom edge ($ink in ${image.height})", ink.top > 0 && ink.bottom < image.height - 1)
+        }
+        return layout
+    }
+
+    private data class Ink(val top: Int, val bottom: Int, val left: Int, val right: Int, val count: Int)
+
+    private fun luminance(c: Color) = .2126f * c.red + .7152f * c.green + .0722f * c.blue
+
+    /** Text pixels: clearly contrasting with the flat surface behind the text (its corner pixel). */
+    private fun inkBounds(image: ImageBitmap): Ink? {
+        val pixels = image.toPixelMap()
+        val surface = luminance(pixels[0, 0])
+        var top = Int.MAX_VALUE; var bottom = -1; var left = Int.MAX_VALUE; var right = -1; var count = 0
+        for (y in 0 until pixels.height) for (x in 0 until pixels.width) {
+            if (kotlin.math.abs(luminance(pixels[x, y]) - surface) > .35f) {
+                count++; if (y < top) top = y; if (y > bottom) bottom = y; if (x < left) left = x; if (x > right) right = x
+            }
+        }
+        return if (count == 0) null else Ink(top, bottom, left, right, count)
+    }
+
+    /** A coarse 12×12 occupancy grid of the ink box: equal for identical glyphs (such as tofu boxes). */
+    private fun inkSignature(image: ImageBitmap): String {
+        val ink = inkBounds(image) ?: return ""
+        val pixels = image.toPixelMap()
+        val surface = luminance(pixels[0, 0])
+        val width = ink.right - ink.left + 1; val height = ink.bottom - ink.top + 1
+        return buildString {
+            for (gy in 0 until 12) for (gx in 0 until 12) {
+                var on = false
+                val x0 = ink.left + gx * width / 12; val x1 = ink.left + (gx + 1) * width / 12
+                val y0 = ink.top + gy * height / 12; val y1 = ink.top + (gy + 1) * height / 12
+                for (y in y0 until maxOf(y1, y0 + 1)) for (x in x0 until maxOf(x1, x0 + 1)) {
+                    val p = pixels[minOf(x, pixels.width - 1), minOf(y, pixels.height - 1)]
+                    if (kotlin.math.abs(luminance(p) - surface) > .35f) on = true
+                }
+                append(if (on) '1' else '0')
+            }
+            append(":${width * 10 / maxOf(height, 1)}")
+        }
     }
 
     private fun setContent(content: @Composable () -> Unit) {

@@ -4,12 +4,52 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontSynthesis
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Typography
 import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.AppFont
+
+/**
+ * The one Nuvio UI font owner: Thmanyah Sans, the official typeface for every theme (Netflix included)
+ * and both Arabic and English. Each declared weight is a real licensed file; there is no SemiBold,
+ * so 600 requests resolve to the Bold file (never synthetic bold, see [nuvioFontSynthesis]).
+ * Glyphs the family lacks (arrows, ★, Persian letters) fall back to the platform Sans per glyph.
+ *
+ * The files are private build input (docs/PRIVATE_FONTS.md). Builds without them, such as untrusted
+ * fork PRs, use the platform Sans; [ThmanyahFontResources.EMBEDDED] and BuildConfig.THMANYAH_EMBEDDED
+ * say which one shipped. Resource fonts are loaded once by Compose's font cache, not per composition.
+ */
+val NuvioFontFamily: FontFamily = if (ThmanyahFontResources.EMBEDDED) {
+    FontFamily(
+        Font(ThmanyahFontResources.light(), FontWeight.Light),
+        Font(ThmanyahFontResources.regular(), FontWeight.Normal),
+        Font(ThmanyahFontResources.medium(), FontWeight.Medium),
+        Font(ThmanyahFontResources.bold(), FontWeight.Bold),
+        Font(ThmanyahFontResources.black(), FontWeight.Black)
+    )
+} else {
+    FontFamily.SansSerif
+}
+
+/**
+ * Semantic weights for the five real Thmanyah Sans files. Light: de-emphasised secondary text;
+ * Regular: body, descriptions, metadata; Medium: navigation, keys, labels, list items, secondary
+ * buttons; Bold: section headings, primary buttons, title emphasis; Black: rare display headings.
+ */
+object NuvioFontWeights {
+    val Secondary = FontWeight.Light
+    val Body = FontWeight.Normal
+    val Label = FontWeight.Medium
+    val Heading = FontWeight.Bold
+    val Display = FontWeight.Black
+}
+
+/** Thmanyah Sans ships real files for every weight the UI uses; never fake a heavier one. */
+fun nuvioFontSynthesis(fontFamily: FontFamily): FontSynthesis? =
+    if (fontFamily === NuvioFontFamily && ThmanyahFontResources.EMBEDDED) FontSynthesis.None else null
 
 val DMSansFamily = FontFamily(
     Font(R.font.dm_sans_variable, FontWeight.Normal),
@@ -33,6 +73,7 @@ val OpenSansFamily = FontFamily(
 )
 
 fun getFontFamily(appFont: AppFont): FontFamily = when (appFont) {
+    AppFont.THMANYAH_SANS -> NuvioFontFamily
     AppFont.INTER -> InterFamily
     AppFont.DM_SANS -> DMSansFamily
     AppFont.OPEN_SANS -> OpenSansFamily
@@ -56,7 +97,27 @@ data class NuvioTextStyleTokens(
 )
 
 @OptIn(ExperimentalTvMaterial3Api::class)
-fun buildNuvioTypography(fontFamily: FontFamily): Typography = Typography(
+fun buildNuvioTypography(fontFamily: FontFamily): Typography = buildBaseTypography(fontFamily).let { base ->
+    val synthesis = nuvioFontSynthesis(fontFamily) ?: return@let base
+    base.copy(
+        displayLarge = base.displayLarge.copy(fontSynthesis = synthesis),
+        displayMedium = base.displayMedium.copy(fontSynthesis = synthesis),
+        headlineLarge = base.headlineLarge.copy(fontSynthesis = synthesis),
+        headlineMedium = base.headlineMedium.copy(fontSynthesis = synthesis),
+        titleLarge = base.titleLarge.copy(fontSynthesis = synthesis),
+        titleMedium = base.titleMedium.copy(fontSynthesis = synthesis),
+        titleSmall = base.titleSmall.copy(fontSynthesis = synthesis),
+        bodyLarge = base.bodyLarge.copy(fontSynthesis = synthesis),
+        bodyMedium = base.bodyMedium.copy(fontSynthesis = synthesis),
+        bodySmall = base.bodySmall.copy(fontSynthesis = synthesis),
+        labelLarge = base.labelLarge.copy(fontSynthesis = synthesis),
+        labelMedium = base.labelMedium.copy(fontSynthesis = synthesis),
+        labelSmall = base.labelSmall.copy(fontSynthesis = synthesis)
+    )
+}
+
+@OptIn(ExperimentalTvMaterial3Api::class)
+private fun buildBaseTypography(fontFamily: FontFamily): Typography = Typography(
     displayLarge = TextStyle(
         fontFamily = fontFamily,
         fontWeight = FontWeight.Bold,
@@ -151,7 +212,7 @@ fun buildNuvioTypography(fontFamily: FontFamily): Typography = Typography(
 )
 
 @OptIn(ExperimentalTvMaterial3Api::class)
-val NuvioTypography = buildNuvioTypography(InterFamily)
+val NuvioTypography = buildNuvioTypography(NuvioFontFamily)
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 fun buildNetflixTypography(): Typography {

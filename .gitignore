@@ -76,3 +76,11 @@ status-page/
 # Generated Python files stay local even under maintained scripts.
 **/__pycache__/
 *.py[cod]
+
+# Licensed private fonts (Thmanyah Sans): build input only, never tracked. See docs/PRIVATE_FONTS.md.
+private-fonts/
+*.otf
+*.woff
+*.woff2
+*[Tt]hmanyah*.zip
+THMANYAH_SANS_B64_*
