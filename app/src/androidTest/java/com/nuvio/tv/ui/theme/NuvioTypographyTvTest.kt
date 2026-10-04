@@ -211,18 +211,24 @@ class NuvioTypographyTvTest {
             assertEquals("$tag on one line", 1, layout.lineCount)
             assertTrue("$tag not ellipsized", !layout.isLineEllipsized(0) && !layout.didOverflowWidth)
             assertTrue("$tag line fits its height", layout.getLineBottom(0) <= size.height + .5f)
-            assertTrue("$tag is not clipped to its text box (overflows width ${layout.didOverflowWidth}, height " +
-                "${layout.didOverflowHeight}, exceeds lines ${layout.multiParagraph.didExceedMaxLines}, paragraph " +
-                "${layout.multiParagraph.width}x${layout.multiParagraph.height} in ${layout.size}, line 0 ends at " +
-                "${layout.getLineEnd(0)} of ${mixed.length}, bottom ${layout.getLineBottom(0)}, ellipsized " +
-                "${layout.isLineEllipsized(0)}, lines ${layout.lineCount}, constraints ${layout.layoutInput.constraints}; " +
-                "which part wraps at its own width: ${wrapsAtOwnWidth(mixed, layout.layoutInput.style)})",
-                !layout.hasVisualOverflow)
             val image = compose.onNodeWithTag("${tag}Box").captureToImage()
             val rows = inkRows(image)
             assertTrue("$tag draws text", rows != null)
             assertTrue("$tag ascenders/diacritics not cut (${rows!!.first}..${rows.second} of ${image.height})",
                 rows.first > 0 && rows.second < image.height - 1)
+            // The whole line is drawn: its ink spans the measured line from end to end. (At 4K the semantics
+            // re-layout of a plain Text can report the last word wrapped at the node's own width, so this
+            // checks the pixels rather than that report alone.)
+            val text = compose.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
+            val box = compose.onNodeWithTag("${tag}Box").fetchSemanticsNode().boundsInRoot
+            val columns = checkNotNull(inkColumns(image))
+            val left = text.left - box.left; val right = text.right - box.left
+            val slack = layout.layoutInput.style.fontSize.value * layout.layoutInput.density.density *
+                layout.layoutInput.density.fontScale
+            assertTrue("$tag draws its whole line (ink ${columns.first}..${columns.second} in line $left..$right; " +
+                "semantics layout: line 0 ends at ${layout.getLineEnd(0)} of ${mixed.length}, exceeds lines " +
+                "${layout.multiParagraph.didExceedMaxLines}, paragraph ${layout.multiParagraph.width} in ${layout.size})",
+                columns.first - left < slack && right - columns.second < slack)
         }
     }
 
@@ -288,21 +294,6 @@ class NuvioTypographyTvTest {
         }
     }
 
-    /** Diagnostic: for pieces of [text], whether one line at its own measured width still wraps. */
-    private fun wrapsAtOwnWidth(text: String, style: TextStyle): String {
-        val measurer = androidx.compose.ui.text.TextMeasurer(createFontFamilyResolver(context),
-            androidx.compose.ui.unit.Density(context), androidx.compose.ui.unit.LayoutDirection.Rtl)
-        val pieces = listOf(text, "الممر الشمالي: Northern Passage 2", "· ٢٠٢٦ · 4K", "إِنَّ آخر", "4K إِنَّ آخر",
-            "Northern Passage 2 · ٢٠٢٦ · 4K", text.replace("إِنَّ", "إن"), text.replace("٢٠٢٦", "2026"))
-        return pieces.joinToString(" | ") { piece ->
-            val free = measurer.measure(piece, style, maxLines = 1)
-            val tight = measurer.measure(piece, style, maxLines = 1,
-                constraints = androidx.compose.ui.unit.Constraints(maxWidth = free.size.width))
-            "'$piece' w=${free.size.width} (${"%.2f".format(free.multiParagraph.maxIntrinsicWidth)}) " +
-                "ends ${tight.getLineEnd(0)}/${piece.length} exceeds ${tight.multiParagraph.didExceedMaxLines}"
-        }
-    }
-
     private fun textLayout(tag: String): TextLayoutResult {
         val results = mutableListOf<TextLayoutResult>()
         compose.onNodeWithTag(tag).fetchSemanticsNode().config[SemanticsActions.GetTextLayoutResult].action?.invoke(results)
@@ -317,6 +308,16 @@ class NuvioTypographyTvTest {
             if (p.red > .45f && p.green > .45f && p.blue > .45f) { if (top < 0) top = y; bottom = y }
         }
         return if (top < 0) null else top to bottom
+    }
+
+    private fun inkColumns(image: ImageBitmap): Pair<Int, Int>? {
+        val pixels = image.toPixelMap()
+        var left = -1; var right = -1
+        for (x in 0 until pixels.width) for (y in 0 until pixels.height) {
+            val p = pixels[x, y]
+            if (p.red > .45f && p.green > .45f && p.blue > .45f) { if (left < 0) left = x; right = x; break }
+        }
+        return if (left < 0) null else left to right
     }
 
     private fun render(paint: Paint, text: String): Bitmap {
