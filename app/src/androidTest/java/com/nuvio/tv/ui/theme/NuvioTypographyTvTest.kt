@@ -215,7 +215,8 @@ class NuvioTypographyTvTest {
                 "${layout.didOverflowHeight}, exceeds lines ${layout.multiParagraph.didExceedMaxLines}, paragraph " +
                 "${layout.multiParagraph.width}x${layout.multiParagraph.height} in ${layout.size}, line 0 ends at " +
                 "${layout.getLineEnd(0)} of ${mixed.length}, bottom ${layout.getLineBottom(0)}, ellipsized " +
-                "${layout.isLineEllipsized(0)}, lines ${layout.lineCount}, constraints ${layout.layoutInput.constraints})",
+                "${layout.isLineEllipsized(0)}, lines ${layout.lineCount}, constraints ${layout.layoutInput.constraints}; " +
+                "which part wraps at its own width: ${wrapsAtOwnWidth(mixed, layout.layoutInput.style)})",
                 !layout.hasVisualOverflow)
             val image = compose.onNodeWithTag("${tag}Box").captureToImage()
             val rows = inkRows(image)
@@ -284,6 +285,21 @@ class NuvioTypographyTvTest {
         for ((tag, result) in report) {
             if (tag == "bare") continue
             assertTrue("$tag draws the dots below the line box ($message)", result.first >= result.second - 2f)
+        }
+    }
+
+    /** Diagnostic: for pieces of [text], whether one line at its own measured width still wraps. */
+    private fun wrapsAtOwnWidth(text: String, style: TextStyle): String {
+        val measurer = androidx.compose.ui.text.TextMeasurer(createFontFamilyResolver(context),
+            androidx.compose.ui.unit.Density(context), androidx.compose.ui.unit.LayoutDirection.Rtl)
+        val pieces = listOf(text, "الممر الشمالي: Northern Passage 2", "· ٢٠٢٦ · 4K", "إِنَّ آخر", "4K إِنَّ آخر",
+            "Northern Passage 2 · ٢٠٢٦ · 4K", text.replace("إِنَّ", "إن"), text.replace("٢٠٢٦", "2026"))
+        return pieces.joinToString(" | ") { piece ->
+            val free = measurer.measure(piece, style, maxLines = 1)
+            val tight = measurer.measure(piece, style, maxLines = 1,
+                constraints = androidx.compose.ui.unit.Constraints(maxWidth = free.size.width))
+            "'$piece' w=${free.size.width} (${"%.2f".format(free.multiParagraph.maxIntrinsicWidth)}) " +
+                "ends ${tight.getLineEnd(0)}/${piece.length} exceeds ${tight.multiParagraph.didExceedMaxLines}"
         }
     }
 
