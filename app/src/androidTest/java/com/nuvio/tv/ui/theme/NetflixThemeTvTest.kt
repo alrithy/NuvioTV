@@ -1101,7 +1101,8 @@ class NetflixThemeTvTest {
         val density = compose.density.density
         val shapes = mutableMapOf<String, String>()
         for (letter in "ابتثجحخدذرزسشصضطظعغفقكلمنهويءأإآةى".map(Char::toString)) {
-            val key = compose.onNodeWithText(letter, useUnmergedTree = true)
+            // The top bar's profile initial (أ for أحمد) is not a key.
+            val key = compose.onNode(hasText(letter) and !hasAnyAncestor(hasTestTag("netflix_top_nav")), useUnmergedTree = true)
             val node = key.fetchSemanticsNode()
             assertTrue("$letter glyph box ${node.size.height / density} dp", node.size.height >= 14f * density)
             val layout = textLayout(key)
