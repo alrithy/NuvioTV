@@ -63,6 +63,7 @@ import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.hasAnyAncestor
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -1114,7 +1115,8 @@ class NetflixThemeTvTest {
             shapes[letter] = assertInkVisible(letter, key)
         }
         // Tofu boxes would all look the same; every key must render its own glyph.
-        val duplicates = shapes.entries.groupBy({ it.value }, { it.key }).values.filter { it.size > 1 }
+        val duplicates = shapes.entries.groupBy({ it.value.substringAfter('|') }, { it.key + " " + it.value.substringBefore('|') })
+            .values.filter { it.size > 1 }
         assertTrue("distinct glyph shapes (identical: $duplicates)", duplicates.isEmpty())
     }
 
@@ -1151,7 +1153,7 @@ class NetflixThemeTvTest {
         compose.onNodeWithTag("netflix_hero_play").requestFocus()
         // In the top state the strip only peeks above the screen's bottom edge (the reference
         // composition), so bring it fully on screen before measuring its labels.
-        compose.onNodeWithTag("netflix_home").performScrollToNode(hasTestTag("netflix_category_movies"))
+        compose.onNodeWithTag("netflix_home").performScrollToIndex(1)
         compose.waitForIdle()
         for ((id, label) in listOf("trending" to text("Trending", "الرائج"), "popular" to text("Popular", "الأكثر شعبية"),
             "movies" to text("Movies", "الأفلام"))) {
@@ -1237,9 +1239,11 @@ class NetflixThemeTvTest {
         assertTrue("$name draws ink", inkTop >= 0)
         assertTrue("$name ink ($inkTop..$inkBottom) clear of its container rows $top..$bottom (text box ${text.top}..${text.bottom})",
             inkTop > top && inkBottom < bottom)
-        // A 16×16 occupancy grid of the visible ink box, for telling glyphs apart.
+        // A 16×16 occupancy grid of the visible ink box, for telling glyphs apart, prefixed with the
+        // ink rows relative to the text box (shown when two glyphs look the same).
         val width = inkRight - inkLeft + 1; val height = inkBottom - inkTop + 1
         return buildString {
+            append("ink ${inkTop - text.top}..${inkBottom - text.top} in box 0..${text.height} container ${container.top - text.top}..${container.bottom - text.top}|")
             for (gy in 0 until 16) for (gx in 0 until 16) {
                 val x0 = inkLeft + gx * width / 16; val x1 = maxOf(inkLeft + (gx + 1) * width / 16, x0 + 1)
                 val y0 = inkTop + gy * height / 16; val y1 = maxOf(inkTop + (gy + 1) * height / 16, y0 + 1)

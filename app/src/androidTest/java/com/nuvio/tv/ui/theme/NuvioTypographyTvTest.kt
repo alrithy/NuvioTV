@@ -195,7 +195,7 @@ class NuvioTypographyTvTest {
                         "netflixDescription" to t.bodyLarge.copy(fontSize = NetflixThemeTokens.description,
                             lineHeight = NetflixThemeTokens.descriptionLineHeight), "small" to t.labelSmall.copy(fontSize = 12.sp))) {
                         // Room around the line: Arabic descenders may reach below Thmanyah's line box.
-                        Box(Modifier.background(Color.Black).padding(vertical = 12.dp).testTag("${tag}Box")) {
+                        Box(Modifier.testTag("${tag}Box").background(Color.Black).padding(vertical = 12.dp)) {
                             Text(mixed, style = style, color = Color.White, maxLines = 1, modifier = Modifier.testTag(tag))
                         }
                     }
@@ -230,7 +230,7 @@ class NuvioTypographyTvTest {
                     // No lineHeight, like the Netflix labels: the line box is the font's own 1.25 em.
                     val style = TextStyle(fontFamily = NuvioFontFamily, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     for ((tag, text) in listOf("fits" to word, "ellipsized" to List(12) { word }.joinToString(" "))) {
-                        Box(Modifier.background(Color.Black).padding(vertical = 16.dp).testTag("${tag}Box")) {
+                        Box(Modifier.testTag("${tag}Box").background(Color.Black).padding(vertical = 16.dp)) {
                             Text(text, style = style, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.width(240.dp).testTag(tag))
                         }
