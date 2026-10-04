@@ -10,6 +10,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.foundation.layout.width
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -205,6 +207,40 @@ class NuvioTypographyTvTest {
             assertTrue("$tag ascenders/diacritics not cut (${rows!!.first}..${rows.second} of ${image.height})",
                 rows.first > 0 && rows.second < image.height - 1)
         }
+    }
+
+    /**
+     * Some Arabic forms (final yeh, ج, ر) reach below Thmanyah Sans' line box. Compose clips text to
+     * its box when the layout overflows (an ellipsized title), so this checks those descenders stay
+     * drawn in truncated Arabic lines too, not only in lines that fit.
+     */
+    @Test fun ellipsizedArabicKeepsItsDescenders() {
+        val word = "الشمالي"
+        compose.setContent {
+            NuvioTheme(appTheme = AppTheme.WHITE) {
+                Column(Modifier.background(Color.Black).padding(24.dp)) {
+                    val style = MaterialTheme.typography.titleLarge
+                    for ((tag, text) in listOf("fits" to word, "ellipsized" to List(12) { word }.joinToString(" "))) {
+                        Box(Modifier.background(Color.Black).padding(vertical = 16.dp).testTag("${tag}Box")) {
+                            Text(text, style = style, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.width(240.dp).testTag(tag))
+                        }
+                    }
+                }
+            }
+        }
+        assertTrue("the long line is ellipsized", textLayout("ellipsized").isLineEllipsized(0))
+        fun belowLineBox(tag: String): Float {
+            val text = compose.onNodeWithTag(tag).fetchSemanticsNode().boundsInRoot
+            val box = compose.onNodeWithTag("${tag}Box").fetchSemanticsNode().boundsInRoot
+            val rows = checkNotNull(inkRows(compose.onNodeWithTag("${tag}Box").captureToImage())) { "$tag draws text" }
+            return rows.second - (text.bottom - box.top)
+        }
+        // The fitting word shows the font drawing below its line box; the ellipsized line must too.
+        val fits = belowLineBox("fits")
+        org.junit.Assume.assumeTrue("the word's descender reaches below the line box ($fits px)", fits > 1f)
+        val ellipsized = belowLineBox("ellipsized")
+        assertTrue("ellipsized line keeps its descenders ($ellipsized px below the box, fitting word $fits px)", ellipsized > 1f)
     }
 
     private fun textLayout(tag: String): TextLayoutResult {

@@ -47,8 +47,12 @@ fi
 adb -s "$serial" install -r -t "${app_apks[0]}"
 adb -s "$serial" install -r -t "${test_apks[0]}"
 
+# Every suite runs even when an earlier one fails, so one run reports all failures; the job
+# still fails if any of them did.
+failed_suites=()
 python3 scripts/superfork/capture_netflix_theme.py \
-  --serial "$serial" --package "$package" --resolution "$resolution" --locale "$locale" --output "$output"
+  --serial "$serial" --package "$package" --resolution "$resolution" --locale "$locale" --output "$output" \
+  || failed_suites+=("Netflix captures and tests")
 
 # adb may exit zero after an instrumentation crash, so require a positive JUnit
 # completion as well as the Android runner's successful final code.
@@ -75,6 +79,12 @@ if not completed or not success_code or failed:
 PY
 }
 
-run_instrumented_class com.nuvio.tv.ui.theme.NuvioDialogButtonThemeTest "$output/dialog-instrumentation-result.txt" "Dialog theme"
+run_instrumented_class com.nuvio.tv.ui.theme.NuvioDialogButtonThemeTest "$output/dialog-instrumentation-result.txt" "Dialog theme" \
+  || failed_suites+=("Dialog theme")
 # Thmanyah Sans root typography owner: embedded weights, Arabic shaping, mixed-script bounds.
-run_instrumented_class com.nuvio.tv.ui.theme.NuvioTypographyTvTest "$output/typography-instrumentation-result.txt" "Typography"
+run_instrumented_class com.nuvio.tv.ui.theme.NuvioTypographyTvTest "$output/typography-instrumentation-result.txt" "Typography" \
+  || failed_suites+=("Typography")
+if [ "${#failed_suites[@]}" -gt 0 ]; then
+  echo "Failed suites: ${failed_suites[*]}" >&2
+  exit 1
+fi

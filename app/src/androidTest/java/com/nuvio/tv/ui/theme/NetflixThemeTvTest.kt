@@ -1109,8 +1109,7 @@ class NetflixThemeTvTest {
             val image = key.captureToImage()
             val ink = inkBounds(image)
             assertTrue("$letter draws ink", ink != null && ink.count >= (6f * density).toInt())
-            assertTrue("$letter ink is not cut at the top/bottom edge ($ink in ${image.height})",
-                ink!!.top > 0 && ink.bottom < image.height - 1)
+            assertInkVisible(letter, key)
             shapes[letter] = inkSignature(image)
         }
         // Tofu boxes would all look the same; every key must render its own glyph.
@@ -1201,11 +1200,36 @@ class NetflixThemeTvTest {
             layout.getLineBottom(layout.lineCount - 1) <= size.height + 0.5f)
         // Over artwork the surface is not flat, so only the layout bounds are asserted there.
         if (!flatSurface) return layout
-        val image = node.captureToImage()
-        inkBounds(image)?.let { ink ->
-            assertTrue("$name ink is not cut at the top/bottom edge ($ink in ${image.height})", ink.top > 0 && ink.bottom < image.height - 1)
-        }
+        assertInkVisible(name, node)
         return layout
+    }
+
+    /**
+     * The whole glyph ink is on screen. Thmanyah Sans keeps Latin descenders inside its line box
+     * (descent 250/1000) but some Arabic forms (final yeh, ج, ر) reach below it, as Compose allows:
+     * it only clips text to its box when the layout overflows. So the ink is checked in the visible
+     * container around the text (its nearest semantics parent: the pill, key or tile), not in the
+     * text box: no Compose clip, and the ink keeps clear of the container's top and bottom edges.
+     */
+    private fun assertInkVisible(name: String, node: androidx.compose.ui.test.SemanticsNodeInteraction) {
+        val semantics = node.fetchSemanticsNode()
+        assertTrue("$name is not clipped to its text box", !textLayout(node).hasVisualOverflow)
+        val text = semantics.boundsInRoot
+        val container = checkNotNull(semantics.parent) { "$name has a container" }.boundsInRoot
+        val pixels = compose.onRoot().captureToImage().toPixelMap()
+        val left = text.left.toInt().coerceIn(0, pixels.width - 1)
+        val right = text.right.toInt().coerceIn(left, pixels.width - 1)
+        // Rows strictly inside the container, clear of its border and rounded edge.
+        val top = (container.top.toInt() + 2).coerceIn(0, pixels.height - 1)
+        val bottom = (container.bottom.toInt() - 3).coerceIn(top, pixels.height - 1)
+        val surface = luminance(pixels[left, text.top.toInt().coerceIn(top, bottom)])
+        var inkTop = -1; var inkBottom = -1
+        for (y in top..bottom) for (x in left..right) {
+            if (kotlin.math.abs(luminance(pixels[x, y]) - surface) > .35f) { if (inkTop < 0) inkTop = y; inkBottom = y }
+        }
+        assertTrue("$name draws ink", inkTop >= 0)
+        assertTrue("$name ink ($inkTop..$inkBottom) clear of its container rows $top..$bottom (text box ${text.top}..${text.bottom})",
+            inkTop > top && inkBottom < bottom)
     }
 
     private data class Ink(val top: Int, val bottom: Int, val left: Int, val right: Int, val count: Int)
