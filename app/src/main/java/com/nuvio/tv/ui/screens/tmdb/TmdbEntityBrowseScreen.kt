@@ -382,7 +382,7 @@ private fun TmdbEntityHero(
                 style = MaterialTheme.typography.headlineLarge.copy(
                     fontSize = 56.sp,
                     lineHeight = 60.sp,
-                    fontWeight = FontWeight.ExtraBold,
+                    fontWeight = FontWeight.Bold,
                     letterSpacing = (-1).sp
                 ),
                 color = NuvioTheme.colors.TextPrimary,
@@ -538,7 +538,7 @@ private fun EntityRailRow(
         Text(
             text = railTitle(rail),
             style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             ),
             color = NuvioTheme.colors.TextPrimary,
             modifier = Modifier.padding(horizontal = NuvioTheme.spacing.xxxl)

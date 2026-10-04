@@ -191,7 +191,7 @@ private fun LiveTvBanner(channel: LiveTvChannel, logo: String?, programme: LiveT
             Text(
                 text = number.toString(),
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 color = Color.White.copy(alpha = 0.7f),
                 modifier = Modifier.padding(end = 16.dp),
             )
@@ -201,7 +201,7 @@ private fun LiveTvBanner(channel: LiveTvChannel, logo: String?, programme: LiveT
             Text(
                 text = channel.name,
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 color = Color.White,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -274,7 +274,7 @@ private fun LiveTvInfoCard(
                     Text(
                         text = number.toString(),
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Medium,
                         color = Color.White.copy(alpha = 0.68f),
                         modifier = Modifier.padding(end = 10.dp),
                     )
@@ -282,7 +282,7 @@ private fun LiveTvInfoCard(
                 Text(
                     text = channel.name,
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     color = Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -304,7 +304,7 @@ private fun LiveTvInfoCard(
                     Text(
                         text = stringResource(R.string.live_tv_info_now).uppercase(),
                         style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Medium,
                         color = Color.Black,
                         modifier = Modifier
                             .clip(LiveTvPillShape)
@@ -431,7 +431,7 @@ private fun LiveTvFolderColumn(state: LiveTvPlayerState, liveState: LiveTvState)
         Text(
             text = stringResource(R.string.live_tv_categories),
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = Color.White,
             modifier = Modifier.padding(bottom = 16.dp),
         )
@@ -481,7 +481,7 @@ private fun FolderRow(
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
             color = if (focused) Color.Black else if (selected) Color.White else Color.White.copy(alpha = 0.7f),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -534,7 +534,7 @@ private fun LiveTvChannelColumn(
         Text(
             text = folderLabel ?: stringResource(R.string.live_tv_player_channels),
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = Color.White,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -608,7 +608,7 @@ private fun PanelRow(
                 Text(
                     text = channel.name,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (playing) FontWeight.SemiBold else FontWeight.Normal,
+                    fontWeight = if (playing) FontWeight.Medium else FontWeight.Normal,
                     color = if (focused) Color.Black else Color.White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

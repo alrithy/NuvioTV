@@ -695,7 +695,7 @@ fun ContentCard(
                             ) {
                                 Text(
                                     text = ageRating,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
                                     color = NuvioTheme.extendedColors.textSecondary,
                                     maxLines = 1
                                 )

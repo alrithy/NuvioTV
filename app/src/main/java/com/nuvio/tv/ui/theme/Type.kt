@@ -17,7 +17,8 @@ import com.nuvio.tv.domain.model.AppFont
 /**
  * The one Nuvio UI font owner: Thmanyah Sans, the official typeface for every theme (Netflix included)
  * and both Arabic and English. Each declared weight is a real licensed file; there is no SemiBold,
- * so 600 requests resolve to the Bold file (never synthetic bold, see [nuvioFontSynthesis]).
+ * so the UI asks for a weight by role (see [NuvioFontWeights]) and never for 600, which would resolve
+ * to the Bold file (never synthetic bold, see [nuvioFontSynthesis]).
  * Glyphs the family lacks (arrows, ★, Persian letters) fall back to the platform Sans per glyph.
  *
  * The files are private build input (docs/PRIVATE_FONTS.md), shipped only inside an encrypted asset
@@ -39,8 +40,9 @@ val NuvioFontFamily: FontFamily = if (NuvioUiFonts.available) {
 
 /**
  * Semantic weights for the five real Thmanyah Sans files. Light: de-emphasised secondary text;
- * Regular: body, descriptions, metadata; Medium: navigation, keys, labels, list items, secondary
- * buttons; Bold: section headings, primary buttons, title emphasis; Black: rare display headings.
+ * Regular: body, descriptions, metadata; Medium, the backbone of the UI: navigation, tabs, keys,
+ * labels, badges, list items, buttons, player controls; Bold: hero and section headings, real
+ * emphasis; Black: rare display headings.
  */
 object NuvioFontWeights {
     val Secondary = FontWeight.Light
@@ -190,14 +192,14 @@ private fun buildBaseTypography(fontFamily: FontFamily): Typography = Typography
     ),
     headlineLarge = TextStyle(
         fontFamily = fontFamily,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         fontSize = 28.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp
     ),
     headlineMedium = TextStyle(
         fontFamily = fontFamily,
-        fontWeight = FontWeight.SemiBold,
+        fontWeight = FontWeight.Bold,
         fontSize = 24.sp,
         lineHeight = 32.sp,
         letterSpacing = 0.sp
@@ -280,7 +282,7 @@ fun buildNetflixTypography(): Typography {
         bodyLarge = base.bodyLarge.copy(fontSize = NetflixThemeTokens.description, letterSpacing = 0.sp),
         bodyMedium = base.bodyMedium.copy(letterSpacing = 0.sp),
         labelMedium = base.labelMedium.copy(fontSize = NetflixThemeTokens.metadata, letterSpacing = 0.sp),
-        labelLarge = base.labelLarge.copy(fontSize = NetflixThemeTokens.buttonText, fontWeight = FontWeight.Bold, letterSpacing = 0.sp)
+        labelLarge = base.labelLarge.copy(fontSize = NetflixThemeTokens.buttonText, fontWeight = FontWeight.Medium, letterSpacing = 0.sp)
     ).withNuvioTypesetting()
 }
 
@@ -294,14 +296,11 @@ fun buildNuvioTextStyles(typography: Typography): NuvioTextStyleTokens = NuvioTe
     body = typography.bodyLarge,
     bodyCompact = typography.bodyMedium,
     metadata = typography.labelMedium,
-    badge = typography.labelSmall.copy(
-        fontWeight = FontWeight.SemiBold,
-        letterSpacing = 0.8.sp
-    ),
-    button = typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
-    tab = typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+    badge = typography.labelSmall.copy(fontWeight = NuvioFontWeights.Label),
+    button = typography.labelLarge.copy(fontWeight = NuvioFontWeights.Label),
+    tab = typography.titleSmall.copy(fontWeight = NuvioFontWeights.Label),
     nav = typography.titleMedium,
-    playerControl = typography.titleLarge.copy(fontWeight = FontWeight.SemiBold)
+    playerControl = typography.titleLarge.copy(fontWeight = NuvioFontWeights.Label)
 )
 
 @OptIn(ExperimentalTvMaterial3Api::class)

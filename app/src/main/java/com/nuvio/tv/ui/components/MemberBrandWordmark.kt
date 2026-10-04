@@ -135,7 +135,7 @@ private fun LocalMemberSuffix(
                 fontFamily = MaterialTheme.typography.labelLarge.fontFamily,
                 brush = gradientBrush,
                 fontSize = (height.value * MemberWordmarkHeightRatio).sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             ),
             modifier = Modifier
                 .offset(y = height * MemberWordmarkVerticalOffsetRatio)

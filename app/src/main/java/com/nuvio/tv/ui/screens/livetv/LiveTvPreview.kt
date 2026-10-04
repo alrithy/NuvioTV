@@ -342,7 +342,7 @@ internal fun LiveTvPreviewPanel(
             Text(
                 text = stringResource(R.string.live_tv_live_badge),
                 style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 letterSpacing = 1.sp,
                 color = Color.Black,
                 modifier = Modifier
@@ -367,7 +367,7 @@ internal fun LiveTvPreviewPanel(
                 Text(
                     text = shown.name,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Medium,
                     color = NuvioTheme.colors.TextPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

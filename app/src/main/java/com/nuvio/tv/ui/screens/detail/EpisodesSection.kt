@@ -652,14 +652,14 @@ private fun EpisodeCard(
     val typography = MaterialTheme.typography
     val episodeBadgeStyle = remember(typography, cardMetrics) {
         typography.labelSmall.copy(
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Medium,
             letterSpacing = cardMetrics.episodeBadgeLetterSpacing,
             color = Color.White.copy(alpha = 0.9f)
         )
     }
     val titleStyle = remember(typography, cardMetrics) {
         typography.titleMedium.copy(
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             lineHeight = cardMetrics.titleLineHeight,
             shadow = Shadow(
                 color = Color.Black,
@@ -686,7 +686,7 @@ private fun EpisodeCard(
     val ratingStyle = remember(typography) {
         typography.labelSmall.copy(
             color = Color(0xFFF5C518),
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
     }
     val badgeBgColor = remember { Color.Black.copy(alpha = 0.42f) }

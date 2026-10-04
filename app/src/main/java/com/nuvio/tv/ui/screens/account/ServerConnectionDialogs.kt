@@ -396,7 +396,7 @@ private fun ServerWarning(server: ServerConfiguration) {
             text = stringResource(R.string.custom_server_warning_title),
             style = MaterialTheme.typography.titleSmall,
             color = Color(0xFFFFCC80),
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
         Text(
             text = warning,

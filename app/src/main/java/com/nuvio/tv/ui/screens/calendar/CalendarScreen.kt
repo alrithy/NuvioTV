@@ -310,7 +310,7 @@ private fun CalendarEpisodeCard(episode: CalendarEpisode, onClick: () -> Unit) {
                     Text(
                         text = stringResource(R.string.season_episode_format, episode.seasonNumber, episode.episodeNumber),
                         color = Color(0xFF1E1400),
-                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.ExtraBold, fontSize = 11.sp),
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium, fontSize = 11.sp),
                     )
                 }
                 Text(

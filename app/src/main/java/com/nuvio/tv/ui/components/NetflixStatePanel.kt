@@ -78,7 +78,7 @@ internal fun NetflixStatePanel(
                 scale = ButtonDefaults.scale(focusedScale = tokens.episodeFocusScale),
                 contentPadding = PaddingValues(horizontal = tokens.previewPadding * 2),
             ) {
-                Text(actionLabel, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.buttonText, fontWeight = FontWeight.SemiBold).withNuvioDescenderRoom())
+                Text(actionLabel, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.buttonText, fontWeight = FontWeight.Medium).withNuvioDescenderRoom())
             }
         }
     }

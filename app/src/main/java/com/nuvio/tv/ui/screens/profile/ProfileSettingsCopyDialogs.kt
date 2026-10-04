@@ -180,7 +180,7 @@ internal fun CopyProfileSettingsDialog(
         Text(
             text = stringResource(R.string.profile_copy_settings_from),
             color = NuvioTheme.colors.TextSecondary,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
         LazyColumn(
             modifier = Modifier

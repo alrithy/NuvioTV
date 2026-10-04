@@ -400,7 +400,7 @@ internal fun EpisodeOptionsOverlay(
                     ) {
                         Text(
                             text = episodeLabel,
-                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                            style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
                             color = if (isNetflix) NetflixThemeTokens.textSecondary else NuvioTheme.colors.Primary
                         )
 

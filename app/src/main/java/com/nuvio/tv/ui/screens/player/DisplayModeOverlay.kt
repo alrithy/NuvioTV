@@ -115,7 +115,7 @@ fun DisplayModeOverlay(
                 text = statusMessage,
                 fontSize = 11.sp,
                 color = NuvioTheme.colors.Secondary,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.End,
                 modifier = Modifier
                     .clip(RoundedCornerShape(6.dp))
@@ -141,7 +141,7 @@ fun DisplayModeOverlay(
                             text = item.first,
                             fontSize = 11.sp,
                             color = Color.White.copy(alpha = 0.85f),
-                            fontWeight = FontWeight.SemiBold,
+                            fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.End
                         )
                         Text(

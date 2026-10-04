@@ -69,7 +69,7 @@ fun SyncCodeGenerateScreen(
                 text = stringResource(R.string.sync_generate_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = NuvioTheme.colors.TextPrimary,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.sm))

@@ -177,7 +177,7 @@ private fun SyncPromptPanel(
         ) {
             Text(
                 text = stringResource(R.string.subtitle_timing_sync_button),
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
                 color = Color.White,
                 modifier = Modifier.padding(horizontal = 28.dp, vertical = NuvioTheme.spacing.md)
             )
@@ -378,7 +378,7 @@ private fun CueRow(
         ) {
             Text(
                 text = formatAutoSyncTimestamp(cue.startTimeMs),
-                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
                 color = if (isFocused) focusedTextColor.copy(alpha = 0.9f) else Color.White.copy(alpha = 0.78f),
                 modifier = Modifier.width(72.dp)
             )

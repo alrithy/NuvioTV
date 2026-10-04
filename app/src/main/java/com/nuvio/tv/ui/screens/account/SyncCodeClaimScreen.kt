@@ -71,7 +71,7 @@ fun SyncCodeClaimScreen(
                 text = stringResource(R.string.sync_claim_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = NuvioTheme.colors.TextPrimary,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.sm))

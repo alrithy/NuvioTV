@@ -318,7 +318,7 @@ fun LibraryScreen(
                     text = stringResource(R.string.library_title),
                     style = MaterialTheme.typography.headlineMedium,
                     color = if (showBuiltInHeader) NuvioTheme.colors.TextPrimary else Color.Transparent,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 )
                 Text(
@@ -960,7 +960,7 @@ private fun CloudLibraryCard(
                 text = item.name,
                 style = MaterialTheme.typography.titleSmall,
                 color = NuvioTheme.colors.TextPrimary,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             )
             fileLine?.let {
                 Text(
@@ -1076,7 +1076,7 @@ private fun CloudFilePickerDialog(
                             text = file.name,
                             style = MaterialTheme.typography.bodyLarge,
                             color = NuvioTheme.colors.TextPrimary,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Medium
                         )
                         formatCloudSize(file.sizeBytes)?.let { size ->
                             Text(

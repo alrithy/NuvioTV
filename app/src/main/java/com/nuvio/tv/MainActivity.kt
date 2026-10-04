@@ -1738,7 +1738,7 @@ private fun LegacySidebarScaffold(
                                             maxLines = 1,
                                             overflow = TextOverflow.Ellipsis,
                                             textAlign = TextAlign.Start,
-                                            fontWeight = FontWeight.SemiBold
+                                            fontWeight = FontWeight.Medium
                                         )
                                     }
                                 }

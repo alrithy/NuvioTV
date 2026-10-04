@@ -508,7 +508,7 @@ internal fun ConnectedTrackingAccountContent(
             text = connectedLabel,
             style = MaterialTheme.typography.bodyLarge,
             color = Color.White,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
         Text(
             text = connectedDescription,
@@ -595,7 +595,7 @@ private fun SimklSyncInfoContent(
         text = stringResource(R.string.simkl_sync_info_title),
         style = MaterialTheme.typography.titleLarge,
         color = Color.White,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.Bold
     )
     Text(
         text = stringResource(

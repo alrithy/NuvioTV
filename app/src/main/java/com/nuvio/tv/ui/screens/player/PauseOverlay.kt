@@ -351,7 +351,7 @@ private fun CastDetailView(
                     text = member.name,
                     style = MaterialTheme.typography.headlineMedium,
                     color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )

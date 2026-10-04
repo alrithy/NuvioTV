@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.tv.material3.Icon
-import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -78,6 +77,6 @@ internal fun NetflixCalloutChip(callout: NetflixCallout, modifier: Modifier = Mo
                 .clip(RoundedCornerShape(tokens.accentWidth)).background(NetflixThemeTokens.progress))
         }
         Text(text, style = TextStyle(fontFamily = NetflixThemeTokens.fontFamily, fontSize = tokens.textSize,
-            fontWeight = FontWeight.SemiBold, letterSpacing = 0.2.sp).withNuvioDescenderRoom(), color = NetflixThemeTokens.textPrimary, maxLines = 1)
+            fontWeight = FontWeight.Medium).withNuvioDescenderRoom(), color = NetflixThemeTokens.textPrimary, maxLines = 1)
     }
 }

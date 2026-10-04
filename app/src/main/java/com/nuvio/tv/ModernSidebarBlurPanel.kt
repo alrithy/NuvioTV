@@ -433,7 +433,7 @@ private fun SidebarProfileItem(
                 .weight(1f)
                 .graphicsLayer { alpha = labelAlpha },
             style = androidx.tv.material3.MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 textDirection = profileName.contentTextDirection()
             )
         )

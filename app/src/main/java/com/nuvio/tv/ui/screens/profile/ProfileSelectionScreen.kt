@@ -1119,7 +1119,7 @@ private fun ProfileCard(
         NuvioTheme.colors.TextPrimary,
         focusProgress
     )
-    val nameWeight = if (isFocused) FontWeight.SemiBold else FontWeight.Medium
+    val nameWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium
 
     Column(
         modifier = Modifier
@@ -1264,8 +1264,7 @@ private fun ProfileCard(
                     text = stringResource(R.string.profile_selection_primary_badge),
                     color = Color(0xFFFFB300),
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = 0.8.sp
+                    fontWeight = FontWeight.Medium
                 )
             }
         }
@@ -1404,7 +1403,7 @@ private fun AddProfileCard(
             text = stringResource(R.string.profile_add_new),
             color = nameColor,
             fontSize = if (netflix) NetflixThemeTokens.profileNameSize else if (compact) 15.sp else 17.sp,
-            fontWeight = if (isFocused) FontWeight.SemiBold else FontWeight.Medium,
+            fontWeight = if (isFocused) FontWeight.Bold else FontWeight.Medium,
             textAlign = TextAlign.Center,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
@@ -1846,7 +1845,7 @@ private fun EditProfileOverlay(
                         text = stringResource(R.string.profile_edit_header),
                         color = NuvioTheme.colors.TextSecondary,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = profile.name,
@@ -1855,7 +1854,7 @@ private fun EditProfileOverlay(
                         ),
                         color = Color.White,
                         fontSize = 30.sp,
-                        fontWeight = FontWeight.Black
+                        fontWeight = FontWeight.Bold
                     )
                 }
                 OverlayButton(
@@ -2663,7 +2662,7 @@ private fun OverlayButton(
             text = text,
             color = textColor,
             fontSize = 15.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Medium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center

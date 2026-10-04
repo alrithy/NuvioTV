@@ -176,7 +176,7 @@ internal fun NetflixDetailHero(
                     listOfNotNull(ratingLabel, year, duration).forEachIndexed { index, value ->
                         Text(com.nuvio.tv.ui.theme.netflixIsolate(value), style = MaterialTheme.typography.labelLarge.copy(
                             fontSize = NetflixThemeTokens.metadata,
-                            fontWeight = if (index == 0 && value == ratingLabel) androidx.compose.ui.text.font.FontWeight.SemiBold else null),
+                            fontWeight = if (index == 0 && value == ratingLabel) androidx.compose.ui.text.font.FontWeight.Medium else null),
                             color = if (index == 0 && value == ratingLabel) NetflixThemeTokens.textPrimary else NetflixThemeTokens.textSecondary)
                     }
                     meta.ageRating?.trim()?.takeIf { it.isNotBlank() }?.let { age ->
@@ -297,7 +297,7 @@ private fun NetflixDetailSecondaryButton(label: String, onClick: () -> Unit, onF
         contentPadding = PaddingValues(horizontal = NetflixThemeTokens.actionGap)
     ) {
         Text(label, style = MaterialTheme.typography.labelLarge.copy(fontSize = NetflixThemeTokens.buttonText,
-            fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold))
+            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium))
     }
 }
 

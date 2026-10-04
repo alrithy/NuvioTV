@@ -460,7 +460,7 @@ internal fun SettingsRailButton(
                         text = title,
                         focused = isFocused,
                         style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = if (isSelected || isFocused) FontWeight.SemiBold else FontWeight.Medium
+                            fontWeight = if (isSelected || isFocused) FontWeight.Bold else FontWeight.Medium
                         ),
                         color = if (isSelected || isFocused) NuvioTheme.colors.TextPrimary else NuvioTheme.colors.TextSecondary,
                     )
@@ -567,7 +567,7 @@ internal fun SettingsTopBarTab(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall.copy(
-                    fontWeight = if (isSelected || isFocused) FontWeight.SemiBold else FontWeight.Medium
+                    fontWeight = if (isSelected || isFocused) FontWeight.Bold else FontWeight.Medium
                 ),
                 color = contentColor,
                 maxLines = 1,
@@ -592,7 +592,7 @@ internal fun SettingsDetailHeader(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
                 color = NuvioTheme.colors.TextPrimary
             )
             Text(
@@ -609,7 +609,7 @@ internal fun SettingsDetailHeader(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.headlineLarge.copy(fontWeight = FontWeight.Bold),
                 color = NuvioTheme.colors.TextPrimary
             )
             Text(

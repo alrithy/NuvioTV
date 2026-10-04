@@ -202,7 +202,7 @@ private fun AutoPlayBody(
                 fontSize = 14.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
             )
             val statusText = when {
                 !isPlayable && !nextEpisode.unairedMessage.isNullOrBlank() -> nextEpisode.unairedMessage
@@ -289,7 +289,7 @@ private fun StillWatchingBody(
                 fontSize = 14.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
             )
             if (mode.countdownSec != null) {
                 Spacer(modifier = Modifier.height(NuvioTheme.spacing.xxs))

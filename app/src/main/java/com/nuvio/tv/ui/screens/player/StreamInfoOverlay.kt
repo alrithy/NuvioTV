@@ -140,7 +140,7 @@ private fun StreamInfoContent(data: StreamInfoData) {
                         text = data.addonName,
                         style = MaterialTheme.typography.headlineMedium,
                         color = Color.White,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -263,7 +263,7 @@ private fun SectionLabel(text: String) {
         text = text,
         style = MaterialTheme.typography.labelMedium,
         color = NuvioTheme.colors.TextTertiary,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.Medium
     )
 }
 
@@ -391,7 +391,7 @@ private fun StreamInfoHudButton(
         Text(
             text = "$hudLabel: $statusText",
             style = MaterialTheme.typography.labelMedium,
-            fontWeight = if (isFocused || enabled) FontWeight.SemiBold else FontWeight.Medium
+            fontWeight = if (isFocused || enabled) FontWeight.Bold else FontWeight.Medium
         )
     }
 }

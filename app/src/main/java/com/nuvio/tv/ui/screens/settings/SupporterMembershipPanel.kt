@@ -220,7 +220,7 @@ private fun MembershipLoadingContent() {
         text = stringResource(R.string.supporter_membership_loading),
         style = MaterialTheme.typography.headlineSmall,
         color = MembershipPrimaryText,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.Bold
     )
 }
 
@@ -230,7 +230,7 @@ private fun MembershipLoadErrorContent() {
         text = stringResource(R.string.supporter_membership_title),
         style = MaterialTheme.typography.headlineSmall,
         color = MembershipPrimaryText,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.Bold
     )
     Spacer(modifier = Modifier.height(14.dp))
     Text(
@@ -246,7 +246,7 @@ private fun NonMemberContent() {
         text = stringResource(R.string.supporter_membership_title),
         style = MaterialTheme.typography.headlineSmall,
         color = MembershipPrimaryText,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.Bold
     )
     Spacer(modifier = Modifier.height(14.dp))
     Text(
@@ -262,7 +262,7 @@ private fun ConnectedMembershipContent() {
         text = stringResource(R.string.supporter_membership_connected_title),
         style = MaterialTheme.typography.headlineSmall,
         color = MembershipPrimaryText,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.Bold
     )
     Spacer(modifier = Modifier.height(14.dp))
     Text(
@@ -323,27 +323,27 @@ private fun MembershipTierTitle(
             text = stringResource(R.string.supporter_membership_you_are),
             style = MaterialTheme.typography.headlineSmall,
             color = MembershipPrimaryText,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Bold
         )
         Row {
             Text(
                 text = tier.displayName(),
                 style = MaterialTheme.typography.headlineSmall.copy(brush = tierBrush),
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.onSizeChanged { tierSize.value = it }
             )
             Text(
                 text = ".",
                 style = MaterialTheme.typography.headlineSmall,
                 color = MembershipPrimaryText,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
         }
         Text(
             text = stringResource(R.string.supporter_membership_thank_you),
             style = MaterialTheme.typography.headlineSmall,
             color = MembershipPrimaryText,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -395,7 +395,7 @@ private fun MembershipRefreshButton(
                 }
             ),
             modifier = Modifier.padding(vertical = NuvioTheme.spacing.xs),
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
     }
 }
@@ -424,7 +424,7 @@ private fun MembershipPrimaryButton(
         Text(
             text = label,
             modifier = Modifier.padding(vertical = NuvioTheme.spacing.xs),
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
     }
 }
@@ -453,7 +453,7 @@ private fun MembershipPanelBack(
             ),
             style = MaterialTheme.typography.headlineSmall,
             color = MembershipPrimaryText,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(10.dp))

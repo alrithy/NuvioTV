@@ -928,7 +928,7 @@ private fun CommentOverlayContent(
                     text = review.authorDisplayName,
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Medium
                 )
                 review.authorUsername
                     ?.takeIf { it.isNotBlank() }

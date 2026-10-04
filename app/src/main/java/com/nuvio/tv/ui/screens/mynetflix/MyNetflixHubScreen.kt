@@ -211,7 +211,7 @@ private fun MyNetflixAction(label: String, onClick: () -> Unit, tag: String) {
         scale = ButtonDefaults.scale(focusedScale = 1f),
         contentPadding = PaddingValues(horizontal = tokens.previewPadding),
     ) {
-        Text(label, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.actionTextSize, fontWeight = FontWeight.SemiBold).withNuvioDescenderRoom(), maxLines = 1)
+        Text(label, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = NetflixThemeTokens.Hub.actionTextSize, fontWeight = FontWeight.Medium).withNuvioDescenderRoom(), maxLines = 1)
     }
 }
 
@@ -280,7 +280,7 @@ private fun MyNetflixCardView(card: MyNetflixCard, onClick: () -> Unit) {
                     // Missing artwork: the title on a dark cinematic surface, never a bright placeholder.
                     Text(
                         card.title,
-                        style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.metadata, fontWeight = FontWeight.SemiBold,
+                        style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.metadata, fontWeight = FontWeight.Medium,
                             textDirection = card.title.contentTextDirection()).withNuvioDescenderRoom(),
                         color = tokens.textPrimary, maxLines = 2, overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.align(Alignment.Center).padding(tokens.previewPadding),

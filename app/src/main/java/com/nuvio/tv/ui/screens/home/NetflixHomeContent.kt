@@ -441,7 +441,7 @@ private fun NetflixHeroButton(icon: androidx.compose.ui.graphics.vector.ImageVec
         contentPadding = PaddingValues(horizontal = tokens.previewPadding * 1.5f),
     ) {
         Icon(icon, contentDescription = null, modifier = Modifier.padding(end = tokens.metadataGap).height(tokens.navigationIconSize))
-        Text(label, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.buttonText, fontWeight = FontWeight.SemiBold).withNuvioDescenderRoom())
+        Text(label, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = tokens.buttonText, fontWeight = FontWeight.Medium).withNuvioDescenderRoom())
     }
 }
 
@@ -470,7 +470,7 @@ private fun NetflixCategoryStrip(categories: List<HeroCarouselRow>, onFocused: (
                 Box(Modifier.fillMaxHeight().widthIn(min = home.categoryMinWidth).padding(horizontal = home.categoryPadding),
                     contentAlignment = Alignment.Center) {
                     Text(row.title, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = home.categoryTextSize,
-                        fontWeight = FontWeight.Bold, textDirection = row.title.contentTextDirection()).withNuvioDescenderRoom(),
+                        fontWeight = FontWeight.Medium, textDirection = row.title.contentTextDirection()).withNuvioDescenderRoom(),
                         color = tokens.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
@@ -612,7 +612,7 @@ private fun NetflixBrowseCard(
                 Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent,
                     tokens.background.copy(alpha = .85f)))))
                 Text(item.title, style = TextStyle(fontFamily = tokens.fontFamily, fontSize = home.cardTitleSize,
-                    fontWeight = FontWeight.Bold, textDirection = item.title.contentTextDirection()).withNuvioDescenderRoom(),
+                    fontWeight = FontWeight.Medium, textDirection = item.title.contentTextDirection()).withNuvioDescenderRoom(),
                     color = tokens.textPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.align(Alignment.BottomStart).padding(tokens.previewPadding))
             }

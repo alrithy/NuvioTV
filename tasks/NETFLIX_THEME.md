@@ -81,8 +81,7 @@ themes. The font files are private build input (docs/PRIVATE_FONTS.md): never co
 uploaded as artifacts. `private_fonts.py guard` in Superfork CI enforces it, and `private_fonts.py
 apk-check` proves each built APK holds only the encrypted pack, decrypted in memory at runtime.
 Licence: THMANYAH_APP_EMBEDDING = PERMITTED_BY_SUPPLIED_LICENSE; THMANYAH_STANDALONE_REDISTRIBUTION = PROHIBITED. Netflix measured geometry
-is kept unless rendered evidence shows the font clipping; the signed Test Build waits for the
-maintainer's review of the new font screenshots.
+is kept unless rendered evidence shows the font clipping.
 
 Rendered evidence (Netflix Visual run 37205669945) proved two font-caused defects, fixed in the typography
 owner (`ui/theme/Type.kt`) only:
@@ -92,6 +91,16 @@ owner (`ui/theme/Type.kt`) only:
   (`withNuvioDescenderRoom`); text boxes grow downward, containers keep their measured sizes.
 - With the Material letter spacing, a one-line Text holding Arabic in a left-to-right paragraph lost its
   last word at 4K. Theme styles set Thmanyah without tracking.
+
+Weight calibration (2026-10-04, maintainer request): Thmanyah has no 600 file, so every SemiBold drew as
+Bold. Each SemiBold/ExtraBold/Black use is now set by role: Medium for navigation, tabs, buttons, badges,
+keys, card and list labels, player labels; Bold for hero, screen, dialog and section headings; Regular
+stays on body and metadata. Badge and callout tracking removed. The 1.55 em descender room is unchanged.
+
+Maintainer approval: in the same 2026-10-04 request the maintainer approved the current font screenshots
+and the move to a signed Superfork Test Build (run on demand from this branch, built only from a head whose
+full 1080p/4K EN/AR Netflix Visual matrix is green). This does not mark the task Done: TCL C6K hardware
+checks remain MANUAL-PENDING and the branch is not merged into superfork/integration.
 
 ## Current status
 

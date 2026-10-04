@@ -3099,7 +3099,7 @@ private fun PlayerClockOverlay(
             text = timeFormatter.format(Date(nowMs)),
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             ),
             color = Color.White.copy(alpha = 0.96f)
         )
@@ -3196,7 +3196,7 @@ private fun AspectRatioIndicator(text: String) {
             text = text,
             style = MaterialTheme.typography.titleMedium.copy(
                 fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             ),
             color = Color.White
         )
@@ -3248,7 +3248,7 @@ private fun PlayerEngineSwitchIndicator(
             )
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
                 color = Color.White
             )
         }
@@ -3301,7 +3301,7 @@ private fun SubtitleDelayOverlay(
         ) {
             Text(
                 text = stringResource(R.string.player_subtitle_delay),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 color = Color.White
             )
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {

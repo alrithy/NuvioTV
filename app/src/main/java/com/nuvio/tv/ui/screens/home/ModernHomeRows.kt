@@ -566,7 +566,7 @@ internal fun ModernRowSection(
     ) {
         val titleMediumStyle = MaterialTheme.typography.titleMedium
         val rowTitleStyle = remember(titleMediumStyle, isNetflix) {
-            titleMediumStyle.copy(fontWeight = FontWeight.SemiBold,
+            titleMediumStyle.copy(fontWeight = FontWeight.Bold,
                 fontSize = if (isNetflix) NetflixThemeTokens.rowHeader else titleMediumStyle.fontSize)
         }
         val rowTitle = row.title

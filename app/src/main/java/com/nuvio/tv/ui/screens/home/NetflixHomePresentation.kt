@@ -313,7 +313,7 @@ private fun NetflixPreviewMetadata(preview: HeroPreview, showImdbRatings: Boolea
     FlowRow(horizontalArrangement = Arrangement.spacedBy(tokens.metadataGap),
         verticalArrangement = Arrangement.spacedBy(tokens.cardGap)) {
         if (showImdbRatings) preview.imdbText?.takeIf(String::isNotBlank)?.let {
-            Text(com.nuvio.tv.ui.theme.netflixIsolate("IMDb $it"), style = MaterialTheme.typography.labelMedium.copy(fontSize = tokens.metadata, fontWeight = FontWeight.SemiBold), color = tokens.textPrimary, maxLines = 1)
+            Text(com.nuvio.tv.ui.theme.netflixIsolate("IMDb $it"), style = MaterialTheme.typography.labelMedium.copy(fontSize = tokens.metadata, fontWeight = FontWeight.Medium), color = tokens.textPrimary, maxLines = 1)
         }
         preview.yearText?.takeIf(String::isNotBlank)?.let {
             Text(it, style = MaterialTheme.typography.labelMedium.copy(fontSize = tokens.metadata), color = tokens.textSecondary, maxLines = 1)
@@ -370,7 +370,7 @@ private fun NetflixHomeAction(
     ) {
         Icon(icon, contentDescription = if (iconOnly) label else null,
             modifier = Modifier.size(tokens.navigationIconSize))
-        if (!iconOnly) Text(label, style = MaterialTheme.typography.titleSmall.copy(fontSize = tokens.buttonText, fontWeight = FontWeight.SemiBold),
+        if (!iconOnly) Text(label, style = MaterialTheme.typography.titleSmall.copy(fontSize = tokens.buttonText, fontWeight = FontWeight.Medium),
             modifier = Modifier.padding(start = tokens.cardGap))
     }
 }

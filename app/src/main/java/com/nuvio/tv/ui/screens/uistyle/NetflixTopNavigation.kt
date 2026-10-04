@@ -281,7 +281,7 @@ private fun NetflixTopNavTab(
             style = TextStyle(
                 fontFamily = NetflixThemeTokens.fontFamily,
                 fontSize = tokens.labelSize,
-                fontWeight = if (selected || focused) FontWeight.Bold else FontWeight.Normal,
+                fontWeight = if (selected || focused) FontWeight.Medium else FontWeight.Normal,
             ).withNuvioDescenderRoom(),
             color = content,
             maxLines = 1,

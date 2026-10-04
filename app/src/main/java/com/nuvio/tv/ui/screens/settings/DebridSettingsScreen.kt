@@ -1425,7 +1425,7 @@ private fun DebridDeviceAuthCodes(
             text = userCode,
             style = MaterialTheme.typography.headlineSmall,
             color = NuvioTheme.colors.TextPrimary,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
         Text(

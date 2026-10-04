@@ -110,9 +110,24 @@ class NuvioTypographyTvTest {
         inks.zipWithNext().forEachIndexed { i, (lighter, heavier) ->
             assertTrue("weight ${weights[i + 1].weight} ink $heavier > ${weights[i].weight} ink $lighter", heavier > lighter)
         }
-        // There is no SemiBold file: 600 (used for buttons and tabs) uses the real Bold file, never fake bold.
+        // There is no SemiBold file: a stray 600 uses the real Bold file, never fake bold.
         val semiBold = resolver.resolve(NuvioFontFamily, FontWeight.SemiBold, FontStyle.Normal, FontSynthesis.None).value as Typeface
         assertEquals(700, semiBold.weight)
+    }
+
+    @Test fun rolesUseTheirThmanyahWeights() {
+        // Medium carries the controls, Regular the reading text, Bold only headings; no tracking anywhere.
+        for (typography in listOf(NuvioTypography, buildNetflixTypography())) {
+            val tokens = buildNuvioTextStyles(typography)
+            listOf(tokens.button, tokens.tab, tokens.badge, tokens.playerControl, tokens.nav, typography.labelLarge)
+                .forEach { assertEquals("control weight", FontWeight.Medium, it.fontWeight) }
+            listOf(typography.bodyLarge, typography.bodyMedium, typography.bodySmall)
+                .forEach { assertEquals("reading weight", FontWeight.Normal, it.fontWeight) }
+            listOf(typography.headlineLarge, typography.headlineMedium)
+                .forEach { assertEquals("heading weight", FontWeight.Bold, it.fontWeight) }
+            listOf(tokens.badge, tokens.button, tokens.tab, typography.labelSmall, typography.bodyLarge)
+                .forEach { assertEquals("tracking", 0f, it.letterSpacing.value) }
+        }
     }
 
     @Test fun arabicGlyphsRenderWithoutTofu() {
