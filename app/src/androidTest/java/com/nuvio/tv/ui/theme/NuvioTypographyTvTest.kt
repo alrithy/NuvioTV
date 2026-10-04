@@ -154,9 +154,15 @@ class NuvioTypographyTvTest {
         assertTrue("no Thmanyah font resource: $fontResources", fontResources.none { it.contains("thmanyah", ignoreCase = true) })
         val assets = assetPaths(app.assets, "")
         assertTrue("pack asset present", NuvioUiFontPack.ASSET in assets)
+        val fontFile = Regex("\\.(otf|ttf|woff2?|ttc)$", RegexOption.IGNORE_CASE)
         for (path in assets) {
-            assertTrue("$path is not named like a font", !path.contains("thmanyah", ignoreCase = true) &&
-                !Regex("\\.(otf|ttf|woff2?|ttc)$", RegexOption.IGNORE_CASE).containsMatchIn(path))
+            assertTrue("$path is not named after the family", !path.contains("thmanyah", ignoreCase = true))
+            // Other fonts (the player's subtitle font) may ship; none of them is a licensed file.
+            if (fontFile.containsMatchIn(path)) {
+                val digest = app.assets.open(path).use { java.security.MessageDigest.getInstance("SHA-256").digest(it.readBytes()) }
+                    .joinToString("") { "%02x".format(it) }
+                assertTrue("$path is not a Thmanyah Sans file", digest !in NuvioUiFontPack.SHA256)
+            }
         }
         val head = app.assets.open(NuvioUiFontPack.ASSET).use { stream -> ByteArray(4).also { stream.read(it) } }
         assertTrue("pack is not a raw font", String(head, Charsets.ISO_8859_1) !in setOf("OTTO", "wOFF", "wOF2", "\u0000\u0001\u0000\u0000"))
@@ -188,7 +194,8 @@ class NuvioTypographyTvTest {
                     for ((tag, style) in listOf("body" to t.bodyLarge, "title" to t.titleLarge, "heading" to t.headlineMedium,
                         "netflixDescription" to t.bodyLarge.copy(fontSize = NetflixThemeTokens.description,
                             lineHeight = NetflixThemeTokens.descriptionLineHeight), "small" to t.labelSmall.copy(fontSize = 12.sp))) {
-                        Box(Modifier.background(Color.Black)) {
+                        // Room around the line: Arabic descenders may reach below Thmanyah's line box.
+                        Box(Modifier.background(Color.Black).padding(vertical = 12.dp).testTag("${tag}Box")) {
                             Text(mixed, style = style, color = Color.White, maxLines = 1, modifier = Modifier.testTag(tag))
                         }
                     }
@@ -201,7 +208,8 @@ class NuvioTypographyTvTest {
             assertEquals("$tag on one line", 1, layout.lineCount)
             assertTrue("$tag not ellipsized", !layout.isLineEllipsized(0) && !layout.didOverflowWidth)
             assertTrue("$tag line fits its height", layout.getLineBottom(0) <= size.height + .5f)
-            val image = compose.onNodeWithTag(tag).captureToImage()
+            assertTrue("$tag is not clipped to its text box", !layout.hasVisualOverflow)
+            val image = compose.onNodeWithTag("${tag}Box").captureToImage()
             val rows = inkRows(image)
             assertTrue("$tag draws text", rows != null)
             assertTrue("$tag ascenders/diacritics not cut (${rows!!.first}..${rows.second} of ${image.height})",
@@ -219,7 +227,8 @@ class NuvioTypographyTvTest {
         compose.setContent {
             NuvioTheme(appTheme = AppTheme.WHITE) {
                 Column(Modifier.background(Color.Black).padding(24.dp)) {
-                    val style = MaterialTheme.typography.titleLarge
+                    // No lineHeight, like the Netflix labels: the line box is the font's own 1.25 em.
+                    val style = TextStyle(fontFamily = NuvioFontFamily, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     for ((tag, text) in listOf("fits" to word, "ellipsized" to List(12) { word }.joinToString(" "))) {
                         Box(Modifier.background(Color.Black).padding(vertical = 16.dp).testTag("${tag}Box")) {
                             Text(text, style = style, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis,

@@ -1109,11 +1109,12 @@ class NetflixThemeTvTest {
             val image = key.captureToImage()
             val ink = inkBounds(image)
             assertTrue("$letter draws ink", ink != null && ink.count >= (6f * density).toInt())
-            assertInkVisible(letter, key)
-            shapes[letter] = inkSignature(image)
+            // Signature of the glyph as drawn on the key, dots below the line box included (ي vs ى).
+            shapes[letter] = assertInkVisible(letter, key)
         }
         // Tofu boxes would all look the same; every key must render its own glyph.
-        assertEquals("distinct glyph shapes", shapes.size, shapes.values.toSet().size)
+        val duplicates = shapes.entries.groupBy({ it.value }, { it.key }).values.filter { it.size > 1 }
+        assertTrue("distinct glyph shapes (identical: $duplicates)", duplicates.isEmpty())
     }
 
     @Test fun topNavDoesNotClipWithThmanyah() {
@@ -1147,6 +1148,10 @@ class NetflixThemeTvTest {
     @Test fun categoryLabelsRemainInsideBounds() {
         setContent { ProductionScaffoldHome() }
         compose.onNodeWithTag("netflix_hero_play").requestFocus()
+        // In the top state the strip only peeks above the screen's bottom edge (the reference
+        // composition), so bring it fully on screen before measuring its labels.
+        compose.onNodeWithTag("netflix_home").performScrollToNode(hasTestTag("netflix_category_movies"))
+        compose.waitForIdle()
         for ((id, label) in listOf("trending" to text("Trending", "الرائج"), "popular" to text("Popular", "الأكثر شعبية"),
             "movies" to text("Movies", "الأفلام"))) {
             val tile = bounds("netflix_category_$id")
@@ -1211,7 +1216,7 @@ class NetflixThemeTvTest {
      * container around the text (its nearest semantics parent: the pill, key or tile), not in the
      * text box: no Compose clip, and the ink keeps clear of the container's top and bottom edges.
      */
-    private fun assertInkVisible(name: String, node: androidx.compose.ui.test.SemanticsNodeInteraction) {
+    private fun assertInkVisible(name: String, node: androidx.compose.ui.test.SemanticsNodeInteraction): String {
         val semantics = node.fetchSemanticsNode()
         assertTrue("$name is not clipped to its text box", !textLayout(node).hasVisualOverflow)
         val text = semantics.boundsInRoot
@@ -1223,13 +1228,26 @@ class NetflixThemeTvTest {
         val top = (container.top.toInt() + 2).coerceIn(0, pixels.height - 1)
         val bottom = (container.bottom.toInt() - 3).coerceIn(top, pixels.height - 1)
         val surface = luminance(pixels[left, text.top.toInt().coerceIn(top, bottom)])
-        var inkTop = -1; var inkBottom = -1
+        fun ink(x: Int, y: Int) = kotlin.math.abs(luminance(pixels[x, y]) - surface) > .35f
+        var inkTop = -1; var inkBottom = -1; var inkLeft = Int.MAX_VALUE; var inkRight = -1
         for (y in top..bottom) for (x in left..right) {
-            if (kotlin.math.abs(luminance(pixels[x, y]) - surface) > .35f) { if (inkTop < 0) inkTop = y; inkBottom = y }
+            if (ink(x, y)) { if (inkTop < 0) inkTop = y; inkBottom = y; inkLeft = minOf(inkLeft, x); inkRight = maxOf(inkRight, x) }
         }
         assertTrue("$name draws ink", inkTop >= 0)
         assertTrue("$name ink ($inkTop..$inkBottom) clear of its container rows $top..$bottom (text box ${text.top}..${text.bottom})",
             inkTop > top && inkBottom < bottom)
+        // A 16×16 occupancy grid of the visible ink box, for telling glyphs apart.
+        val width = inkRight - inkLeft + 1; val height = inkBottom - inkTop + 1
+        return buildString {
+            for (gy in 0 until 16) for (gx in 0 until 16) {
+                val x0 = inkLeft + gx * width / 16; val x1 = maxOf(inkLeft + (gx + 1) * width / 16, x0 + 1)
+                val y0 = inkTop + gy * height / 16; val y1 = maxOf(inkTop + (gy + 1) * height / 16, y0 + 1)
+                var on = false
+                for (y in y0 until minOf(y1, inkBottom + 1)) for (x in x0 until minOf(x1, inkRight + 1)) if (ink(x, y)) on = true
+                append(if (on) '1' else '0')
+            }
+            append(":${width * 10 / maxOf(height, 1)}")
+        }
     }
 
     private data class Ink(val top: Int, val bottom: Int, val left: Int, val right: Int, val count: Int)
@@ -1249,26 +1267,6 @@ class NetflixThemeTvTest {
         return if (count == 0) null else Ink(top, bottom, left, right, count)
     }
 
-    /** A coarse 12×12 occupancy grid of the ink box: equal for identical glyphs (such as tofu boxes). */
-    private fun inkSignature(image: ImageBitmap): String {
-        val ink = inkBounds(image) ?: return ""
-        val pixels = image.toPixelMap()
-        val surface = luminance(pixels[0, 0])
-        val width = ink.right - ink.left + 1; val height = ink.bottom - ink.top + 1
-        return buildString {
-            for (gy in 0 until 12) for (gx in 0 until 12) {
-                var on = false
-                val x0 = ink.left + gx * width / 12; val x1 = ink.left + (gx + 1) * width / 12
-                val y0 = ink.top + gy * height / 12; val y1 = ink.top + (gy + 1) * height / 12
-                for (y in y0 until maxOf(y1, y0 + 1)) for (x in x0 until maxOf(x1, x0 + 1)) {
-                    val p = pixels[minOf(x, pixels.width - 1), minOf(y, pixels.height - 1)]
-                    if (kotlin.math.abs(luminance(p) - surface) > .35f) on = true
-                }
-                append(if (on) '1' else '0')
-            }
-            append(":${width * 10 / maxOf(height, 1)}")
-        }
-    }
 
     private fun setContent(content: @Composable () -> Unit) {
         val locale = Locale.forLanguageTag(localeTag)
