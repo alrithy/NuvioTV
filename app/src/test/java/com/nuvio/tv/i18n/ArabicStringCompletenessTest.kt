@@ -16,7 +16,9 @@ class ArabicStringCompletenessTest {
 
     private data class Entry(val file: String, val placeholders: Set<String>)
 
-    private fun entries(dir: String): Map<String, Entry> {
+    private fun entries(dir: String): Map<String, Entry> = entryList(dir).toMap()
+
+    private fun entryList(dir: String): List<Pair<String, Entry>> {
         val factory = DocumentBuilderFactory.newInstance()
         return File(res, dir).listFiles { file -> file.extension == "xml" }.orEmpty().flatMap { file ->
             val root = factory.newDocumentBuilder().parse(file).documentElement
@@ -24,7 +26,7 @@ class ArabicStringCompletenessTest {
                 .filter { it.tagName in setOf("string", "plurals", "string-array") }
                 .filter { it.getAttribute("translatable") != "false" }
                 .map { it.getAttribute("name") to Entry(file.name, placeholders(it)) }
-        }.toMap()
+        }
     }
 
     private fun placeholders(element: Element): Set<String> =
@@ -36,6 +38,16 @@ class ArabicStringCompletenessTest {
         val arabic = entries("values-ar")
         val missing = english.filterKeys { it !in arabic }.map { (name, entry) -> "${entry.file}: $name" }.sorted()
         assertTrue("Strings without Arabic (${missing.size}):\n" + missing.joinToString("\n"), missing.isEmpty())
+    }
+
+    @Test
+    fun noStringIsDefinedTwice() {
+        // Resource merging rejects the same name in two files of one folder.
+        val duplicates = listOf("values", "values-ar").flatMap { dir ->
+            entryList(dir).groupBy({ it.first }, { it.second.file }).filterValues { it.size > 1 }
+                .map { (name, files) -> "$dir/$name: $files" }
+        }.sorted()
+        assertEquals("", duplicates.joinToString("\n"))
     }
 
     @Test
