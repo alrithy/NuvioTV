@@ -166,7 +166,13 @@ private fun PlaybackNavHost(
             )
         }
 
-        composable(Screen.Home.route) {
+        // NETFLIX_THEME: Movies and Shows are the Home presentation narrowed to one type, so this one
+        // destination body serves Home and both tabs.
+        @androidx.compose.runtime.Composable
+        fun HomeDestination(
+            viewModel: com.nuvio.tv.ui.screens.home.HomeViewModel,
+            typeFilter: String? = null
+        ) {
             fun createContinueWatchingRoute(
                 item: ContinueWatchingItem,
                 manualSelection: Boolean = false,
@@ -174,6 +180,8 @@ private fun PlaybackNavHost(
             ): String = continueWatchingRoute(item, manualSelection, startFromBeginning)
 
             HomeScreen(
+                viewModel = viewModel,
+                typeFilter = typeFilter,
                 onNavigateToDetail = { itemId, itemType, addonBaseUrl ->
                     val heroBackdrop = HeroBackdropState.consumeAndClear()
                     navController.navigate(
@@ -227,6 +235,10 @@ private fun PlaybackNavHost(
                     navController.navigate(Screen.FolderDetail.createRoute(collectionId, folderId))
                 }
             )
+        }
+
+        composable(Screen.Home.route) {
+            HomeDestination(viewModel = androidx.hilt.navigation.compose.hiltViewModel())
         }
 
         composable(
@@ -1121,6 +1133,21 @@ private fun PlaybackNavHost(
             route = Screen.Discover.routePattern,
             arguments = listOf(navArgument("type") { type = NavType.StringType; defaultValue = "" })
         ) { entry ->
+            val discoverType = entry.arguments?.getString("type").orEmpty()
+            if (com.nuvio.tv.ui.theme.NuvioTheme.isNetflix && discoverType in setOf("movie", "series")) {
+                // Netflix Movies / Shows: the same hero, category strip and rows as Home, one type only.
+                // It shares Home's catalogs instead of loading them a second time.
+                val homeEntry = androidx.compose.runtime.remember(entry) {
+                    runCatching { navController.getBackStackEntry(Screen.Home.route) }.getOrNull()
+                }
+                val homeViewModel = if (homeEntry != null) {
+                    androidx.hilt.navigation.compose.hiltViewModel<com.nuvio.tv.ui.screens.home.HomeViewModel>(homeEntry)
+                } else {
+                    androidx.hilt.navigation.compose.hiltViewModel()
+                }
+                HomeDestination(viewModel = homeViewModel, typeFilter = discoverType)
+                return@composable
+            }
             DiscoverScreen(
                 initialType = entry.arguments?.getString("type"),
                 showBuiltInHeader = !hideBuiltInHeaders,
@@ -1181,7 +1208,9 @@ private fun PlaybackNavHost(
                 onOpenFullLibrary = { navController.navigate(Screen.Library.route) },
                 // Search and Settings are top-level destinations: switch to them as the top bar does.
                 onOpenSearch = { com.nuvio.tv.navigateToDrawerRoute(navController, Screen.MyNetflix.route, Screen.Search.route) },
-                onOpenSettings = { com.nuvio.tv.navigateToDrawerRoute(navController, Screen.MyNetflix.route, Screen.Settings.route) }
+                onOpenSettings = { com.nuvio.tv.navigateToDrawerRoute(navController, Screen.MyNetflix.route, Screen.Settings.route) },
+                onOpenCalendar = { navController.navigate(Screen.Calendar.route) },
+                onOpenLiveTv = { navController.navigate(Screen.LiveTv.route) }
             )
         }
 

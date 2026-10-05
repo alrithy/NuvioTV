@@ -2,6 +2,8 @@
     <string name="theme_netflix">Netflix</string>
     <string name="appearance_theme">الثيم</string>
     <string name="theme_netflix_description">تجربة تلفاز سينمائية مع خلفية واسعة وصفوف متقاربة ومعاينات مناسبة للريموت.</string>
+    <string name="netflix_search_categories">التصنيفات</string>
+    <string name="netflix_search_all_genres">الكل</string>
     <string name="netflix_nav_shows">المسلسلات</string>
     <string name="netflix_nav_my_netflix">نتفليكس الخاص بي</string>
     <string name="netflix_hub_continue_watching">متابعة المشاهدة</string>

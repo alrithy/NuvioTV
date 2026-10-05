@@ -161,6 +161,15 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    // NETFLIX_THEME Movies / Shows focus memory, separate from Home's own.
+    private val typedFocusStates = java.util.concurrent.ConcurrentHashMap<String, HomeScreenFocusState>()
+
+    internal fun typedFocusState(type: String): HomeScreenFocusState = typedFocusStates[type] ?: HomeScreenFocusState()
+
+    internal fun saveTypedFocusState(type: String, state: HomeScreenFocusState) {
+        typedFocusStates[type] = state
+    }
+
     fun requestScrollToTop() {
         clearFocusState()
         _gridFocusState.value = HomeScreenFocusState()

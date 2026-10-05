@@ -74,11 +74,18 @@ fun MyNetflixHubScreen(
     onOpenFullLibrary: () -> Unit,
     onOpenSearch: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenCalendar: () -> Unit = {},
+    onOpenLiveTv: () -> Unit = {},
     viewModel: MyNetflixHubViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val profile by viewModel.profile.collectAsStateWithLifecycle()
-    MyNetflixHubContent(state, profile, onOpenDetail, onResume, onOpenFullLibrary, onOpenSearch, onOpenSettings)
+    val liveTvEnabled by viewModel.liveTvEnabled.collectAsStateWithLifecycle()
+    MyNetflixHubContent(
+        state, profile, onOpenDetail, onResume, onOpenFullLibrary, onOpenSearch, onOpenSettings,
+        onOpenCalendar = onOpenCalendar.takeIf { viewModel.calendarEnabled },
+        onOpenLiveTv = onOpenLiveTv.takeIf { liveTvEnabled },
+    )
 }
 
 /** Stateless so the TV instrumentation can render the real hub from deterministic fixtures. */
@@ -91,6 +98,8 @@ internal fun MyNetflixHubContent(
     onOpenFullLibrary: () -> Unit,
     onOpenSearch: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenCalendar: (() -> Unit)? = null,
+    onOpenLiveTv: (() -> Unit)? = null,
 ) {
     val tokens = NetflixThemeTokens
     LazyColumn(
@@ -101,7 +110,7 @@ internal fun MyNetflixHubContent(
         item(key = "header") {
             // The header art is the profile's own most recent title, never stock imagery.
             val headerArt = state.rows.firstOrNull()?.cards?.firstOrNull { it.imageUrl != null }?.imageUrl
-            MyNetflixHeader(profile, state.libraryCount, headerArt, onOpenFullLibrary, onOpenSettings)
+            MyNetflixHeader(profile, state.libraryCount, headerArt, onOpenFullLibrary, onOpenSettings, onOpenCalendar, onOpenLiveTv)
         }
         if (state.isEmpty) {
             item(key = "empty") { MyNetflixEmpty(onOpenSearch) }
@@ -121,6 +130,8 @@ private fun MyNetflixHeader(
     headerArt: String?,
     onOpenFullLibrary: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenCalendar: (() -> Unit)?,
+    onOpenLiveTv: (() -> Unit)?,
 ) {
     val tokens = NetflixThemeTokens
     val hub = NetflixThemeTokens.Hub
@@ -172,6 +183,13 @@ private fun MyNetflixHeader(
                             else stringResource(R.string.netflix_hub_full_library),
                         onClick = onOpenFullLibrary, tag = "my_netflix_full_library",
                     )
+                    // Calendar and Live TV live here in Netflix mode instead of the top menu.
+                    onOpenCalendar?.let {
+                        MyNetflixAction(stringResource(R.string.nav_calendar), it, tag = "my_netflix_calendar")
+                    }
+                    onOpenLiveTv?.let {
+                        MyNetflixAction(stringResource(R.string.live_tv_title), it, tag = "my_netflix_live_tv")
+                    }
                 }
             }
             MyNetflixIconAction(Icons.Default.Settings, stringResource(R.string.nav_settings), onOpenSettings, tag = "my_netflix_settings")

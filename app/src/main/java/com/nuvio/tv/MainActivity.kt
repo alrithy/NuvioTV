@@ -1082,8 +1082,9 @@ open class MainActivity : ComponentActivity() {
                     val rootRoutes = remember(discoverLocation, liveTvEnabled, netflixThemeEnabled) {
                         buildSet {
                             add(Screen.Home.route)
-                            if (calendarEnabled) add(Screen.Calendar.route)
-                            if (liveTvEnabled) add(Screen.LiveTv.route)
+                            // In Netflix mode Calendar and Live TV are children of My Netflix, with normal Back.
+                            if (calendarEnabled && !netflixThemeEnabled) add(Screen.Calendar.route)
+                            if (liveTvEnabled && !netflixThemeEnabled) add(Screen.LiveTv.route)
                             add(Screen.Search.route)
                             // NETFLIX_THEME: My Netflix is the root; the full Library opens from it as a child.
                             if (netflixThemeEnabled) add(Screen.MyNetflix.route) else add(Screen.Library.route)
@@ -1134,8 +1135,7 @@ open class MainActivity : ComponentActivity() {
                                 add(DrawerItem(Screen.Discover.createRoute("series"), strNavNetflixShows, icon = Icons.Default.Tv))
                                 add(DrawerItem(Screen.Discover.createRoute("movie"), strNavMovies, icon = Icons.Default.Movie))
                                 add(DrawerItem(Screen.MyNetflix.route, strNavMyNetflix, iconRes = R.raw.sidebar_library))
-                                if (calendarEnabled) add(DrawerItem(Screen.Calendar.route, strNavCalendar, icon = Icons.Default.DateRange))
-                                if (liveTvEnabled) add(DrawerItem(Screen.LiveTv.route, strNavLiveTv, icon = Icons.Default.LiveTv))
+                                // Netflix has no Calendar or Live TV tab; both open from My Netflix instead.
                                 add(DrawerItem(Screen.Settings.route, strNavSettings, iconRes = R.raw.sidebar_settings))
                                 return@buildList
                             }

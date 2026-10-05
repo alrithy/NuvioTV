@@ -411,14 +411,10 @@ internal fun NetflixSearchContent(
                         }
                     }
                 }
-                // The query already sits in the compact query line; only browse mode needs a header.
+                // The query already sits in the compact query line; browse mode shows the categories that
+                // Netflix moved into Search: type, then the genres the selected catalog offers.
                 if (uiState.query.isBlank()) {
-                    Text(
-                        text = stringResource(R.string.nav_discover),
-                        color = tokens.textSecondary,
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.padding(bottom = tokens.rowTitleGap)
-                    )
+                    NetflixSearchCategories(uiState, onEvent, Modifier.padding(bottom = tokens.rowTitleGap))
                 }
                 val currentError = if (uiState.query.isBlank()) uiState.discoverError else uiState.error
                 when {

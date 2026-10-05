@@ -2,6 +2,8 @@
     <string name="theme_netflix">Netflix</string>
     <string name="appearance_theme">Theme</string>
     <string name="theme_netflix_description">Cinematic TV experience with a full-screen hero, compact rows and remote-friendly previews.</string>
+    <string name="netflix_search_categories">Categories</string>
+    <string name="netflix_search_all_genres">All</string>
     <string name="netflix_nav_shows">TV Shows</string>
     <string name="netflix_nav_my_netflix">My Netflix</string>
     <string name="netflix_hub_continue_watching">Continue Watching</string>

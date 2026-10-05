@@ -29,7 +29,14 @@ class MyNetflixHubViewModel @Inject constructor(
     libraryRepository: LibraryRepository,
     watchProgressRepository: WatchProgressRepository,
     private val profileManager: ProfileManager,
+    liveTvRepository: com.nuvio.tv.fork.livetv.LiveTvRepository,
 ) : ViewModel() {
+
+    /** Netflix has no Calendar or Live TV tab, so the hub is where both open from when enabled. */
+    val calendarEnabled: Boolean = com.nuvio.tv.fork.discovery.CalendarRules.enabled
+    val liveTvEnabled: StateFlow<Boolean> = liveTvRepository.menuEnabled
+        .catch { emit(false) }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), false)
 
     internal val state: StateFlow<MyNetflixHubState> = combine(
         libraryRepository.libraryItems.onStart { emit(emptyList()) }.catch { emit(emptyList()) },
