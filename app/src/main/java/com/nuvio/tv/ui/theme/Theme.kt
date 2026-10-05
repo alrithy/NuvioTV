@@ -55,7 +55,7 @@ val LocalNuvioFocusRingStyle = staticCompositionLocalOf {
 @Composable
 fun NuvioTheme(
     appTheme: AppTheme = AppTheme.WHITE,
-    appFont: AppFont = AppFont.INTER,
+    appFont: AppFont = AppFont.THMANYAH_SANS,
     amoledMode: Boolean = false,
     amoledSurfacesMode: Boolean = false,
     settingsUiStyle: SettingsUiStyle = SettingsUiStyle.CLASSIC,
@@ -71,8 +71,14 @@ fun NuvioTheme(
         amoledMode = amoledMode,
         amoledSurfacesMode = amoledSurfacesMode
     )
-    val typography = buildNuvioTypography(getFontFamily(appFont))
+    val typography = androidx.compose.runtime.remember(appTheme, appFont) {
+        if (appTheme == AppTheme.NETFLIX) buildNetflixTypography()
+        else buildNuvioTypography(getFontFamily(appFont))
+    }
     val textStyles = buildNuvioTextStyles(typography)
+    // Compose Material 3 components (player side panels, menus, CoreText) read their own theme;
+    // give them the same family so no app text falls through to the platform default.
+    val coreTypography = androidx.compose.runtime.remember(typography) { buildCoreTypography(typography) }
 
     val materialColorScheme = darkColorScheme(
         primary = colorScheme.Primary,
@@ -104,18 +110,49 @@ fun NuvioTheme(
         LocalNuvioTextStyles provides textStyles,
         LocalAppTheme provides appTheme,
         LocalThemePalette provides palette,
-        LocalSettingsUiStyle provides settingsUiStyle,
+        LocalSettingsUiStyle provides if (appTheme == AppTheme.NETFLIX) SettingsUiStyle.HORIZON else settingsUiStyle,
         LocalNuvioFocusRingStyle provides focusRingStyle
     ) {
-        MaterialTheme(
-            colorScheme = materialColorScheme,
-            typography = typography,
-            content = content
-        )
+        // Only the typography changes: the outer indication and selection colours are restored so the
+        // Material 3 wrapper adds no ripple or colour behaviour of its own.
+        val indication = androidx.compose.foundation.LocalIndication.current
+        val selectionColors = androidx.compose.foundation.text.selection.LocalTextSelectionColors.current
+        androidx.compose.material3.MaterialTheme(typography = coreTypography) {
+            CompositionLocalProvider(
+                androidx.compose.foundation.LocalIndication provides indication,
+                androidx.compose.foundation.text.selection.LocalTextSelectionColors provides selectionColors
+            ) {
+                MaterialTheme(
+                    colorScheme = materialColorScheme,
+                    typography = typography,
+                    content = content
+                )
+            }
+        }
     }
 }
 
+@OptIn(ExperimentalTvMaterial3Api::class)
+internal fun buildCoreTypography(typography: androidx.tv.material3.Typography): androidx.compose.material3.Typography {
+    val family = typography.bodyLarge.fontFamily
+    val synthesis = typography.bodyLarge.fontSynthesis
+    val base = androidx.compose.material3.Typography()
+    fun androidx.compose.ui.text.TextStyle.themed() = copy(fontFamily = family, fontSynthesis = synthesis ?: fontSynthesis)
+    return base.copy(
+        displayLarge = base.displayLarge.themed(), displayMedium = base.displayMedium.themed(), displaySmall = base.displaySmall.themed(),
+        headlineLarge = base.headlineLarge.themed(), headlineMedium = base.headlineMedium.themed(), headlineSmall = base.headlineSmall.themed(),
+        titleLarge = base.titleLarge.themed(), titleMedium = base.titleMedium.themed(), titleSmall = base.titleSmall.themed(),
+        bodyLarge = base.bodyLarge.themed(), bodyMedium = base.bodyMedium.themed(), bodySmall = base.bodySmall.themed(),
+        labelLarge = base.labelLarge.themed(), labelMedium = base.labelMedium.themed(), labelSmall = base.labelSmall.themed()
+    )
+}
+
 object NuvioTheme {
+    val isNetflix: Boolean
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalAppTheme.current == AppTheme.NETFLIX
+
     val palette: ThemeColorPalette
         @Composable
         @ReadOnlyComposable

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Post-play sources (Superfork G9c, D054). -->
+<resources>
+    <string name="post_play_source">مصدر الاقتراحات</string>
+    <string name="post_play_source_sub">من أين تأتي العناوين المعروضة بعد التشغيل. أي مصدر غير الأول يعرض حتى 20 عنوانًا.</string>
+    <string name="post_play_source_official">مثل «مقترحات مشابهة»</string>
+    <string name="post_play_source_official_desc">Trakt أو TMDB أو Simkl، كما اخترت لـ«مقترحات مشابهة». حتى 4 عناوين.</string>
+    <string name="post_play_source_auto">تلقائي</string>
+    <string name="post_play_source_auto_desc">Kurato AI، ثم BingeCat AI، ثم «مقترحات مشابهة»: أول مصدر لديه عناوين.</string>
+    <string name="post_play_source_kurato">Kurato AI</string>
+    <string name="post_play_source_kurato_desc">يسأل إضافة Kurato AI المثبّتة. يُستخدم «مقترحات مشابهة» إن لم تكن مثبّتة.</string>
+    <string name="post_play_source_bingecat">BingeCat AI</string>
+    <string name="post_play_source_bingecat_desc">يسأل إضافة BingeCat AI المثبّتة. يُستخدم «مقترحات مشابهة» إن لم تكن مثبّتة.</string>
+    <string name="post_play_source_mdblist">قائمة مشاهدة MDBList</string>
+    <string name="post_play_source_mdblist_desc">عناوين لم تُشاهد من قائمة مشاهدة MDBList. يُستخدم «مقترحات مشابهة» إن لم يكن MDBList متصلًا.</string>
+</resources>

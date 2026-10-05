@@ -72,6 +72,8 @@ import com.nuvio.tv.domain.model.CardDepthSurface
 import com.nuvio.tv.domain.model.MetaPreview
 import com.nuvio.tv.domain.model.PosterShape
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.fork.resource.AdaptiveResources
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.CachePolicy
@@ -112,23 +114,26 @@ fun ContentCard(
     onLongPress: (() -> Unit)? = null,
     onClick: () -> Unit = {}
 ) {
-    val cardShape = remember(posterCardStyle.cornerRadius) { RoundedCornerShape(posterCardStyle.cornerRadius) }
+    val isNetflix = NuvioTheme.isNetflix
+    val cardShape = remember(posterCardStyle.cornerRadius, isNetflix) {
+        RoundedCornerShape(if (isNetflix) NetflixThemeTokens.cardRadius else posterCardStyle.cornerRadius)
+    }
     val cardDepthStyle = LocalCardDepthStyle.current
-    val globalLandscape = LocalLandscapePosterMode.current
+    val globalLandscape = isNetflix || LocalLandscapePosterMode.current
     val effectivePosterShape = if (globalLandscape) PosterShape.LANDSCAPE else item.posterShape
     val baseCardWidth = when (effectivePosterShape) {
         PosterShape.POSTER -> posterCardStyle.width
-        PosterShape.LANDSCAPE -> posterCardStyle.height
+        PosterShape.LANDSCAPE -> if (isNetflix) NetflixThemeTokens.landscapeCardWidth else posterCardStyle.height
         PosterShape.SQUARE -> 170.dp
     }
     val baseCardHeight = when (effectivePosterShape) {
         PosterShape.POSTER -> posterCardStyle.height
-        PosterShape.LANDSCAPE -> posterCardStyle.height / PosterShape.LANDSCAPE.aspectRatio()
+        PosterShape.LANDSCAPE -> if (isNetflix) baseCardWidth / NetflixThemeTokens.landscapeAspectRatio else posterCardStyle.height / PosterShape.LANDSCAPE.aspectRatio()
         PosterShape.SQUARE -> 170.dp
     }
     // Landscape cards are already 16:9 — expanded width equals base width (no size change).
     val expandedCardWidth = if (globalLandscape) baseCardWidth else baseCardHeight * BACKDROP_ASPECT_RATIO
-    val effectiveExpandEnabled = focusedPosterBackdropExpandEnabled
+    val effectiveExpandEnabled = !isNetflix && focusedPosterBackdropExpandEnabled
 
     var isFocused by remember { mutableStateOf(false) }
     var longPressTriggered by remember { mutableStateOf(false) }
@@ -137,6 +142,11 @@ fun ContentCard(
     var isBackdropExpanded by remember { mutableStateOf(false) }
     var trailerFirstFrameRendered by remember(trailerPreviewUrl) { mutableStateOf(false) }
     val lifecycleOwner = LocalLifecycleOwner.current
+    val netflixFocusScale by animateFloatAsState(
+        targetValue = if (isNetflix && isFocused) NetflixThemeTokens.focusScale else 1f,
+        animationSpec = tween(if (AdaptiveResources.policy.isLowRam) 0 else NetflixThemeTokens.focusDurationMs),
+        label = "netflixContentCardFocus"
+    )
 
     LaunchedEffect(isBackdropExpanded) {
         onBackdropExpandedChanged?.invoke(isBackdropExpanded)
@@ -231,6 +241,12 @@ fun ContentCard(
         horizontalAlignment = Alignment.Start,
         modifier = modifier
             .width(animatedCardWidth)
+            .then(if (isNetflix) Modifier.zIndex(if (isFocused) 1f else 0f).graphicsLayer {
+                scaleX = netflixFocusScale
+                scaleY = netflixFocusScale
+                shadowElevation = if (isFocused && !AdaptiveResources.policy.isLowRam) NetflixThemeTokens.focusElevation.toPx() else 0f
+                shape = cardShape
+            } else Modifier)
             .recompositionHighlighter()
     ) {
         val context = LocalContext.current
@@ -376,11 +392,11 @@ fun ContentCard(
             ),
             border = CardDefaults.border(
                 focusedBorder = Border(
-                    border = NuvioTheme.focusRing.border(posterCardStyle.focusedBorderWidth),
+                    border = NuvioTheme.focusRing.border(if (isNetflix) NetflixThemeTokens.focusedBorderWidth else posterCardStyle.focusedBorderWidth),
                     shape = cardShape
                 )
             ),
-            scale = CardDefaults.scale(focusedScale = posterCardStyle.focusedScale)
+            scale = CardDefaults.scale(focusedScale = if (isNetflix) 1f else posterCardStyle.focusedScale)
         ) {
             Box(
                 modifier = Modifier
@@ -679,7 +695,7 @@ fun ContentCard(
                             ) {
                                 Text(
                                     text = ageRating,
-                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                                    style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
                                     color = NuvioTheme.extendedColors.textSecondary,
                                     maxLines = 1
                                 )

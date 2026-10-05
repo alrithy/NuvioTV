@@ -65,7 +65,10 @@ data class HeroPreview(
      *  even after navigation away and back. */
     val frozenBackdropUrl: String? = null,
     /** Same idea for the logo URL. */
-    val frozenLogoUrl: String? = null
+    val frozenLogoUrl: String? = null,
+    val seasonCount: Int? = null,
+    /** Netflix hero actions travel with the visible preview while enrichment/focus settles. */
+    val actionPayload: ModernPayload? = null
 )
 
 @Immutable
@@ -495,6 +498,7 @@ internal fun buildCatalogItem(
         isSeries = isSeriesType(item.apiType),
         yearText = extractYearText(item.type, item.releaseInfo, item.released, showFullReleaseDate),
         runtimeText = formatHeroRuntime(item.runtime),
+        seasonCount = item.seasonCount,
         imdbText = item.imdbRating
             ?.let { String.format("%.1f", it) },
         ageRatingText = item.ageRating,
@@ -606,9 +610,10 @@ internal fun catalogRowTitle(
     row: CatalogRow,
     showCatalogTypeSuffix: Boolean,
     strTypeMovie: String = "",
-    strTypeSeries: String = ""
+    strTypeSeries: String = "",
+    localizeName: (String) -> String = { it }
 ): String {
-    val catalogName = row.catalogName.replaceFirstChar { it.uppercase() }
+    val catalogName = localizeName(row.catalogName).replaceFirstChar { it.uppercase() }
     if (!showCatalogTypeSuffix) return catalogName
     val typeLabel = when (row.apiType.lowercase()) {
         "movie" -> strTypeMovie.ifBlank { row.apiType.replaceFirstChar { it.uppercase() } }

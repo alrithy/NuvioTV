@@ -423,7 +423,7 @@ private fun LiveTvCategoryColumn(
         Text(
             text = stringResource(R.string.live_tv_title),
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             letterSpacing = 0.5.sp,
             color = if (showHeader) NuvioTheme.colors.TextPrimary else Color.Transparent,
         )
@@ -497,7 +497,7 @@ private fun LiveTvCategoryItem(label: String, selected: Boolean, selectedModifie
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
             color = if (focused) Color.Black else if (selected) NuvioTheme.colors.TextPrimary else NuvioTheme.colors.TextSecondary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
@@ -528,7 +528,7 @@ private fun LiveTvRecentRow(
             Text(
                 text = channel.name,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 color = if (focused) Color.Black else NuvioTheme.colors.TextPrimary,
@@ -657,7 +657,7 @@ private fun LiveTvEmptyState(onAddSource: () -> Unit) {
         Text(
             text = stringResource(R.string.live_tv_empty_title),
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Bold,
             color = NuvioTheme.colors.TextPrimary,
         )
         Text(

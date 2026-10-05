@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.screens.detail
 
 import com.nuvio.tv.ui.theme.NuvioMotion
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import android.view.KeyEvent as AndroidKeyEvent
 import androidx.compose.animation.AnimatedVisibility
@@ -76,6 +77,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.painter.Painter
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -120,8 +122,43 @@ fun HeroContentSection(
     onHeroActionFocused: () -> Unit = {},
     onPlayFocusRestored: () -> Unit = {},
     onShowFullDescription: () -> Unit = {},
-    onTruncationChanged: (Boolean) -> Unit = {}
+    onTruncationChanged: (Boolean) -> Unit = {},
+    onPlayFromBeginning: (() -> Unit)? = null
 ) {
+    if (NuvioTheme.isNetflix) {
+        NetflixDetailHero(
+            meta = meta,
+            nextToWatch = nextToWatch,
+            onPlayClick = onPlayClick,
+            isPlayEnabled = isPlayEnabled,
+            onPlayLongPress = onPlayLongPress,
+            onPlayFromBeginning = onPlayFromBeginning,
+            isInLibrary = isInLibrary,
+            onToggleLibrary = onToggleLibrary,
+            onLibraryLongPress = onLibraryLongPress,
+            isMovieWatched = isMovieWatched,
+            isMovieWatchedPending = isMovieWatchedPending,
+            onToggleMovieWatched = onToggleMovieWatched,
+            trailerAvailable = trailerAvailable,
+            onTrailerClick = onTrailerClick,
+            showRandomEpisodeButton = showRandomEpisodeButton,
+            episodeShuffle = episodeShuffle,
+            shuffleActionPending = shuffleActionPending,
+            onRandomEpisodeClick = onRandomEpisodeClick,
+            randomEpisodeFocusRequester = randomEpisodeFocusRequester,
+            isTrailerPlaying = isTrailerPlaying,
+            hideLogoDuringTrailer = hideLogoDuringTrailer,
+            hideImdbRating = hideMetaInfoImdb,
+            tmdbRating = tmdbRating,
+            playButtonFocusRequester = playButtonFocusRequester,
+            restorePlayFocusToken = restorePlayFocusToken,
+            onHeroActionFocused = onHeroActionFocused,
+            onPlayFocusRestored = onPlayFocusRestored,
+            onShowFullDescription = onShowFullDescription,
+            onTruncationChanged = onTruncationChanged
+        )
+        return
+    }
     val context = LocalContext.current
     val isSeriesApi = remember(meta.apiType) {
         meta.apiType.equals("series", ignoreCase = true) || meta.apiType.equals("tv", ignoreCase = true)
@@ -380,6 +417,7 @@ internal fun PlayButton(
     restoreFocusToken: Int = 0,
     onFocusRestored: () -> Unit = {}
 ) {
+    val isNetflix = NuvioTheme.isNetflix
     var longPressTriggered by remember { mutableStateOf(false) }
     val longPressKeyTracker = rememberLongPressKeyTracker()
 
@@ -404,6 +442,7 @@ internal fun PlayButton(
             }
         },
         modifier = modifier
+            .then(if (NuvioTheme.isNetflix) Modifier.testTag("netflix_detail_play") else Modifier)
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
             .onFocusChanged {
                 if (it.isFocused) {
@@ -442,7 +481,7 @@ internal fun PlayButton(
                 }
                 false
             }
-            .focusProperties { up = FocusRequester.Cancel },
+            .focusProperties { up = if (isNetflix) FocusRequester.Default else FocusRequester.Cancel },
         colors = ButtonDefaults.colors(
             containerColor = androidx.compose.ui.graphics.Color.White,
             focusedContainerColor = androidx.compose.ui.graphics.Color.White,
@@ -450,14 +489,15 @@ internal fun PlayButton(
             focusedContentColor = androidx.compose.ui.graphics.Color.Black
         ),
         shape = ButtonDefaults.shape(
-            shape = RoundedCornerShape(NuvioTheme.spacing.xxl)
+            shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.spacing.xxl)
         ),
         border = ButtonDefaults.border(
             focusedBorder = Border(
                 border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                shape = RoundedCornerShape(NuvioTheme.spacing.xxl)
+                shape = RoundedCornerShape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonRadius else NuvioTheme.spacing.xxl)
             )
         ),
+        scale = if (NuvioTheme.isNetflix) ButtonDefaults.scale(focusedScale = NetflixThemeTokens.episodeFocusScale) else ButtonDefaults.scale(),
         contentPadding = PaddingValues(horizontal = NuvioTheme.spacing.xl, vertical = 14.dp)
     ) {
         Row(
@@ -533,7 +573,7 @@ private fun ActionIconButtonPainter(
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-private fun ActionIconButton(
+internal fun ActionIconButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     painter: Painter? = null,
     contentDescription: String,
@@ -546,6 +586,7 @@ private fun ActionIconButton(
     onFocused: () -> Unit = {},
     focusRequester: FocusRequester? = null
 ) {
+    val isNetflix = NuvioTheme.isNetflix
     var longPressTriggered by remember { mutableStateOf(false) }
     val longPressKeyTracker = rememberLongPressKeyTracker()
 
@@ -560,7 +601,7 @@ private fun ActionIconButton(
         enabled = enabled,
         modifier = Modifier
             .then(if (focusRequester != null) Modifier.focusRequester(focusRequester) else Modifier)
-            .size(NuvioTheme.spacing.xxxl)
+            .size(if (isNetflix) NetflixThemeTokens.buttonHeight else NuvioTheme.spacing.xxxl)
             .onFocusChanged { state ->
                 if (state.isFocused) onFocused()
             }
@@ -596,7 +637,7 @@ private fun ActionIconButton(
                 }
                 false
             }
-            .focusProperties { up = FocusRequester.Cancel },
+            .focusProperties { up = if (isNetflix) FocusRequester.Default else FocusRequester.Cancel },
         colors = IconButtonDefaults.colors(
             containerColor = if (selected) selectedContainerColor else NuvioTheme.colors.BackgroundCard,
             focusedContainerColor = NuvioTheme.colors.Secondary,
@@ -611,7 +652,8 @@ private fun ActionIconButton(
         ),
         shape = IconButtonDefaults.shape(
             shape = CircleShape
-        )
+        ),
+        scale = if (isNetflix) IconButtonDefaults.scale(focusedScale = NetflixThemeTokens.episodeFocusScale) else IconButtonDefaults.scale()
     ) {
         when {
             painter != null -> Icon(

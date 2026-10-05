@@ -3,6 +3,7 @@
 package com.nuvio.tv.ui.screens.player
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
@@ -72,6 +73,7 @@ fun SkipIntroButton(
     downFocusRequester: FocusRequester? = null,
     upFocusRequester: FocusRequester? = null,
     rightFocusRequester: FocusRequester? = null,
+    leftFocusRequester: FocusRequester? = null,
     modifier: Modifier = Modifier
 ) {
 
@@ -144,8 +146,8 @@ fun SkipIntroButton(
 
     AnimatedVisibility(
         visible = isVisible,
-        enter = fadeIn(tween(300)) + scaleIn(tween(300), initialScale = 0.8f),
-        exit = fadeOut(tween(200)) + scaleOut(tween(200), targetScale = 0.8f),
+        enter = if (NuvioTheme.isNetflix) fadeIn(tween(NetflixThemeTokens.focusDurationMillis)) else fadeIn(tween(300)) + scaleIn(tween(300), initialScale = 0.8f),
+        exit = if (NuvioTheme.isNetflix) fadeOut(tween(NetflixThemeTokens.focusDurationMillis)) else fadeOut(tween(200)) + scaleOut(tween(200), targetScale = 0.8f),
         modifier = modifier
     ) {
         Card(
@@ -157,6 +159,7 @@ fun SkipIntroButton(
                     downFocusRequester?.let { down = it }
                     upFocusRequester?.let { up = it }
                     rightFocusRequester?.let { right = it }
+                    leftFocusRequester?.let { left = it }
                 }
                 .onPreviewKeyEvent { keyEvent ->
                     if (!canFocus) return@onPreviewKeyEvent false
@@ -193,10 +196,11 @@ fun SkipIntroButton(
                     if (it.isFocused) onFocused?.invoke()
                 },
             colors = CardDefaults.colors(
-                containerColor = Color(0xFF1E1E1E).copy(alpha = 0.85f),
+                containerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.surfaceRaised else Color(0xFF1E1E1E).copy(alpha = 0.85f),
                 focusedContainerColor = NuvioTheme.colors.Secondary
             ),
-            shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.md))
+            shape = CardDefaults.shape(shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.radii.md)),
+            scale = if (NuvioTheme.isNetflix) CardDefaults.scale(focusedScale = NetflixThemeTokens.episodeFocusScale) else CardDefaults.scale()
         ) {
             androidx.compose.foundation.layout.Column(
                 modifier = Modifier.width(IntrinsicSize.Max)

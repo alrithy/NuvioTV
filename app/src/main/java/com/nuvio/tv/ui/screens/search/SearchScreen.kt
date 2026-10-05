@@ -140,6 +140,11 @@ fun SearchScreen(
     onNavigateToSeeAll: (catalogId: String, addonId: String, type: String) -> Unit = { _, _, _ -> },
     onOpenDiscover: () -> Unit = {}
 ) {
+    if (NuvioTheme.isNetflix) {
+        NetflixSearchScreen(viewModel = viewModel, onNavigateToDetail = onNavigateToDetail)
+        return
+    }
+    LaunchedEffect(viewModel) { viewModel.setDiscoverSessionEnabled(false) }
     val uiState by viewModel.uiState.collectAsState()
     val watchedMovieIds by viewModel.watchedMovieIds.collectAsState()
     val watchedSeriesIds by viewModel.watchedSeriesIds.collectAsState()
@@ -1383,6 +1388,7 @@ private fun SearchInputField(
                 )
             },
             textStyle = TextStyle(
+                fontFamily = androidx.tv.material3.MaterialTheme.typography.bodyLarge.fontFamily,
                 textDirection = TextDirection.Content
             ),
             colors = TextFieldDefaults.colors(

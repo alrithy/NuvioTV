@@ -54,7 +54,7 @@ fun AuthSignInScreen(
                 text = stringResource(R.string.auth_signin_title),
                 style = MaterialTheme.typography.headlineSmall,
                 color = NuvioTheme.colors.TextPrimary,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(10.dp))
             Text(

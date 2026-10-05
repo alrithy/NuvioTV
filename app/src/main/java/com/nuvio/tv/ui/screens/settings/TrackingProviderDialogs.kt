@@ -50,12 +50,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.tv.material3.Button
+import com.nuvio.tv.ui.components.NuvioDialogButton as Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.ExperimentalTvMaterial3Api
 import androidx.tv.material3.Icon
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import androidx.tv.material3.LocalContentColor
 import com.nuvio.tv.R
 import com.nuvio.tv.core.qr.QrCodeGenerator
 import com.nuvio.tv.data.repository.TraktProgressService
@@ -65,6 +66,7 @@ import com.nuvio.tv.ui.components.LoadingIndicator
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.theme.NuvioMotion
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.delay
 
@@ -454,11 +456,11 @@ internal fun ConnectedTrackingAccountDialog(
         width = 720.dp,
         suppressFirstKeyUp = false,
         containerBrush = brand.cardBrush(),
-        containerBorderColor = Color.White.copy(alpha = 0.2f),
-        containerBorderWidth = 0.5.dp,
-        containerCornerRadius = 24.dp,
-        contentPadding = 20.dp,
-        contentSpacing = 14.dp,
+        containerBorderColor = if (NuvioTheme.isNetflix) Color.Transparent else Color.White.copy(alpha = 0.2f),
+        containerBorderWidth = if (NuvioTheme.isNetflix) 0.dp else 0.5.dp,
+        containerCornerRadius = if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.radius else 24.dp,
+        contentPadding = if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.padding else 20.dp,
+        contentSpacing = if (NuvioTheme.isNetflix) NetflixThemeTokens.Dialog.gap else 14.dp,
         backgroundContent = {
             Image(
                 painter = glyph,
@@ -506,7 +508,7 @@ internal fun ConnectedTrackingAccountContent(
             text = connectedLabel,
             style = MaterialTheme.typography.bodyLarge,
             color = Color.White,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
         Text(
             text = connectedDescription,
@@ -593,7 +595,7 @@ private fun SimklSyncInfoContent(
         text = stringResource(R.string.simkl_sync_info_title),
         style = MaterialTheme.typography.titleLarge,
         color = Color.White,
-        fontWeight = FontWeight.SemiBold
+        fontWeight = FontWeight.Bold
     )
     Text(
         text = stringResource(
@@ -709,7 +711,7 @@ private fun TrackingBrandPrimaryButton(
             if (loading) {
                 LoadingIndicator(
                     modifier = Modifier.size(20.dp),
-                    color = TrackingBrandButtonContent
+                    color = if (NuvioTheme.isNetflix) LocalContentColor.current else TrackingBrandButtonContent
                 )
             } else {
                 Icon(

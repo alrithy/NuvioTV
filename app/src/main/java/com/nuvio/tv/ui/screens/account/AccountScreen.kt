@@ -85,7 +85,7 @@ fun AccountScreen(
                 text = stringResource(R.string.account_title),
                 style = MaterialTheme.typography.headlineMedium,
                 color = NuvioTheme.colors.TextPrimary,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
             Spacer(modifier = Modifier.height(NuvioTheme.spacing.sm))
         }
@@ -129,7 +129,7 @@ fun AccountScreen(
                             text = stringResource(R.string.account_sync_code_title),
                             style = MaterialTheme.typography.titleLarge,
                             color = NuvioTheme.colors.TextPrimary,
-                            fontWeight = FontWeight.SemiBold
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(NuvioTheme.spacing.xs))
                         Text(

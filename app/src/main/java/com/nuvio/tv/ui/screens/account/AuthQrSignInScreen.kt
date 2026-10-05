@@ -281,7 +281,7 @@ private fun AuthQrBrandPanel(
                 color = AuthTextPrimary,
                 fontSize = 40.sp,
                 lineHeight = 45.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             )
         )
         if (isSignedIn || useEmailLogin) {
@@ -503,7 +503,7 @@ private fun AuthEmailLoginForm(
                     } else {
                         stringResource(R.string.auth_email_sign_in)
                     },
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Medium,
                     textAlign = TextAlign.Center
                 )
             }
@@ -614,7 +614,7 @@ private fun AuthQrManualCodeDetails(
                     letterSpacing = if (displayCode.length == 6) 3.sp else 0.sp
                 ),
                 color = AuthTextPrimary,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )
             if (expiresAtMillis != null) {
@@ -692,7 +692,7 @@ private fun AuthTermsAcknowledgement() {
                 color = AuthTextPrimary,
                 fontSize = 13.sp,
                 lineHeight = 18.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             )
         )
     }

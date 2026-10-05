@@ -25,6 +25,7 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.nuvio.tv.R
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 @Composable
 fun StartupSplashScreen(
@@ -62,7 +63,7 @@ fun StartupSplashScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-        } else if (!skipGradient) {
+        } else if (!skipGradient && !NuvioTheme.isNetflix) {
             val baseBg = Color(0xFF121212)
             val baseBgElevated = Color(0xFF1E1E1E)
             val gradientTop = lerp(baseBgElevated, avatarColor, 0.3f)
@@ -93,6 +94,10 @@ fun StartupSplashScreen(
                         )
                     )
             )
+        }
+
+        if (NuvioTheme.isNetflix && !profileBackgroundUrl.isNullOrBlank()) {
+            Box(Modifier.fillMaxSize().background(NetflixThemeTokens.overlay))
         }
 
         Column(

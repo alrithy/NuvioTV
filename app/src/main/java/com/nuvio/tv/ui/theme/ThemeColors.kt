@@ -27,6 +27,25 @@ data class ThemeColorPalette(
 )
 
 object ThemeColors {
+    val Netflix = ThemeColorPalette(
+        secondary = NetflixThemeTokens.focus,
+        secondaryVariant = NetflixThemeTokens.textSecondary,
+        onSecondary = NetflixThemeTokens.focusContent,
+        onSecondaryVariant = NetflixThemeTokens.focusContent,
+        focusRing = NetflixThemeTokens.focus,
+        focusBackground = NetflixThemeTokens.surfaceMuted,
+        background = NetflixThemeTokens.background,
+        backgroundElevated = NetflixThemeTokens.surfaceRaised,
+        backgroundCard = NetflixThemeTokens.surface,
+        surface = NetflixThemeTokens.surface,
+        surfaceVariant = NetflixThemeTokens.surfaceMuted,
+        panel = NetflixThemeTokens.surfaceRaised,
+        overlay = NetflixThemeTokens.overlay,
+        field = NetflixThemeTokens.surfaceMuted,
+        menu = NetflixThemeTokens.surfaceRaised,
+        modal = NetflixThemeTokens.surfaceRaised,
+        playerOverlay = NetflixThemeTokens.overlay
+    )
     val Crimson = ThemeColorPalette(
         secondary = NuvioPrimitives.red500,
         secondaryVariant = NuvioPrimitives.red600,
@@ -109,6 +128,7 @@ object ThemeColors {
             AppTheme.AMBER -> Amber
             AppTheme.ROSE -> Rose
             AppTheme.WHITE -> White
+            AppTheme.NETFLIX -> Netflix
         }
     }
 }

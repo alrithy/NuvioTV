@@ -44,8 +44,25 @@ jobs:
             echo "NUVIO_RELEASE_STORE_PASSWORD=android"
           } >> "$GITHUB_ENV"
 
+      - name: Private Thmanyah Sans input (docs/PRIVATE_FONTS.md)
+        env:
+          THMANYAH_SANS_B64_01: ${{ secrets.THMANYAH_SANS_B64_01 }}
+          THMANYAH_SANS_B64_02: ${{ secrets.THMANYAH_SANS_B64_02 }}
+          THMANYAH_SANS_B64_03: ${{ secrets.THMANYAH_SANS_B64_03 }}
+          THMANYAH_SANS_B64_04: ${{ secrets.THMANYAH_SANS_B64_04 }}
+          THMANYAH_SANS_B64_05: ${{ secrets.THMANYAH_SANS_B64_05 }}
+          THMANYAH_SANS_B64_06: ${{ secrets.THMANYAH_SANS_B64_06 }}
+          THMANYAH_SANS_B64_07: ${{ secrets.THMANYAH_SANS_B64_07 }}
+          THMANYAH_SANS_B64_08: ${{ secrets.THMANYAH_SANS_B64_08 }}
+          THMANYAH_SANS_B64_09: ${{ secrets.THMANYAH_SANS_B64_09 }}
+          THMANYAH_SANS_B64_10: ${{ secrets.THMANYAH_SANS_B64_10 }}
+        run: python3 scripts/superfork/private_fonts.py ci-prepare --policy optional
+
       - name: Build the app and its instrumented tests
         run: ./gradlew :app:assembleFullDebug :app:assembleFullDebugAndroidTest --stacktrace
+
+      - name: Check the APK carries no standalone font file (docs/PRIVATE_FONTS.md)
+        run: python3 scripts/superfork/private_fonts.py apk-check app/build/outputs/apk/full/debug/app-full-universal-debug.apk ${THMANYAH_FONT_DIR:+--embedded}
 
       - name: Enable KVM
         run: |
@@ -74,3 +91,7 @@ jobs:
             build/device-smoke/
           if-no-files-found: warn
           retention-days: 14
+
+      - name: Remove the private font input and generated font resources
+        if: always()
+        run: python3 scripts/superfork/private_fonts.py ci-cleanup

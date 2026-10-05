@@ -536,7 +536,7 @@ private fun SectionHeader(title: String, count: Int) {
         Text(
             text = title,
             style = MaterialTheme.typography.titleLarge.copy(
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             ),
             color = NuvioTheme.colors.TextPrimary
         )

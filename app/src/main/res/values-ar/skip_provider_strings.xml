@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Extra skip providers (Superfork G9a, D054). -->
+<resources>
+    <string name="skip_providers_label">مصادر تخطٍّ إضافية</string>
+    <string name="skip_providers_description">تُسأل مع IntroDB وAniSkip وAnime-Skip. لكل مصدر بضع ثوانٍ، والمصدر البطيء أو المتوقف لا يؤخّر غيره أبدًا. تُدمج المقاطع المتطابقة من عدة مصادر.</string>
+    <string name="skip_provider_skipme">SkipMe.db</string>
+    <string name="skip_provider_skipme_sub">أوقات المقدمة والملخص والشارة والمعاينة من المجتمع. يحتاج إلى مدة الفيديو، لذلك يجيب بعد أن يعرفها التشغيل.</string>
+    <string name="skip_provider_theintrodb">TheIntroDB</string>
+    <string name="skip_provider_theintrodb_sub">أوقات المقدمة والملخص والشارة للأفلام والمسلسلات. المفتاح اختياري.</string>
+    <string name="skip_provider_publicmetadb">PublicMetaDB</string>
+    <string name="skip_provider_publicmetadb_sub">أوقات المقدمة والشارة. يعمل بمفتاحك الخاص فقط.</string>
+    <string name="skip_provider_api_key">مفتاح %1$s</string>
+    <string name="skip_provider_api_key_required">مطلوب. يُحفظ مشفّرًا على هذا التلفاز لهذا الملف الشخصي.</string>
+    <string name="skip_provider_api_key_optional">اختياري. يُحفظ مشفّرًا على هذا التلفاز لهذا الملف الشخصي.</string>
+    <string name="skip_provider_api_key_set">مفتاحك الخاص</string>
+    <string name="skip_provider_api_key_none">غير مضبوط</string>
+    <string name="skip_provider_api_key_entry">الصق المفتاح من موقع المزوّد. يُحفظ مشفّرًا على هذا التلفاز لهذا الملف الشخصي ولا يُرسل إلا إلى ذلك المزوّد. اكتب clear لإزالته.</string>
+    <string name="skip_provider_api_key_placeholder">مفتاح API</string>
+    <string name="skip_provider_moviehavendb">MovieHavenDB</string>
+    <string name="skip_provider_moviehavendb_sub">قوائم مشاهد الأفلام للتحذيرات من المحتوى، وبعضها مُعلَّم لكتم الصوت بدل التخطي.</string>
+    <string name="skip_provider_videoskip">VideoSkip</string>
+    <string name="skip_provider_videoskip_sub">ملفات تخطٍّ من المجتمع يُبحث عنها بالعنوان. يمكنها تعليم المشاهد للتخطي أو الكتم أو التحذير.</string>
+    <string name="skip_provider_notscare">NotScare</string>
+    <string name="skip_provider_notscare_sub">أوقات المشاهد المفاجئة المخيفة في الأفلام، من notscare.me.</string>
+    <string name="skip_categories_label">المعاينات وتحذيرات المحتوى</string>
+    <string name="skip_categories_description">متوقفة حتى تفعّل فئة. تُظهر هذه المقاطع زر التخطي، أو تكتم الصوت حين يطلب المصدر ذلك، ولا تُتخطى تلقائيًا أبدًا.</string>
+    <string name="skip_category_preview">المعاينات</string>
+    <string name="skip_category_jumpscare">المشاهد المفاجئة المخيفة</string>
+    <string name="skip_category_nudity">العُري</string>
+    <string name="skip_category_sex">المشاهد الجنسية</string>
+    <string name="skip_category_gore">الدموية</string>
+    <string name="skip_category_violence">العنف</string>
+    <string name="skip_category_profanity">الألفاظ النابية</string>
+    <string name="skip_preview">تخطي المعاينة</string>
+    <string name="skip_jumpscare">تخطي المشهد المفاجئ</string>
+    <string name="skip_scene">تخطي المشهد</string>
+</resources>

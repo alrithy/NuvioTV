@@ -1,0 +1,159 @@
+name: Superfork Netflix Visual
+
+# Deterministic production Compose fixtures on a TV image, with motion enabled.
+# Screenshots are review evidence; this does not certify fidelity or TCL performance.
+on:
+  push:
+    branches: ["feat/netflix-theme"]
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: ["superfork/integration"]
+    paths:
+      - ".github/workflows/superfork-netflix-visual.yml"
+      - "scripts/superfork/capture_netflix_theme.py"
+      - "scripts/superfork/run_netflix_visual.sh"
+      - "app/src/androidTest/java/com/nuvio/tv/ui/theme/**"
+      - "app/src/androidTest/java/com/nuvio/tv/ui/screens/detail/**"
+      - "app/src/main/java/com/nuvio/tv/ui/**"
+      - "app/src/main/java/com/nuvio/tv/domain/model/AppTheme.kt"
+      - "app/src/main/res/values*/strings.xml"
+      - "app/build.gradle.kts"
+      - "scripts/superfork/private_fonts.py"
+      - "scripts/superfork/thmanyah_sans.sha256"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: superfork-netflix-visual-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-fixtures:
+    name: Build TV visual fixtures
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/feat/netflix-theme'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Prepare non-secret fixture configuration and signing
+        run: |
+          touch local.properties local.dev.properties
+          keytool -genkeypair -keystore "$RUNNER_TEMP/ci-debug.jks" -storepass android -alias androiddebugkey \
+            -keypass android -dname "CN=Android Debug,O=Android,C=US" -keyalg RSA -keysize 2048 -validity 10000
+          {
+            echo "NUVIO_RELEASE_STORE_FILE=$RUNNER_TEMP/ci-debug.jks"
+            echo "NUVIO_RELEASE_KEY_ALIAS=androiddebugkey"
+            echo "NUVIO_RELEASE_KEY_PASSWORD=android"
+            echo "NUVIO_RELEASE_STORE_PASSWORD=android"
+          } >> "$GITHUB_ENV"
+
+      - name: Private Thmanyah Sans input (docs/PRIVATE_FONTS.md)
+        env:
+          THMANYAH_SANS_B64_01: ${{ secrets.THMANYAH_SANS_B64_01 }}
+          THMANYAH_SANS_B64_02: ${{ secrets.THMANYAH_SANS_B64_02 }}
+          THMANYAH_SANS_B64_03: ${{ secrets.THMANYAH_SANS_B64_03 }}
+          THMANYAH_SANS_B64_04: ${{ secrets.THMANYAH_SANS_B64_04 }}
+          THMANYAH_SANS_B64_05: ${{ secrets.THMANYAH_SANS_B64_05 }}
+          THMANYAH_SANS_B64_06: ${{ secrets.THMANYAH_SANS_B64_06 }}
+          THMANYAH_SANS_B64_07: ${{ secrets.THMANYAH_SANS_B64_07 }}
+          THMANYAH_SANS_B64_08: ${{ secrets.THMANYAH_SANS_B64_08 }}
+          THMANYAH_SANS_B64_09: ${{ secrets.THMANYAH_SANS_B64_09 }}
+          THMANYAH_SANS_B64_10: ${{ secrets.THMANYAH_SANS_B64_10 }}
+        run: python3 scripts/superfork/private_fonts.py ci-prepare --policy ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && 'required' || 'optional' }}
+
+      - name: Build the app and instrumented fixtures once
+        run: >-
+          ./gradlew :app:assembleFullDebug :app:assembleFullDebugAndroidTest
+          -Pdebuggable=true -PsuperforkTestAppId=com.nuvio.tv --stacktrace
+
+      - name: Check the APK carries no standalone font file (docs/PRIVATE_FONTS.md)
+        run: python3 scripts/superfork/private_fonts.py apk-check app/build/outputs/apk/full/debug/app-full-universal-debug.apk ${THMANYAH_FONT_DIR:+--embedded}
+
+      - name: Upload fixture APKs
+        uses: actions/upload-artifact@v7
+        with:
+          name: netflix-visual-apks-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            app/build/outputs/apk/full/debug/app-full-universal-debug.apk
+            app/build/outputs/apk/androidTest/full/debug/app-full-debug-androidTest.apk
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Remove the private font input and generated font resources
+        if: always()
+        run: python3 scripts/superfork/private_fonts.py ci-cleanup
+
+  capture:
+    name: TV ${{ matrix.resolution }} / ${{ matrix.locale }}
+    needs: build-fixtures
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        resolution: [1080p, 4k]
+        locale: [en, ar]
+    env:
+      NETFLIX_VISUAL_SERIAL: emulator-5554
+      NETFLIX_VISUAL_RESOLUTION: ${{ matrix.resolution }}
+      NETFLIX_VISUAL_LOCALE: ${{ matrix.locale }}
+      NETFLIX_VISUAL_APK_DIR: build/netflix-visual-apks
+      NETFLIX_VISUAL_PACKAGE: com.nuvio.tv
+      NETFLIX_VISUAL_OUTPUT: app/build/netflix-visual/${{ matrix.resolution }}-${{ matrix.locale }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: netflix-visual-apks-${{ github.run_id }}-${{ github.run_attempt }}
+          path: build/netflix-visual-apks
+
+      - name: Install the log-preview encoder
+        run: python3 -m pip install --quiet pillow || true
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Capture TV fixtures and exercise dialog focus
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 31
+          target: android-tv
+          arch: x86
+          profile: tv_1080p
+          ram-size: 3072M
+          heap-size: 512M
+          disk-size: 4G
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim
+          script: bash scripts/superfork/run_netflix_visual.sh
+
+      - name: Upload screenshots, manifests and device logs
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: netflix-visual-${{ matrix.resolution }}-${{ matrix.locale }}-${{ github.run_id }}
+          path: app/build/netflix-visual/${{ matrix.resolution }}-${{ matrix.locale }}/
+          if-no-files-found: warn
+          retention-days: 30

@@ -5,6 +5,7 @@ package com.nuvio.tv.ui.screens.livetv
 import android.view.KeyEvent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,6 +32,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -53,6 +56,7 @@ import com.nuvio.tv.fork.livetv.LiveTvRepository
 import com.nuvio.tv.fork.livetv.LiveTvState
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -107,10 +111,10 @@ internal fun LiveTvCategoryDialog(repository: LiveTvRepository, onDismiss: () ->
                 color = NuvioTheme.colors.TextSecondary,
                 modifier = Modifier.weight(1f),
             )
-            LiveTvPillButton(text = stringResource(R.string.live_tv_categories_show_all), onClick = { repository.setAllGroupsHidden(false) })
-            LiveTvPillButton(text = stringResource(R.string.live_tv_categories_hide_all), onClick = { repository.setAllGroupsHidden(true) })
-            LiveTvPillButton(text = stringResource(R.string.live_tv_categories_sort), onClick = { repository.resetGroupOrder() })
-            LiveTvPillButton(text = stringResource(R.string.live_tv_done), onClick = onDismiss)
+            LiveTvDialogButton(text = stringResource(R.string.live_tv_categories_show_all), onClick = { repository.setAllGroupsHidden(false) })
+            LiveTvDialogButton(text = stringResource(R.string.live_tv_categories_hide_all), onClick = { repository.setAllGroupsHidden(true) })
+            LiveTvDialogButton(text = stringResource(R.string.live_tv_categories_sort), onClick = { repository.resetGroupOrder() })
+            LiveTvDialogButton(text = stringResource(R.string.live_tv_done), onClick = onDismiss)
         }
         if (uiState.groups.isEmpty()) {
             Text(
@@ -211,15 +215,15 @@ private fun LiveTvCategoryChannels(repository: LiveTvRepository, group: String, 
                 color = NuvioTheme.colors.TextSecondary,
                 modifier = Modifier.weight(1f),
             )
-            LiveTvPillButton(
+            LiveTvDialogButton(
                 text = stringResource(R.string.live_tv_categories_show_all),
                 onClick = { repository.setChannelsHidden(channels, hidden = false) },
             )
-            LiveTvPillButton(
+            LiveTvDialogButton(
                 text = stringResource(R.string.live_tv_categories_hide_all),
                 onClick = { repository.setChannelsHidden(channels, hidden = true) },
             )
-            LiveTvPillButton(text = stringResource(R.string.live_tv_back), onClick = onBack)
+            LiveTvDialogButton(text = stringResource(R.string.live_tv_back), onClick = onBack)
         }
         LazyColumn(
             modifier = Modifier.fillMaxWidth().heightIn(max = 380.dp),
@@ -254,8 +258,18 @@ private fun LiveTvCategoryToggle(
     onOpen: (() -> Unit)? = null,
 ) {
     var focused by remember { mutableStateOf(false) }
+    val forwardKey = if (LocalLayoutDirection.current == LayoutDirection.Rtl) {
+        KeyEvent.KEYCODE_DPAD_LEFT
+    } else {
+        KeyEvent.KEYCODE_DPAD_RIGHT
+    }
     // A picked-up row lifts a little, like a card taken off the stack.
-    val lift by animateFloatAsState(if (moving) 1.04f else 1f, spring(dampingRatio = 0.6f, stiffness = 500f), label = "liveTvCategoryLift")
+    val lift by animateFloatAsState(
+        if (moving) 1.04f else 1f,
+        if (NuvioTheme.isNetflix) tween(NetflixThemeTokens.focusDurationMillis)
+        else spring(dampingRatio = 0.6f, stiffness = 500f),
+        label = "liveTvCategoryLift"
+    )
     val content = when {
         focused -> Color.Black
         visible -> NuvioTheme.colors.TextPrimary
@@ -277,8 +291,8 @@ private fun LiveTvCategoryToggle(
             .onPreviewKeyEvent { event ->
                 val native = event.nativeKeyEvent
                 if (!moving) {
-                    // ▶ opens a category's channels.
-                    if (onOpen == null || native.keyCode != KeyEvent.KEYCODE_DPAD_RIGHT) return@onPreviewKeyEvent false
+                    // Forward opens a category's channels in either reading direction.
+                    if (onOpen == null || native.keyCode != forwardKey) return@onPreviewKeyEvent false
                     if (native.action == KeyEvent.ACTION_DOWN && native.repeatCount == 0) onOpen()
                     return@onPreviewKeyEvent true
                 }
@@ -296,12 +310,12 @@ private fun LiveTvCategoryToggle(
                     else -> false
                 }
             },
-        shape = CardDefaults.shape(RoundedCornerShape(12.dp)),
+        shape = CardDefaults.shape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(12.dp)),
         colors = CardDefaults.colors(
             containerColor = if (visible) NuvioTheme.colors.TextPrimary.copy(alpha = 0.08f) else Color.Transparent,
             focusedContainerColor = NuvioTheme.colors.TextPrimary,
         ),
-        scale = CardDefaults.scale(focusedScale = 1.02f),
+        scale = CardDefaults.scale(focusedScale = if (NuvioTheme.isNetflix) NetflixThemeTokens.episodeFocusScale else 1.02f),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),

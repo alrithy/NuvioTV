@@ -3,6 +3,21 @@
 package com.nuvio.tv.ui.screens.home
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.fork.resource.AdaptiveResources
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.compose.ui.window.PopupProperties
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 
 import android.view.KeyEvent as AndroidKeyEvent
 import androidx.compose.animation.core.AnimationSpec
@@ -249,6 +264,10 @@ private fun ModernCatalogRowItem(
     onBackdropInteraction: () -> Unit,
     onExpandedCatalogFocusKeyChange: (String?) -> Unit,
     enrichedPreviews: State<StableMap<String, MetaPreview>>,
+    onPlayClick: (String, String, String) -> Unit = onNavigateToDetail,
+    onCatalogLibraryAction: (MetaPreview, String) -> Unit = { _, _ -> },
+    inLibrary: Boolean = false,
+    libraryPending: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val focusKey = when (payload) {
@@ -267,6 +286,7 @@ private fun ModernCatalogRowItem(
 
     var focusEventId by remember { mutableIntStateOf(0) }
     var isCardFocused by remember { mutableStateOf(false) }
+    var previewOwnsFocus by remember { mutableStateOf(false) }
     val latestOnFocused by rememberUpdatedState(onFocused)
     val latestOnItemFocus by rememberUpdatedState(onItemFocus)
     val latestOnPreloadAdjacentItem by rememberUpdatedState(onPreloadAdjacentItem)
@@ -334,7 +354,7 @@ private fun ModernCatalogRowItem(
     // backdrop on a card that is not actually focused (#2815).
     val effectiveBackdropExpanded by remember(isBackdropExpanded, suppressCardExpansionForHeroTrailer) {
         derivedStateOf {
-            isCardFocused && isBackdropExpanded() && !suppressCardExpansionForHeroTrailer
+            (isCardFocused || previewOwnsFocus) && isBackdropExpanded() && !suppressCardExpansionForHeroTrailer
         }
     }
 
@@ -342,7 +362,7 @@ private fun ModernCatalogRowItem(
     val playTrailerInExpandedCard =
         effectiveAutoplayEnabled &&
             !isSidebarExpanded &&
-            isCardFocused &&
+            (isCardFocused || previewOwnsFocus) &&
             trailerPlaybackTarget == FocusedPosterTrailerPlaybackTarget.EXPANDED_CARD &&
             effectiveBackdropExpanded
     val trailerUrl = expandedTrailerPreviewUrl()
@@ -418,6 +438,17 @@ private fun ModernCatalogRowItem(
             }
         },
         onLongPress = onLongPress,
+        onPlay = {
+            if (payload is ModernPayload.Catalog) onPlayClick(payload.itemId, payload.itemType, payload.addonBaseUrl)
+        },
+        onLibrary = {
+            if (payload is ModernPayload.Catalog && item.metaPreview != null) {
+                onCatalogLibraryAction(item.metaPreview, payload.addonBaseUrl)
+            }
+        },
+        inLibrary = inLibrary,
+        libraryPending = libraryPending,
+        onPreviewFocusOwnerChanged = { previewOwnsFocus = it },
         onBackdropInteraction = onBackdropInteraction,
         onTrailerEnded = { onExpandedCatalogFocusKeyChange(null) }
     )
@@ -477,8 +508,13 @@ internal fun ModernRowSection(
     onBackdropInteraction: () -> Unit,
     onExpandedCatalogFocusKeyChange: (String?) -> Unit,
     sharedPlaceholderShimmerOffsetState: State<Float>?,
-    itemFocusRequesters: StableRef<MutableMap<Int, FocusRequester>> = StableRef(mutableMapOf())
+    itemFocusRequesters: StableRef<MutableMap<Int, FocusRequester>> = StableRef(mutableMapOf()),
+    onPlayClick: (String, String, String) -> Unit = onNavigateToDetail,
+    onCatalogLibraryAction: (MetaPreview, String) -> Unit = { _, _ -> },
+    posterLibraryMembership: Map<String, Boolean> = emptyMap(),
+    posterLibraryPending: Set<String> = emptySet()
 ) {
+    val isNetflix = NuvioTheme.isNetflix
     // Unwrap StableRef wrappers
     @Suppress("NAME_SHADOWING") val focusedItemByRow = focusedItemByRow.value
     @Suppress("NAME_SHADOWING") val rowListStates = rowListStates.value
@@ -529,13 +565,14 @@ internal fun ModernRowSection(
         )
     ) {
         val titleMediumStyle = MaterialTheme.typography.titleMedium
-        val rowTitleStyle = remember(titleMediumStyle) {
-            titleMediumStyle.copy(fontWeight = FontWeight.SemiBold)
+        val rowTitleStyle = remember(titleMediumStyle, isNetflix) {
+            titleMediumStyle.copy(fontWeight = FontWeight.Bold,
+                fontSize = if (isNetflix) NetflixThemeTokens.rowHeader else titleMediumStyle.fontSize)
         }
         val rowTitle = row.title
         val textColor = NuvioTheme.colors.TextPrimary
-        val textModifier = remember(rowTitleBottom) {
-            Modifier.padding(start = 52.dp, bottom = rowTitleBottom)
+        val textModifier = remember(rowTitleBottom, isNetflix) {
+            Modifier.padding(start = if (isNetflix) NetflixThemeTokens.safeMargin else 52.dp, bottom = rowTitleBottom)
         }
         Text(
             text = rowTitle,
@@ -641,7 +678,7 @@ internal fun ModernRowSection(
         }
 
         val density = LocalDensity.current
-        val rowStartPadding = 52.dp
+        val rowStartPadding = if (isNetflix) NetflixThemeTokens.safeMargin else 52.dp
         val context = LocalContext.current
         val imageLoader = context.imageLoader
 
@@ -908,7 +945,7 @@ internal fun ModernRowSection(
                     }
                     .focusGroup(),
                 contentPadding = PaddingValues(horizontal = rowStartPadding),
-                horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
+                horizontalArrangement = Arrangement.spacedBy(if (isNetflix) NetflixThemeTokens.cardGap else NuvioTheme.spacing.md)
             ) {
                 itemsIndexed(
                     items = row.items.list,
@@ -1042,7 +1079,11 @@ internal fun ModernRowSection(
                                 onLongPress = onLongPress,
                                 onBackdropInteraction = onBackdropInteraction,
                                 onExpandedCatalogFocusKeyChange = onExpandedCatalogFocusKeyChange,
-                                enrichedPreviews = enrichedPreviews
+                                enrichedPreviews = enrichedPreviews,
+                                onPlayClick = onPlayClick,
+                                onCatalogLibraryAction = onCatalogLibraryAction,
+                                inLibrary = item.metaPreview?.let { posterLibraryMembership[homeItemStatusKey(it.id, it.apiType)] } == true,
+                                libraryPending = item.metaPreview?.let { homeItemStatusKey(it.id, it.apiType) in posterLibraryPending } == true
                             )
                             } // Box
                         }
@@ -1081,8 +1122,15 @@ private fun ModernCarouselCard(
     onLongPress: () -> Unit,
     onBackdropInteraction: () -> Unit,
     onTrailerEnded: () -> Unit,
+    onPlay: () -> Unit = onClick,
+    onLibrary: () -> Unit = onLongPress,
+    inLibrary: Boolean = false,
+    libraryPending: Boolean = false,
+    onPreviewFocusOwnerChanged: (Boolean) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val isNetflix = NuvioTheme.isNetflix
+    val netflixPolicy = netflixHomePreviewPolicy(AdaptiveResources.policy.tier)
     val cardShape = remember(cardCornerRadius) { RoundedCornerShape(cardCornerRadius) }
     val cardDepthStyle = LocalCardDepthStyle.current
     val context = LocalContext.current
@@ -1097,7 +1145,7 @@ private fun ModernCarouselCard(
     } else {
         cardWidth
     }
-    val animatedCardWidthState = if (focusedPosterBackdropExpandEnabled) {
+    val animatedCardWidthState = if (focusedPosterBackdropExpandEnabled && !isNetflix) {
         animateDpAsState(
             targetValue = targetCardWidth,
             label = "modernCardWidth"
@@ -1141,6 +1189,10 @@ private fun ModernCarouselCard(
     }
     val effectiveBackdropUrl = frozenBackdropUrl.value?.takeIf { !it.isPlaceholder() }
     var isFocused by remember { mutableStateOf(false) }
+    var previewDismissedForFocus by remember(item.key) { mutableStateOf(false) }
+    var previewOwnsFocus by remember(item.key) { mutableStateOf(false) }
+    // Survives removal of the popup so deferred D-pad/Back restoration is never cancelled.
+    val previewDismissScope = rememberCoroutineScope()
     val payload = item.payload as? ModernPayload.CollectionFolder
     val isCollectionFolder = item.payload is ModernPayload.CollectionFolder
     val effectiveIgnoreLandscapePoster = alwaysShowLandscapeClearlogo
@@ -1242,7 +1294,7 @@ private fun ModernCarouselCard(
         }
     }
     var landscapeLogoLoadFailed by remember(effectiveLogoUrl) { mutableStateOf(false) }
-    val shouldPlayTrailerInCard = playTrailerInExpandedCard && !trailerPreviewUrl.isNullOrBlank()
+    val shouldPlayTrailerInCard = !isNetflix && playTrailerInExpandedCard && !trailerPreviewUrl.isNullOrBlank()
 
     // Use the image model directly — Coil's memory cache handles repeated
     // requests efficiently without needing scroll-aware request swapping.
@@ -1279,7 +1331,7 @@ private fun ModernCarouselCard(
             shape = cardShape
         )
     }
-    val effectiveFocusedBorder = if (isFastScrolling) transparentFocusBorder else focusedBorder
+    val effectiveFocusedBorder = if (isFastScrolling || isNetflix) transparentFocusBorder else focusedBorder
     val noFocusGlow = remember { CardDefaults.glow(focusedGlow = Glow.None) }
     val cardGlow = when (payload) {
         is ModernPayload.CollectionFolder -> rememberArtworkBackedCardGlow(
@@ -1293,10 +1345,24 @@ private fun ModernCarouselCard(
     val titleStyle = remember(titleMedium) {
         titleMedium.copy(fontWeight = FontWeight.Medium)
     }
+    val netflixFocusScale by animateFloatAsState(
+        targetValue = if (isNetflix && isFocused && !isFastScrolling) NetflixThemeTokens.focusScale else 1f,
+        animationSpec = tween(if (isNetflix && !netflixPolicy.animate) 0 else NetflixThemeTokens.focusDurationMs),
+        label = "netflixRowCardFocusScale"
+    )
 
     Column(
         modifier = modifier
             .width(animatedCardWidth)
+            .then(if (isNetflix) Modifier.zIndex(if (isFocused || previewOwnsFocus) 1f else 0f)
+                .graphicsLayer {
+                    scaleX = netflixFocusScale
+                    scaleY = netflixFocusScale
+                    shadowElevation = if (isFocused && netflixPolicy.animate) NetflixThemeTokens.focusElevation.toPx() else 0f
+                    shape = cardShape
+                    clip = false
+                }
+                .testTag("netflix_home_card_${item.key}") else Modifier)
             .recompositionHighlighter(),
         verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.sm)
     ) {
@@ -1311,9 +1377,11 @@ private fun ModernCarouselCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(cardHeight)
+                .then(if (isNetflix) Modifier.testTag("netflix_home_card_focus_${item.key}") else Modifier)
                 .focusRequester(focusRequester)
                 .onFocusChanged {
                     isFocused = it.isFocused
+                    if (!it.isFocused && !previewOwnsFocus) previewDismissedForFocus = false
                     onFocusStateChanged(it.isFocused)
                     if (it.isFocused) {
                         onFocused()
@@ -1537,7 +1605,90 @@ private fun ModernCarouselCard(
                 }
             }
         }
+        if (isNetflix && isBackdropExpanded && !previewDismissedForFocus && !isCollectionFolder) {
+            val playRequester = remember { FocusRequester() }
+            val focusManager = LocalFocusManager.current
+            val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+            var focusedAction by remember { mutableIntStateOf(0) }
+            val marginPx = with(density) { NetflixThemeTokens.safeVerticalMargin.roundToPx() }
+            val positionProvider = remember(marginPx) {
+                object : PopupPositionProvider {
+                    override fun calculatePosition(anchorBounds: IntRect, windowSize: IntSize,
+                        layoutDirection: LayoutDirection, popupContentSize: IntSize): IntOffset =
+                        netflixPreviewPosition(anchorBounds, windowSize, popupContentSize, marginPx)
+                }
+            }
+            val dismiss: (FocusDirection?) -> Unit = { direction ->
+                previewDismissedForFocus = true
+                onBackdropInteraction()
+                previewDismissScope.launch {
+                    yield()
+                    runCatching { focusRequester.requestFocus() }
+                    if (direction != null) {
+                        yield()
+                        focusManager.moveFocus(direction)
+                    }
+                }
+            }
+            DisposableEffect(Unit) {
+                previewOwnsFocus = true
+                onPreviewFocusOwnerChanged(true)
+                onDispose {
+                    previewOwnsFocus = false
+                    onPreviewFocusOwnerChanged(false)
+                }
+            }
+            Popup(
+                popupPositionProvider = positionProvider,
+                onDismissRequest = { dismiss(null) },
+                properties = PopupProperties(focusable = true, dismissOnBackPress = true, dismissOnClickOutside = true)
+            ) {
+                LaunchedEffect(Unit) { runCatching { playRequester.requestFocus() } }
+                NetflixExpandedCardContent(
+                    item = item,
+                    width = cardWidth * netflixPolicy.expandedScale,
+                    inLibrary = inLibrary,
+                    libraryPending = libraryPending,
+                    playFocusRequester = playRequester,
+                    onActionFocused = { focusedAction = it },
+                    onPlay = onPlay,
+                    onLibrary = { dismiss(null); onLibrary() },
+                    onMoreInfo = onClick,
+                    trailerPreviewUrl = if (netflixPolicy.allowVideo && playTrailerInExpandedCard) trailerPreviewUrl else null,
+                    trailerPreviewAudioUrl = trailerPreviewAudioUrl,
+                    trailerMuted = focusedPosterBackdropTrailerMuted,
+                    onTrailerEnded = { dismiss(null); onTrailerEnded() },
+                    modifier = Modifier.onPreviewKeyEvent { event ->
+                        if (event.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                        val direction = netflixPreviewExitDirection(event.key, focusedAction, isRtl)
+                        if (direction != null) { dismiss(direction); true } else false
+                    }.graphicsLayer {
+                        shadowElevation = if (netflixPolicy.animate) NetflixThemeTokens.focusElevation.toPx() else 0f
+                        shape = cardShape
+                    }
+                )
+            }
+        }
     }
+}
+
+/** Keeps the floating preview inside the TV window, including cards near either RTL/LTR edge. */
+internal fun netflixPreviewPosition(anchor: IntRect, window: IntSize, content: IntSize, margin: Int): IntOffset {
+    val maxX = (window.width - content.width - margin).coerceAtLeast(margin)
+    val maxY = (window.height - content.height - margin).coerceAtLeast(margin)
+    return IntOffset(
+        ((anchor.left + anchor.right - content.width) / 2).coerceIn(margin, maxX),
+        (anchor.top - ((content.width - anchor.width).coerceAtLeast(0) / 2)).coerceIn(margin, maxY)
+    )
+}
+
+/** Internal actions traverse normally; only the outside edge resumes navigation in the parent row. */
+internal fun netflixPreviewExitDirection(key: Key, focusedAction: Int, isRtl: Boolean): FocusDirection? = when {
+    key == Key.DirectionUp -> FocusDirection.Up
+    key == Key.DirectionDown -> FocusDirection.Down
+    key == Key.DirectionLeft && focusedAction == (if (isRtl) 2 else 0) -> FocusDirection.Left
+    key == Key.DirectionRight && focusedAction == (if (isRtl) 0 else 2) -> FocusDirection.Right
+    else -> null
 }
 
 

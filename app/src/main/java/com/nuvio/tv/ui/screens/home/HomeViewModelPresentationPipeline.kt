@@ -9,6 +9,7 @@ import com.nuvio.tv.core.network.NetworkResult
 import com.nuvio.tv.core.poster.withCustomPosterUrls
 import com.nuvio.tv.core.tmdb.TmdbEnrichment
 import com.nuvio.tv.domain.model.FocusedPosterTrailerPlaybackTarget
+import com.nuvio.tv.domain.model.AppTheme
 import com.nuvio.tv.domain.model.HomeImdbRatingsVisibility
 import com.nuvio.tv.domain.model.HomeLayout
 import com.nuvio.tv.domain.model.Meta
@@ -31,6 +32,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 private const val TMDB_HERO_ENRICHMENT_CONCURRENCY = 4
 
@@ -270,7 +273,8 @@ internal fun HomeViewModel.observeLayoutPreferencesPipeline() {
 @OptIn(FlowPreview::class)
 internal fun HomeViewModel.observeModernHomePresentationPipeline() {
     viewModelScope.launch {
-        combine(uiState, _currentLocaleTag) { state, localeTag ->
+        combine(uiState, _currentLocaleTag, _netflixHomeSources, profileManager.activeProfileId) { state, localeTag, sources, profileId ->
+                val netflixSources = sources.takeIf { it.profileId == profileId } ?: NetflixHomeSources()
                 ModernHomePresentationInput(
                     homeRows = state.homeRows,
                     catalogRows = state.catalogRows,
@@ -284,11 +288,12 @@ internal fun HomeViewModel.observeModernHomePresentationPipeline() {
                             com.nuvio.tv.core.poster.patternForScreen(state.customPosterUrlPattern, com.nuvio.tv.core.poster.CustomPosterScreen.CONTINUE_WATCHING, state.customPosterEnabledScreens)
                         )
                     else emptyList(),
-                    useLandscapePosters = state.modernLandscapePostersEnabled,
-                    showCatalogTypeSuffix = state.catalogTypeSuffixEnabled,
+                    useLandscapePosters = netflixSources.enabled || state.modernLandscapePostersEnabled,
+                    showCatalogTypeSuffix = !netflixSources.enabled && state.catalogTypeSuffixEnabled,
                     showFullReleaseDate = state.showFullReleaseDate,
                     showImdbRatings = state.homeImdbRatingsVisibility.showRatings,
-                    localeTag = localeTag
+                    localeTag = localeTag,
+                    netflixSources = netflixSources
                 )
             }
             // Compare by row structure only (keys + item counts), not by
@@ -304,6 +309,7 @@ internal fun HomeViewModel.observeModernHomePresentationPipeline() {
                     && old.showFullReleaseDate == new.showFullReleaseDate
                     && old.showImdbRatings == new.showImdbRatings
                     && old.localeTag == new.localeTag
+                    && old.netflixSources == new.netflixSources
                     && old.catalogRows.size == new.catalogRows.size
             }
             .debounce {
@@ -342,6 +348,38 @@ internal fun HomeViewModel.observeModernHomePresentationPipeline() {
                     _modernHomePresentation.value = presentation
                 }
             }
+    }
+}
+
+/** Supplemental shelves live only inside the active profile's Netflix presentation scope. */
+internal fun HomeViewModel.observeNetflixHomeSourcesPipeline() {
+    viewModelScope.launch {
+        profileManager.activeProfileId.collectLatest { profileId ->
+            _netflixHomeSources.value = NetflixHomeSources()
+            val seeds = combine(watchProgressRepository.watchedItems, _homeCompletedProgress,
+                tmdbSettingsDataStore.settings, _currentLocaleTag) { watched, completed, settings, locale ->
+                netflixRecommendationSeed(watched, completed.progressForProfile(profileId), settings, locale)
+            }
+            netflixHomeSourcesFlow(
+                themeEnabled = themeDataStore.observeThemeForProfile(profileId).map { it == AppTheme.NETFLIX },
+                libraryItems = libraryRepository.libraryItems,
+                seeds = seeds,
+                fetchRecommendations = { seed ->
+                    val lookupType = if (seed.contentType == com.nuvio.tv.domain.model.ContentType.MOVIE) "movie" else "tv"
+                    val tmdbId = tmdbService.ensureTmdbId(seed.contentId, lookupType)
+                    val recommendations = if (tmdbId.isNullOrBlank()) emptyList() else
+                        tmdbMetadataService.fetchMoreLikeThis(tmdbId, seed.contentType, seed.language,
+                            netflixRecommendationLimit(com.nuvio.tv.fork.resource.AdaptiveResources.policy.tier))
+                    // Existing TMDB adapters handle network failures; canceled profiles must never write results.
+                    currentCoroutineContext().ensureActive()
+                    recommendations
+                }
+            ).collect { sources ->
+                if (profileManager.activeProfileId.value == profileId) {
+                    _netflixHomeSources.value = sources.copy(profileId = profileId)
+                }
+            }
+        }
     }
 }
 

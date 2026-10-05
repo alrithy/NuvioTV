@@ -5,6 +5,7 @@ package com.nuvio.tv.ui.screens.player
 import com.nuvio.tv.ui.theme.NuvioMotion
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -84,6 +85,7 @@ fun PostPlayOverlay(
     onDismissStillWatching: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val mirroredControls = NuvioTheme.isNetflix && LocalLayoutDirection.current == LayoutDirection.Rtl
     val isAutoPlay = mode is PostPlayMode.AutoPlay
     val isAutoPlayPlayable = (mode as? PostPlayMode.AutoPlay)?.nextEpisode?.hasAired == true
 
@@ -106,19 +108,19 @@ fun PostPlayOverlay(
         }
         Card(
             onClick = onCardClick,
-            shape = CardDefaults.shape(shape = RoundedCornerShape(14.dp)),
+            shape = CardDefaults.shape(shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.cardShape else RoundedCornerShape(14.dp)),
             colors = CardDefaults.colors(
-                containerColor = Color(0xE3191919),
-                focusedContainerColor = Color(0xE3191919),
+                containerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.surface else Color(0xE3191919),
+                focusedContainerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.surfaceRaised else Color(0xE3191919),
             ),
             border = CardDefaults.border(
                 border = Border(
                     border = BorderStroke(NuvioTheme.spacing.hairline, Color.White.copy(alpha = 0.16f)),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.cardShape else RoundedCornerShape(14.dp),
                 ),
                 focusedBorder = Border(
                     border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-                    shape = RoundedCornerShape(14.dp),
+                    shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.cardShape else RoundedCornerShape(14.dp),
                 ),
             ),
             scale = CardDefaults.scale(focusedScale = 1f),
@@ -135,7 +137,7 @@ fun PostPlayOverlay(
                     if (progressBarFocusRequester != null || leftFocusRequester != null) {
                         Modifier.focusProperties {
                             progressBarFocusRequester?.let { down = it }
-                            leftFocusRequester?.let { left = it }
+                            leftFocusRequester?.let { if (mirroredControls) right = it else left = it }
                         }
                     } else {
                         Modifier
@@ -200,7 +202,7 @@ private fun AutoPlayBody(
                 fontSize = 14.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
             )
             val statusText = when {
                 !isPlayable && !nextEpisode.unairedMessage.isNullOrBlank() -> nextEpisode.unairedMessage
@@ -287,7 +289,7 @@ private fun StillWatchingBody(
                 fontSize = 14.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.SemiBold,
+                fontWeight = FontWeight.Medium,
             )
             if (mode.countdownSec != null) {
                 Spacer(modifier = Modifier.height(NuvioTheme.spacing.xxs))

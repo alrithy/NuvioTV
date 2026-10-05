@@ -230,7 +230,7 @@ fun SynopsisOverlay(
                     text = title,
                     style = MaterialTheme.typography.headlineSmall,
                     color = Color.White,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.Bold
                 )
 
                 Box(

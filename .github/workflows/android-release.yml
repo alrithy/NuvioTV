@@ -229,9 +229,28 @@ jobs:
         if: inputs.mode != 'dry-run'
         run: python3 scripts/superfork/run_full_unit_suite.py
 
+      - name: Private Thmanyah Sans input (docs/PRIVATE_FONTS.md)
+        if: inputs.mode != 'dry-run'
+        env:
+          THMANYAH_SANS_B64_01: ${{ secrets.THMANYAH_SANS_B64_01 }}
+          THMANYAH_SANS_B64_02: ${{ secrets.THMANYAH_SANS_B64_02 }}
+          THMANYAH_SANS_B64_03: ${{ secrets.THMANYAH_SANS_B64_03 }}
+          THMANYAH_SANS_B64_04: ${{ secrets.THMANYAH_SANS_B64_04 }}
+          THMANYAH_SANS_B64_05: ${{ secrets.THMANYAH_SANS_B64_05 }}
+          THMANYAH_SANS_B64_06: ${{ secrets.THMANYAH_SANS_B64_06 }}
+          THMANYAH_SANS_B64_07: ${{ secrets.THMANYAH_SANS_B64_07 }}
+          THMANYAH_SANS_B64_08: ${{ secrets.THMANYAH_SANS_B64_08 }}
+          THMANYAH_SANS_B64_09: ${{ secrets.THMANYAH_SANS_B64_09 }}
+          THMANYAH_SANS_B64_10: ${{ secrets.THMANYAH_SANS_B64_10 }}
+        run: python3 scripts/superfork/private_fonts.py ci-prepare --policy required
+
       - name: Build full release APKs
         if: inputs.mode != 'dry-run'
         run: ./gradlew :app:assembleFullRelease --stacktrace
+
+      - name: Check the APK carries no standalone font file (docs/PRIVATE_FONTS.md)
+        if: inputs.mode != 'dry-run'
+        run: python3 scripts/superfork/private_fonts.py apk-check app/build/outputs/apk/full/release/*.apk ${THMANYAH_FONT_DIR:+--embedded}
 
       # Superfork G14b (D064): SHA-256 of every APK, published beside them; GitHub also reports
       # each asset's digest, which the in-app updater checks before installing.
@@ -282,3 +301,7 @@ jobs:
             release_args+=(--draft)
           fi
           gh release create "${release_args[@]}" "${release_apks[@]}" app/build/outputs/apk/full/release/SHA256SUMS.txt
+
+      - name: Remove the private font input and generated font resources
+        if: always()
+        run: python3 scripts/superfork/private_fonts.py ci-cleanup

@@ -278,7 +278,7 @@ private fun AttributionDetailRow(
                     text = item.title,
                     style = MaterialTheme.typography.titleMedium,
                     color = NuvioTheme.colors.TextPrimary,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

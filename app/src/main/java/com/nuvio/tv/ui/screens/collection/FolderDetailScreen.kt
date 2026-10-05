@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.screens.collection
 
+import com.nuvio.tv.ui.theme.lineHeightDp
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 import androidx.activity.compose.BackHandler
@@ -558,8 +559,8 @@ private fun TabbedGridContent(
                                     .fillMaxWidth()
                                     .padding(top = NuvioTheme.spacing.sm)
                                     .height(
-                                        MaterialTheme.typography.titleMedium.lineHeight.value.dp +
-                                            MaterialTheme.typography.labelMedium.lineHeight.value.dp
+                                        MaterialTheme.typography.titleMedium.lineHeightDp(androidx.compose.ui.platform.LocalDensity.current) +
+                                            MaterialTheme.typography.labelMedium.lineHeightDp(androidx.compose.ui.platform.LocalDensity.current)
                                     )
                             )
                         }

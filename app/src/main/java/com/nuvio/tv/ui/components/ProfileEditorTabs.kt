@@ -87,7 +87,7 @@ private fun ProfileEditorTabItem(
         text = label,
         color = textColor,
         fontSize = 13.sp,
-        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium,
+        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
         modifier = Modifier
             .clip(shape)
             .background(backgroundColor)

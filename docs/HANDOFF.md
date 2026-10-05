@@ -375,3 +375,39 @@ and strip-path SEI, DV stream info, display output, 23.976/24 matching, track-fo
 ## Ownership / unfinished work
 Sequential writer, no lease. Admin actions (default branch, protection) remain in
 GITHUB_ADMIN_CHECKLIST; connector access to those settings is not available.
+
+## Independent user-requested Netflix theme
+
+MANDATORY before any further Netflix-theme work: read `docs/NETFLIX_TV_2026_PARITY_AUDIT.md`
+in full. It records the current Netflix TV reference as of 2026-10-03, the actual visual artifacts
+from Superfork Netflix Visual #3, the current EN/AR instrumentation failures, per-screen deltas,
+P0/P1 implementation order, RTL/focus/performance rules and the theme Done definition. It explicitly
+supersedes the older assumption that Netflix-theme navigation should use the pre-2025 left sidebar:
+the current reference uses top-of-screen navigation and a My Netflix hub. Do not merge, declare
+parity, or polish the old left rail around this requirement.
+
+`feat/netflix-theme` is an explicit-user-request extension, recorded separately
+as `user_authorized_task` in state.yaml and `tasks/NETFLIX_THEME.md`. G14 remains
+BLOCKED; its canonical gate/branch/task/owner and hardware campaign are unchanged.
+Theme implementation and verification are IN_PROGRESS. Existing content, focus,
+navigation, profile persistence and playback owners are reused. No Netflix assets
+or Netflix font/code are included (Thmanyah Sans is the maintainer's licensed font, private build
+input per docs/PRIVATE_FONTS.md). Verification evidence and remaining gaps
+are tracked in `docs/NETFLIX_THEME_VISUAL_VERIFICATION.md`.
+
+Progress (2026-10-03, draft PR #100): design contract = audit §1 (maintainer reference correction);
+measured reference pass at c194aec applied the maintainer's frame-measured geometry (880×400 hero,
+160×250 / 440×250 cards, 4-column Search, compact query line, 196 dp keyboard); 48/48 tests per job (run
+37154785016). Measured table and scores (implementable 97/100): docs/NETFLIX_REFERENCE_FIDELITY.md.
+
+Thmanyah Sans pass (2026-10-04): the maintainer's licensed Thmanyah Sans is the official UI font for
+every theme through `NuvioFontFamily` (Type.kt). The font files are private build input only, never
+tracked; CI receives them through the split THMANYAH_SANS_B64_NN secrets (docs/PRIVATE_FONTS.md). The APK
+carries them only as one AES-CTR encrypted asset that `NuvioUiFonts` decrypts in memory (no font file in
+res/assets, nothing written to disk). Licence status: THMANYAH_APP_EMBEDDING = PERMITTED_BY_SUPPLIED_LICENSE,
+THMANYAH_STANDALONE_REDISTRIBUTION = PROHIBITED (maintainer decision, 2026-10-04). Visual
+matrix and signed Test Build require that input. Netflix geometry unchanged unless rendered evidence shows
+clipping.
+
+Next action for this task: maintainer reviews screenshots 01–43 against the measured packet. Only after that approval: add [test-build] for the signed
+Test Build. TCL C6K remains MANUAL-PENDING. Do not merge, do not mark Done.

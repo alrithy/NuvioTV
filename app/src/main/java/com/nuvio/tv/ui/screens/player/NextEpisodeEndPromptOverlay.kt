@@ -74,7 +74,7 @@ fun NextEpisodeEndPromptOverlay(
         ) {
             Text(
                 text = stringResource(R.string.player_next_episode_prompt_title),
-                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.displaySmall.copy(fontWeight = FontWeight.Bold),
                 color = Color.White,
                 textAlign = TextAlign.Center
             )

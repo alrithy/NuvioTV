@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Well-known add-on catalog names, localized by CatalogNameFormatter (Netflix parity review, 2026-10-05). -->
+<resources>
+    <string name="catalog_name_popular">الأكثر رواجًا</string>
+    <string name="catalog_name_trending">الرائج الآن</string>
+    <string name="catalog_name_trending_today">الرائج اليوم</string>
+    <string name="catalog_name_trending_week">الرائج هذا الأسبوع</string>
+    <string name="catalog_name_top_rated">الأعلى تقييمًا</string>
+    <string name="catalog_name_most_watched">الأكثر مشاهدة</string>
+    <string name="catalog_name_anticipated">الأكثر ترقبًا</string>
+    <string name="catalog_name_box_office">شباك التذاكر</string>
+    <string name="catalog_name_top_10">أفضل 10</string>
+    <string name="catalog_name_new">جديد</string>
+    <string name="catalog_name_new_releases">إصدارات جديدة</string>
+    <string name="catalog_name_latest">الأحدث</string>
+    <string name="catalog_name_featured">مختارات</string>
+    <string name="catalog_name_recommended">مقترحات لك</string>
+    <string name="catalog_name_now_playing">يُعرض الآن</string>
+    <string name="catalog_name_upcoming">قريبًا</string>
+    <string name="catalog_name_airing_today">يُبث اليوم</string>
+    <string name="catalog_name_on_the_air">يُبث حاليًا</string>
+    <string name="catalog_name_discover">استكشاف</string>
+    <string name="catalog_name_streaming">منصات البث</string>
+    <string name="catalog_name_genres">التصنيفات</string>
+    <string name="catalog_name_studios">الاستوديوهات</string>
+    <string name="catalog_name_networks">الشبكات</string>
+    <string name="catalog_name_decades">العقود</string>
+    <string name="catalog_name_year">السنة</string>
+    <string name="catalog_name_language">اللغة</string>
+    <string name="catalog_name_collections">المجموعات</string>
+    <string name="catalog_name_movies">أفلام</string>
+    <string name="catalog_name_series">مسلسلات</string>
+</resources>

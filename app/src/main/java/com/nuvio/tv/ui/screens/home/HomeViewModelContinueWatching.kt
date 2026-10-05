@@ -26,6 +26,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.joinAll
@@ -265,9 +266,14 @@ private class CwDebugSession {
 internal fun HomeViewModel.loadContinueWatchingPipeline() {
     cwPipelineJob?.cancel()
     cwPipelineJob = viewModelScope.launch {
+        val pipelineProfileId = profileManager.activeProfileId.value
         combine(
             combine(
-                watchProgressRepository.allProgress,
+                watchProgressRepository.allProgress.onEach { items ->
+                    if (profileManager.activeProfileId.value == pipelineProfileId) {
+                        _homeCompletedProgress.value = homeCompletedProgressSnapshot(pipelineProfileId, items)
+                    }
+                },
                 watchProgressRepository.observeNextUpSeeds(),
                 watchProgressRepository.observeRemoteProgressLoaded()
             ) { items, nextUpSeeds, hasLoaded ->

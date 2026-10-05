@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.screens.player
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.clickable
@@ -78,7 +79,10 @@ fun PauseOverlay(
         modifier = modifier,
         captureKeys = false,
         dismissOnBackgroundClick = true,
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+        contentPadding = if (NuvioTheme.isNetflix) androidx.compose.foundation.layout.PaddingValues(
+            start = NetflixThemeTokens.Player.safeMargin, end = NetflixThemeTokens.Player.safeMargin,
+            top = NetflixThemeTokens.safeVerticalMargin, bottom = NetflixThemeTokens.Player.bottomScrimHeight / 2
+        ) else androidx.compose.foundation.layout.PaddingValues(
             start = NuvioTheme.spacing.huge,
             end = NuvioTheme.spacing.huge,
             top = 40.dp,
@@ -347,7 +351,7 @@ private fun CastDetailView(
                     text = member.name,
                     style = MaterialTheme.typography.headlineMedium,
                     color = Color.White,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = FontWeight.Bold,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )

@@ -2,6 +2,7 @@
 
 package com.nuvio.tv.ui.screens
 
+import com.nuvio.tv.ui.theme.lineHeightDp
 import com.nuvio.tv.domain.model.catalogRowLegacyKey
 import com.nuvio.tv.ui.theme.NuvioTheme
 
@@ -42,6 +43,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.nuvio.tv.ui.util.dpadRepeatThrottle
+import com.nuvio.tv.ui.util.localizedCatalogName
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -201,7 +203,7 @@ fun CatalogSeeAllScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = catalogRow?.catalogName ?: stringResource(R.string.catalog_see_all_title_fallback),
+                text = catalogRow?.catalogName?.let { localizedCatalogName(it) } ?: stringResource(R.string.catalog_see_all_title_fallback),
                 style = MaterialTheme.typography.headlineLarge,
                 color = NuvioTheme.colors.TextPrimary
             )
@@ -334,7 +336,7 @@ fun CatalogSeeAllScreen(
                                     modifier = Modifier
                                         .then(if (globalLandscape) Modifier.fillMaxWidth() else Modifier.width(posterCardStyle.width))
                                         .padding(top = NuvioTheme.spacing.sm)
-                                        .height(MaterialTheme.typography.titleMedium.lineHeight.value.dp)
+                                        .height(MaterialTheme.typography.titleMedium.lineHeightDp(androidx.compose.ui.platform.LocalDensity.current))
                                 )
                             }
                         }

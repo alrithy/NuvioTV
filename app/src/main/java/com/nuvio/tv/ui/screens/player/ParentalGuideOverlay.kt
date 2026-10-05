@@ -143,7 +143,7 @@ fun ParentalGuideOverlay(
                         text = warning.label,
                         fontSize = 11.sp,
                         color = Color.White.copy(alpha = 0.85f),
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Medium
                     )
                     Text(
                         text = " · ",

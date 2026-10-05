@@ -364,7 +364,7 @@ private fun TopMenuItem(
         Spacer(modifier = Modifier.width(NuvioTheme.spacing.sm))
         Text(
             text = item.label,
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.SemiBold),
+            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Medium),
             color = contentColor,
             maxLines = 1,
         )
@@ -390,7 +390,7 @@ internal fun TopMenuClock() {
     }
     Text(
         text = now.format(formatter),
-        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
         color = NuvioTheme.colors.TextPrimary,
         maxLines = 1,
     )

@@ -886,7 +886,7 @@ private fun NameAvatar(
             text = initial,
             style = MaterialTheme.typography.titleMedium,
             color = NuvioTheme.colors.TextPrimary,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
     }
 }
@@ -917,7 +917,7 @@ private fun PersonAvatar(
                 text = label.take(1).uppercase(),
                 style = MaterialTheme.typography.titleMedium,
                 color = NuvioTheme.colors.TextPrimary,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             )
         } else {
             Image(
@@ -993,7 +993,7 @@ private fun RowScope.SupportersTabButton(
                     selected -> NuvioTheme.colors.TextPrimary
                     else -> NuvioTheme.colors.TextSecondary
                 },
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

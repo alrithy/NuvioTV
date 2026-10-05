@@ -16,7 +16,9 @@ import com.nuvio.tv.fork.seek.seekPreviewSyncAction
 import com.nuvio.tv.ui.theme.NuvioMotion
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.theme.accentBrush
+import com.nuvio.tv.ui.util.contentTextDirection
 
 import android.util.Log
 import android.view.KeyEvent
@@ -39,6 +41,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
@@ -90,7 +94,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -98,6 +107,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -1223,14 +1233,15 @@ fun PlayerScreen(
             } else {
                 null
             },
-            rightFocusRequester = if (uiState.postPlayMode is PostPlayMode.AutoPlay) nextEpisodeFocusRequester else null,
+            rightFocusRequester = if (uiState.postPlayMode is PostPlayMode.AutoPlay && !(NuvioTheme.isNetflix && LocalLayoutDirection.current == LayoutDirection.Rtl)) nextEpisodeFocusRequester else null,
+            leftFocusRequester = if (uiState.postPlayMode is PostPlayMode.AutoPlay && NuvioTheme.isNetflix && LocalLayoutDirection.current == LayoutDirection.Rtl) nextEpisodeFocusRequester else null,
             onHideControls = {
                 if (uiState.showControls) viewModel.hideControls()
                 else viewModel.onEvent(PlayerEvent.OnToggleControls)
             },
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(start = NuvioTheme.spacing.xxl, bottom = skipButtonBottomPadding)
+                .padding(start = if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.safeMargin else NuvioTheme.spacing.xxl, bottom = skipButtonBottomPadding)
                 .zIndex(2.1f)
         )
         PostPlayOverlay(
@@ -1262,7 +1273,12 @@ fun PlayerScreen(
             onDismissStillWatching = { viewModel.onEvent(PlayerEvent.OnDismissStillWatchingPrompt) },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 26.dp, bottom = if (uiState.showControls) 122.dp else 30.dp)
+                .padding(
+                    end = if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.safeMargin else 26.dp,
+                    bottom = if (NuvioTheme.isNetflix) {
+                        if (uiState.showControls) NetflixThemeTokens.Player.bottomMargin + NetflixThemeTokens.Player.controlSize + NetflixThemeTokens.Player.scrubHitHeight + NetflixThemeTokens.rowGap else NetflixThemeTokens.Player.bottomMargin
+                    } else if (uiState.showControls) 122.dp else 30.dp
+                )
                 .zIndex(2.1f),
         )
 
@@ -2178,6 +2194,37 @@ private fun PlayerView.setAssOverlayVisibility(visibility: Int) {
 }
 
 @Composable
+internal fun NetflixPlayerContentHeading(uiState: PlayerUiState, modifier: Modifier = Modifier) {
+    val episodeContext = uiState.currentSeason != null && uiState.currentEpisode != null
+    val title = if (episodeContext) uiState.contentName ?: uiState.title else uiState.title
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(NetflixThemeTokens.Player.titleGap)) {
+        Text(
+            text = title,
+            color = NetflixThemeTokens.textPrimary,
+            style = MaterialTheme.typography.headlineSmall.copy(fontSize = NetflixThemeTokens.Player.titleSize,
+                fontWeight = FontWeight.Bold, textDirection = title.contentTextDirection()),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        if (episodeContext) {
+            val code = stringResource(R.string.season_episode_format, uiState.currentSeason!!, uiState.currentEpisode!!)
+            val context = LocalContext.current
+            val episodeTitle = uiState.currentEpisodeTitle?.takeIf(String::isNotBlank)?.localizeEpisodeTitle(context)
+            // Each part isolated so "S1 E2" and a Latin episode title keep their order in Arabic.
+            val label = com.nuvio.tv.ui.theme.netflixMetadataLine(listOf(code, episodeTitle))
+            Text(
+                text = label,
+                color = NetflixThemeTokens.textSecondary,
+                style = MaterialTheme.typography.titleMedium.copy(fontSize = NetflixThemeTokens.Player.episodeSize,
+                    textDirection = (episodeTitle ?: code).contentTextDirection()),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
 private fun PlayerControlsOverlay(
     uiState: PlayerUiState,
     viewModel: PlayerViewModel,
@@ -2227,12 +2274,12 @@ private fun PlayerControlsOverlay(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.topScrimHeight else 150.dp)
                 .align(Alignment.TopCenter)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.Black.copy(alpha = 0.7f),
+                            Color.Black.copy(alpha = if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.topScrimAlpha else 0.7f),
                             Color.Transparent
                         )
                     )
@@ -2243,28 +2290,39 @@ private fun PlayerControlsOverlay(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.bottomScrimHeight else 200.dp)
                 .align(Alignment.BottomCenter)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            Color.Black.copy(alpha = 0.8f)
+                            Color.Black.copy(alpha = if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.bottomScrimAlpha else 0.8f)
                         )
                     )
                 )
         )
 
+        if (NuvioTheme.isNetflix) {
+            NetflixPlayerContentHeading(
+                uiState = uiState,
+                modifier = Modifier.align(Alignment.TopStart)
+                    .padding(horizontal = NetflixThemeTokens.Player.safeMargin, vertical = NetflixThemeTokens.safeVerticalMargin)
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(horizontal = NuvioTheme.spacing.xxl, vertical = NuvioTheme.spacing.xl)
+                .padding(
+                    horizontal = if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.safeMargin else NuvioTheme.spacing.xxl,
+                    vertical = if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.bottomMargin else NuvioTheme.spacing.xl
+                )
         ) {
             val skipIntroVisible = uiState.activeSkipInterval != null
 
             AnimatedVisibility(
-                visible = !skipIntroVisible,
+                visible = !skipIntroVisible && !NuvioTheme.isNetflix,
                 enter = fadeIn(animationSpec = tween(NuvioMotion.tokens.durations.fast)),
                 exit = fadeOut(animationSpec = tween(NuvioMotion.tokens.durations.fast))
             ) {
@@ -2360,15 +2418,16 @@ private fun PlayerControlsOverlay(
                 Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
             }
 
-            // Control buttons row — always LTR regardless of locale
-            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+            // Playback time remains LTR; Netflix control order follows the remote user's locale.
+            CompositionLocalProvider(LocalLayoutDirection provides if (NuvioTheme.isNetflix) LocalLayoutDirection.current else LayoutDirection.Ltr) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xs),
+                    modifier = if (NuvioTheme.isNetflix) Modifier.weight(1f).horizontalScroll(rememberScrollState()) else Modifier,
+                    horizontalArrangement = Arrangement.spacedBy(if (NuvioTheme.isNetflix && !uiState.showMoreDialog) NetflixThemeTokens.Player.controlsGap else NuvioTheme.spacing.xs),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     val hasEpisodeContext = uiState.currentSeason != null && uiState.currentEpisode != null
@@ -2578,8 +2637,10 @@ private fun PlayerControlsOverlay(
                     )
                 }
 
-                // Right side - Time display only
-                PlayerControlsTimeTextHost(viewModel = viewModel)
+                // Time stays LTR at the logical end of the controls, including Arabic layouts.
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    PlayerControlsTimeTextHost(viewModel = viewModel)
+                }
             }
             }
         }
@@ -2619,16 +2680,38 @@ private fun PlayerControlsProgressBarHost(
 @Composable
 private fun PlayerControlsTimeTextHost(viewModel: PlayerViewModel) {
     val playbackTimeline by viewModel.playbackTimeline.collectAsState()
-    val timeText = if (playbackTimeline.isLive) {
-        stringResource(R.string.player_live_watched, formatTime(playbackTimeline.watchedDurationMs))
-    } else {
-        "${formatTime(playbackTimeline.currentPosition)} / ${formatTime(playbackTimeline.duration)}"
-    }
+    PlayerTimeText(
+        currentPositionMs = playbackTimeline.currentPosition,
+        durationMs = playbackTimeline.duration,
+        isLive = playbackTimeline.isLive,
+        watchedDurationMs = playbackTimeline.watchedDurationMs
+    )
+}
 
+/** Stateless elapsed / duration label, shared by the player and the Netflix TV fixtures. */
+@Composable
+internal fun PlayerTimeText(
+    currentPositionMs: Long,
+    durationMs: Long,
+    isLive: Boolean = false,
+    watchedDurationMs: Long = 0L
+) {
+    val timeText = if (isLive) {
+        stringResource(R.string.player_live_watched, formatTime(watchedDurationMs))
+    } else {
+        "${formatTime(currentPositionMs)} / ${formatTime(durationMs)}"
+    }
+    // NETFLIX_THEME keeps the player in the locale's direction; a timeline reads left to right in
+    // every locale, so "elapsed / duration" must not be reordered by an RTL paragraph.
+    val style = if (NuvioTheme.isNetflix) {
+        MaterialTheme.typography.bodyMedium.copy(fontSize = NetflixThemeTokens.Player.timeSize,
+            fontWeight = FontWeight.Medium, textDirection = androidx.compose.ui.text.style.TextDirection.Ltr)
+    } else MaterialTheme.typography.bodyMedium
     Text(
         text = timeText,
-        style = MaterialTheme.typography.bodyMedium,
-        color = Color.White.copy(alpha = 0.9f)
+        style = style,
+        color = Color.White.copy(alpha = 0.9f),
+        modifier = Modifier.testTag("player_time_text")
     )
 }
 
@@ -2674,7 +2757,7 @@ private fun ReportControlButton(
 }
 
 @Composable
-private fun ControlButton(
+internal fun ControlButton(
     icon: ImageVector,
     iconPainter: Painter? = null,
     contentDescription: String,
@@ -2691,7 +2774,7 @@ private fun ControlButton(
         onClick = onClick,
         enabled = enabled,
         modifier = Modifier
-            .size(NuvioTheme.spacing.xxxl)
+            .size(if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.controlSize else NuvioTheme.spacing.xxxl)
             .then(
                 if (focusRequester != null) Modifier.focusRequester(focusRequester)
                 else Modifier
@@ -2734,26 +2817,27 @@ private fun ControlButton(
             contentColor = Color.White,
             focusedContentColor = Color.Black
         ),
-        shape = IconButtonDefaults.shape(shape = CircleShape)
+        shape = IconButtonDefaults.shape(shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else CircleShape),
+        scale = if (NuvioTheme.isNetflix) IconButtonDefaults.scale(focusedScale = NetflixThemeTokens.episodeFocusScale) else IconButtonDefaults.scale()
     ) {
         if (iconPainter != null) {
             Icon(
                 painter = iconPainter,
                 contentDescription = contentDescription,
-                modifier = Modifier.size(NuvioTheme.spacing.xl)
+                modifier = Modifier.size(if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.controlIconSize else NuvioTheme.spacing.xl)
             )
         } else {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(if (NuvioTheme.isNetflix) NetflixThemeTokens.Player.controlIconSize else 28.dp)
             )
         }
     }
 }
 
 @Composable
-private fun ProgressBar(
+internal fun ProgressBar(
     currentPosition: Long,
     duration: Long,
     onSeekPreview: (Long) -> Unit,
@@ -2768,7 +2852,8 @@ private fun ProgressBar(
     /** Drawn over the track, e.g. seek-preview cue ticks (Superfork G7a). */
     overlay: @Composable BoxScope.() -> Unit = {}
 ) {
-    val accentBrush = NuvioTheme.palette.accentBrush()
+    val isNetflix = NuvioTheme.isNetflix
+    val accentBrush = if (isNetflix) SolidColor(NetflixThemeTokens.progress) else NuvioTheme.palette.accentBrush()
     val progress = if (duration > 0) {
         (currentPosition.toFloat() / duration.toFloat()).coerceIn(0f, 1f)
     } else 0f
@@ -2792,7 +2877,7 @@ private fun ProgressBar(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .height(if (isFocused) NuvioTheme.spacing.md else NuvioTheme.spacing.sm)
+            .height(if (isNetflix) NetflixThemeTokens.Player.scrubHitHeight else if (isFocused) NuvioTheme.spacing.md else NuvioTheme.spacing.sm)
             .then(
                 if (focusRequester != null) Modifier.focusRequester(focusRequester)
                 else Modifier
@@ -2876,17 +2961,32 @@ private fun ProgressBar(
                     false
                 }
             }
-            .clip(RoundedCornerShape(3.dp))
-            .background(
-                if (isFocused) Color.White.copy(alpha = 0.45f)
-                else Color.White.copy(alpha = 0.3f)
+            .then(
+                if (isNetflix) Modifier.drawWithCache {
+                    val trackHeight = (if (isFocused) NetflixThemeTokens.Player.scrubFocusedHeight else NetflixThemeTokens.Player.scrubHeight).toPx()
+                    val trackTop = (size.height - trackHeight) / 2f
+                    val radius = CornerRadius(NetflixThemeTokens.Player.scrubRadius.toPx())
+                    onDrawBehind {
+                        drawRoundRect(Color.White.copy(alpha = .30f), Offset(0f, trackTop), Size(size.width, trackHeight), radius)
+                        if (animatedBufferedProgress > 0f) {
+                            drawRoundRect(Color.White.copy(alpha = .45f), Offset(0f, trackTop), Size(size.width * animatedBufferedProgress, trackHeight), radius)
+                        }
+                        drawRoundRect(NetflixThemeTokens.progress, Offset(0f, trackTop), Size(size.width * animatedProgress, trackHeight), radius)
+                        if (isFocused) {
+                            val thumbRadius = NetflixThemeTokens.Player.scrubThumb.toPx() / 2f
+                            drawCircle(Color.White, thumbRadius, Offset((size.width * animatedProgress).coerceIn(thumbRadius, size.width - thumbRadius), size.height / 2f))
+                        }
+                    }
+                } else Modifier.clip(RoundedCornerShape(3.dp)).background(
+                    if (isFocused) Color.White.copy(alpha = 0.45f) else Color.White.copy(alpha = 0.3f)
+                )
             )
     ) {
         val trackWidth = maxWidth
 
         // Buffered-ahead overlay: the theme accent, faded so it reads under the played
         // fill and on light themes.
-        if (animatedBufferedProgress > 0f) {
+        if (!isNetflix && animatedBufferedProgress > 0f) {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -2896,7 +2996,7 @@ private fun ProgressBar(
             )
         }
         // Played fill.
-        Box(
+        if (!isNetflix) Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(trackWidth * animatedProgress)
@@ -2999,7 +3099,7 @@ private fun PlayerClockOverlay(
             text = timeFormatter.format(Date(nowMs)),
             style = MaterialTheme.typography.bodyMedium.copy(
                 fontSize = 13.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             ),
             color = Color.White.copy(alpha = 0.96f)
         )
@@ -3096,7 +3196,7 @@ private fun AspectRatioIndicator(text: String) {
             text = text,
             style = MaterialTheme.typography.titleMedium.copy(
                 fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Medium
             ),
             color = Color.White
         )
@@ -3148,7 +3248,7 @@ private fun PlayerEngineSwitchIndicator(
             )
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Medium),
                 color = Color.White
             )
         }
@@ -3201,7 +3301,7 @@ private fun SubtitleDelayOverlay(
         ) {
             Text(
                 text = stringResource(R.string.player_subtitle_delay),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 color = Color.White
             )
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
@@ -3574,16 +3674,16 @@ internal fun PlayerOverlayButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
-    val shape = RoundedCornerShape(NuvioTheme.spacing.xxl)
+    val shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.spacing.xxl)
     Button(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier,
         colors = ButtonDefaults.colors(
             containerColor = if (primary) Color.White else NuvioTheme.colors.BackgroundCard,
-            focusedContainerColor = if (primary) Color.White else NuvioTheme.colors.Secondary,
+            focusedContainerColor = if (NuvioTheme.isNetflix || primary) Color.White else NuvioTheme.colors.Secondary,
             contentColor = if (primary) Color.Black else NuvioTheme.colors.TextPrimary,
-            focusedContentColor = if (primary) Color.Black else NuvioTheme.colors.OnSecondary
+            focusedContentColor = if (NuvioTheme.isNetflix || primary) Color.Black else NuvioTheme.colors.OnSecondary
         ),
         shape = ButtonDefaults.shape(shape = shape),
         border = ButtonDefaults.border(
@@ -3596,7 +3696,7 @@ internal fun PlayerOverlayButton(
             horizontal = NuvioTheme.spacing.lg,
             vertical = 14.dp
         ),
-        scale = ButtonDefaults.scale()
+        scale = if (NuvioTheme.isNetflix) ButtonDefaults.scale(focusedScale = NetflixThemeTokens.episodeFocusScale) else ButtonDefaults.scale()
     ) {
         Text(
             text = text,
@@ -3719,9 +3819,9 @@ private fun MoreActionItem(
             .onFocusChanged { isFocused = it.isFocused },
         colors = CardDefaults.colors(
             containerColor = NuvioTheme.colors.BackgroundCard,
-            focusedContainerColor = NuvioTheme.colors.FocusBackground
+            focusedContainerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.surfaceRaised else NuvioTheme.colors.FocusBackground
         ),
-        shape = CardDefaults.shape(shape = RoundedCornerShape(10.dp))
+        shape = CardDefaults.shape(shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(10.dp))
     ) {
         Text(
             text = text,
@@ -3748,9 +3848,9 @@ private fun SpeedItem(
             .onFocusChanged { isFocused = it.isFocused },
         colors = CardDefaults.colors(
             containerColor = if (isSelected) NuvioTheme.colors.Secondary.copy(alpha = 0.2f) else NuvioTheme.colors.BackgroundCard,
-            focusedContainerColor = NuvioTheme.colors.FocusBackground
+            focusedContainerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.surfaceRaised else NuvioTheme.colors.FocusBackground
         ),
-        shape = CardDefaults.shape(shape = RoundedCornerShape(NuvioTheme.radii.sm))
+        shape = CardDefaults.shape(shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.radii.sm))
     ) {
         Row(
             modifier = Modifier
@@ -3792,8 +3892,8 @@ internal fun DialogButton(
         colors = ButtonDefaults.colors(
             containerColor = if (isPrimary) NuvioTheme.colors.Secondary else NuvioTheme.colors.BackgroundCard,
             contentColor = if (isPrimary) NuvioTheme.colors.OnSecondary else NuvioTheme.colors.TextSecondary,
-            focusedContainerColor = if (isPrimary) NuvioTheme.colors.SecondaryVariant else NuvioTheme.colors.FocusBackground,
-            focusedContentColor = if (isPrimary) NuvioTheme.colors.OnSecondaryVariant else NuvioTheme.colors.Primary
+            focusedContainerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focus else if (isPrimary) NuvioTheme.colors.SecondaryVariant else NuvioTheme.colors.FocusBackground,
+            focusedContentColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focusContent else if (isPrimary) NuvioTheme.colors.OnSecondaryVariant else NuvioTheme.colors.Primary
         ),
         border = ButtonDefaults.border(
             focusedBorder = Border(
@@ -3802,10 +3902,10 @@ internal fun DialogButton(
                 } else {
                     NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs)
                 },
-                shape = RoundedCornerShape(NuvioTheme.radii.md)
+                shape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.radii.md)
             )
         ),
-        shape = ButtonDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md)),
+        shape = ButtonDefaults.shape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.radii.md)),
         scale = ButtonDefaults.scale(focusedScale = 1f)
     ) {
         Text(

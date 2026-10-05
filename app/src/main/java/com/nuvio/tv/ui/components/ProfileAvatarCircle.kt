@@ -11,6 +11,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -30,7 +31,8 @@ fun ProfileAvatarCircle(
     size: Dp = 80.dp,
     isSelected: Boolean = false,
     avatarImageUrl: String? = null,
-    imageCrossfade: Boolean = true
+    imageCrossfade: Boolean = true,
+    avatarShape: Shape = CircleShape
 ) {
     val avatarColor = runCatching { Color(android.graphics.Color.parseColor(colorHex)) }
         .getOrDefault(Color(0xFF1E88E5))
@@ -49,11 +51,11 @@ fun ProfileAvatarCircle(
     Box(
         modifier = modifier
             .size(size)
-            .clip(CircleShape)
-            .background(avatarColor, CircleShape)
+            .clip(avatarShape)
+            .background(avatarColor, avatarShape)
             .then(
                 if (isSelected) {
-                    Modifier.border(3.dp, Color.White, CircleShape)
+                    Modifier.border(3.dp, Color.White, avatarShape)
                 } else {
                     Modifier
                 }
@@ -66,7 +68,7 @@ fun ProfileAvatarCircle(
                 contentDescription = name,
                 modifier = Modifier
                     .size(size)
-                    .clip(CircleShape),
+                    .clip(avatarShape),
                 contentScale = ContentScale.Crop
             )
         } else {

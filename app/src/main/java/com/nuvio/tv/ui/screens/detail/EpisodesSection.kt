@@ -3,6 +3,8 @@ package com.nuvio.tv.ui.screens.detail
 import android.view.KeyEvent as AndroidKeyEvent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import androidx.compose.foundation.background
@@ -61,6 +63,8 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -92,6 +96,9 @@ import com.nuvio.tv.ui.components.ImdbRatingSourceLabel
 import com.nuvio.tv.ui.components.NuvioDialog
 import com.nuvio.tv.ui.components.WatchedMarker
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
+import com.nuvio.tv.ui.theme.netflixPresentationPolicy
+import com.nuvio.tv.fork.resource.AdaptiveResources
 import com.nuvio.tv.domain.model.CardDepthSurface
 import com.nuvio.tv.ui.components.LocalCardDepthStyle
 import com.nuvio.tv.ui.components.nuvioCardDepth
@@ -130,11 +137,12 @@ fun SeasonTabs(
         regularSeasons + specials
     }
 
-    val tabShape = remember { RoundedCornerShape(20.dp) }
+    val isNetflix = NuvioTheme.isNetflix
+    val tabShape = remember(isNetflix) { RoundedCornerShape(if (isNetflix) NetflixThemeTokens.buttonRadius else 20.dp) }
     val tabBorder = CardDefaults.border(
         focusedBorder = Border(
             border = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs),
-            shape = RoundedCornerShape(20.dp)
+            shape = tabShape
         )
     )
     val tabScale = CardDefaults.scale(focusedScale = 1.0f)
@@ -205,8 +213,9 @@ fun SeasonTabs(
             }
             .focusGroup(),
         state = lazyListState,
-        contentPadding = PaddingValues(horizontal = NuvioTheme.spacing.xxxl, vertical = NuvioTheme.spacing.xl),
-        horizontalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.md)
+        contentPadding = PaddingValues(horizontal = if (isNetflix) NetflixThemeTokens.safeMargin else NuvioTheme.spacing.xxxl,
+            vertical = if (isNetflix) NetflixThemeTokens.actionGap else NuvioTheme.spacing.xl),
+        horizontalArrangement = Arrangement.spacedBy(if (isNetflix) NetflixThemeTokens.actionGap else NuvioTheme.spacing.md)
     ) {
         items(sortedSeasons, key = { it }) { season ->
             val isSelected = season == selectedSeason
@@ -282,17 +291,20 @@ fun SeasonTabs(
                     },
                 shape = CardDefaults.shape(shape = tabShape),
                 colors = CardDefaults.colors(
-                    containerColor = if (isSelected) NuvioTheme.colors.SurfaceVariant else NuvioTheme.colors.BackgroundCard,
-                    focusedContainerColor = NuvioTheme.colors.Secondary
+                    // NETFLIX_THEME chips: quiet idle, translucent selected, solid white only under focus.
+                    containerColor = if (isNetflix) {
+                        if (isSelected) NetflixThemeTokens.focus.copy(alpha = NetflixThemeTokens.secondaryActionFillAlpha) else Color.Transparent
+                    } else if (isSelected) NuvioTheme.colors.SurfaceVariant else NuvioTheme.colors.BackgroundCard,
+                    focusedContainerColor = if (isNetflix) NetflixThemeTokens.focus else NuvioTheme.colors.Secondary
                 ),
-                border = tabBorder,
+                border = if (isNetflix) CardDefaults.border() else tabBorder,
                 scale = tabScale
             ) {
                 Text(
                     text = if (season == 0) stringResource(R.string.episodes_specials) else stringResource(R.string.episodes_season, season),
                     style = tabTextStyle,
                     color = when {
-                        isFocused -> NuvioTheme.colors.OnSecondary
+                        isFocused -> if (isNetflix) NetflixThemeTokens.focusContent else NuvioTheme.colors.OnSecondary
                         isSelected -> NuvioTheme.colors.TextPrimary
                         else -> textSecondary
                     },
@@ -429,6 +441,7 @@ fun EpisodesRow(
     LazyRow(
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (NuvioTheme.isNetflix) Modifier.testTag("netflix_episodes") else Modifier)
             .onPreviewKeyEvent { event ->
                 val native = event.nativeKeyEvent
                 val isHorizontalKey = native.keyCode == AndroidKeyEvent.KEYCODE_DPAD_LEFT ||
@@ -580,6 +593,8 @@ private fun EpisodeCard(
     onFocused: (() -> Unit)? = null,
     onFocusRestored: (() -> Unit)? = null
 ) {
+    val isNetflix = NuvioTheme.isNetflix
+    val resourcePolicy = AdaptiveResources.policy
     val context = LocalContext.current
     val density = LocalDensity.current
     val configuration = LocalConfiguration.current
@@ -589,6 +604,7 @@ private fun EpisodeCard(
     val runtimeLabel = remember(episode.runtime) {
         episode.runtime?.takeIf { it > 0 }?.let(::formatEpisodeRuntime)
     }
+    val netflixRuntimeLabel = episode.runtime?.takeIf { it > 0 }?.let { stringResource(R.string.netflix_runtime_minutes, it) }
     val ratingLabel = remember(imdbRating) {
         imdbRating?.takeIf { it > 0.0 }?.let { String.format(Locale.US, "%.1f", it) }
     }
@@ -596,7 +612,7 @@ private fun EpisodeCard(
     val isWatched = remember(watchProgress, isMarkedWatched) { watchProgress?.isCompleted() == true || isMarkedWatched }
     val shouldBlur = remember(blurUnwatched, isWatched) { blurUnwatched && !isWatched }
     val progressPercent = remember(watchProgress) { watchProgress?.progressPercentage ?: 0f }
-    val showProgress = remember(watchProgress) { watchProgress?.isInProgress() == true }
+    val showProgress = remember(watchProgress, isNetflix, isWatched) { watchProgress?.isInProgress() == true || (isNetflix && isWatched) }
     val showCompletedBadge = isWatched
     val showNotStartedBadge = remember(showCompletedBadge, progressPercent) { !showCompletedBadge && progressPercent < 0.02f }
     val isUnavailable = remember(episode.available) { episode.available == false }
@@ -606,6 +622,11 @@ private fun EpisodeCard(
         with(density) { cardMetrics.cornerRadius.toPx() }
     }
     var isFocused by isFocusedState
+    val focusScale by animateFloatAsState(
+        targetValue = if (isNetflix && isFocused && !resourcePolicy.isLowRam) NetflixThemeTokens.episodeFocusScale else 1f,
+        animationSpec = tween(if (resourcePolicy.isLowRam) 0 else NetflixThemeTokens.focusDurationMillis),
+        label = "netflixEpisodeFocus"
+    )
     var longPressTriggered by remember { mutableStateOf(false) }
     val longPressKeyTracker = rememberLongPressKeyTracker()
     val shape = remember(cardMetrics.cornerRadius) { RoundedCornerShape(cardMetrics.cornerRadius) }
@@ -631,14 +652,14 @@ private fun EpisodeCard(
     val typography = MaterialTheme.typography
     val episodeBadgeStyle = remember(typography, cardMetrics) {
         typography.labelSmall.copy(
-            fontWeight = FontWeight.SemiBold,
+            fontWeight = FontWeight.Medium,
             letterSpacing = cardMetrics.episodeBadgeLetterSpacing,
             color = Color.White.copy(alpha = 0.9f)
         )
     }
     val titleStyle = remember(typography, cardMetrics) {
         typography.titleMedium.copy(
-            fontWeight = FontWeight.ExtraBold,
+            fontWeight = FontWeight.Bold,
             lineHeight = cardMetrics.titleLineHeight,
             shadow = Shadow(
                 color = Color.Black,
@@ -665,7 +686,7 @@ private fun EpisodeCard(
     val ratingStyle = remember(typography) {
         typography.labelSmall.copy(
             color = Color(0xFFF5C518),
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
     }
     val badgeBgColor = remember { Color.Black.copy(alpha = 0.42f) }
@@ -675,7 +696,10 @@ private fun EpisodeCard(
     val thumbnailRequest = remember(context, episode.thumbnail, thumbnailWidthPx, thumbnailHeightPx, shouldBlur) {
         ImageRequest.Builder(context)
             .data(episode.thumbnail)
-            .crossfade(true)
+            .apply {
+                if (isNetflix) crossfade(if (resourcePolicy.isLowRam) 0 else NetflixThemeTokens.heroCrossfadeMs)
+                else crossfade(true)
+            }
             .size(width = thumbnailWidthPx, height = thumbnailHeightPx)
             .apply {
                 if (shouldBlur) {
@@ -687,11 +711,15 @@ private fun EpisodeCard(
     val overlayBackdropUrl = remember(episode.thumbnail) {
         episodeOverlayBackdropUrl(episode.thumbnail)
     }
-    val overlayBackdropWidthPx = remember(configuration, density) {
-        with(density) { configuration.screenWidthDp.dp.roundToPx() }
+    val overlayBackdropWidthPx = remember(configuration, density, isNetflix) {
+        with(density) { configuration.screenWidthDp.dp.roundToPx() }.let { width ->
+            if (isNetflix) width.coerceAtMost(netflixPresentationPolicy(resourcePolicy.tier).maxBackdropWidthPx) else width
+        }
     }
-    val overlayBackdropHeightPx = remember(configuration, density) {
-        with(density) { configuration.screenHeightDp.dp.roundToPx() }
+    val overlayBackdropHeightPx = remember(configuration, density, isNetflix) {
+        with(density) { configuration.screenHeightDp.dp.roundToPx() }.let { height ->
+            if (isNetflix) height.coerceAtMost(netflixPresentationPolicy(resourcePolicy.tier).maxBackdropHeightPx) else height
+        }
     }
     val imageLoader = context.imageLoader
     val overlayPrefetchUrl = remember(episode.thumbnail, shouldBlur) {
@@ -709,9 +737,10 @@ private fun EpisodeCard(
         shouldBlur
     ) {
         if (!isFocused) return@LaunchedEffect
+        if (isNetflix && resourcePolicy.isLowRam) return@LaunchedEffect
         val url = overlayPrefetchUrl ?: return@LaunchedEffect
         if (overlayBackdropWidthPx <= 0 || overlayBackdropHeightPx <= 0) return@LaunchedEffect
-        delay(EPISODE_OVERLAY_PREFETCH_DELAY_MS)
+        delay(if (isNetflix && resourcePolicy.isConstrained) NetflixThemeTokens.previewDelayMs else EPISODE_OVERLAY_PREFETCH_DELAY_MS)
         val (decodeWidthPx, decodeHeightPx) = episodeOverlayBackdropDecodeSize(
             overlayBackdropWidthPx,
             overlayBackdropHeightPx,
@@ -743,7 +772,9 @@ private fun EpisodeCard(
 
     val primaryColor = NuvioTheme.colors.Primary
     val textPrimary = NuvioTheme.colors.TextPrimary
-    val focusRingBorder = NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs)
+    // NETFLIX_THEME: a thin translucent outline with the subtle scale, not a heavy white box.
+    val focusRingBorder = if (isNetflix) BorderStroke(NetflixThemeTokens.focusedBorderWidth,
+        NetflixThemeTokens.focus.copy(alpha = NetflixThemeTokens.focusOutlineAlpha)) else NuvioTheme.focusRing.border(NuvioTheme.spacing.xxs)
     val cardShape = CardDefaults.shape(shape = shape)
     val cardColors = CardDefaults.colors(
         containerColor = Color.Transparent,
@@ -768,6 +799,11 @@ private fun EpisodeCard(
         },
         modifier = Modifier
             .width(cardMetrics.cardWidth)
+            .then(if (isNetflix) Modifier.zIndex(if (isFocused) 1f else 0f).graphicsLayer {
+                scaleX = focusScale
+                scaleY = focusScale
+                shadowElevation = if (isFocused && !resourcePolicy.isConstrained) NetflixThemeTokens.focusElevation.toPx() else 0f
+            }.testTag("netflix_episode_${episode.id}") else Modifier)
             .focusRequester(focusRequester)
             .onFocusChanged {
                 isFocused = it.isFocused
@@ -817,6 +853,21 @@ private fun EpisodeCard(
         scale = cardScale,
         glow = cardGlow
     ) {
+        if (isNetflix) {
+            NetflixEpisodeCardContent(
+                episode = episode,
+                thumbnailRequest = thumbnailRequest,
+                metrics = cardMetrics,
+                isFocused = isFocused && !suppressMarquee,
+                isWatched = isWatched,
+                isUnavailable = isUnavailable,
+                runtimeLabel = netflixRuntimeLabel,
+                ratingLabel = ratingLabel,
+                description = description,
+                progress = if (isWatched) 1f else progressPercent.coerceIn(0f, 1f),
+                showProgress = showProgress
+            )
+        } else {
         Box(
             modifier = Modifier
                 .width(cardMetrics.cardWidth)
@@ -1064,6 +1115,113 @@ private fun EpisodeCard(
                 }
             }
         }
+        }
+    }
+}
+
+/** The same episode Card owns focus/activation; this is only its Netflix presentation. */
+@Composable
+private fun NetflixEpisodeCardContent(
+    episode: Video,
+    thumbnailRequest: ImageRequest,
+    metrics: EpisodeCardMetrics,
+    isFocused: Boolean,
+    isWatched: Boolean,
+    isUnavailable: Boolean,
+    runtimeLabel: String?,
+    ratingLabel: String?,
+    description: String,
+    progress: Float,
+    showProgress: Boolean
+) {
+    val context = LocalContext.current
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val episodeTitle = episode.title.localizeEpisodeTitle(context)
+    val title = remember(episode.episode, episodeTitle) {
+        episode.episode?.let { number ->
+            // Each part is isolated so a Latin title in Arabic (or the reverse) cannot reorder the number.
+            "${com.nuvio.tv.ui.theme.netflixIsolate(java.text.NumberFormat.getIntegerInstance(Locale.getDefault()).format(number))}. " +
+                com.nuvio.tv.ui.theme.netflixIsolate(episodeTitle)
+        } ?: episodeTitle
+    }
+    Column(
+        modifier = Modifier.width(metrics.cardWidth)
+            .background(if (isFocused) NetflixThemeTokens.surfaceRaised else NetflixThemeTokens.surface)
+    ) {
+        Box(modifier = Modifier.fillMaxWidth().height(metrics.cardHeight)) {
+            val fallback = remember { androidx.compose.ui.graphics.painter.ColorPainter(NetflixThemeTokens.surfaceMuted) }
+            AsyncImage(
+                model = thumbnailRequest,
+                contentDescription = episodeTitle,
+                contentScale = ContentScale.Crop,
+                placeholder = fallback,
+                error = fallback,
+                fallback = fallback,
+                modifier = Modifier.fillMaxSize()
+            )
+            if (isWatched) {
+                WatchedMarker(
+                    modifier = Modifier.align(Alignment.TopStart).padding(metrics.statusBadgeInset),
+                    size = metrics.statusBadgeSize,
+                    iconSize = metrics.statusIconSize
+                )
+            }
+            if (isUnavailable) {
+                Text(
+                    stringResource(R.string.episodes_unavailable),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = NetflixThemeTokens.textPrimary,
+                    modifier = Modifier.align(Alignment.TopEnd).padding(metrics.contentPadding)
+                        .background(NetflixThemeTokens.overlay, RoundedCornerShape(metrics.cornerRadius))
+                        .padding(metrics.contentPadding)
+                )
+            }
+            if (showProgress) {
+                Box(modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth()
+                    .height(NetflixThemeTokens.progressHeight).drawWithCache {
+                        onDrawBehind {
+                            drawRect(NetflixThemeTokens.surfaceMuted)
+                            val fillWidth = size.width * progress
+                            drawRect(
+                                NetflixThemeTokens.progress,
+                                topLeft = Offset(if (isRtl) size.width - fillWidth else 0f, 0f),
+                                size = Size(fillWidth, size.height)
+                            )
+                        }
+                    })
+            }
+        }
+        Column(
+            modifier = Modifier.fillMaxWidth().height(NetflixThemeTokens.Detail.episodeInfoHeight)
+                .padding(NetflixThemeTokens.Detail.episodeContentPadding),
+            verticalArrangement = Arrangement.spacedBy(NuvioTheme.spacing.xs)
+        ) {
+            Row(modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(NetflixThemeTokens.metadataGap),
+                verticalAlignment = Alignment.CenterVertically) {
+                FocusMarqueeText(
+                    text = title,
+                    focused = isFocused,
+                    style = MaterialTheme.typography.titleSmall.copy(textDirection = title.contentTextDirection()),
+                    color = NetflixThemeTokens.textPrimary,
+                    modifier = Modifier.weight(1f)
+                )
+                runtimeLabel?.let { label ->
+                    Text(label, style = MaterialTheme.typography.labelSmall,
+                        color = NetflixThemeTokens.textSecondary, maxLines = 1)
+                }
+            }
+            if (description.isNotBlank()) {
+                Text(description, style = MaterialTheme.typography.bodySmall.copy(textDirection = description.contentTextDirection()),
+                    color = NetflixThemeTokens.textSecondary,
+                    maxLines = if (ratingLabel != null) NetflixThemeTokens.Detail.episodeDescriptionWithRatingMaxLines else NetflixThemeTokens.Detail.episodeDescriptionMaxLines,
+                    overflow = TextOverflow.Ellipsis)
+            }
+            ratingLabel?.let { rating ->
+                Text("IMDb $rating", style = MaterialTheme.typography.labelSmall,
+                    color = NetflixThemeTokens.textSecondary, maxLines = 1)
+            }
+        }
     }
 }
 
@@ -1144,10 +1302,35 @@ private data class EpisodeCardMetrics(
 
 @Composable
 private fun rememberEpisodeCardMetrics(posterCardCornerRadiusDp: Int = 12): EpisodeCardMetrics {
+    val isNetflix = NuvioTheme.isNetflix
     val screenWidthDp = LocalConfiguration.current.screenWidthDp
     val userCornerRadius = posterCardCornerRadiusDp.dp
-    return remember(screenWidthDp, userCornerRadius) {
+    return remember(screenWidthDp, userCornerRadius, isNetflix) {
         when {
+            isNetflix -> EpisodeCardMetrics(
+                rowHorizontalPadding = NetflixThemeTokens.safeMargin,
+                rowVerticalPadding = NetflixThemeTokens.actionGap,
+                itemSpacing = NetflixThemeTokens.actionGap,
+                cardWidth = NetflixThemeTokens.episodeCardWidth,
+                cardHeight = NetflixThemeTokens.episodeCardWidth / NetflixThemeTokens.landscapeAspectRatio,
+                cornerRadius = NetflixThemeTokens.episodeCardRadius,
+                contentPadding = NetflixThemeTokens.Detail.episodeContentPadding,
+                contentBottomPadding = NetflixThemeTokens.Detail.episodeContentPadding,
+                episodeBadgeHorizontalPadding = NetflixThemeTokens.Detail.episodeContentPadding,
+                episodeBadgeVerticalPadding = NuvioTheme.spacing.xs,
+                episodeBadgeCornerRadius = NetflixThemeTokens.cardRadius,
+                episodeBadgeLetterSpacing = 0.sp,
+                titleLineHeight = NetflixThemeTokens.rowHeader,
+                descriptionLineHeight = NetflixThemeTokens.description,
+                descriptionMaxLines = NetflixThemeTokens.Detail.episodeDescriptionMaxLines,
+                metadataIconSize = NuvioTheme.spacing.lg,
+                imdbLogoWidth = NuvioTheme.spacing.xl,
+                imdbLogoHeight = NuvioTheme.spacing.md,
+                progressBarHeight = NetflixThemeTokens.progressHeight,
+                statusBadgeSize = NuvioTheme.spacing.xl,
+                statusIconSize = NuvioTheme.spacing.lg,
+                statusBadgeInset = NetflixThemeTokens.Detail.episodeContentPadding
+            )
             screenWidthDp >= 1300 -> EpisodeCardMetrics(
                 rowHorizontalPadding = NuvioTheme.spacing.huge,
                 rowVerticalPadding = 18.dp,

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Episode shuffle season scope, all-watched fallback and Mystery mode (Superfork G9d, D054). -->
+<resources>
+    <string name="shuffle_mystery_episode">حلقة غامضة</string>
+    <string name="shuffle_play_mystery">تشغيل حلقة غامضة</string>
+    <string name="shuffle_mystery_mode">الوضع الغامض: إخفاء رقم الحلقة حتى تبدأ</string>
+    <string name="shuffle_season_only">الموسم %1$d فقط</string>
+    <string name="shuffle_fallback_watched">مواصلة الخلط بين كل الحلقات بعد مشاهدتها جميعًا</string>
+    <string name="shuffle_option_on">✓ %1$s</string>
+    <string name="shuffle_option_off">%1$s</string>
+</resources>

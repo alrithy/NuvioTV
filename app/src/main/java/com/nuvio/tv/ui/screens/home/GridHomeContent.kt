@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.screens.home
 
+import com.nuvio.tv.ui.theme.lineHeightDp
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 import androidx.activity.compose.BackHandler
@@ -54,6 +55,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import com.nuvio.tv.ui.util.asStable
 import com.nuvio.tv.ui.util.contentTextDirection
 import com.nuvio.tv.ui.util.dpadRepeatThrottle
+import com.nuvio.tv.ui.util.localizedCatalogName
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -708,10 +710,11 @@ fun GridHomeContent(
                             "series" -> strTypeSeries
                             else -> gridItem.type.replaceFirstChar { it.uppercase() }
                         }
+                        val catalogName = localizedCatalogName(gridItem.catalogName).replaceFirstChar { it.uppercase() }
                         val displayName = if (uiState.catalogTypeSuffixEnabled && typeLabel.isNotBlank()) {
-                            "${gridItem.catalogName.replaceFirstChar { it.uppercase() }} - $typeLabel"
+                            "$catalogName - $typeLabel"
                         } else {
-                            gridItem.catalogName.replaceFirstChar { it.uppercase() }
+                            catalogName
                         }
                         SectionDivider(
                             catalogName = displayName
@@ -854,7 +857,7 @@ private fun GridStickyHeader(
         exit = fadeOut()
     ) {
         StickyCategoryHeader(
-            sectionName = currentSectionName ?: ""
+            sectionName = currentSectionName?.let { localizedCatalogName(it) } ?: ""
         )
     }
 }
@@ -994,7 +997,7 @@ private fun SeeAllGridCard(
             modifier = Modifier
                 .then(if (globalLandscape) Modifier.fillMaxWidth() else Modifier.width(posterCardStyle.width))
                 .padding(top = NuvioTheme.spacing.sm)
-                .height(MaterialTheme.typography.titleMedium.lineHeight.value.dp)
+                .height(MaterialTheme.typography.titleMedium.lineHeightDp(androidx.compose.ui.platform.LocalDensity.current))
         )
     }
 }

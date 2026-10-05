@@ -153,7 +153,7 @@ private fun SeekPreviewSyncOverlay(
         ) {
             Text(
                 text = stringResource(R.string.player_seek_preview_sync),
-                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.SemiBold),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 color = Color.White
             )
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {

@@ -11,6 +11,11 @@ plugins {
 
 import com.android.build.gradle.internal.tasks.L8DexDesugarLibTask
 import java.io.File
+import java.security.MessageDigest
+import java.security.SecureRandom
+import javax.crypto.Cipher
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 import java.util.Properties
 
 fun parseBooleanProperty(value: String?): Boolean {
@@ -80,6 +85,125 @@ fun truthy(value: String?): Boolean {
         value.equals("yes", ignoreCase = true)
 }
 
+// Thmanyah Sans (docs/PRIVATE_FONTS.md): the licensed UI font is private build input, never tracked.
+// It is read from an ignored directory and packed at build time into one AES-CTR encrypted asset
+// (no font file, no font filename) that the app decrypts in memory only. Without the input the build
+// falls back to the platform Sans, unless THMANYAH_FONT_REQUIRED demands the real font.
+val thmanyahFontManifest = rootProject.file("scripts/superfork/thmanyah_sans.sha256")
+val thmanyahFontFiles: Map<String, String> = thmanyahFontManifest.readLines().filter { it.isNotBlank() }
+    .associate { line -> line.trim().split(Regex("\\s+")).let { (digest, name) -> name to digest } }
+// Pack order and the OS/2 weight each file must carry.
+val thmanyahFontWeights = linkedMapOf(
+    "thmanyahsans-Light.otf" to 300,
+    "thmanyahsans-Regular.otf" to 400,
+    "thmanyahsans-Medium.otf" to 500,
+    "thmanyahsans-Bold.otf" to 700,
+    "thmanyahsans-Black.otf" to 900
+)
+check(thmanyahFontFiles.keys == thmanyahFontWeights.keys) { "thmanyah_sans.sha256 must list the five Thmanyah Sans weights" }
+val thmanyahFontDir: File = (providers.gradleProperty("thmanyahFontDir").orNull ?: env("THMANYAH_FONT_DIR"))
+    ?.trim()?.takeIf { it.isNotEmpty() }?.let { path -> File(path).takeIf { it.isAbsolute } ?: rootProject.file(path) }
+    ?: rootProject.file("private-fonts/thmanyah")
+val thmanyahFontRequired = truthy(providers.gradleProperty("thmanyahFontRequired").orNull ?: env("THMANYAH_FONT_REQUIRED"))
+val thmanyahFontProblem: String? = run {
+    if (!thmanyahFontDir.isDirectory) return@run "no directory at $thmanyahFontDir"
+    val present = thmanyahFontDir.listFiles().orEmpty().map { it.name }.filterNot { it.startsWith(".") }.toSet()
+    val missing = thmanyahFontFiles.keys - present
+    val extra = present - thmanyahFontFiles.keys
+    if (missing.isNotEmpty()) return@run "missing ${missing.sorted()}"
+    if (extra.isNotEmpty()) return@run "unexpected files ${extra.sorted()}"
+    thmanyahFontFiles.entries.firstOrNull { (name, digest) ->
+        val bytes = File(thmanyahFontDir, name).readBytes()
+        val sha = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }
+        sha != digest
+    }?.let { "${it.key} does not match scripts/superfork/thmanyah_sans.sha256" }
+}
+val thmanyahEmbedded = thmanyahFontProblem == null
+// Neutral asset path: the APK names no font file, family or extension.
+val nuvioUiFontPackAsset = "nuvio/ui-type.pack"
+
+abstract class PrepareThmanyahFontsTask : DefaultTask() {
+    @get:Input abstract val embedded: Property<Boolean>
+    @get:Input abstract val required: Property<Boolean>
+    @get:Input abstract val unavailableReason: Property<String>
+    @get:Input abstract val assetPath: Property<String>
+    @get:Input abstract val weights: MapProperty<String, Int>
+    @get:Input abstract val digests: MapProperty<String, String>
+    @get:InputFiles @get:PathSensitive(PathSensitivity.NAME_ONLY) abstract val fontFiles: ConfigurableFileCollection
+    @get:OutputDirectory abstract val assetsDir: DirectoryProperty
+    @get:OutputDirectory abstract val sourceDir: DirectoryProperty
+
+    @TaskAction
+    fun prepare() {
+        val assets = assetsDir.get().asFile.apply { deleteRecursively(); mkdirs() }
+        val src = sourceDir.get().asFile.apply { deleteRecursively(); mkdirs() }
+        if (!embedded.get() && required.get()) {
+            throw GradleException("THMANYAH_PRIVATE_FONT = missing (required): ${unavailableReason.get()}. " +
+                "Provide the five Thmanyah Sans OTF files (docs/PRIVATE_FONTS.md); this build must not ship the Sans fallback.")
+        }
+        val ordered = weights.get().entries.sortedBy { it.value }
+        val names = ordered.map { it.key }
+        val weightValues = ordered.map { it.value }.toIntArray()
+        val offsets = IntArray(names.size)
+        val lengths = IntArray(names.size)
+        val ivs = Array(names.size) { ByteArray(16) }
+        val key = ByteArray(16)
+        if (embedded.get()) {
+            // Storage protection only: AES-CTR keeps the exact original bytes recoverable, and the app
+            // checks the SHA-256 of what it decrypts. The key is fresh per build and lives in the dex.
+            val random = SecureRandom()
+            random.nextBytes(key)
+            val byName = fontFiles.files.associateBy { it.name }
+            val pack = File(assets, assetPath.get()).apply { parentFile.mkdirs() }
+            pack.outputStream().buffered().use { out ->
+                var offset = 0
+                names.forEachIndexed { index, name ->
+                    val plain = checkNotNull(byName[name]) { "missing $name" }.readBytes()
+                    random.nextBytes(ivs[index])
+                    val cipher = Cipher.getInstance("AES/CTR/NoPadding")
+                    cipher.init(Cipher.ENCRYPT_MODE, SecretKeySpec(key, "AES"), IvParameterSpec(ivs[index]))
+                    out.write(cipher.doFinal(plain))
+                    plain.fill(0)
+                    offsets[index] = offset
+                    lengths[index] = plain.size
+                    offset += plain.size
+                }
+            }
+        }
+        fun bytes(value: ByteArray) = value.joinToString(", ", "{", "}") { it.toString() }
+        fun ints(value: IntArray) = value.joinToString(", ", "{", "}")
+        fun strings(value: List<String>) = value.joinToString(", ", "{", "}") { "\"$it\"" }
+        val embeddedFlag = embedded.get()
+        // Java, like BuildConfig, so the Kotlin sources can reference it from a generated source root.
+        File(src, "com/nuvio/tv/ui/theme").apply { mkdirs() }.resolve("NuvioUiFontPack.java").writeText(
+            """
+            |package com.nuvio.tv.ui.theme;
+            |
+            |/** Generated by :app:prepare*ThmanyahFonts from the private font input; do not edit. */
+            |public final class NuvioUiFontPack {
+            |    private NuvioUiFontPack() {}
+            |
+            |    public static final boolean EMBEDDED = $embeddedFlag;
+            |    public static final String ASSET = "${assetPath.get()}";
+            |    public static final int[] WEIGHTS = ${ints(if (embeddedFlag) weightValues else IntArray(0))};
+            |    public static final int[] OFFSETS = ${ints(if (embeddedFlag) offsets else IntArray(0))};
+            |    public static final int[] LENGTHS = ${ints(if (embeddedFlag) lengths else IntArray(0))};
+            |    public static final String[] SHA256 = ${strings(if (embeddedFlag) names.map { digests.get().getValue(it) } else emptyList())};
+            |    private static final byte[] KEY = ${bytes(if (embeddedFlag) key else ByteArray(0))};
+            |    private static final byte[][] IVS = ${if (embeddedFlag) ivs.joinToString(", ", "{", "}") { bytes(it) } else "{}"};
+            |
+            |    /** A copy the caller clears after use. */
+            |    public static byte[] key() { return KEY.clone(); }
+            |    public static byte[] iv(int index) { return IVS[index].clone(); }
+            |}
+            |""".trimMargin()
+        )
+        key.fill(0)
+        logger.lifecycle("THMANYAH_PRIVATE_FONT = " +
+            if (embeddedFlag) "embedded (encrypted pack, ${lengths.sum()} bytes)" else "unavailable / fallback (${unavailableReason.get()})")
+    }
+}
+
 val buildingAppBundle = gradle.startParameter.taskNames.any { it.contains("bundle", ignoreCase = true) }
 val useDebugReleaseSigning = env("CI_USE_DEBUG_SIGNING").equals("true", ignoreCase = true)
 val useLocalFfmpegDecoder = truthy(
@@ -124,6 +248,7 @@ android {
         buildConfigField("String", "TMDB_API_KEY", "\"${localProperties.getProperty("TMDB_API_KEY", "")}\"")
         buildConfigField("String", "TV_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("TV_LOGIN_WEB_BASE_URL", "https://nuvio.tv/tv-login")}\"")
         buildConfigField("String", "DEVICE_LOGIN_WEB_BASE_URL", "\"${localProperties.getProperty("DEVICE_LOGIN_WEB_BASE_URL", "https://nuvio.tv/link")}\"")
+        buildConfigField("boolean", "THMANYAH_EMBEDDED", thmanyahEmbedded.toString())
         buildConfigField("boolean", "DOVI_NATIVE_ENABLED", enableDoviNative.toString())
         buildConfigField("boolean", "DOVI_EXTRACTOR_HOOK_READY", doviExtractorHookReady.toString())
         if (enableDoviNative) {
@@ -341,6 +466,22 @@ val superforkTestBuild = providers.gradleProperty("superforkTestBuild").orNull?.
     ?.also { require(it in 1..99_999) { "superforkTestBuild must be 1..99999" } }
 
 androidComponents {
+    onVariants { variant ->
+        val prepareFonts = tasks.register<PrepareThmanyahFontsTask>(
+            "prepare${variant.name.replaceFirstChar { it.uppercase() }}ThmanyahFonts"
+        ) {
+            embedded.set(thmanyahEmbedded)
+            required.set(thmanyahFontRequired)
+            unavailableReason.set(thmanyahFontProblem ?: "")
+            assetPath.set(nuvioUiFontPackAsset)
+            weights.set(thmanyahFontWeights)
+            digests.set(thmanyahFontFiles)
+            if (thmanyahEmbedded) fontFiles.from(thmanyahFontWeights.keys.map { File(thmanyahFontDir, it) })
+        }
+        // Under app/build (ignored); never uploaded as an artifact, removed by the CI cleanup step.
+        variant.sources.assets?.addGeneratedSourceDirectory(prepareFonts, PrepareThmanyahFontsTask::assetsDir)
+        variant.sources.java?.addGeneratedSourceDirectory(prepareFonts, PrepareThmanyahFontsTask::sourceDir)
+    }
     onVariants(selector().withBuildType("debug")) { variant ->
         val isPlaystore = variant.productFlavors.any { it.second == "playstore" }
         variant.applicationId.set(

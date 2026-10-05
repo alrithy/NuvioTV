@@ -241,6 +241,20 @@ jobs:
           fi
           echo "NUVIO_RELEASE_STORE_FILE=$RUNNER_TEMP/superfork-test.jks" >> "$GITHUB_ENV"
 
+      - name: Private Thmanyah Sans input (docs/PRIVATE_FONTS.md)
+        env:
+          THMANYAH_SANS_B64_01: ${{ secrets.THMANYAH_SANS_B64_01 }}
+          THMANYAH_SANS_B64_02: ${{ secrets.THMANYAH_SANS_B64_02 }}
+          THMANYAH_SANS_B64_03: ${{ secrets.THMANYAH_SANS_B64_03 }}
+          THMANYAH_SANS_B64_04: ${{ secrets.THMANYAH_SANS_B64_04 }}
+          THMANYAH_SANS_B64_05: ${{ secrets.THMANYAH_SANS_B64_05 }}
+          THMANYAH_SANS_B64_06: ${{ secrets.THMANYAH_SANS_B64_06 }}
+          THMANYAH_SANS_B64_07: ${{ secrets.THMANYAH_SANS_B64_07 }}
+          THMANYAH_SANS_B64_08: ${{ secrets.THMANYAH_SANS_B64_08 }}
+          THMANYAH_SANS_B64_09: ${{ secrets.THMANYAH_SANS_B64_09 }}
+          THMANYAH_SANS_B64_10: ${{ secrets.THMANYAH_SANS_B64_10 }}
+        run: python3 scripts/superfork/private_fonts.py ci-prepare --policy required
+
       - name: Build com.nuvio.tv.debug
         env:
           NUVIO_RELEASE_KEY_ALIAS: ${{ secrets.SUPERFORK_TEST_KEY_ALIAS || 'superforktest' }}
@@ -251,6 +265,9 @@ jobs:
           -PsuperforkTestAppId="$TEST_APP_ID"
           -PsuperforkTestBuild="${{ github.run_number }}"
           --stacktrace
+
+      - name: Check the APK carries no standalone font file (docs/PRIVATE_FONTS.md)
+        run: python3 scripts/superfork/private_fonts.py apk-check app/build/outputs/apk/full/debug/app-full-universal-debug.apk ${THMANYAH_FONT_DIR:+--embedded}
 
       - name: Verify the APK
         run: |
@@ -307,3 +324,7 @@ jobs:
       - name: Remove secrets from the runner
         if: always()
         run: rm -rf local.properties local.dev.properties "$RUNNER_TEMP/superfork-test.jks" "$RUNNER_TEMP/official" "$RUNNER_TEMP/official.properties"
+
+      - name: Remove the private font input and generated font resources
+        if: always()
+        run: python3 scripts/superfork/private_fonts.py ci-cleanup

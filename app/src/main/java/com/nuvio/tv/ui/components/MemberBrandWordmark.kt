@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.sp
+import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.nuvio.tv.domain.model.MemberTier
 import com.nuvio.tv.ui.membership.Membership
@@ -131,9 +132,10 @@ private fun LocalMemberSuffix(
         Text(
             text = badgeStyle.label,
             style = TextStyle(
+                fontFamily = MaterialTheme.typography.labelLarge.fontFamily,
                 brush = gradientBrush,
                 fontSize = (height.value * MemberWordmarkHeightRatio).sp,
-                fontWeight = FontWeight.SemiBold
+                fontWeight = FontWeight.Bold
             ),
             modifier = Modifier
                 .offset(y = height * MemberWordmarkVerticalOffsetRatio)

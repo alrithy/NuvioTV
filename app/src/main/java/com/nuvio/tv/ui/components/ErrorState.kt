@@ -2,12 +2,15 @@ package com.nuvio.tv.ui.components
 
 import com.nuvio.tv.ui.theme.NuvioPrimitives
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text as CoreText
 import androidx.compose.runtime.Composable
@@ -15,6 +18,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +44,19 @@ fun ErrorState(
         strings = rememberErrorStateStrings()
     ).annotated
 
+    if (NuvioTheme.isNetflix) {
+        // Title + the existing safe, formatted message (buildErrorStatePresentation) + Retry.
+        NetflixStatePanel(
+            title = stringResource(R.string.netflix_error_title),
+            body = displayMessage,
+            modifier = modifier.fillMaxSize(),
+            icon = Icons.Default.ErrorOutline,
+            actionLabel = stringResource(R.string.action_retry),
+            onAction = onRetry,
+        )
+        return
+    }
+
     Column(
         modifier = modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -48,7 +66,11 @@ fun ErrorState(
             text = displayMessage,
             style = MaterialTheme.typography.bodyLarge,
             color = NuvioTheme.colors.TextSecondary,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            modifier = if (NuvioTheme.isNetflix) {
+                Modifier.widthIn(max = NetflixThemeTokens.State.maxTextWidth)
+                    .padding(horizontal = NetflixThemeTokens.safeVerticalMargin)
+            } else Modifier
         )
         Spacer(modifier = Modifier.height(NuvioTheme.spacing.lg))
         Button(
@@ -56,10 +78,11 @@ fun ErrorState(
             colors = ButtonDefaults.colors(
                 containerColor = NuvioTheme.colors.BackgroundCard,
                 contentColor = NuvioTheme.colors.TextPrimary,
-                focusedContainerColor = NuvioTheme.colors.FocusBackground,
-                focusedContentColor = NuvioTheme.colors.Primary
+                focusedContainerColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focus else NuvioTheme.colors.FocusBackground,
+                focusedContentColor = if (NuvioTheme.isNetflix) NetflixThemeTokens.focusContent else NuvioTheme.colors.Primary
             ),
-            shape = ButtonDefaults.shape(RoundedCornerShape(NuvioTheme.radii.md))
+            shape = ButtonDefaults.shape(if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(NuvioTheme.radii.md)),
+            scale = if (NuvioTheme.isNetflix) ButtonDefaults.scale(focusedScale = NetflixThemeTokens.episodeFocusScale) else ButtonDefaults.scale()
         ) {
             Text(stringResource(R.string.action_retry))
         }

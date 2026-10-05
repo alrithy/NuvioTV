@@ -10,6 +10,7 @@ import re
 import sys
 import yaml
 from state_view import snapshot
+from user_authorized_task import validate_user_authorized_task
 
 class UniqueLoader(yaml.SafeLoader):
     pass
@@ -42,6 +43,7 @@ def validate(root):
     need(state['active_status'] in {'READY','IN_PROGRESS','BLOCKED','REVIEW','DONE'},'Invalid gate status')
     need(state['governance_status'] in {'REVIEW','READY'},'Invalid governance status')
     need(state['concurrent_writers_allowed'] is False,'Exactly one writer required')
+    errors.extend(validate_user_authorized_task(state.get('user_authorized_task'), root))
     if state['active_status']=='BLOCKED':need(bool(state.get('blocker')),'Blocked gate requires evidence/next step in blocker')
     for doc in ['docs/BASELINE.md','docs/SOURCE_MAP.md']:
         need(base in (root/doc).read_text(),doc+' disagrees with accepted baseline')

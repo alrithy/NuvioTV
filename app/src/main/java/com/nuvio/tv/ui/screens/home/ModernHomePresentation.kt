@@ -11,6 +11,7 @@ import com.nuvio.tv.domain.model.PLACEHOLDER_IMAGE_URL
 import com.nuvio.tv.domain.model.stableItemKey
 import com.nuvio.tv.ui.util.StableList
 import com.nuvio.tv.ui.util.asStable
+import com.nuvio.tv.ui.util.localizedCatalogName
 import kotlinx.coroutines.withContext
 
 @Immutable
@@ -23,7 +24,8 @@ internal data class ModernHomePresentationInput(
     val showCatalogTypeSuffix: Boolean,
     val showFullReleaseDate: Boolean,
     val showImdbRatings: Boolean,
-    val localeTag: String
+    val localeTag: String,
+    val netflixSources: NetflixHomeSources = NetflixHomeSources()
 )
 
 internal fun buildModernHomePresentation(
@@ -126,6 +128,10 @@ internal fun buildModernHomePresentation(
             cache.upcomingRow = null
         }
 
+        val netflixRows = buildNetflixSourceRows(input.netflixSources, localizedContext,
+            input.showFullReleaseDate, input.showImdbRatings)
+        netflixRows.firstOrNull { it.key == "netflix_my_list" }?.let(::add)
+
         visibleHomeRows.forEachIndexed { index, homeRow ->
             when (homeRow) {
                 is HomeRow.Catalog -> {
@@ -162,7 +168,8 @@ internal fun buildModernHomePresentation(
                                 row = row,
                                 showCatalogTypeSuffix = input.showCatalogTypeSuffix,
                                 strTypeMovie = strTypeMovie,
-                                strTypeSeries = strTypeSeries
+                                strTypeSeries = strTypeSeries,
+                                localizeName = { localizedCatalogName(localizedContext, it) }
                             ),
                             globalRowIndex = index,
                             catalogId = row.catalogId,
@@ -322,6 +329,7 @@ internal fun buildModernHomePresentation(
         cache.catalogRows.keys.retainAll(activeCatalogKeys)
         cache.catalogItemCache.keys.retainAll(activeCatalogKeys)
         cache.collectionRows.keys.retainAll(activeCollectionKeys)
+        netflixRows.firstOrNull { it.key == "netflix_because_you_watched" }?.let(::add)
     }
 
     val lookups = buildCarouselRowLookups(rows)

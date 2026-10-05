@@ -65,6 +65,7 @@ import com.nuvio.tv.LocaleCache
 import com.nuvio.tv.R
 import com.nuvio.tv.domain.model.AppIconOption
 import com.nuvio.tv.domain.model.AppTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.domain.model.CustomThemeColors
 import com.nuvio.tv.domain.model.SettingsUiStyle
 import com.nuvio.tv.ui.components.NuvioDialog
@@ -183,8 +184,8 @@ fun ThemeSettingsContent(
 
             SettingsGroupCard(
                 modifier = Modifier.fillMaxWidth(),
-                title = stringResource(R.string.appearance_color_theme),
-                subtitle = stringResource(R.string.appearance_color_theme_subtitle)
+                title = stringResource(R.string.appearance_theme),
+                subtitle = stringResource(if (uiState.selectedTheme == AppTheme.NETFLIX) R.string.theme_netflix_description else R.string.appearance_color_theme_subtitle)
             ) {
                 Box(modifier = Modifier.fillMaxWidth()) {
                     LazyRow(
@@ -428,12 +429,12 @@ private fun ThemeSwatchChip(
 ) {
     var isFocused by remember { mutableStateOf(false) }
     val palette = remember(theme, customColors) { ThemeColors.getColorPalette(theme, customColors) }
-    val chipShape = RoundedCornerShape(18.dp)
+    val chipShape = if (NuvioTheme.isNetflix) NetflixThemeTokens.buttonShape else RoundedCornerShape(18.dp)
 
     Card(
         onClick = onClick,
         modifier = modifier
-            .width(96.dp)
+            .width(if (theme == AppTheme.NETFLIX) NetflixThemeTokens.landscapeCardWidth else 96.dp)
             .onFocusChanged { state ->
                 val nowFocused = state.isFocused
                 if (isFocused != nowFocused) {
@@ -460,7 +461,9 @@ private fun ThemeSwatchChip(
                 .padding(horizontal = NuvioTheme.spacing.sm, vertical = NuvioTheme.spacing.md),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
+            if (theme == AppTheme.NETFLIX) {
+                NetflixThemeChoicePreview(isSelected = isSelected)
+            } else Box(
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
@@ -485,6 +488,27 @@ private fun ThemeSwatchChip(
                 color = if (isFocused || isSelected) NuvioTheme.colors.TextPrimary else NuvioTheme.colors.TextSecondary,
                 maxLines = 1
             )
+        }
+    }
+}
+
+@Composable
+internal fun NetflixThemeChoicePreview(isSelected: Boolean) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .clip(NetflixThemeTokens.cardShape)
+            .background(NetflixThemeTokens.background)
+            .padding(NetflixThemeTokens.cardGap),
+        verticalArrangement = Arrangement.spacedBy(NetflixThemeTokens.cardGap)
+    ) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Box(Modifier.width(32.dp).height(8.dp).background(NetflixThemeTokens.focus, NetflixThemeTokens.buttonShape))
+            if (isSelected) Icon(Icons.Default.Check, stringResource(R.string.cd_selected), tint = NetflixThemeTokens.focus, modifier = Modifier.size(12.dp))
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(NetflixThemeTokens.cardGap)) {
+            repeat(4) { Box(Modifier.weight(1f).height(12.dp).background(NetflixThemeTokens.surfaceRaised, NetflixThemeTokens.cardShape)) }
         }
     }
 }
@@ -578,6 +602,7 @@ private fun SettingsUiStyle.localizedDescription(): String = when (this) {
 
 @Composable
 private fun AppTheme.localizedName(): String = when (this) {
+    AppTheme.NETFLIX -> stringResource(R.string.theme_netflix)
     AppTheme.CUSTOM -> stringResource(R.string.theme_color_custom)
     AppTheme.GOLD -> stringResource(R.string.theme_color_gold)
     AppTheme.JADE -> stringResource(R.string.theme_color_jade)

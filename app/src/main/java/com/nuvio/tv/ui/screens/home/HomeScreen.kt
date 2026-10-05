@@ -1,6 +1,7 @@
 package com.nuvio.tv.ui.screens.home
 
 import com.nuvio.tv.ui.theme.NuvioTheme
+import com.nuvio.tv.ui.theme.NetflixThemeTokens
 
 import androidx.activity.compose.ReportDrawnWhen
 import androidx.compose.animation.AnimatedVisibility
@@ -78,6 +79,8 @@ private const val HOME_STABLE_GATE_TIMEOUT_MS = 5_000L
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
+    /** NETFLIX_THEME Movies / Shows: show only this content type ("movie" or "series"). */
+    typeFilter: String? = null,
     onNavigateToDetail: (String, String, String) -> Unit,
     onContinueWatchingClick: (ContinueWatchingItem) -> Unit = { item ->
         onNavigateToDetail(
@@ -95,9 +98,13 @@ fun HomeScreen(
     onContinueWatchingStartFromBeginning: (ContinueWatchingItem) -> Unit = onContinueWatchingClick,
     onContinueWatchingPlayManually: (ContinueWatchingItem) -> Unit = onContinueWatchingClick,
     onNavigateToCatalogSeeAll: (String, String, String) -> Unit = { _, _, _ -> },
-    onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> }
+    onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
+    onPlayClick: (String, String, String) -> Unit = onNavigateToDetail
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    // A theme changes presentation, never the profile's chosen official layout preference.
+    val isNetflix = NuvioTheme.isNetflix
+    val presentationLayout = if (isNetflix) HomeLayout.MODERN else uiState.homeLayout
 
     // Home was the only major screen without a lifecycle observer, so nothing ever told it to
     // look at its catalogs again.
@@ -105,7 +112,7 @@ fun HomeScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.beginShuffleHomeVisit()
+                if (typeFilter == null) viewModel.beginShuffleHomeVisit()
                 viewModel.refreshHomeCatalogsIfStale()
             }
         }
@@ -122,7 +129,7 @@ fun HomeScreen(
     val hasCollectionContent = uiState.homeRows.any { it is HomeRow.CollectionRow }
     val hasHeroContent = uiState.heroItems.isNotEmpty()
     val modernPresentationReady =
-        uiState.homeLayout != HomeLayout.MODERN ||
+        presentationLayout != HomeLayout.MODERN ||
             modernPresentation.rows.list.isNotEmpty() ||
             (uiState.heroSectionEnabled && hasHeroContent && !hasCatalogContent && !hasCollectionContent)
     var showHomeContentWithAnimation by rememberSaveable { mutableStateOf(false) }
@@ -133,8 +140,8 @@ fun HomeScreen(
     var catalogLoadingStarted by rememberSaveable { mutableStateOf(false) }
     var posterOptionsTarget by remember { mutableStateOf<HomePosterOptionsTarget?>(null) }
 
-    LaunchedEffect(uiState.homeLayout) {
-        if (uiState.homeLayout != HomeLayout.MODERN) {
+    LaunchedEffect(presentationLayout) {
+        if (presentationLayout != HomeLayout.MODERN) {
             HeroBackdropState.update(null)
         }
     }
@@ -356,6 +363,8 @@ fun HomeScreen(
                         visible = showHomeContentWithAnimation,
                         enter = if (hasShownInitialHomeContent) {
                             EnterTransition.None
+                        } else if (isNetflix) {
+                            fadeIn(animationSpec = tween(NetflixThemeTokens.screenTransitionMillis))
                         } else {
                             fadeIn(animationSpec = tween(320)) +
                                 slideInVertically(
@@ -364,7 +373,7 @@ fun HomeScreen(
                                 )
                         }
                     ) {
-                        when (uiState.homeLayout) {
+                        when (presentationLayout) {
                             HomeLayout.CLASSIC -> ClassicHomeRoute(
                                 viewModel = viewModel,
                                 uiState = uiState,
@@ -398,12 +407,15 @@ fun HomeScreen(
                             HomeLayout.MODERN -> ModernHomeRoute(
                                 viewModel = viewModel,
                                 uiState = uiState,
+                                typeFilter = typeFilter,
                                 onNavigateToDetail = onNavigateToDetailStable,
+                                onPlayClick = onPlayClick,
                                 onContinueWatchingClick = onContinueWatchingClickStable,
                                 onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginningStable,
                                 onContinueWatchingPlayManually = onContinueWatchingPlayManuallyStable,
                                 showContinueWatchingManualPlayOption = effectiveAutoplayEnabled,
                                 onNavigateToFolderDetail = onNavigateToFolderDetailStable,
+                                onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAllStable,
                                 isCatalogItemWatched = isCatalogItemWatched,
                                 onCatalogItemLongPress = onCatalogItemLongPress
                             )
@@ -632,18 +644,31 @@ private fun GridHomeRoute(
 private fun ModernHomeRoute(
     viewModel: HomeViewModel,
     uiState: HomeUiState,
+    typeFilter: String? = null,
     onNavigateToDetail: (String, String, String) -> Unit,
+    onPlayClick: (String, String, String) -> Unit,
     onContinueWatchingClick: (ContinueWatchingItem) -> Unit,
     onContinueWatchingStartFromBeginning: (ContinueWatchingItem) -> Unit,
     onContinueWatchingPlayManually: (ContinueWatchingItem) -> Unit,
     showContinueWatchingManualPlayOption: Boolean,
     onNavigateToFolderDetail: (String, String) -> Unit = { _, _ -> },
+    onNavigateToCatalogSeeAll: (String, String, String) -> Unit = { _, _, _ -> },
     isCatalogItemWatched: (MetaPreview) -> Boolean,
     onCatalogItemLongPress: (MetaPreview, String) -> Unit
 ) {
-    val focusState by viewModel.focusState.collectAsStateWithLifecycle()
+    val isNetflix = NuvioTheme.isNetflix
+    val homeFocusState by viewModel.focusState.collectAsStateWithLifecycle()
     val scrollToTopTrigger by viewModel.scrollToTopTrigger.collectAsStateWithLifecycle()
-    val modernPresentation by viewModel.modernHomePresentation.collectAsStateWithLifecycle()
+    val homePresentation by viewModel.modernHomePresentation.collectAsStateWithLifecycle()
+    // Movies / Shows keep their own focus memory so they never move Home's.
+    val focusState = if (typeFilter == null) homeFocusState else remember(typeFilter) { viewModel.typedFocusState(typeFilter) }
+    val modernPresentation = remember(homePresentation, typeFilter) {
+        if (typeFilter == null) homePresentation else homePresentation.filteredToType(typeFilter)
+    }
+    val routeUiState = remember(uiState, typeFilter) {
+        if (typeFilter == null) uiState
+        else uiState.copy(heroItems = uiState.heroItems.filter { matchesContentType(typeFilter, it.apiType) })
+    }
     val enrichingItemId by viewModel.enrichingItemId.collectAsStateWithLifecycle()
     val lastEnrichedPreview by viewModel.lastEnrichedPreview.collectAsStateWithLifecycle()
     val enrichedPreviews by viewModel.enrichedPreviews.collectAsStateWithLifecycle()
@@ -663,11 +688,19 @@ private fun ModernHomeRoute(
             viewModel.onEvent(HomeEvent.OnRemoveContinueWatching(contentId, season, episode, isNextUp))
         }
     }
-    val saveModernFocusState = remember(viewModel) {
+    val saveModernFocusState = remember(viewModel, typeFilter) {
         { vi: Int, vo: Int, rk: String?, ikm: Map<String, String>, m: Map<String, Int>, ma: Map<String, String>, ri: Int, ii: Int ->
-            viewModel.saveFocusState(vi, vo, rk, ikm, m, ma, ri, ii)
-            // Authoritative: this is the row that actually held focus when Home went away.
-            viewModel.setLiveFocusedRowKey(rk)
+            if (typeFilter != null) {
+                viewModel.saveTypedFocusState(typeFilter, HomeScreenFocusState(
+                    verticalScrollIndex = vi, verticalScrollOffset = vo, focusedRowKey = rk, focusedItemKeyByRow = ikm,
+                    catalogRowScrollStates = m, catalogRowScrollAnchors = ma, focusedRowIndex = ri, focusedItemIndex = ii,
+                    hasSavedFocus = true
+                ))
+            } else {
+                viewModel.saveFocusState(vi, vo, rk, ikm, m, ma, ri, ii)
+                // Authoritative: this is the row that actually held focus when Home went away.
+                viewModel.setLiveFocusedRowKey(rk)
+            }
         }
     }
     val preloadAdjacentItem = remember(viewModel) {
@@ -676,7 +709,7 @@ private fun ModernHomeRoute(
         }
     }
     ModernHomeContent(
-        uiState = uiState,
+        uiState = routeUiState,
         modernPresentation = modernPresentation,
         focusState = focusState,
         scrollToTopTrigger = scrollToTopTrigger,
@@ -687,6 +720,10 @@ private fun ModernHomeRoute(
         trailerPreviewUrls = viewModel.trailerPreviewUrls,
         trailerPreviewAudioUrls = viewModel.trailerPreviewAudioUrls,
         onNavigateToDetail = onNavigateToDetail,
+        onPlayClick = onPlayClick,
+        onCatalogLibraryAction = remember(viewModel) {
+            { item, addonBaseUrl -> viewModel.openPosterListPicker(item, addonBaseUrl) }
+        },
         onContinueWatchingClick = onContinueWatchingClick,
         onContinueWatchingStartFromBeginning = onContinueWatchingStartFromBeginning,
         onContinueWatchingPlayManually = onContinueWatchingPlayManually,
@@ -697,13 +734,17 @@ private fun ModernHomeRoute(
         isCatalogItemWatched = isCatalogItemWatched,
         onCatalogItemLongPress = onCatalogItemLongPress,
         onNavigateToFolderDetail = onNavigateToFolderDetail,
-        onItemFocus = remember(viewModel) {
-            { item -> viewModel.onItemFocus(item) }
+        onNavigateToCatalogSeeAll = onNavigateToCatalogSeeAll,
+        onItemFocus = remember(viewModel, NuvioTheme.isNetflix) {
+            { item ->
+                viewModel.onItemFocus(item)
+                if (isNetflix) viewModel.refreshPosterLibraryStatus(item)
+            }
         },
         onPreloadAdjacentItem = preloadAdjacentItem,
         onSaveFocusState = saveModernFocusState,
-        onFocusedRowKeyChanged = remember(viewModel) {
-            { key: String? -> viewModel.setLiveFocusedRowKey(key) }
+        onFocusedRowKeyChanged = remember(viewModel, typeFilter) {
+            { key: String? -> if (typeFilter == null) viewModel.setLiveFocusedRowKey(key) }
         },
         onRequestLazyCatalogLoad = remember(viewModel) {
             { catalogKey: String -> viewModel.requestLazyCatalogLoad(catalogKey) }
