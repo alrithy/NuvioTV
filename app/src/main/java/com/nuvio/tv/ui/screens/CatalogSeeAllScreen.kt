@@ -43,6 +43,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.nuvio.tv.ui.util.dpadRepeatThrottle
+import com.nuvio.tv.ui.util.localizedCatalogName
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -202,7 +203,7 @@ fun CatalogSeeAllScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = catalogRow?.catalogName ?: stringResource(R.string.catalog_see_all_title_fallback),
+                text = catalogRow?.catalogName?.let { localizedCatalogName(it) } ?: stringResource(R.string.catalog_see_all_title_fallback),
                 style = MaterialTheme.typography.headlineLarge,
                 color = NuvioTheme.colors.TextPrimary
             )

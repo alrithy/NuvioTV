@@ -610,9 +610,10 @@ internal fun catalogRowTitle(
     row: CatalogRow,
     showCatalogTypeSuffix: Boolean,
     strTypeMovie: String = "",
-    strTypeSeries: String = ""
+    strTypeSeries: String = "",
+    localizeName: (String) -> String = { it }
 ): String {
-    val catalogName = row.catalogName.replaceFirstChar { it.uppercase() }
+    val catalogName = localizeName(row.catalogName).replaceFirstChar { it.uppercase() }
     if (!showCatalogTypeSuffix) return catalogName
     val typeLabel = when (row.apiType.lowercase()) {
         "movie" -> strTypeMovie.ifBlank { row.apiType.replaceFirstChar { it.uppercase() } }

@@ -11,6 +11,7 @@ import com.nuvio.tv.domain.model.PLACEHOLDER_IMAGE_URL
 import com.nuvio.tv.domain.model.stableItemKey
 import com.nuvio.tv.ui.util.StableList
 import com.nuvio.tv.ui.util.asStable
+import com.nuvio.tv.ui.util.localizedCatalogName
 import kotlinx.coroutines.withContext
 
 @Immutable
@@ -167,7 +168,8 @@ internal fun buildModernHomePresentation(
                                 row = row,
                                 showCatalogTypeSuffix = input.showCatalogTypeSuffix,
                                 strTypeMovie = strTypeMovie,
-                                strTypeSeries = strTypeSeries
+                                strTypeSeries = strTypeSeries,
+                                localizeName = { localizedCatalogName(localizedContext, it) }
                             ),
                             globalRowIndex = index,
                             catalogId = row.catalogId,

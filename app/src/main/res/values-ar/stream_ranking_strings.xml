@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Stream ranking (Superfork G8b, D053). -->
+<resources>
+    <string name="autoplay_mode_best_quality">أفضل جودة</string>
+    <string name="autoplay_mode_best_quality_desc">يشغّل أفضل مصدر متاح: المخزّن مؤقتًا أولًا، ثم الدقة، وجودة المصدر (REMUX أولًا)، ومجموعة الإصدار، وDolby Vision / HDR الذي يعرضه تلفازك، والصوت غير المضغوط، والقنوات، والترميز، ومعدل البت.</string>
+    <string name="stream_list_order_best_quality">ترتيب المصادر حسب الجودة</string>
+    <string name="stream_list_order_best_quality_sub">يعرض المصادر بنفس الترتيب الذي يستخدمه التشغيل التلقائي بأفضل جودة. الإيقاف يُبقي ترتيب الإضافة.</string>
+</resources>

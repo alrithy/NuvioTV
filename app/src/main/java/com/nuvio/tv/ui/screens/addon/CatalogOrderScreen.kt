@@ -49,6 +49,7 @@ import com.nuvio.tv.ui.components.LoadingIndicator
 import androidx.compose.ui.res.stringResource
 import com.nuvio.tv.R
 import kotlinx.coroutines.launch
+import com.nuvio.tv.ui.util.localizedCatalogName
 
 @Composable
 fun CatalogOrderScreen(
@@ -188,7 +189,7 @@ private fun CatalogOrderCard(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${item.catalogName} - ${item.typeLabel.toDisplayTypeLabel()}",
+                    text = "${localizedCatalogName(item.catalogName)} - ${item.typeLabel.toDisplayTypeLabel()}",
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
                     color = if (item.isDisabled) NuvioTheme.colors.TextSecondary else NuvioTheme.colors.TextPrimary
                 )

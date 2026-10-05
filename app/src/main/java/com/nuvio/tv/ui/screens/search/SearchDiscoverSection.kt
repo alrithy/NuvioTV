@@ -88,6 +88,7 @@ import com.nuvio.tv.ui.util.dpadVerticalFastScroll
 import com.nuvio.tv.ui.util.formatAddonTypeLabel
 import com.nuvio.tv.ui.util.localizedContentType
 import com.nuvio.tv.ui.util.localizedGenreLabel
+import com.nuvio.tv.ui.util.localizedCatalogName
 
 @OptIn(ExperimentalTvMaterial3Api::class)
 @Composable
@@ -132,7 +133,7 @@ internal fun DiscoverSection(
         uiState.discoverCatalogs.map { it.type }.distinct()
     }
     val selectedTypeLabel = localizedTypeLabel(uiState.selectedDiscoverType)
-    val selectedCatalogLabel = selectedCatalog?.catalogName ?: stringResource(R.string.discover_select_catalog)
+    val selectedCatalogLabel = selectedCatalog?.catalogName?.let { localizedCatalogName(it) } ?: stringResource(R.string.discover_select_catalog)
     val selectedGenreLabel = uiState.selectedDiscoverGenre?.let { localizedGenreLabel(it) } ?: stringResource(R.string.discover_genre_default)
 
     Column(
@@ -181,7 +182,7 @@ internal fun DiscoverSection(
                 value = selectedCatalogLabel,
                 selectedValue = uiState.selectedDiscoverCatalogKey,
                 expanded = expandedPicker == "catalog",
-                options = filteredCatalogs.map { DiscoverOption(it.catalogName, it.key) },
+                options = filteredCatalogs.map { DiscoverOption(localizedCatalogName(it.catalogName), it.key) },
                 onExpandedChange = { shouldExpand ->
                     expandedPicker = if (shouldExpand) "catalog" else null
                 },

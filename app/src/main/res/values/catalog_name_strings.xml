@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Well-known add-on catalog names, localized by CatalogNameFormatter (Netflix parity review, 2026-10-05). -->
+<resources>
+    <string name="catalog_name_popular">Popular</string>
+    <string name="catalog_name_trending">Trending</string>
+    <string name="catalog_name_trending_today">Trending Today</string>
+    <string name="catalog_name_trending_week">Trending This Week</string>
+    <string name="catalog_name_top_rated">Top Rated</string>
+    <string name="catalog_name_most_watched">Most Watched</string>
+    <string name="catalog_name_anticipated">Anticipated</string>
+    <string name="catalog_name_box_office">Box Office</string>
+    <string name="catalog_name_top_10">Top 10</string>
+    <string name="catalog_name_new">New</string>
+    <string name="catalog_name_new_releases">New Releases</string>
+    <string name="catalog_name_latest">Latest</string>
+    <string name="catalog_name_featured">Featured</string>
+    <string name="catalog_name_recommended">Recommended</string>
+    <string name="catalog_name_now_playing">Now Playing</string>
+    <string name="catalog_name_upcoming">Upcoming</string>
+    <string name="catalog_name_airing_today">Airing Today</string>
+    <string name="catalog_name_on_the_air">On The Air</string>
+    <string name="catalog_name_discover">Discover</string>
+    <string name="catalog_name_streaming">Streaming</string>
+    <string name="catalog_name_genres">Genres</string>
+    <string name="catalog_name_studios">Studios</string>
+    <string name="catalog_name_networks">Networks</string>
+    <string name="catalog_name_decades">Decades</string>
+    <string name="catalog_name_year">Year</string>
+    <string name="catalog_name_language">Language</string>
+    <string name="catalog_name_collections">Collections</string>
+    <string name="catalog_name_movies">Movies</string>
+    <string name="catalog_name_series">Series</string>
+</resources>

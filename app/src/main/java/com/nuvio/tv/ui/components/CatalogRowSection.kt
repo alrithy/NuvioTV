@@ -75,6 +75,7 @@ import com.nuvio.tv.domain.model.PosterShape
 import com.nuvio.tv.ui.util.formatAddonTypeLabel
 import com.nuvio.tv.ui.util.localizedContentType
 import com.nuvio.tv.ui.util.contentTextDirection
+import com.nuvio.tv.ui.util.localizedCatalogName
 import androidx.compose.ui.platform.LocalContext
 
 @OptIn(ExperimentalTvMaterial3Api::class, ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
@@ -269,8 +270,8 @@ fun CatalogRowSection(
         val raw = catalogRow.rawType.takeIf { it.isNotBlank() } ?: catalogRow.apiType
         localizedContentType(catalogContext, raw)
     }
-    val catalogTitle = remember(catalogRow.catalogName, typeLabel, showCatalogTypeSuffix) {
-        val formattedName = catalogRow.catalogName.replaceFirstChar { it.uppercase() }
+    val catalogTitle = remember(catalogRow.catalogName, typeLabel, showCatalogTypeSuffix, catalogContext) {
+        val formattedName = localizedCatalogName(catalogContext, catalogRow.catalogName).replaceFirstChar { it.uppercase() }
         if (formattedName.isBlank()) ""
         else if (showCatalogTypeSuffix && typeLabel.isNotEmpty()) "$formattedName - $typeLabel" else formattedName
     }
