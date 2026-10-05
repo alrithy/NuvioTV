@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.screens.search
 
+import com.nuvio.tv.ui.theme.lineHeightDp
 import com.nuvio.tv.ui.theme.NetflixThemeTokens
 import com.nuvio.tv.ui.theme.NuvioTheme
 import com.nuvio.tv.ui.screens.home.HeroBackdropState
@@ -823,7 +824,7 @@ private fun DiscoverActionCard(
             modifier = Modifier
                 .then(if (globalLandscape) Modifier.fillMaxWidth() else Modifier.width(posterCardStyle.width))
                 .padding(top = NuvioTheme.spacing.sm)
-                .height(MaterialTheme.typography.titleMedium.lineHeight.value.dp)
+                .height(MaterialTheme.typography.titleMedium.lineHeightDp(androidx.compose.ui.platform.LocalDensity.current))
         )
     }
 }

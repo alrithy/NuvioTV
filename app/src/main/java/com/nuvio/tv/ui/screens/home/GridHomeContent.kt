@@ -1,5 +1,6 @@
 package com.nuvio.tv.ui.screens.home
 
+import com.nuvio.tv.ui.theme.lineHeightDp
 import com.nuvio.tv.ui.theme.NuvioTheme
 
 import androidx.activity.compose.BackHandler
@@ -994,7 +995,7 @@ private fun SeeAllGridCard(
             modifier = Modifier
                 .then(if (globalLandscape) Modifier.fillMaxWidth() else Modifier.width(posterCardStyle.width))
                 .padding(top = NuvioTheme.spacing.sm)
-                .height(MaterialTheme.typography.titleMedium.lineHeight.value.dp)
+                .height(MaterialTheme.typography.titleMedium.lineHeightDp(androidx.compose.ui.platform.LocalDensity.current))
         )
     }
 }

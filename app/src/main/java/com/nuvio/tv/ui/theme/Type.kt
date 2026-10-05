@@ -7,6 +7,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontSynthesis
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.ExperimentalTvMaterial3Api
@@ -78,6 +80,21 @@ fun TextStyle.withNuvioDescenderRoom(): TextStyle {
         lineHeight = maxOf(ratio, NuvioMinLineHeightEm).em,
         lineHeightStyle = LineHeightStyle(LineHeightStyle.Alignment.Top, LineHeightStyle.Trim.None)
     )
+}
+
+/**
+ * The height one line of this style takes, in dp, whatever unit its line height uses. Thmanyah styles
+ * keep their line height in em ([withNuvioDescenderRoom]), and `TextUnit.toDp()` throws for em
+ * ("Only Sp can convert to Px"); that exception, thrown while the Detail cast row was composed,
+ * terminated the app on the TCL C6K. Never convert a theme line height with `toDp()` or `value.dp`.
+ */
+fun TextStyle.lineHeightDp(density: Density): Dp = with(density) {
+    val size = if (fontSize.isSp) fontSize else 14.sp
+    when {
+        lineHeight.isSp -> lineHeight.toDp()
+        lineHeight.isEm -> size.toDp() * lineHeight.value
+        else -> size.toDp() * NuvioMinLineHeightEm
+    }
 }
 
 /**

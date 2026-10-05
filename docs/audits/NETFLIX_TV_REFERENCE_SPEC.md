@@ -9,18 +9,26 @@ Task: NETFLIX_THEME · Branch: feat/netflix-theme · Baseline: Test Build 76 (5c
 |---|---|---|
 | E1 Maintainer frame measurement of a 102.533 s TCL C6K Netflix TV recording (30 fps, 3076 frames, 910×512, perspective-normalised to 960×540, ±4–6 dp), PR #100 comment 2026-10-03 | Received as numbers; the video itself was never visible to the agent | Home top state, Home browse state, category strip, focused expansion, Top 10 presence, Search + Arabic keyboard, Search results, motion timing |
 | E2 Public press coverage of Netflix's May 2025 TV redesign (IBC, Engadget, MacRumors, Tom's Guide via web-search result text) | Search-result text only. about.netflix.com, help.netflix.com and press pages are blocked by this environment's network policy; no screenshot or video was seen | Navigation items and position; My Netflix contents; focused titles show richer info |
-| Official Netflix Help Center / Tudum pages | NOT ACCESSED (egress blocked) | — |
+| E3 Official Help Center / Tudum article text as quoted by web search (2026-10-05) | Search-result quotes only; the pages are egress-blocked | Back → top menu; Categories moved into Search; My Netflix contents; focused-card information |
+| Official Netflix Help Center / Tudum pages and screenshots | NOT ACCESSED (egress blocked) | — |
 | Interactive Netflix | NOT AVAILABLE | — |
 
 Nothing in this document comes from memory of older Netflix UIs. The legacy left sidebar is not a reference.
 
-## Structural facts (E2, textual)
+## Structural facts (E2/E3, textual)
 
-- Navigation is a bar across the top of the screen, not a left sidebar.
-- Items: Home, Shows, Movies, Games (where supported), My Netflix, plus Search and the profile.
-- My Netflix combines Continue Watching, My List and Reminders.
-- Moving across titles shows contextual information (genre, synopsis, length, rating) for each title without opening it; previews are larger.
-- NOT CONFIRMED by any accessible source: Back returning to the top bar; categories surfaced from Search. These were stated in the maintainer brief; they need E1-style evidence before implementation.
+E3 (added 2026-10-05): web-search result text for the official Help Center article "An update to the Netflix TV experience and layout" (help.netflix.com/en/node/321880164349028), the Tudum article "Netflix's New Layout: What to Know About the TV Redesign" and press coverage (Engadget, Tom's Guide, SlashGear, BGR, IBC). The pages themselves are blocked by this environment's egress policy (help.netflix.com, www.netflix.com, androidpolice.com, informitv.com, medium.com all returned EGRESS_BLOCKED on 2026-10-05); only the search engine's quoted text was read. No image or video from these sources was seen.
+
+| Fact | Source text (search-result quote) | Status |
+|---|---|---|
+| Navigation is a bar across the top, not a left sidebar | "a navigation bar across the top of the screen, instead of on the left-hand side" (IBC) | CONFIRMED (E2, E3) |
+| Items | "shortcuts to TV shows, movies, games, My Netflix, and your profiles in a menu at the top" (Help Center); "Search, Shows, Movies, Games, and My Netflix … always visible" (Tudum); press lists "Search", "Home", "Shows", "Movies", "My Netflix" | CONFIRMED; Games only where supported |
+| Back returns to the top menu | "Press the back button on your remote to quickly get back to the menu at the top of the homepage any time" (Help Center) | CONFIRMED (E3) — was NOT CONFIRMED in the first draft |
+| Categories live in Search | "The Categories shortcut has been removed from the menu options. You can choose Search … and select from the list on the left side, or search by categories or genres" (Tudum) | CONFIRMED (E3); exact Search category layout NOT OBSERVED |
+| My Netflix contents | "everything you've added to My List, titles to Continue Watching, shows and movies you watched and loved, Reminders, and more" (Help Center) | CONFIRMED |
+| Focused title expands | "the currently selected title card will expand into a larger, rectangular box"; "synopsis, runtime, award wins, Top 10 history, or key cast all up-front while you browse" (press) | CONFIRMED; geometry from E1 below |
+| Responsive recommendations | "the next row of recommendations changes after the user lingers on a title for a few seconds" (Engadget, Tom's Guide) | CONFIRMED as behaviour; Nuvio has no equivalent signal: DATA-LIMITED |
+| Fewer titles, more video/animation on Home | "fewer titles but more video and animation" (press) | CONFIRMED as intent; no geometry |
 
 ## Measured states (E1)
 
@@ -79,7 +87,7 @@ Every state below needs a recording or a frame measurement before any layout wor
 | Profile startup | all geometry, focus, Back |
 | Shows destination | layout, filters/genre entry, rows |
 | Movies destination | same |
-| Genre/category discovery from Search | layout, entry point, D-pad path |
+| Genre/category discovery from Search | Entry point is Search (E3), list "on the left side" in LTR (E3). Tile layout, D-pad path, RTL: NOT OBSERVED |
 | My Netflix | layout of Continue Watching / My List / Reminders, ordering, empty state |
 | Continue Watching row | card geometry, progress treatment |
 | Standard row title typography | size, weight (E1 gives geometry only) |
@@ -88,7 +96,7 @@ Every state below needs a recording or a frame measurement before any layout wor
 | Series / season / episode detail | season selector, episode cards, progress |
 | Play / My List / rating actions | sizes, order, focus |
 | Settings entry route | where it lives (profile menu?), presentation |
-| Back behaviour (every screen) | target of Back from content, from Detail, from Search |
+| Back behaviour (every screen) | From Home content: top menu (E3). Back from Detail, from Search and from nested rows: NOT OBSERVED |
 | Loading, empty and error states | all |
 | Gradients/scrims | stop positions and alphas (E1 gives none) |
 | Focus ring | width, colour, radius (E1: "thin light outline" only) |

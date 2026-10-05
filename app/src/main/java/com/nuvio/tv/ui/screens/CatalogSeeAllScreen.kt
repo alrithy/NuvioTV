@@ -2,6 +2,7 @@
 
 package com.nuvio.tv.ui.screens
 
+import com.nuvio.tv.ui.theme.lineHeightDp
 import com.nuvio.tv.domain.model.catalogRowLegacyKey
 import com.nuvio.tv.ui.theme.NuvioTheme
 
@@ -334,7 +335,7 @@ fun CatalogSeeAllScreen(
                                     modifier = Modifier
                                         .then(if (globalLandscape) Modifier.fillMaxWidth() else Modifier.width(posterCardStyle.width))
                                         .padding(top = NuvioTheme.spacing.sm)
-                                        .height(MaterialTheme.typography.titleMedium.lineHeight.value.dp)
+                                        .height(MaterialTheme.typography.titleMedium.lineHeightDp(androidx.compose.ui.platform.LocalDensity.current))
                                 )
                             }
                         }
