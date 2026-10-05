@@ -15,6 +15,10 @@ collect_log() {
   local status=$?
   trap - EXIT
   adb -s "$serial" logcat -d -v time > "$output/logcat.txt" 2>&1 || true
+  grep -n -A60 "FATAL EXCEPTION\|Fatal signal\|lowmemorykiller\|Out of memory" "$output/logcat.txt" | head -200 > "$output/fatal.txt" || true
+  if [ -s "$output/fatal.txt" ]; then
+    echo "::group::Fatal exception on the device"; cat "$output/fatal.txt"; echo "::endgroup::"
+  fi
   grep -E "NetflixSearchRestore|FocusOwner" "$output/logcat.txt" | tail -60 || true
   python3 scripts/superfork/print_visual_previews.py "$output" || true
   exit "$status"
@@ -84,6 +88,9 @@ run_instrumented_class com.nuvio.tv.ui.theme.NuvioDialogButtonThemeTest "$output
 # Thmanyah Sans root typography owner: embedded weights, Arabic shaping, mixed-script bounds.
 run_instrumented_class com.nuvio.tv.ui.theme.NuvioTypographyTvTest "$output/typography-instrumentation-result.txt" "Typography" \
   || failed_suites+=("Typography")
+# P0 Detail crash regression (TCL C6K): the production Detail content walked with real remote keys.
+run_instrumented_class com.nuvio.tv.ui.screens.detail.DetailRemoteNavigationTvTest "$output/detail-remote-instrumentation-result.txt" "Detail remote navigation" \
+  || failed_suites+=("Detail remote navigation")
 if [ "${#failed_suites[@]}" -gt 0 ]; then
   echo "Failed suites: ${failed_suites[*]}" >&2
   exit 1
